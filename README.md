@@ -29,7 +29,9 @@ Track reconstruction for E906/SeaQuest experiment
   * kSeeder: find track seeds using prop tube and station 3&4 hodo
   * kTracker: find/fit tracks using track seeds produced by kSeeder (slow)
   * kFastTracking: E866-style track finding with Kalman filter/chi square track fitting
-  * kOnlineTracking: track the data in real-time directly from MySQL while it is being decoded
+  * kOnlineTracking: track the data in real-time directly from MySQL while it is being decoded, 
+                     results are stored in local ROOT file and also pushed back to the database. 
+                     One thing to note is online tracking only use single muon vertex finding
   * milleAlign: millepede-based detector alignment
   * kVertex: find the single muon/dimuon vertex via vertex fit with Kalman-fitted tracks
   * kVertex_fast: find the single muon/dimuon vertex via vertex fit chisq-fitted tracks
@@ -39,5 +41,25 @@ Track reconstruction for E906/SeaQuest experiment
   * sqlDataReader: reads the data from MySQL and save it in ROOT file
   * update: update the wire position calucation with new alignment parameters
 
-3. Basic working chain
-
+3. How to use
+  
+  1. Before running track finding/fitting, data needs to be extracted from MySQL to local ROOT files, 
+     and/or apply latest alignment parameters
+     * Read data: ./sqlDataReader run_name_in_mysql raw_data
+     * Apply alignment parameters: ./update original_root_file updated_root_file
+     
+  2. Run complete Kalman filter based track finding and fitting:
+     * Find seeds: ./kSeeder raw_data raw_data_with_seed
+     * Find tracks: ./kTracker raw_data_with_seed raw_data_with_track
+     
+  3. Alternatively, one can also directly run fast tracking:
+     * Fast tracking: ./kFastTracking raw_data raw_data_with_track
+  
+  4. One can also run online track reconstruction which directly read data from MySQL database
+     * Online tracking: ./kOnlineTracking run_name_in_mysql raw_data_with_track
+  
+  5. After tracks are found, one can run both single muon/dimuon vertex finding to calculate Minv, etc.
+     * With Kalman-fitted tracks: ./kVertex raw_data_with_track raw_data_with_vertex
+     * With chisq-fitter tracks: ./kVertex_fast raw_data_with_track raw_data_with_vertex
+     
+     
