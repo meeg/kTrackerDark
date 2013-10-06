@@ -130,39 +130,39 @@ $(MILLEPEDEO): $(MILLEPEDES)
 	$(FORTRAN) $(FFLAGS) -c $^ -o $@
 
 $(KTRACKERSO):  $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(SOFLAGS) $(LDFLAGS) $^ -o $@
+	$(LD) $^ -o $@  $(SOFLAGS) $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KSEEDER):   $(KSEEDERO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KTRACKERMUL):   $(KTRACKERMULO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KFASTTRACK):   $(KFASTTRACKO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KONLINETRACK):   $(KONLINETRACKO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KVERTEX):   $(KVERTEXO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KVERTEXM):   $(KVERTEXMO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(KVERTEXF):   $(KVERTEXFO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 $(MILLEALIGN):   $(MILLEALIGNO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $(LDFLAGS) $^ -o $@ 
+	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
 .SUFFIXES: .cxx

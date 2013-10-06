@@ -97,7 +97,7 @@ bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
 
 bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 {
-  int eventID = rndm.Rndm()*getNEventsFast();
+  int eventID = int(rndm.Rndm()*getNEventsFast());
   return getEvent(rawEvent, eventID);
 }
 
