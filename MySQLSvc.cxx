@@ -16,7 +16,7 @@ MySQLSvc* MySQLSvc::p_mysqlSvc = NULL;
 
 MySQLSvc::MySQLSvc()
 {
-  eventID_last = -1;
+  eventID_last = 0;
   
   server = NULL;
   res = NULL;
@@ -92,20 +92,25 @@ bool MySQLSvc::isRunStopped()
 bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
 {
   if(!isNewEvtAvailable()) return false;
-  return getEventByID(rawEvent, eventID_last);
+  return getEvent(rawEvent, eventID_last);
 }
 
 bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 {
   int eventID = rndm.Rndm()*getNEventsFast();
-  return getEventByID(rawEvent, eventID);
+  return getEvent(rawEvent, eventID);
 }
 
-bool MySQLSvc::getEventByID(SRawEvent* rawEvent, int eventID)
+bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
+{
+  return getEvent(rawEvent, eventID_last+1);
+}
+
+bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
   rawEvent->clear();
   
-  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime FROM %s.Hit WHERE (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", dataSchema.c_str(), eventID);
+  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM %s.Hit WHERE (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", dataSchema.c_str(), eventID);
   if(!makeQuery()) return false;
 
   int nHits = res->GetRowCount();
@@ -127,6 +132,7 @@ bool MySQLSvc::getEventByID(SRawEvent* rawEvent, int eventID)
       h.elementID = elementID;
       h.tdcTime = atof(row->GetField(2));
       h.inTime = atoi(row->GetField(6));
+      h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
     
       if(row->GetField(3) == NULL)
 	{
@@ -146,8 +152,14 @@ bool MySQLSvc::getEventByID(SRawEvent* rawEvent, int eventID)
 	  h.driftDistance = atof(row->GetField(4));
 	}
 
-      h.hodoMask = 1;
-      h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
+      if(row->GetField(7) == NULL)
+	{
+	  h.hodoMask = 1;
+	}
+      else
+	{
+	  h.hodoMask = atoi(row->GetField(7));
+	}
 
       rawEvent->insertHit(h);
     }

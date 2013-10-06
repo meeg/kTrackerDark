@@ -46,9 +46,10 @@ public:
   int getNEvents();
 
   //Get the latest event
-  bool getEventByID(SRawEvent* rawEvent, int eventID);
+  bool getEvent(SRawEvent* rawEvent, int eventID);
   bool getLatestEvt(SRawEvent* rawEvent);
   bool getRandomEvt(SRawEvent* rawEvent);
+  bool getNextEvent(SRawEvent* rawEvent);
 
   //Output to database/txt file/screen
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
