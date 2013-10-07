@@ -62,7 +62,7 @@ public:
   void setLoggingSchema(std::string schema) { logSchema = schema; } 
 
   //Memory-safe sql queries
-  bool makeQuery();
+  int makeQuery();
   bool nextEntry();
 
 private:

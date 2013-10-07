@@ -63,8 +63,7 @@ bool MySQLSvc::connect(std::string sqlServer)
 bool MySQLSvc::isNewEvtAvailable()
 {
   sprintf(query, "SELECT eventID FROM %s.Event ORDER BY eventID DESC LIMIT 2", dataSchema.c_str());
-  if(!makeQuery()) return false;
-  if(res->GetRowCount() < 2) return false;
+  if(makeQuery() < 2) return false;
   
   nextEntry(); nextEntry();
   int eventID_curr = atoi(row->GetField(0));
@@ -77,8 +76,7 @@ bool MySQLSvc::isNewEvtAvailable()
 bool MySQLSvc::isRunStopped()
 {
   sprintf(query, "SELECT productionEnd from %s.production WHERE runID=%d", logSchema.c_str(), runID);
-  if(!makeQuery()) return false;
-  if(res->GetRowCount() != 1) return false;
+  if(makeQuery() != 1) return false;
 
   nextEntry();
   if(row->GetField(0) == NULL)
@@ -111,7 +109,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
  
   //Get the event header
   sprintf(query, "SELECT runID,spillID FROM %s.Event WHERE eventID=%d", dataSchema.c_str(), eventID);
-  if(!makeQuery()) return false;
+  if(makeQuery() != 1) return false;
 
   nextEntry();
   runID = atoi(row->GetField(0));
@@ -119,7 +117,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   rawEvent->setEventInfo(runID, spillID, eventID);
 
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM %s.Hit WHERE (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", dataSchema.c_str(), eventID);
-  if(!makeQuery()) return false;
+  if(makeQuery() == 0) return false;
 
   int nHits = res->GetRowCount();
   if(nHits < 1) return false;
@@ -177,7 +175,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 int MySQLSvc::getNEvents()
 {
   sprintf(query, "SELECT COUNT(*) FROM %s.Event", dataSchema.c_str());
-  if(!makeQuery()) return 0;
+  if(makeQuery() != 1) return 0;
 
   nextEntry();
   int nTotal = atoi(row->GetField(0));
@@ -301,16 +299,16 @@ int MySQLSvc::getNEventsFast()
   return nEvents;
 }
 
-bool MySQLSvc::makeQuery()
+int MySQLSvc::makeQuery()
 {
   //std::cout << query << std::endl;
-  if(server == NULL) return false;
+  if(server == NULL) return 0;
 
   if(res != NULL) delete res;
   res = server->Query(query);
 
-  if(res != NULL) return true;
-  return false;
+  if(res != NULL) return res->GetRowCount();
+  return 0;
 }
 
 bool MySQLSvc::nextEntry()

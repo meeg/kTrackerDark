@@ -562,6 +562,7 @@ void SRawEvent::print()
     }
   std::cout << "===================================================================" << std::endl;
 
+  return;
   for(std::vector<Hit>::iterator iter = fAllHits.begin(); iter != fAllHits.end(); ++iter)
     {
       iter->print();
