@@ -11,6 +11,7 @@
 #include <TSQLServer.h>
 #include <TSQLResult.h>
 #include <TSQLRow.h>
+#include <TLorentzVector.h>
 
 #include "SRawEvent.h"
 #include "GeomSvc.h"
@@ -35,7 +36,7 @@ int main(int argc, char **argv)
   TFile *saveFile = new TFile(argv[2], "recreate");
   TTree *saveTree = new TTree("save", "save");
 
-  saveTree->Branch("rawEvent", &event, 256000, 99);
+  saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
 
   cout << "Totally " << p_mysqlSvc->getNEventsFast() << " events in this run" << endl;
   while(p_mysqlSvc->getNextEvent(rawEvent))
