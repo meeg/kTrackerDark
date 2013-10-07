@@ -242,7 +242,7 @@ void GeomSvc::init(std::string geometrySchema)
 	  else
 	    {
 	      int splaneID = int((i - nChamberPlanes - nHodoPlanes - 1)/2);
-	      int moduleID = int((j - 1)/8);
+	      int moduleID = int((j - 1)/8);        //Need to re-define moduleID for run2, note it's reversed compared to elementID
 	      pos = x0[i]*costheta[i] + y0[i]*sintheta[i] + xoffset[i] + (j - (nElements[i]+1)/2.)*spacing[i] + offset_pos_prop[splaneID][moduleID];
 	    }
 	  map_wirePosition.insert(posType(make_pair(i, j), pos));
