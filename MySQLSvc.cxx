@@ -16,6 +16,8 @@ MySQLSvc* MySQLSvc::p_mysqlSvc = NULL;
 
 MySQLSvc::MySQLSvc()
 {
+  runID = -1;
+  spillID = -1;
   eventID_last = 0;
   
   server = NULL;
@@ -60,7 +62,7 @@ bool MySQLSvc::connect(std::string sqlServer)
 
 bool MySQLSvc::isNewEvtAvailable()
 {
-  sprintf(query, "SELECT eventID,runID,spillID FROM %s.Event ORDER BY eventID DESC LIMIT 2", dataSchema.c_str());
+  sprintf(query, "SELECT eventID FROM %s.Event ORDER BY eventID DESC LIMIT 2", dataSchema.c_str());
   if(!makeQuery()) return false;
   if(res->GetRowCount() < 2) return false;
   
@@ -69,9 +71,6 @@ bool MySQLSvc::isNewEvtAvailable()
   if(eventID_curr == eventID_last) return false;
     
   eventID_last = eventID_curr;
-  runID = atoi(row->GetField(1));
-  spillID = atoi(row->GetField(2));
-
   return true;
 }
 
@@ -109,15 +108,22 @@ bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
   rawEvent->clear();
-  
+ 
+  //Get the event header
+  sprintf(query, "SELECT runID,spillID FROM %s.Event WHERE eventID=%d", dataSchema.c_str(), eventID);
+  if(!makeQuery()) return false;
+
+  nextEntry();
+  runID = atoi(row->GetField(0));
+  spillID = atoi(row->GetField(1));
+  rawEvent->setsetEventInfo(runID, spillID, eventID);
+
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM %s.Hit WHERE (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", dataSchema.c_str(), eventID);
   if(!makeQuery()) return false;
 
   int nHits = res->GetRowCount();
   if(nHits < 1) return false;
-  //Log(nHits);
 
-  rawEvent->setEventInfo(runID, spillID, eventID);
   for(int i = 0; i < nHits; ++i)
     {
       nextEntry();
