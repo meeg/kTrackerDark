@@ -14,6 +14,8 @@ Track reconstruction for E906/SeaQuest experiment
   * PATH: $GEANT4SYS/bin and $ROOTSYS/bin
   * LD_LIBRARY_PATH: $GEANT4SYS/lib and $ROOTSYS/lib
   
+  On e906-gat2, there is one example environment setup script at ~liuk/env.sh.
+  
   Also one needs to modify the MODE_SWITCH.h:
   * KTRACKER_ROOT: change to the location of kTracker
   * DIMUON_MODE: change to 0 if one wants to save events with less than 2 muons
