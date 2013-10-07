@@ -116,7 +116,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   nextEntry();
   runID = atoi(row->GetField(0));
   spillID = atoi(row->GetField(1));
-  rawEvent->setsetEventInfo(runID, spillID, eventID);
+  rawEvent->setEventInfo(runID, spillID, eventID);
 
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM %s.Hit WHERE (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", dataSchema.c_str(), eventID);
   if(!makeQuery()) return false;
