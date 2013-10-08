@@ -38,13 +38,15 @@ int main(int argc, char **argv)
 
   saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
 
-  cout << "Totally " << p_mysqlSvc->getNEventsFast() << " events in this run" << endl;
-  while(p_mysqlSvc->getNextEvent(rawEvent))
+  int nEvents = p_mysqlSvc->getNEventsFast();
+  cout << "Totally " << nEvents << " events in this run" << endl;
+  for(int i = 0; i < nEvents; ++i)
     {
+      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
       if(rawEvent->getEventID() % 1000 == 0)
 	{
 	  cout << "Converting event " << rawEvent->getEventID() << endl;
-	  rawEvent->print();
+	  //rawEvent->print();
 	}
 
       saveTree->Fill();

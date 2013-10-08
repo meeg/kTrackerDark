@@ -16,7 +16,7 @@ LDFLAGS       = -O3
 SOFLAGS       = -shared
 
 ifeq ($(ARCH),macosx64)
-FORTRAN       = gfortran-4.2
+FORTRAN       = gfortran
 else
 FORTRAN       = g++
 endif
