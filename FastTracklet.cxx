@@ -70,7 +70,7 @@ bool Tracklet::isValid()
   if(stationID < 1 || stationID > 6) return false;
   if(nXHits < 1 || nUHits < 1 || nVHits < 1) return false;
   if(nXHits + nUHits + nVHits < 4) return false;
-  if(stationID < 5 && chisq > 10.) return false;
+  if(stationID < 5 && chisq > 15.) return false;
 
   if(fabs(tx) > TX_MAX || fabs(x0) > X0_MAX) return false;
   if(fabs(ty) > TY_MAX || fabs(y0) > Y0_MAX) return false;

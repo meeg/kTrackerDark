@@ -102,10 +102,10 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 	  double x_min, x_max, y_min, y_max;
 	  p_geomSvc->get2DBoxSize(i, j, x_min, x_max, y_min, y_max);
 	  
-	  x_min -= (0.1*(x_max - x_min));
-	  x_max += (0.1*(x_max - x_min));
-	  y_min -= (0.1*(y_max - y_min));
-	  y_max += (0.1*(y_max - y_min));
+	  x_min -= (0.15*(x_max - x_min));
+	  x_max += (0.15*(x_max - x_min));
+	  y_min -= (0.15*(y_max - y_min));
+	  y_max += (0.15*(y_max - y_min));
 
 	  x_mask_min[i-25][j-1] = x_min;
 	  x_mask_max[i-25][j-1] = x_max;
@@ -827,8 +827,8 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 	  double z_hodo = p_geomSvc->getPlanePosition(hitAll[*iter].detectorID);
     	  double x_hodo = tracklet.getExpPositionX(z_hodo);
 	  double y_hodo = tracklet.getExpPositionY(z_hodo);
-    	  double err_x = 2.*tracklet.getExpPosErrorX(z_hodo);
-	  double err_y = 2.*tracklet.getExpPosErrorY(z_hodo);
+    	  double err_x = 3.*tracklet.getExpPosErrorX(z_hodo);
+	  double err_y = 3.*tracklet.getExpPosErrorY(z_hodo);
 
 	  int idx1 = hitAll[*iter].detectorID - 25;
 	  int idx2 = hitAll[*iter].elementID - 1;

@@ -2,19 +2,19 @@
 #define _MODE_SWITCH_H
 
 //-------------- kTracker ROOT -------------------
-#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker"
+#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
 
 //--------------- Mode controls ------------------
 #define GEOMETRY_VERSION "geometry_R997"
 
 //==== Enable/disable dimuon mode
-#define DIMUON_MODE 1
+#define DIMUON_MODE 0
 
 //==== Turn on/off KMag
 #define KMAG_ON 1
 
 //==== Enable Kalman fitting in fast tracking and alignme
-#define _ENABLE_KF
+//#define _ENABLE_KF
 
 //==== Enable massive debugging output
 //#define _DEBUG_ON
@@ -28,7 +28,7 @@
 #define INVP_MIN 0.01
 #define INVP_MAX 0.1
 #define PROB_LOOSE 0.0
-#define PROB_TIGHT 0.001
+#define PROB_TIGHT 0.0
 #define HIT_REJECT 3.
 
 //--------------- Geometry setup -----------------
