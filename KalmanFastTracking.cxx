@@ -37,7 +37,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
     }
 
   //Initialize minuit minimizer
-  minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+  minimizer_simplex = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
+  minimizer_combine = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Combined");
   if(KMAG_ON == 1)
     {
       fcn = ROOT::Math::Functor(&tracklet_curr, &Tracklet::Eval, 5);
@@ -241,10 +242,23 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
   //Build tracklets in station 2, 3+, 3-
   //When i = 3, works for st3+, for i = 4, works for st3-
-  buildTrackletsInStation(2);
-  buildTrackletsInStation(3);
-  buildTrackletsInStation(4);
-  //buildTrackletsInStation(1);
+  buildTrackletsInStation(2); 
+  if(trackletsInSt[1].empty()) 
+    {
+#ifdef _DEBUG_ON
+      Log("Failed in tracklet build at station 2");
+#endif
+      return false;
+    }
+
+  buildTrackletsInStation(3); buildTrackletsInStation(4);
+  if(trackletsInSt[2].empty()) 
+    {
+#ifdef _DEBUG_ON
+      Log("Failed in tracklet build at station 2");
+#endif
+      return false;
+    }
 
   //Build back partial tracks in station 2, 3+ and 3-
   buildBackPartialTracks();
@@ -864,7 +878,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
 {
   tracklet_curr = tracklet;
- 
+
   minimizer->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
   minimizer->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
   minimizer->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);

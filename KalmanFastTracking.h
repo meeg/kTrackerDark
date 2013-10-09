@@ -145,7 +145,8 @@ private:
   Tracklet tracklet_curr;
 
   //Least chi square fitter and functor
-  ROOT::Math::Minimizer* minimizer;
+  ROOT::Math::Minimizer* minimizer_combined;
+  ROOT::Math::Minimizer* minimizer_simplex;
   ROOT::Math::Functor fcn;
 
   //Kalman fitter
