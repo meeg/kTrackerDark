@@ -884,8 +884,11 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
   tracklet_curr = tracklet;
 
   //idx = 0, using simplex; idx = 1 using migrad
-  int idx = 0;
-  if(tracklet.stationID >= 5) idx = 1;
+  int idx = 1;
+#ifdef _ENABLE_MULTI_MINI
+  if(tracklet.stationID < 5) idx = 0;
+#endif
+
   minimizer[idx]->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
   minimizer[idx]->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
   minimizer[idx]->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);

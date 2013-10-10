@@ -13,10 +13,13 @@
 //==== Turn on/off KMag
 #define KMAG_ON 1
 
-//==== Enable Kalman fitting in fast tracking and alignme
-//#define _ENABLE_KF
+//=== Enable multiple minimizer feature, disabled by default
+//#define _ENABLE_MULTI_MINI
 
-//==== Enable massive debugging output
+//==== Enable Kalman fitting in fast tracking and alignment, enabled by default
+#define _ENABLE_KF
+
+//==== Enable massive debugging output, disabled by default
 //#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
 
