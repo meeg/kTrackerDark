@@ -884,22 +884,18 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
   tracklet_curr = tracklet;
 
   //idx = 0, using simplex; idx = 1 using migrad
-  for(int i = 0; i < 2; ++i)
+  int idx = 0;
+  if(tracklet.stationID >= 5) idx = 1;
+  minimizer[idx]->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
+  minimizer[idx]->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
+  minimizer[idx]->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);
+  minimizer[idx]->SetLimitedVariable(3, "y0", tracklet.y0, 0.1, -Y0_MAX, Y0_MAX);
+  if(KMAG_ON == 1)
     {
-      minimizer[i]->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
-      minimizer[i]->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
-      minimizer[i]->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);
-      minimizer[i]->SetLimitedVariable(3, "y0", tracklet.y0, 0.1, -Y0_MAX, Y0_MAX);
-      if(KMAG_ON == 1)
-        {
-          minimizer[i]->SetLimitedVariable(4, "invP", tracklet.invP, 0.001*tracklet.invP, INVP_MIN, INVP_MAX);
-        }
-      minimizer[i]->Minimize();
+      minimizer[idx]->SetLimitedVariable(4, "invP", tracklet.invP, 0.001*tracklet.invP, INVP_MIN, INVP_MAX);
     }
+  minimizer[idx]->Minimize();
 
-  int idx = minimizer[0]->MinValue() < minimizer[1]->MinValue() ? 0 : 1;
-  //Log(idx << "  " << minimizer[0]->MinValue() << "  " << minimizer[1]->MinValue() );
-  
   tracklet.tx = minimizer[idx]->X()[0];
   tracklet.ty = minimizer[idx]->X()[1];
   tracklet.x0 = minimizer[idx]->X()[2];
