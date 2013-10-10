@@ -37,7 +37,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
     }
 
   //Initialize minuit minimizer
-  minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
+  minimizer[0] = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
+  minimizer[1] = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Combined");
   if(KMAG_ON == 1)
     {
       fcn = ROOT::Math::Functor(&tracklet_curr, &Tracklet::Eval, 5);
@@ -47,11 +48,14 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
       fcn = ROOT::Math::Functor(&tracklet_curr, &Tracklet::Eval, 4);
     }
 
-  minimizer->SetMaxFunctionCalls(1000000);
-  minimizer->SetMaxIterations(100);
-  minimizer->SetTolerance(1E-2);
-  minimizer->SetFunction(fcn);
-  minimizer->SetPrintLevel(0);
+  for(int i = 0; i < 2; ++i)
+    {
+      minimizer[i]->SetMaxFunctionCalls(1000000);
+      minimizer[i]->SetMaxIterations(100);
+      minimizer[i]->SetTolerance(1E-2);
+      minimizer[i]->SetFunction(fcn);
+      minimizer[i]->SetPrintLevel(0);
+    }
 
   //Minimize ROOT output
   extern Int_t gErrorIgnoreLevel;
@@ -212,7 +216,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 KalmanFastTracking::~KalmanFastTracking()
 {
   if(enable_KF) delete kmfitter;
-  delete minimizer;
+  delete minimizer[0];
+  delete minimizer[1];
 }
 
 bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
@@ -241,10 +246,23 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
   //Build tracklets in station 2, 3+, 3-
   //When i = 3, works for st3+, for i = 4, works for st3-
-  buildTrackletsInStation(2);
-  buildTrackletsInStation(3);
-  buildTrackletsInStation(4);
-  //buildTrackletsInStation(1);
+  buildTrackletsInStation(2); 
+  if(trackletsInSt[1].empty()) 
+    {
+#ifdef _DEBUG_ON
+      Log("Failed in tracklet build at station 2");
+#endif
+      return false;
+    }
+
+  buildTrackletsInStation(3); buildTrackletsInStation(4);
+  if(trackletsInSt[2].empty()) 
+    {
+#ifdef _DEBUG_ON
+      Log("Failed in tracklet build at station 3");
+#endif
+      return false;
+    }
 
   //Build back partial tracks in station 2, 3+ and 3-
   buildBackPartialTracks();
@@ -864,36 +882,39 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
 {
   tracklet_curr = tracklet;
- 
-  minimizer->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
-  minimizer->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
-  minimizer->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);
-  minimizer->SetLimitedVariable(3, "y0", tracklet.y0, 0.1, -Y0_MAX, Y0_MAX);
+
+  //idx = 0, using simplex; idx = 1 using migrad
+  int idx = 0;
+  if(tracklet.stationID >= 5) idx = 1;
+  minimizer[idx]->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
+  minimizer[idx]->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
+  minimizer[idx]->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);
+  minimizer[idx]->SetLimitedVariable(3, "y0", tracklet.y0, 0.1, -Y0_MAX, Y0_MAX);
   if(KMAG_ON == 1)
     {
-      minimizer->SetLimitedVariable(4, "invP", tracklet.invP, 0.001*tracklet.invP, INVP_MIN, INVP_MAX);
+      minimizer[idx]->SetLimitedVariable(4, "invP", tracklet.invP, 0.001*tracklet.invP, INVP_MIN, INVP_MAX);
     }
-  minimizer->Minimize();
-  
-  tracklet.tx = minimizer->X()[0];
-  tracklet.ty = minimizer->X()[1];
-  tracklet.x0 = minimizer->X()[2];
-  tracklet.y0 = minimizer->X()[3];
+  minimizer[idx]->Minimize();
+
+  tracklet.tx = minimizer[idx]->X()[0];
+  tracklet.ty = minimizer[idx]->X()[1];
+  tracklet.x0 = minimizer[idx]->X()[2];
+  tracklet.y0 = minimizer[idx]->X()[3];
  
-  tracklet.err_tx = minimizer->Errors()[0];
-  tracklet.err_ty = minimizer->Errors()[1];
-  tracklet.err_x0 = minimizer->Errors()[2];
-  tracklet.err_y0 = minimizer->Errors()[3];
+  tracklet.err_tx = minimizer[idx]->Errors()[0];
+  tracklet.err_ty = minimizer[idx]->Errors()[1];
+  tracklet.err_x0 = minimizer[idx]->Errors()[2];
+  tracklet.err_y0 = minimizer[idx]->Errors()[3];
 
   if(KMAG_ON == 1 && tracklet.stationID == 6)
     {
-      tracklet.invP = minimizer->X()[4];
-      tracklet.err_invP = minimizer->Errors()[4];
+      tracklet.invP = minimizer[idx]->X()[4];
+      tracklet.err_invP = minimizer[idx]->Errors()[4];
     }
 
-  tracklet.chisq = minimizer->MinValue();
+  tracklet.chisq = minimizer[idx]->MinValue();
  
-  int status = minimizer->Status();
+  int status = minimizer[idx]->Status();
   return status;
 }
 
