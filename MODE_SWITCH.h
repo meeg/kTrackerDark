@@ -17,7 +17,7 @@
 //#define _ENABLE_KF
 
 //==== Enable massive debugging output
-#define _DEBUG_ON
+//#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
 
 //--------------- Fast tracking configuration ----
@@ -28,7 +28,7 @@
 #define INVP_MIN 0.01
 #define INVP_MAX 0.1
 #define PROB_LOOSE 0.0
-#define PROB_TIGHT 0.00001
+#define PROB_TIGHT 0.00000001
 #define HIT_REJECT 3.
 
 //--------------- Geometry setup -----------------
