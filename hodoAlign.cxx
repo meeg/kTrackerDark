@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
   for(int i = 0; i < nHodos; i++)
     {
       nElement[i] = p_geomSvc->getPlaneNElements(hodoIDs[i]);
-      spacing = p_geomSvc->getPlaneSpacing(hodoIDs[i]);
+      spacing[i] = p_geomSvc->getPlaneSpacing(hodoIDs[i]);
       string detectorName = p_geomSvc->getDetectorName(hodoIDs[i]);
       for(int j = 0; j < nElement[i]; j++)
 	{
