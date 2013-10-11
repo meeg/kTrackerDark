@@ -68,8 +68,6 @@ double findCenter(TH1D *hist, double spacing)
 
 int main(int argc, char *argv[])
 {
-  //remove("alignment_hodo.txt");
-
   GeomSvc *p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
 
