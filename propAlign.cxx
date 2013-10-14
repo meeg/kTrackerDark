@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 	      n_real++;
 	    }
 	  cout << p_geomSvc->getDetectorName(propIDs[i]) << "  " << j << "  " << hist[i][j]->GetEntries() << "  " << offset[i][j] << endl;
-	  fout << offset[i][j] << endl;
+	  fout << p_geomSvc->getPlaneWOffset(propIDs[i], i) + offset[i][j] << endl;
 	}
 
       //Make plots
