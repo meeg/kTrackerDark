@@ -290,7 +290,6 @@ void MySQLSvc::writeDimuonTable(int dimuonID, int idx_positive, int idx_negative
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
-
 }
 
 int MySQLSvc::getNEventsFast()

@@ -129,8 +129,12 @@ void GeomSvc::init(std::string geometrySchema)
       y2[i] = -1E6;
     }
 
-  //TSQLServer *con = TSQLServer::Connect("mysql://seaquel.physics.illinois.edu", "seaguest","qqbar2mu+mu-");
-  TSQLServer *con = TSQLServer::Connect("mysql://localhost", "seaguest","qqbar2mu+mu-");
+  //Connect server
+  char serverName[200];
+  sprintf(serverName, "mysql://%s", MYSQL_SERVER);
+  TSQLServer *con = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
+  
+  //Make query to Planes table
   char query[300];
   const char* buf = "SELECT detectorName,spacing,cellWidth,overlap,numElements,angleFromVert,"
     "xPrimeOffset,x0,y0,z0,planeWidth,planeHeight,theta_x,theta_y,theta_z from %s.Planes WHERE"

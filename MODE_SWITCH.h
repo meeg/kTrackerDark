@@ -7,6 +7,9 @@
 //--------------- Mode controls ------------------
 #define GEOMETRY_VERSION "geometry_R997"
 
+//-------------- SQL database --------------------
+#define MYSQL_SERVER "localhost"
+
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0
 
@@ -23,6 +26,7 @@
 //#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
 
+//---------------------FOLLOWING PART SHOULD NOT BE CHANGED FOR NO GOOD REASON -----------------------
 //--------------- Fast tracking configuration ----
 #define TX_MAX 0.1
 #define TY_MAX 0.12
