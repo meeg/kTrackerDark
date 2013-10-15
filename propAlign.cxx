@@ -107,8 +107,6 @@ void linearFit(double x[], double y[], double w[], int n, double& a, double& b)
 
 int main(int argc, char *argv[])
 {
-  //remove("alignment_prop.txt");
-
   GeomSvc *p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
 
@@ -189,7 +187,7 @@ int main(int argc, char *argv[])
 	  propID = hitAll[hit_pairs.front().first].detectorID;
 	  elementID = hitAll[hit_pairs.front().first].elementID;     
 	  moduleID = Int_t((elementID-1)/8);                //Need to re-define moduleID for run2
-	  res = pos_exp - p_geomSvc->getMeasurement(propID, elementID);
+	  res = pos_exp - hitAll[hit_pairs.front().first].pos;//p_geomSvc->getMeasurement(propID, elementID);
 	  hist[j][moduleID]->Fill(res);
 	  saveTree->Fill();
 
@@ -203,7 +201,7 @@ int main(int argc, char *argv[])
 	  propID = hitAll[hit_pairs.front().second].detectorID;
 	  elementID = hitAll[hit_pairs.front().second].elementID;     
 	  moduleID = Int_t((elementID-1)/8);                //Need to re-define moduleID for run2
-	  res = pos_exp - p_geomSvc->getMeasurement(propID, elementID);
+	  res = pos_exp - hitAll[hit_pairs.front().second].pos;//p_geomSvc->getMeasurement(propID, elementID);
 	  hist[j][moduleID]->Fill(res);
 	  saveTree->Fill();
 	}
