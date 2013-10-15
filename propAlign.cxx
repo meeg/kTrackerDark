@@ -216,6 +216,7 @@ int main(int argc, char *argv[])
       double x[9], y[9], w[9];
       for(int j = 0; j < 9; j++)
 	{
+	  //NOTE: the original plane offset is already added here
 	  offset[i][j] = findCenter(hist[i][j]) + p_geomSvc->getPlaneWOffset(propIDs[i], j);
 	  if(offset[i][j] < 100.)
 	    {
@@ -258,10 +259,11 @@ int main(int argc, char *argv[])
 	      n_real++;
 	    }
 	  cout << p_geomSvc->getDetectorName(propIDs[i]) << "  " << j << "  " << hist[i][j]->GetEntries() << "  " << offset[i][j] << endl;
-	  fout << p_geomSvc->getPlaneWOffset(propIDs[i], j) + offset[i][j] << endl;
+	  fout << offset[i][j] << endl;
 	}
 
       //Make plots
+      /*
       TF1 line("line", "[0] + [1]*x", -1, 9);
       line.SetParameter(0, b[i]);
       line.SetParameter(1, a[i]);
@@ -285,6 +287,7 @@ int main(int argc, char *argv[])
       gr_ext.Draw("P same");
       gr_real.Draw("P same");
       c.SaveAs(p_geomSvc->getDetectorName(propIDs[i]).c_str());
+      */
     }
 
   //Save temporary results to ROOT file
