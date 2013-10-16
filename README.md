@@ -18,12 +18,13 @@ Track reconstruction for E906/SeaQuest experiment
   
   Also one needs to modify the MODE_SWITCH.h:
   * KTRACKER_ROOT: change to the location of kTracker
+  * MYSQL_SERVER: address of mysql server (contains geometry schema and/or data)
   * DIMUON_MODE: change to 0 if one wants to save events with less than 2 muons
   * KMAG_ON: change to 0 to turn off kMag
-  * _ENABLE_KF: comment out if one wants to disable Kalman Filter
+  * ENABLE_KF: comment out if one wants to disable Kalman Filter
   * Other variables
   
-  Go to TrackExtrapolator and make first, then go back to kTracker directory and make.
+  Go to TrackExtrapolator and make first, then go back to KTRACKER_ROOT directory and make.
   
 2. Executables
 
@@ -42,6 +43,12 @@ Track reconstruction for E906/SeaQuest experiment
   If needed, there are several executables that needs be compiled individually using: ./compile executable_name
   * sqlDataReader: reads the data from MySQL and save it in ROOT file
   * update: update the wire position calucation with new alignment parameters
+  * makeRTProfile: produce the R-T profile for drift chambers based on tracking results
+  * hodoAlign: find the alignment parameters (shift only) for hodoscopes
+  * propAlign: find the alignment parameters (shift only) for prop. tubes
+
+  There are some extra python scripts to run repeated works:
+  * runAlignment.py: run the alignment iteratively
 
 3. How to use
   
