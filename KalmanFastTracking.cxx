@@ -1098,13 +1098,11 @@ void KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
   kmtrk.getNodeList().back().getPredicted() = trkpar_curr;
 
   //Fit the track first with possibily a few nodes unresolved
-  fitTrack(kmtrk);
+  if(!fitTrack(kmtrk)) return;
 
   //Resolve left-right based on the current solution, re-fit if anything changed
   resolveLeftRight(kmtrk);
-  tracks.push_back(kmtrk);
-
-  //kmtrk.print();
+  if(kmtrk.isValid()) tracks.push_back(kmtrk);
 }
 
 bool KalmanFastTracking::fitTrack(KalmanTrack& kmtrk)
