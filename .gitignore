@@ -14,6 +14,9 @@
 
 # ROOT data file
 *.root
+*.eps
+*.pdf
+*.ps
 
 # txt data files
 *.txt

@@ -68,9 +68,6 @@ Tracklet::Tracklet()
 bool Tracklet::isValid()
 {
   if(stationID < 1 || stationID > 6) return false;
-  if(nXHits < 1 || nUHits < 1 || nVHits < 1) return false;
-  if(nXHits + nUHits + nVHits < 4) return false;
-  if(stationID < 5 && chisq > 15.) return false;
 
   if(fabs(tx) > TX_MAX || fabs(x0) > X0_MAX) return false;
   if(fabs(ty) > TY_MAX || fabs(y0) > Y0_MAX) return false;
@@ -79,8 +76,27 @@ bool Tracklet::isValid()
   double prob = getProb();
   if(prob < PROB_LOOSE) return false;
 
+  //Tracklets in each station
+  int nHits = nXHits + nUHits + nVHits;
+  if(stationID < 5)
+    {
+      if(nXHits < 1 || nUHits < 1 || nVHits < 1) return false;
+      if(nHits < 4) return false;
+      if(chisq > 15.) return false;
+    }
+
+  //Back partial
+  if(stationID == 5)
+    {
+      if(nXHits < 2 || nUHits < 2 || nVHits < 2) return false;
+      if(nHits < 8) return false; 
+    }
+
+  //Global tracks
   if(stationID == 6)
     {
+      if(nXHits < 3 || nUHits < 3 || nVHits < 3) return false;
+      if(nHits < 12) return false;
       if(prob < PROB_TIGHT) return false;
       
       if(KMAG_ON == 1)
