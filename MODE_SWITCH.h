@@ -35,7 +35,7 @@
 #define INVP_MIN 0.01
 #define INVP_MAX 0.1
 #define PROB_LOOSE 0.0
-#define PROB_TIGHT 0.000001
+#define PROB_TIGHT 0.001
 #define HIT_REJECT 3.
 
 //--------------- Geometry setup -----------------

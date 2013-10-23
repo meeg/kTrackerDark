@@ -147,7 +147,7 @@ public:
   void resetFlags();
 
   ///Overriden operators
-  bool operator<(const Node& elem) { return _z < elem._z; };
+  bool operator<(const Node& elem) const { return _z < elem._z; };
 
 private:
   TMatrixD _measurement;
