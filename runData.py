@@ -14,7 +14,7 @@ command['update']  = r"'./update data/'+schema+'.root data/'+schema+'_temp.root 
 exe_name['seed'] = 'kSeeder'
 command['seed']  = r"'./kSeeder data/'+schema+'.root data/'+schema+'_seed.root > log_seed_'+schema+' &'"
 
-exe_name['track'] = 'kTracker_multi'
+exe_name['track'] = 'kTracker'
 command['track']  = r"'./kTracker data/'+schema+'_seed.root data/'+schema+'_track.root > log_track_'+schema+' &'"
 
 exe_name['vertex'] = 'kVertex'

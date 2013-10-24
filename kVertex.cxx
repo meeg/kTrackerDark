@@ -34,7 +34,7 @@ TLorentzVector getMom(double px, double py, double pz)
   return p;
 }
 
-void calc_variables(TLorentzVector& p1, TLorentzVector& p2, double& mass, double& pT, double& xF, double& x1, double& x2)
+void calc_variables(TLorentzVector p1, TLorentzVector p2, double& mass, double& pT, double& xF, double& x1, double& x2)
 {
   double mp = 0.938;
   double ebeam = 120.;
@@ -110,7 +110,8 @@ int main(int argc, char *argv[])
   int hypoID[30];
   double mass_pair[30];
   double mass_single[30];
-  double pT[30], xF[30], x1[30], x2[30];
+  double pT_pair[30], xF_pair[30], x1_pair[30], x2_pair[30];
+  double pT_single[30], xF_single[30], x1_single[30], x2_single[30];
 
   TFile *saveFile = new TFile(argv[2], "recreate");
   TTree *saveTree = new TTree("save", "save");
@@ -155,11 +156,16 @@ int main(int argc, char *argv[])
   saveTree->Branch("angle_pair", angle_pair, "angle_pair[nDimuons]/D");
 
   saveTree->Branch("mass_pair", mass_pair, "mass_pair[nDimuons]/D");
+  saveTree->Branch("pT_pair", pT_pair, "pT_pair[nDimuons]/D");
+  saveTree->Branch("xF_pair", xF_pair, "xF_pair[nDimuons]/D");
+  saveTree->Branch("x1_pair", x1_pair, "x1_pair[nDimuons]/D");
+  saveTree->Branch("x2_pair", x2_pair, "x2_pair[nDimuons]/D");
+  
   saveTree->Branch("mass_single", mass_single, "mass_single[nDimuons]/D");
-  saveTree->Branch("pT", pT, "pT[nDimuons]/D");
-  saveTree->Branch("xF", xF, "xF[nDimuons]/D");
-  saveTree->Branch("x1", x1, "x1[nDimuons]/D");
-  saveTree->Branch("x2", x2, "x2[nDimuons]/D");
+  saveTree->Branch("pT_single", pT_single, "pT_single[nDimuons]/D");
+  saveTree->Branch("xF_single", xF_single, "xF_single[nDimuons]/D");
+  saveTree->Branch("x1_single", x1_single, "x1_single[nDimuons]/D");
+  saveTree->Branch("x2_single", x2_single, "x2_single[nDimuons]/D");
   
   //Initialize track finder
   Log("Initializing the track finder and kalman filter ... ");
@@ -209,7 +215,7 @@ int main(int argc, char *argv[])
 
 	      p1_single[nDimuons] = _trackp.getMomentumVertex(p1x_single[nDimuons], p1y_single[nDimuons], p1z_single[nDimuons]);
 	      p2_single[nDimuons] = _trackm.getMomentumVertex(p2x_single[nDimuons], p2y_single[nDimuons], p2z_single[nDimuons]);
-	      mass_single[nDimuons] = (getMom(p1x_single[nDimuons], p1y_single[nDimuons], p1z_single[nDimuons]) + getMom(p2x_single[nDimuons], p2y_single[nDimuons], p2z_single[nDimuons])).M();
+	      calc_variables(getMom(p1x_single[nDimuons], p1y_single[nDimuons], p1z_single[nDimuons]), getMom(p2x_single[nDimuons], p2y_single[nDimuons], p2z_single[nDimuons]), mass_single[nDimuons], pT_single[nDimuons], xF_single[nDimuons], x1_single[nDimuons], x2_single[nDimuons]);
 
 	      vtxfit->init();
 	      vtxfit->addTrack(0, _trackp);
@@ -235,7 +241,7 @@ int main(int argc, char *argv[])
 	      
 	      mass_pair[nDimuons] = (p1_4mom + p2_4mom).M();
               angle_pair[nDimuons] = p1_4mom.Angle(p2_4mom.Vect());
-	      calc_variables(p1_4mom, p2_4mom, mass_pair[nDimuons], pT[nDimuons], xF[nDimuons], x1[nDimuons], x2[nDimuons]);
+	      calc_variables(p1_4mom, p2_4mom, mass_pair[nDimuons], pT_pair[nDimuons], xF_pair[nDimuons], x1_pair[nDimuons], x2_pair[nDimuons]);
 
 	      nDimuons++;
 	    }
