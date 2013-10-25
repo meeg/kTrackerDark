@@ -21,7 +21,10 @@ exe_name['vertex'] = 'kVertex'
 command['vertex']  = r"'./kVertex data/'+schema+'_track.root data/'+schema+'_vertex.root > log_vertex_'+schema+' &'"
 
 exe_name['vertexfast'] = 'kVertex_fast'
-command['vertexfast']  = r"'./kVertex_fast data/'+schema+'_fast.root data/'+schema+'_vertex_fast.root > log_vertexfast_'+schema+' &'"
+command['vertexfast']  = r"'./kVertex_fast data/'+schema+'_fast.root data/'+schema+'_vertexfast.root > log_vertexfast_'+schema+' &'"
+
+exe_name['vertex_fast'] = 'kVertex'
+command['vertex_fast']  = r"'./kVertex data/'+schema+'_fast.root data/'+schema+'_vertex_fast.root > log_vertex_fast_'+schema+' &'"
 
 exe_name['fast'] = 'kFastTracking'
 command['fast']  = r"'./kFastTracking data/'+schema+'.root data/'+schema+'_fast.root > log_fast_'+schema+' &'"
@@ -36,6 +39,7 @@ command['test']  = r"'sleep 61'"
 def runCmd(job, schema):
     schema = schema.rstrip()
     command_run = eval(command[job])
+    print command
     os.system(command_run)
 
 ## Read in run list
