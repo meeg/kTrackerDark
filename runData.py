@@ -39,7 +39,7 @@ command['test']  = r"'sleep 61'"
 def runCmd(job, schema):
     schema = schema.rstrip()
     command_run = eval(command[job])
-    print command
+    print command_run
     os.system(command_run)
 
 ## Read in run list
