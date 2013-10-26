@@ -100,13 +100,14 @@ int main(int argc, char **argv)
  
   ///Connect to the SQL databases
   TSQLServer *con = TSQLServer::Connect("mysql://seaquel.physics.illinois.edu", "seaguest","qqbar2mu+mu-");
-  const char *buf1 = "SELECT runID,spillID,eventID,mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT FROM %s.mDimuon WHERE acceptAll=1 ORDER BY eventID LIMIT %d";
+  const char *buf1 = "SELECT runID,spillID,eventID,mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT FROM %s.mDimuon WHERE acceptHodoAll=1 AND"
+    " acceptDriftAll=1 ORDER BY eventID LIMIT %d";
   const char *buf2 = "SELECT x0,y0,z0,px0,py0,pz0,pxf,pyf,pzf,particleID FROM %s.mTrack WHERE (mTrackID=%d OR mTrackID=%d) ORDER BY particleID"; 
   const char *buf3 = "SELECT a.hpx,a.hpy,a.hpz FROM %s.mGeantHit AS a,%s.mHit AS b WHERE a.geantHitID=b.geantHitID AND a.mTrackID=%d AND b.detectorName"
     " LIKE 'D%%' ORDER BY b.zAtDigiPlane";
   const char *buf4 = "SELECT xAtDigiPlane,yAtDigiPlane,zAtDigiPlane FROM %s.mHit WHERE mTrackID=%d AND detectorName LIKE 'P%%' ORDER BY zAtDigiPlane";
   const char *buf5 = "SELECT hitID,elementID,driftTime,driftDistance,detectorName FROM %s.mHit WHERE runID=%d AND spillID=%d"
-    " AND eventID=%d AND (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') ORDER BY mTrackID,detectorID";
+    " AND eventID=%d AND (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') ORDER BY mTrackID,detectorName";
 
   char query[500];
   sprintf(query, buf1, argv[1], atoi(argv[3])); 
@@ -116,7 +117,7 @@ int main(int argc, char **argv)
   cout << "Totally " << nEntries << " dimuon pairs in this run" << endl;
   for(UInt_t i = 0; i < nEntries; i++)
     {
-      if(i % 1000 == 0)
+      if(i % 1 == 0)
 	{
 	  cout << "Converting dimuon pair " << i << endl;
 	}
