@@ -132,15 +132,15 @@ void GeomSvc::init(std::string geometrySchema)
   //Connect server
   char serverName[200];
   sprintf(serverName, "mysql://%s", MYSQL_SERVER);
-  TSQLServer *con = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
+  TSQLServer* con = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
   
   //Make query to Planes table
   char query[300];
-  const char* buf = "SELECT detectorName,spacing,cellWidth,overlap,numElements,angleFromVert,"
+  const char* buf_planes = "SELECT detectorName,spacing,cellWidth,overlap,numElements,angleFromVert,"
     "xPrimeOffset,x0,y0,z0,planeWidth,planeHeight,theta_x,theta_y,theta_z from %s.Planes WHERE"
     " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR "
     "detectorName LIKE 'P____'";
-  sprintf(query, buf, geometrySchema.c_str());
+  sprintf(query, buf_planes, geometrySchema.c_str());
   TSQLResult *res = con->Query(query);
 
   unsigned int nRows = res->GetRowCount();
@@ -215,9 +215,46 @@ void GeomSvc::init(std::string geometrySchema)
 	}
     }
 
+  //load the initial value in the planeOffsets table
+  const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
+    " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
+  sprintf(query, buf_offsets, geometrySchema.c_str());
+  res = con->Query(query);
+
+  nRows = res->GetRowCount();
+  for(int i = 0; i < nRows; ++i)
+    {
+      TSQLRow* row = res->Next();
+      string detectorName(row->GetField(0));
+      toLocalDetectorName(detectorName, dummy);
+
+      double deltaX = atof(row->GetField(1));
+      double deltaY = atof(row->GetField(2));
+      double deltaZ = atof(row->GetField(3));
+      double rotateAboutZ = atof(row->GetField(4));
+
+      int detectorID = map_detectorID[detectorName];
+      if(detectorID > 40) continue; //Temporarily, prop.tubes not implemented
+
+      offset_z0[detectorID] = deltaZ;
+      offset_phi[detectorID] = rotateAboutZ;
+      
+      sintheta[detectorID] = sin(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
+      costheta[detectorID] = cos(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
+      tantheta[detectorID] = tan(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
+      
+      offset_pos[detectorID] = deltaX*costheta[detectorID] + deltaY*sintheta[detectorID];
+      
+      delete row;
+    }
+
+  delete res;
+  delete con;
+
+  /////Here starts the user-defined part
   //load alignment parameters
   loadAlignment("alignment.txt", "alignment_hodo.txt", "alignment_prop.txt");
-  //loadMilleAlignment("align_mille.txt");
+  loadMilleAlignment("align_mille.txt");
   calibration_loaded = false;
 
   ///Initialize the position look up table for all wires, hodos, and tubes
@@ -231,7 +268,6 @@ void GeomSvc::init(std::string geometrySchema)
 	}
     }
   
-  delete con;
 
   // 2. for hodoscopes and prop. tubes
   for(int i = nChamberPlanes + 1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
@@ -436,7 +472,7 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 	  istringstream stringBuf(buf);
 
 	  stringBuf >> offset_pos[i] >> resolution[i];
-          if(resolution[i] < 0.1) resolution[i] = 0.1;
+          if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
 	}	  
     }
   else
@@ -608,6 +644,15 @@ void GeomSvc::print()
       std::cout << "Z position:    " << z0[(*iter).second] << std::endl;
       std::cout << "X position:    " << x0[(*iter).second] << std::endl;
       std::cout << "Y position:    " << y0[(*iter).second] << std::endl;
+    }
+}
+
+void GeomSvc::printAlignPar()
+{
+  std::cout << "detectorID         DetectorName            offset_pos             offset_z             offset_phi" << std::endl;
+  for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
+    {
+      std::cout << iter->second << "     " << iter->first << "    " << offset_pos[iter->second] << "     " << offset_z0[iter->second] << "      " << offset_phi[iter->second] << std::endl;
     }
 }
 

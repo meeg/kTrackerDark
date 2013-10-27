@@ -15,6 +15,7 @@ Created: 10-24-2011
 
 ClassImp(Hit)
 ClassImp(SRawEvent)
+ClassImp(SRawMCEvent)
 
 bool Hit::operator<(const Hit& elem) const
 {

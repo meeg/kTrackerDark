@@ -100,7 +100,9 @@ public:
 
   ///Debugging print of the content
   void print();
+  void printAlignPar();
   void printTable();
+
 private:
 
   ///Parameters

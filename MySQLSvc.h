@@ -50,6 +50,10 @@ public:
   bool getLatestEvt(SRawEvent* rawEvent);
   bool getRandomEvt(SRawEvent* rawEvent);
   bool getNextEvent(SRawEvent* rawEvent);
+  bool getNextEvent(SRawMCEvent* rawEvent);
+
+  //Get the MC truth
+  bool getMCInfo(SRawMCEvent* mcEvent, int eventID);
 
   //Output to database/txt file/screen
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
@@ -58,7 +62,7 @@ public:
   void writeDimuonTable(int dimuonID, int idx_positive, int idx_negative);
 
   //Set the data schema
-  void setWorkingSchema(std::string schema) { dataSchema = schema; } 
+  void setWorkingSchema(std::string schema);
   void setLoggingSchema(std::string schema) { logSchema = schema; } 
 
   //Memory-safe sql queries

@@ -60,9 +60,17 @@ bool MySQLSvc::connect(std::string sqlServer)
   return true;
 }
 
+void MySQLSvc::setWorkingSchema(std::string schema)
+{
+  dataSchema = schema;
+  sprintf(query, "USE %s", dataSchema.c_str());
+
+  server->Exec(query);
+}
+
 bool MySQLSvc::isNewEvtAvailable()
 {
-  sprintf(query, "SELECT eventID FROM %s.Event ORDER BY eventID DESC LIMIT 2", dataSchema.c_str());
+  sprintf(query, "SELECT eventID FROM Event ORDER BY eventID DESC LIMIT 2");
   if(makeQuery() < 2) return false;
   
   nextEntry(); nextEntry();
@@ -103,12 +111,20 @@ bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
   return getEvent(rawEvent, eventID_last+1);
 }
 
+bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
+{
+  int eventID = eventID_last + 1;
+
+  if(!getMCInfo(mcEvent, eventID)) return false;
+  return getEvent(mcEvent, eventID);
+}
+
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
   rawEvent->clear();
  
   //Get the event header
-  sprintf(query, "SELECT runID,spillID FROM %s.Event WHERE eventID=%d", dataSchema.c_str(), eventID);
+  sprintf(query, "SELECT runID,spillID FROM Event WHERE eventID=%d", eventID);
   if(makeQuery() != 1) return false;
 
   nextEntry();
@@ -116,7 +132,8 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   spillID = atoi(row->GetField(1));
   rawEvent->setEventInfo(runID, spillID, eventID);
 
-  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM %s.Hit WHERE (detectorName LIKE 'D%%' OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", dataSchema.c_str(), eventID);
+  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%'"
+	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", eventID);
   if(makeQuery() == 0) return false;
 
   int nHits = res->GetRowCount();
@@ -174,12 +191,53 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 
 int MySQLSvc::getNEvents()
 {
-  sprintf(query, "SELECT COUNT(*) FROM %s.Event", dataSchema.c_str());
+  sprintf(query, "SELECT COUNT(*) FROM Event");
   if(makeQuery() != 1) return 0;
 
   nextEntry();
   int nTotal = atoi(row->GetField(0));
   return nTotal;
+}
+
+bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
+{
+  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
+  if(makeQuery() != 1) return false;
+  nextEntry();
+
+  int trackID[2] = {atof(row->GetField(0)), atof(row->GetField(1))};
+  mcEvent->weight = atof(row->GetField(2));
+  mcEvent->mass = atof(row->GetField(3));
+  mcEvent->xF = atof(row->GetField(4));
+  mcEvent->x1 = atof(row->GetField(5));
+  mcEvent->x2 = atof(row->GetField(6));
+  mcEvent->vtx.SetXYZ(atof(row->GetField(7)), atof(row->GetField(8)), atof(row->GetField(9)));
+
+  double px = atof(row->GetField(10));
+  double py = atof(row->GetField(11));
+  mcEvent->pT = sqrt(px*px + py*py);
+
+  for(int i = 0; i < 2; ++i)
+    {
+      //At vertex
+      sprintf(query, "SELECT px0,py0,pz0 FROM mTrack WHERE mTrackID=%d", trackID[i]);
+      if(makeQuery() != 1) return false;
+      
+      nextEntry();
+      mcEvent->p_vertex[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+    
+      //At station 1/3
+      sprintf(query, "SELECT hpx,hpy,hpz FROM mGeantHit WHERE geantName RLIKE 'O[13]' AND mTrackID=%d", trackID[i]);
+      if(makeQuery() != 2) return false;
+
+      nextEntry();
+      mcEvent->p_station1[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+
+      nextEntry();
+      mcEvent->p_station3[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+    }
+
+  return true;
 }
 
 void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)

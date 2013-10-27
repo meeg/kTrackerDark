@@ -21,6 +21,7 @@ Created: 07-02-2012
 
 #include <TObject.h>
 #include <TROOT.h>
+#include <TVector3.h>
 
 #include "GeomSvc.h"
 
@@ -127,6 +128,29 @@ private:
   std::vector<Hit> fAllHits;
 
   ClassDef(SRawEvent, 2)
+};
+
+class SRawMCEvent: public SRawEvent
+{
+public:
+  //sigWeight
+  Double_t weight;
+
+  //Dimuon info
+  Double_t mass;
+  Double_t xF;
+  Double_t pT;
+  Double_t x1;
+  Double_t x2;
+  TVector3 vtx;
+ 
+  //Track info, 0 for mu-, 1 for mu+
+  Int_t nHits[2];
+  TVector3 p_vertex[2];
+  TVector3 p_station1[2];
+  TVector3 p_station3[2];
+
+  ClassDef(SRawMCEvent, 1) 
 };
 
 #endif
