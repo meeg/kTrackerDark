@@ -148,7 +148,13 @@ public:
   Int_t nHits[2];
   TVector3 p_vertex[2];
   TVector3 p_station1[2];
+  TVector3 v_station1[2];
+  TVector3 p_station2[2];
+  TVector3 v_station2[2];
   TVector3 p_station3[2];
+  TVector3 v_station3[2];
+  TVector3 p_station4[2];
+  TVector3 v_station4[2];
 
   ClassDef(SRawMCEvent, 1) 
 };

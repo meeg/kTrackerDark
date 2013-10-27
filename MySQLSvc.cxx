@@ -230,15 +230,25 @@ bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
       nextEntry();
       mcEvent->p_vertex[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
     
-      //At station 1/3
-      sprintf(query, "SELECT hpx,hpy,hpz FROM mGeantHit WHERE geantName RLIKE 'O[13]' AND mTrackID=%d", trackID[i]);
-      if(makeQuery() != 2) return false;
+      //At station 1,2,3,4
+      sprintf(query, "SELECT hpx,hpy,hpz,hx,hy,hz FROM mGeantHit WHERE geantName RLIKE 'O[1-4]' AND mTrackID=%d", trackID[i]);
+      if(makeQuery() != 4) return false;
 
       nextEntry();
       mcEvent->p_station1[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+      mcEvent->v_station1[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
+    
+      nextEntry();
+      mcEvent->p_station2[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+      mcEvent->v_station2[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
 
       nextEntry();
       mcEvent->p_station3[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+      mcEvent->v_station3[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
+
+      nextEntry();
+      mcEvent->p_station4[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+      mcEvent->v_station4[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
     }
 
   return true;
