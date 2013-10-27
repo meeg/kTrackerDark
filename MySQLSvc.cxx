@@ -115,7 +115,11 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 {
   int eventID = eventID_last + 1;
 
-  if(!getMCInfo(mcEvent, eventID)) return false;
+  if(!getMCInfo(mcEvent, eventID))
+    {
+      eventID_last = eventID;
+      return false;
+    }
   return getEvent(mcEvent, eventID);
 }
 
@@ -205,7 +209,7 @@ bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
   if(makeQuery() != 1) return false;
   nextEntry();
 
-  int trackID[2] = {atof(row->GetField(0)), atof(row->GetField(1))};
+  int trackID[2] = {atoi(row->GetField(0)), atoi(row->GetField(1))};
   mcEvent->weight = atof(row->GetField(2));
   mcEvent->mass = atof(row->GetField(3));
   mcEvent->xF = atof(row->GetField(4));
