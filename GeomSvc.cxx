@@ -248,6 +248,11 @@ void GeomSvc::init(std::string geometrySchema)
       delete row;
     }
 
+  for(int i = 1; i <= nChamberPlanes; ++i)
+    {
+      resolution[i] = RESOLUTION_DC;
+    }
+
   delete res;
   delete con;
 
