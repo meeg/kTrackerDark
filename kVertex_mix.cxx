@@ -79,9 +79,12 @@ int main(int argc, char *argv[])
 
   //Retrieve the raw event
   Log("Retrieving the event stored in ROOT file ... ");
-
-  SRawEvent *rawEvent = new SRawEvent();
-  SRecEvent *recEvent = new SRecEvent();
+#ifdef MC_MODE
+  SRawMCEvent* rawEvent = new SRawMCEvent();
+#else
+  SRawEvent* rawEvent = new SRawEvent();
+#endif
+  SRecEvent* recEvent = new SRecEvent();
 
   TFile *dataFile = new TFile(argv[1], "READ");
   TTree *dataTree = (TTree *)dataFile->Get("save");

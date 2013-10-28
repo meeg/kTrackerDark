@@ -490,7 +490,7 @@ SRecTrack Tracklet::getSRecTrack()
 	}
 
       TMatrixD state(5, 1), covar(5, 5);
-      state[0][0] = getCharge()*invP/(1. + tx_val*tx_val + ty*ty);
+      state[0][0] = getCharge()*invP*sqrt((1. + tx_val*tx_val)/(1. + tx_val*tx_val + ty*ty));
       state[1][0] = tx_val;
       state[2][0] = ty;
       state[3][0] = getExpPositionX(z);

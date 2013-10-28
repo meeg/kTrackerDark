@@ -17,12 +17,16 @@ int main(int argc, char* argv[])
   GeomSvc *geomSvc = GeomSvc::instance();
   geomSvc->init(GEOMETRY_VERSION);
 
-  SRawEvent *event = new SRawEvent();
+#ifdef MC_MODE
+  SRawMCEvent* rawEvent = new SRawMCEvent();
+#else
+  SRawEvent* rawEvent = new SRawEvent();
+#endif
 
   TFile *dataFile = new TFile(argv[1], "READ");
   TTree *dataTree = (TTree *)dataFile->Get("save");
 
-  dataTree->SetBranchAddress("rawEvent", &event);
+  dataTree->SetBranchAddress("rawEvent", &rawEvent);
 
   Int_t runID, spillID, eventID;
   Int_t nSeeds, nSeedsX, nSeedsY;
@@ -81,18 +85,18 @@ int main(int argc, char* argv[])
     {
       dataTree->GetEntry(i);
 
-      cout << "Processing event " << i << " with RunID = " << event->getRunID() << " and eventID = " << event->getEventID() << ": " << endl; 
+      cout << "Processing event " << i << " with RunID = " << rawEvent->getRunID() << " and eventID = " << rawEvent->getEventID() << ": " << endl; 
 
-      runID = event->getRunID();
-      spillID = event->getSpillID();
-      eventID = event->getEventID();
+      runID = rawEvent->getRunID();
+      spillID = rawEvent->getSpillID();
+      eventID = rawEvent->getEventID();
       
-      event->reIndex("oah");
+      rawEvent->reIndex("oah");
 
       seeder->setDetectorIDs(start_X, end_X, all_X);
       seeder->setSeedLimits(0.2, 200.);
       
-      nSeedsX = seeder->processOneEvent(event);
+      nSeedsX = seeder->processOneEvent(rawEvent);
       list<Seed1D> xseeds = seeder->getFinalSeeds();
       ++nGoodXEvent;
       //seeder->print();
@@ -104,7 +108,7 @@ int main(int argc, char* argv[])
       seeder->setDetectorIDs(start_Y, end_Y, all_Y);
       seeder->setSeedLimits(0.1, 100.);
       
-      nSeedsY = seeder->processOneEvent(event);
+      nSeedsY = seeder->processOneEvent(rawEvent);
       list<Seed1D> yseeds = seeder->getFinalSeeds();
       ++nGoodYEvent;
       //seeder->print();
@@ -158,7 +162,7 @@ int main(int argc, char* argv[])
 	}	
 
       saveTree->Fill();
-      event->clear();
+      rawEvent->clear();
     } 
 
   cout << "Nevent that passed basic quality cut: " << nGoodXEvent << "  " << nGoodYEvent << endl;

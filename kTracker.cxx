@@ -33,8 +33,11 @@ int main(int argc, char *argv[])
 
   //Retrieve the raw event
   Log("Retrieving the event stored in ROOT file ... ");
-
-  SRawEvent *rawEvent = new SRawEvent();
+#ifdef MC_MODE
+  SRawMCEvent* rawEvent = new SRawMCEvent();
+#else
+  SRawEvent* rawEvent = new SRawEvent();
+#endif
   int nSeeds, nSeedsX, nSeedsY;
   double ax[500], ay[500], bx[500], by[500];
   int xIndex[500], yIndex[500];

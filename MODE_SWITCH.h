@@ -5,22 +5,26 @@
 #define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
 
 //--------------- Mode controls ------------------
+//=== Enable this when running over MC events
+#define MC_MODE
+
+//=== Enable multiple minimizer feature, disabled by default
+//#define _ENABLE_MULTI_MINI
+
+//==== Enable Kalman fitting in fast tracking and alignment, enabled by default
+//#define _ENABLE_KF
+
+//--------------- Geometry version ---------------
 #define GEOMETRY_VERSION "geometry_R997"
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER "localhost"
 
 //==== Enable/disable dimuon mode
-#define DIMUON_MODE 0
+#define DIMUON_MODE 1
 
 //==== Turn on/off KMag
 #define KMAG_ON 1
-
-//=== Enable multiple minimizer feature, disabled by default
-//#define _ENABLE_MULTI_MINI
-
-//==== Enable Kalman fitting in fast tracking and alignment, enabled by default
-#define _ENABLE_KF
 
 //==== Enable massive debugging output, disabled by default
 //#define _DEBUG_ON
@@ -48,6 +52,7 @@
 #define Z_KFMAG_BEND 375.
 #define PT_KICK_FMAG 2.909
 #define PT_KICK_KMAG 0.4067
+//#define PT_KICK_KMAG 0.405
 #define ELOSS_KFMAG 8.12
 #define ELOSS_ABSORBER 1.81
 #define Z_ST2 1347.36

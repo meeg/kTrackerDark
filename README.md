@@ -19,6 +19,7 @@ Track reconstruction for E906/SeaQuest experiment
   Also one needs to modify the MODE_SWITCH.h:
   * KTRACKER_ROOT: change to the location of kTracker
   * MYSQL_SERVER: address of mysql server (contains geometry schema and/or data)
+  * MC_MODE: enable if running MC productions
   * DIMUON_MODE: change to 0 if one wants to save events with less than 2 muons
   * KMAG_ON: change to 0 to turn off kMag
   * ENABLE_KF: comment out if one wants to disable Kalman Filter
