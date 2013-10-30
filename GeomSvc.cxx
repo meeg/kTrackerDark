@@ -222,7 +222,7 @@ void GeomSvc::init(std::string geometrySchema)
   res = con->Query(query);
 
   nRows = res->GetRowCount();
-  for(int i = 0; i < nRows; ++i)
+  for(unsigned int i = 0; i < nRows; ++i)
     {
       TSQLRow* row = res->Next();
       string detectorName(row->GetField(0));
@@ -244,13 +244,9 @@ void GeomSvc::init(std::string geometrySchema)
       tantheta[detectorID] = tan(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
       
       offset_pos[detectorID] = deltaX*costheta[detectorID] + deltaY*sintheta[detectorID];
+      if(detectorID <= 24) resolution[detectorID] = RESOLUTION_DC; 
       
       delete row;
-    }
-
-  for(int i = 1; i <= nChamberPlanes; ++i)
-    {
-      resolution[i] = RESOLUTION_DC;
     }
 
   delete res;

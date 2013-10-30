@@ -51,8 +51,7 @@
 #define Z_FMAG_BEND 251.4
 #define Z_KFMAG_BEND 375.
 #define PT_KICK_FMAG 2.909
-#define PT_KICK_KMAG 0.4067
-//#define PT_KICK_KMAG 0.405
+#define PT_KICK_KMAG 0.4016
 #define ELOSS_KFMAG 8.12
 #define ELOSS_ABSORBER 1.81
 #define Z_ST2 1347.36

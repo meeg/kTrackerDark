@@ -144,7 +144,7 @@ public:
   Double_t x2;
   TVector3 vtx;
  
-  //Track info, 0 for mu-, 1 for mu+
+  //Track info, 0 for mu+, 1 for mu-
   Int_t nHits[2];
   TVector3 p_vertex[2];
   TVector3 p_station1[2];
