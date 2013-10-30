@@ -24,8 +24,8 @@ Settings::Settings()
   ironOn = true;
   trackingZCut = 400*cm;
   trackingEnergyCut = 1.0*GeV;
-  kMagMultiplier = 1;
-  fMagMultiplier = 1;
+  kMagMultiplier = 0.987;
+  fMagMultiplier = 0.975;
   geometrySchema = "geometry_R997";
   magnetSchema = "geometry_R996_magneticFields";
   target = 1;
