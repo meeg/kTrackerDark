@@ -25,6 +25,7 @@ Created: 2013.9.29
 #include "FastTracklet.h"
 
 #define OUT_TO_SCREEN
+#define USE_M_TABLES
 
 class MySQLSvc
 {

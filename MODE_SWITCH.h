@@ -6,13 +6,13 @@
 
 //--------------- Mode controls ------------------
 //=== Enable this when running over MC events
-#define MC_MODE
+//#define MC_MODE
 
 //=== Enable multiple minimizer feature, disabled by default
 //#define _ENABLE_MULTI_MINI
 
 //==== Enable Kalman fitting in fast tracking and alignment, enabled by default
-//#define _ENABLE_KF
+#define _ENABLE_KF
 
 //--------------- Geometry version ---------------
 #define GEOMETRY_VERSION "geometry_R997"
@@ -21,7 +21,7 @@
 #define MYSQL_SERVER "localhost"
 
 //==== Enable/disable dimuon mode
-#define DIMUON_MODE 1
+#define DIMUON_MODE 0
 
 //==== Turn on/off KMag
 #define KMAG_ON 1

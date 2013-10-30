@@ -136,8 +136,13 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   spillID = atoi(row->GetField(1));
   rawEvent->setEventInfo(runID, spillID, eventID);
 
+#ifdef USE_M_TABLES
+  sprintf(query, "SELECT mHitID,elementID,tdcTime,driftTime,driftDistance,detectorName,1,1 FROM mHit WHERE (detectorName LIKE 'D%%'"
+	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", eventID);
+#else
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%'"
 	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND inTime=1 AND eventID=%d", eventID);
+#endif
   if(makeQuery() == 0) return false;
 
   int nHits = res->GetRowCount();
@@ -155,37 +160,13 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       h.index = atoi(row->GetField(0));
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
       h.elementID = elementID;
-      h.tdcTime = atof(row->GetField(2));
-      h.inTime = atoi(row->GetField(6));
+      h.tdcTime = row->GetField(2) == NULL ? 0. : atof(row->GetField(2));
+      h.inTime = row->GetField(6) == NULL ? 1 : atoi(row->GetField(6));
       h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-    
-      if(row->GetField(3) == NULL)
-	{
-	  h.driftTime = 0.;
-	}	  
-      else
-	{
-	  h.driftTime = atof(row->GetField(3));
-	}
-
-      if(row->GetField(4) == NULL)
-	{
-	  h.driftDistance = 0.;
-	}
-      else
-	{
-	  h.driftDistance = atof(row->GetField(4));
-	}
-
-      if(row->GetField(7) == NULL)
-	{
-	  h.hodoMask = 1;
-	}
-      else
-	{
-	  h.hodoMask = atoi(row->GetField(7));
-	}
-
+      h.driftTime = row->GetField(3) == NULL ? 0. : atof(row->GetField(3));
+      h.driftDistance = row->GetField(4) == NULL ? 0. : atof(row->GetField(4));
+      h.hodoMask = row->GetField(7) == NULL ? 1 : atoi(row->GetField(7));
+      
       rawEvent->insertHit(h);
     }
 

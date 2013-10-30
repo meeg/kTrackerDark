@@ -53,19 +53,23 @@ if len(sys.argv) > 3:
 
 ## Check the active job list
 nSubmitted = 0
+nMinutes = 0.
 while nSubmitted < len(schemas):
     nRunning = int(os.popen('ps | grep '+exe_name[sys.argv[1]]+' | wc -l').read().strip())
-    print(sys.argv[1]+': '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
+    print(sys.argv[1]+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
     for i in range(nRunning, nJobsMax):
         runCmd(sys.argv[1], schemas[nSubmitted])
 	nSubmitted = nSubmitted + 1
         
 	if nSubmitted >= len(schemas): break
-
+    
     time.sleep(60)
+    nMinutes = nMinutes + 1.
 
 ## Only when all jobs are finished should the script quit
 while nRunning != 0:
     time.sleep(30)
+    nMinutes = nMinutes + 0.5
+
     nRunning = int(os.popen('ps | grep '+exe_name[sys.argv[1]]+' | wc -l').read().strip())
-    print(sys.argv[1]+': '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
+    print(sys.argv[1]+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
