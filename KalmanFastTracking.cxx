@@ -368,6 +368,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 	  tracklet_best.print();
 
 	  Log("Comparison: " << (tracklet_23 < tracklet_best));
+	  Log("Quality: " << acceptTracklet(tracklet_23));
 #endif
 
 	  //If current tracklet is better than the best tracklet up-to-now
@@ -858,7 +859,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 #ifdef _DEBUG_ON
 	  Log(*iter);
 	  hitAll[*iter].print();
-	  Log(z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
+	  Log(nHodoHits << "   " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
 #endif
 	  if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
     	    {

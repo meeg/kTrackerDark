@@ -404,15 +404,18 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 
   if(detectorName.find("P") != string::npos)
     {
-      //int moduleID = atoi(&detectorName[3]);
       string XY = detectorName[2] == 'H' ? "Y" : "X";
       string FB = (detectorName[3] == 'f' || detectorName[4] == 'f') ? "1" : "2"; //temporary solution
       
       detectorName.replace(2, detectorName.length(), "");
       detectorName += XY;
       detectorName += FB;
-      
-      //eID = (moduleID - 1)*8 + eID;      
+     
+      int moduleID = std::isdigit(detectorName[3]) == 1 ? atoi(&detectorName[3]) : atoi(&detectorName[4]); 
+      if(eID <= 8) //Means either it's at lowest module or elementID is only from 1 to 8, repeatedly
+	{
+	  eID = (9 - moduleID)*8 + eID;
+	}	  
     }
   else if(detectorName.find("H") != string::npos)
     {

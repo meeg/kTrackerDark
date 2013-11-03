@@ -12,7 +12,7 @@
 //#define _ENABLE_MULTI_MINI
 
 //==== Enable Kalman fitting in fast tracking and alignment, enabled by default
-#define _ENABLE_KF
+//#define _ENABLE_KF
 
 //--------------- Geometry version ---------------
 #define GEOMETRY_VERSION "geometry_R997"
