@@ -72,6 +72,7 @@ public:
   ///Sets
   void setChisq(Double_t chisq) { fChisq = chisq; }
   void setHodoHits(Int_t hodoHits[]) { for(Int_t i = 0; i < 3; i++) fNHodoHits[i] = hodoHits[i]; }
+  void setHodoHits() { for(Int_t i = 0; i < 3; i++) fNHodoHits[i] = 1; }
   void insertHitIndex(Int_t index) { fHitIndex.push_back(index); }
   void insertStateVector(TMatrixD state) { fState.push_back(state); }
   void insertCovariance(TMatrixD covar) { fCovar.push_back(covar); }

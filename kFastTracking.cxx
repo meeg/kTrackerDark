@@ -48,23 +48,15 @@ int main(int argc, char *argv[])
   TClonesArray* tracklets = new TClonesArray("Tracklet");
   TClonesArray& arr_tracklets = *tracklets;
 
-  int runID, spillID, eventID;
   int nTracklets;
   double time;
 
-#ifdef _ENABLE_KF
   SRecEvent* recEvent = new SRecEvent();
-#endif
 
   TFile* saveFile = new TFile(argv[2], "recreate");
   TTree* saveTree = dataTree->CloneTree(0);
-#ifdef _ENABLE_KF
-  saveTree->Branch("recEvent", &recEvent, 256000, 99);
-#endif
 
-  saveTree->Branch("runID", &runID, "runID/I");
-  saveTree->Branch("spillID", &spillID, "spillID/I");
-  saveTree->Branch("eventID", &eventID, "eventID/I");
+  saveTree->Branch("recEvent", &recEvent, 256000, 99);
   saveTree->Branch("time", &time, "time/D");
   saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
   saveTree->Branch("tracklets", &tracklets, 256000, 99);
@@ -74,10 +66,10 @@ int main(int argc, char *argv[])
   Log("Initializing the track finder and kalman filter ... ");
 #ifdef _ENABLE_KF
   KalmanFilter* filter = new KalmanFilter();
-  KalmanFastTracking *fastfinder = new KalmanFastTracking();
+  KalmanFastTracking* fastfinder = new KalmanFastTracking();
   VertexFit* vtxfit = new VertexFit();
 #else
-  KalmanFastTracking *fastfinder = new KalmanFastTracking(false);
+  KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
 #endif
 
   int offset = argc > 3 ? atoi(argv[3]) : 0;
@@ -100,42 +92,41 @@ int main(int argc, char *argv[])
       if(rec_tracklets.empty()) continue;
 
       nTracklets = 0;
+      recEvent->setRawEvent(rawEvent);
       for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
 	{
 	  iter->calcChisq();
 	  iter->print();
 	  new(arr_tracklets[nTracklets]) Tracklet(*iter);
 	  nTracklets++;
+
+#ifndef _ENABLE_KF
+	  SRecTrack recTrack = iter->getSRecTrack();
+	  recTrack.setHodoHits();      //Any track that can be reconstructed already required hodo and prop. tube masking
+	  recEvent->insertTrack(recTrack);
+#endif
 	}
 
 #ifdef _ENABLE_KF
-      recEvent->setRawEvent(rawEvent);
       std::list<KalmanTrack>& rec_tracks = fastfinder->getKalmanTracks();
       for(std::list<KalmanTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
 	{
 	  iter->print();
 	  SRecTrack recTrack = iter->getSRecTrack();
+	  recTrack.setHodoHits(); 
 	  recTrack.setZVertex(vtxfit->findSingleMuonVertex(recTrack));
           recEvent->insertTrack(recTrack);
 	}
 #endif
 
-      runID = rawEvent->getRunID();
-      spillID = rawEvent->getSpillID();
-      eventID = rawEvent->getEventID();
-
       time_single = clock() - time_single;
       time = double(time_single)/CLOCKS_PER_SEC;
       Log("It takes " << time << " seconds for this event.");
 
-#ifdef _ENABLE_KF
       recEvent->reIndex();
-#endif
       saveTree->Fill();
       
-#ifdef _ENABLE_KF
       recEvent->clear();
-#endif
       rawEvent->clear();
     }
 

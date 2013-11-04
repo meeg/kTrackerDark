@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 	  _track.setZVertex(vtxfit->findSingleMuonVertex(_track));
 	}
 
-      vector<int> muplus = recEvent->getChargedTrackIDs(1);
+      vector<int> muplus = recEvent->getChargedTrackIDs(+1);
       vector<int> muminus = recEvent->getChargedTrackIDs(-1);
 
       int nPlus = muplus.size();

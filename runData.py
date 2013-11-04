@@ -17,11 +17,8 @@ command['seed']  = r"'./kSeeder data/'+schema+'.root data/'+schema+'_seed.root >
 exe_name['track'] = 'kTracker'
 command['track']  = r"'./kTracker data/'+schema+'_seed.root data/'+schema+'_track.root > log_track_'+schema+' &'"
 
-exe_name['vertex'] = 'kVertex'
-command['vertex']  = r"'./kVertex data/'+schema+'_track.root data/'+schema+'_vertex.root > log_vertex_'+schema+' &'"
-
-exe_name['vertexfast'] = 'kVertex_fast'
-command['vertexfast']  = r"'./kVertex_fast data/'+schema+'_fast.root data/'+schema+'_vertexfast.root > log_vertexfast_'+schema+' &'"
+exe_name['vertex_track'] = 'kVertex'
+command['vertex_track']  = r"'./kVertex data/'+schema+'_track.root data/'+schema+'_vertex.root > log_vertex_track_'+schema+' &'"
 
 exe_name['vertex_fast'] = 'kVertex'
 command['vertex_fast']  = r"'./kVertex data/'+schema+'_fast.root data/'+schema+'_vertex_fast.root > log_vertex_fast_'+schema+' &'"
