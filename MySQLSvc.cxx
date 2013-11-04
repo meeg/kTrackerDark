@@ -108,19 +108,19 @@ bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 
 bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 {
-  return getEvent(rawEvent, eventID_last+1);
+  ++eventID_last;
+  return getEvent(rawEvent, eventID_last);
 }
 
 bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 {
-  int eventID = eventID_last + 1;
+  ++eventID_last;
 
-  if(!getMCInfo(mcEvent, eventID))
+  if(!getMCInfo(mcEvent, eventID_last))
     {
-      eventID_last = eventID;
       return false;
     }
-  return getEvent(mcEvent, eventID);
+  return getEvent(mcEvent, eventID_last);
 }
 
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
