@@ -100,10 +100,6 @@ KVERTEXO      = kVertex.o
 KVERTEXS      = kVertex.cxx 
 KVERTEX       = kVertex
 
-KVERTEXFO     = kVertex_fast.o 
-KVERTEXFS     = kVertex_fast.cxx 
-KVERTEXF      = kVertex_fast
-
 KVERTEXMO     = kVertex_mix.o 
 KVERTEXMS     = kVertex_mix.cxx 
 KVERTEXM      = kVertex_mix
@@ -118,9 +114,9 @@ TRKEXTOBJS    = TrackExtrapolator/TrackExtrapolator.o TrackExtrapolator/Detector
 		TrackExtrapolator/Settings.o TrackExtrapolator/GenericSD.o TrackExtrapolator/MCHit.o TrackExtrapolator/TPhysicsList.o 
 CLASSOBJS     = $(GEOMSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(SEEDFINDERO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFINDERO) $(KALMANFITTERO) $(VERTEXFITO) \
 		$(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO) $(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO)
-OBJS          = $(CLASSOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KVERTEXFO) $(KONLINETRACKO) $(MILLEALIGNO)
+OBJS          = $(CLASSOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
 SLIBS         = $(KTRACKERSO)
-PROGRAMS      = $(KSEEDER) $(KTRACKERMUL) $(KVERTEX) $(KVERTEXM) $(MILLEALIGN) $(KFASTTRACK) $(KVERTEXF) $(KONLINETRACK)
+PROGRAMS      = $(KSEEDER) $(KTRACKERMUL) $(KVERTEX) $(KVERTEXM) $(MILLEALIGN) $(KFASTTRACK) $(KONLINETRACK)
 
 all:            $(PROGRAMS) $(SLIBS)
 
@@ -154,10 +150,6 @@ $(KVERTEX):   $(KVERTEXO) $(CLASSOBJS) $(TRKEXTOBJS)
 	@echo "$@ done."
 
 $(KVERTEXM):   $(KVERTEXMO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $^ -o $@ $(LDFLAGS) 
-	@echo "$@ done."
-
-$(KVERTEXF):   $(KVERTEXFO) $(CLASSOBJS) $(TRKEXTOBJS)
 	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 

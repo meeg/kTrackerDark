@@ -38,7 +38,6 @@ Track reconstruction for E906/SeaQuest experiment
                      One thing to note is online tracking only use single muon vertex finding
   * milleAlign: millepede-based detector alignment
   * kVertex: find the single muon/dimuon vertex via vertex fit with Kalman-fitted tracks
-  * kVertex_fast: find the single muon/dimuon vertex via vertex fit chisq-fitted tracks
   * kVertex_mix: run vertex fit upon randomly combined tracks
   
   If needed, there are several executables that needs be compiled individually using: ./compile executable_name
@@ -70,6 +69,3 @@ Track reconstruction for E906/SeaQuest experiment
   
   5. After tracks are found, one can run both single muon/dimuon vertex finding to calculate Minv, etc.
      * With Kalman-fitted tracks: ./kVertex raw_data_with_track raw_data_with_vertex
-     * With chisq-fitter tracks: ./kVertex_fast raw_data_with_track raw_data_with_vertex
-     
-     
