@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
       double px1, py1, pz1;
       double px2, py2, pz2;
       ptracks[id1].getMomentumVertex(px1, py1, pz1);
-      mtracks[id1].getMomentumVertex(px2, py2, pz2);
+      mtracks[id2].getMomentumVertex(px2, py2, pz2);
       if(pz1 + pz1 > 120.) continue;
 
       //Z separation constrain
