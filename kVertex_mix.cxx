@@ -179,11 +179,19 @@ int main(int argc, char *argv[])
       int id1 = int(rnd.Rndm()*nPlus);
       int id2 = int(rnd.Rndm()*nMinus);
 
+      //Neither of the tracks should be used
       if(pflags[id1] < 0 || mflags[id2] < 0) continue;
+      
+      //Total momentum constrain
+      double px1, py1, pz1;
+      double px2, py2, pz2;
+      ptracks[id1].getMomentumVertex(px1, py1, pz1);
+      mtracks[id1].getMomentumVertex(px2, py2, pz2);
+      if(pz1 + pz1 > 120.) continue;
 
+      //Z separation constrain
       dz_single = ptracks[id1].getZVertex() - mtracks[id2].getZVertex();
       z_single = (ptracks[id1].getZVertex() + mtracks[id2].getZVertex())/2.;
-
       if(fabs(dz_single) > 50.) continue;
 
       vtxfit->init();
