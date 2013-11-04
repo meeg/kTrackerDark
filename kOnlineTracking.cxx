@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->connect();
   p_mysqlSvc->setWorkingSchema(argv[1]);
+  p_mysqlSvc->bookOutputTables();
 
   //Data output definition
   SRawEvent* rawEvent = new SRawEvent();
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
   VertexFit*          vtxfinder  = new VertexFit();
 
-  //Start endless tracking
+  //Start endless tracking, until we see the end run signal
   bool stopRun = false;
   while(!stopRun)
     {

@@ -235,6 +235,98 @@ bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
   return true;
 }
 
+void MySQLSvc::bookOutputTables()
+{
+  //Clear all the tables if exist
+  std::string tableNames[3] = {"kTrack", "kHit", "kDimuon"};
+  for(int i = 0; i < 3; ++i)
+    {
+      sprintf(query, "DROP TABLE IF EXISTS %s", tableNames[i].c_str());
+#ifndef OUT_TO_SCREEN
+      server->Exec(query);
+#else
+      std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+    }
+
+  //Book kTrack table
+  sprintf(query, "CREATE TABLE kTrack ("
+	  "trackID     INTEGER,"
+	  "runID       INTEGER,"
+	  "spillID     INTEGER,"
+	  "eventID     INTEGER,"
+	  "charge      INTEGER,"
+	  "numHits     INTEGER,"
+	  "chisq       DOUBLE, "
+	  "x0          DOUBLE, "
+	  "y0          DOUBLE, "
+	  "z0          DOUBLE, "
+	  "px0         DOUBLE, "
+	  "py0         DOUBLE, "
+	  "pz0         DOUBLE, "
+	  "x1          DOUBLE, "
+	  "y1          DOUBLE, "
+	  "z1          DOUBLE, "
+	  "px1         DOUBLE, "
+	  "py1         DOUBLE, "
+	  "pz1         DOUBLE, "
+	  "x3          DOUBLE, "
+	  "y3          DOUBLE, "
+	  "z3          DOUBLE, "
+	  "px3         DOUBLE, "
+	  "py3         DOUBLE, "
+	  "pz3         DOUBLE, "
+          "PRIMARY KEY(runID, spillID, eventID), "
+	  "INDEX(eventID), INDEX(charge))");
+#ifndef OUT_TO_SCREEN
+  server->Exec(query);
+#else
+  std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
+  //Book kHit table
+  sprintf(query, "CREATE TABLE kHit ("
+	  "runID       SMALLINT,"
+	  "eventID     INTEGER, "
+	  "trackID     INTEGER, "
+	  "hitID       BIGINT,  "
+	  "driftSign   SMALLINT,"
+	  "residual    DOUBLE,  "
+	  "PRIMARY KEY(runID, trackID, hitID))");
+#ifndef OUT_TO_SCREEN
+  server->Exec(query);
+#else
+  std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
+  //Bool kDimuon table
+  sprintf(query, "CREATE TABLE kDimuon ("
+	  "dimuonID    INTEGER,"
+	  "runID       INTEGER,"
+	  "spillID     INTEGER,"
+	  "eventID     INTEGER,"
+	  "posTrackID  INTEGER,"
+	  "negTrackID  INTEGER,"
+	  "dx          DOUBLE, "
+	  "dy          DOUBLE, "
+	  "dz          DOUBLE, "
+	  "dpx         DOUBLE, "
+	  "dpy         DOUBLE, "
+	  "dpz         DOUBLE, "
+	  "mass        DOUBLE, "
+	  "xF          DOUBLE, "
+	  "xB          DOUBLE, "
+	  "xT          DOUBLE, "
+	  "trackSeparation DOUBLE,"
+	  "PRIMARY KEY(runID, dimiunID, eventID))");
+#ifndef OUT_TO_SCREEN
+  server->Exec(query);
+#else
+  std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
+}
+
 void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
 {
   //Fill Track table/TrackHit table
@@ -263,21 +355,45 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
 }
 
 void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
-{
-  double x0 = recTrack->getVtxPar(0);
-  double y0 = recTrack->getVtxPar(1);
-  double z0 = recTrack->getVtxPar(2);
-  double px0, py0, pz0;
+{      
+  double px0, py0, pz0, x0, y0, z0; 
+  double px1, py1, pz1, x1, y1, z1;
+  double px3, py3, pz3, x3, y3, z3;
+
+  int charge;
+  int numHits;
+  double chisq;
+
+  //Track related
+  charge = recTrack->getCharge();
+  numHits = recTrack->getNHits();
+  chisq = recTrack->getChisq();
+
+  //Vertex point
+  x0 = recTrack->getVtxPar(0);
+  y0 = recTrack->getVtxPar(1);
+  z0 = recTrack->getVtxPar(2);
   recTrack->getMomentumVertex(px0, py0, pz0);
-  int charge = recTrack->getCharge();
+
+  //At station 1
+  z1 = 600.;
+  recTrack->getExpPositionFast(z1, x1, y1);
+  recTrack->getExpMomentumFast(z1, px1, py1, pz1);
+
+  //At station 3
+  z3 = 1900.;
+  recTrack->getExpPositionFast(z3, x3, y3);
+  recTrack->getExpMomentumFast(z3, px3, py3, pz3);
 
   //Put the paramters in temporary containers for dimuon combination
   mom_vertex.push_back(TLorentzVector(px0, py0, pz0, sqrt(px0*px0 + py0*py0 + pz0*pz0 + 0.10566*0.10566)));
   pos_vertex.push_back(TVector3(x0, y0, z0));
 
-  sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,x0,y0,z0,px0,py0,pz0,charge)" 
-	  " VALUES(%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%d)", trackID, runID, spillID, eventID_last, x0,
-	  y0, z0, px0, py0, pz0, charge);
+  //Database output
+  sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
+	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3 VALUE(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
+	  "%f,%f,%f,%f,%f,%f,%f,%f,)", trackID, runID, spillID, eventID_last, charge, numHits, chisq, x0, y0, 
+	  z0, px0, py0, pz0, x1, y1, z1, px0, py0, pz0, x3, y3, z3, px3, py3, pz3);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else
@@ -291,7 +407,8 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
     {
       if(iter->hit.index < 0) continue;
 
-      sprintf(query, "INSERT INTO kTrackHit(runID,trackID,hitID) VALUES(%d,%d,%d)", runID, trackID, iter->hit.index);
+      sprintf(query, "INSERT INTO kTrackHit(runID,eventID,trackID,hitID,driftSign,residual) VALUES(%d,%d,%d,%d,%d,%f)",
+	      runID, eventID_last, trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
 #ifndef OUT_TO_SCREEN
       server->Exec(query);
 #else
@@ -334,10 +451,10 @@ void MySQLSvc::writeDimuonTable(int dimuonID, int idx_positive, int idx_negative
   y0 = v_sum.Y();
   z0 = v_sum.Z();
 
-  sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,trackID1,trackID2,mass,xF,xB,xT"
-	  "dx,dy,dz,dpx,dpy,dpz,dpT,phi_gam,phi_mu,theta_mu) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,"
-	  "%f,%f,%f,%f,%f,%f,%f,%f,%f)", dimuonID, runID, spillID, eventID_last, idx_positive+nTracks,
-	  idx_negative+nTracks, mass, xF, x1, x2, x0, y0, z0, px0, py0, pz0, pT, 0., 0., 0.);
+  sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
+	  "dpy,dpz,mass,xF,xB,xT,trackSeparation) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
+	  dimuonID, runID, spillID, eventID_last, idx_positive+nTracks, idx_negative+nTracks, x0, y0, z0, 
+	  px0, py0, pz0, mass, xF, x1, x2, pos_vertex[idx_positive].Z() - pos_vertex[idx_negative].Z());
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else

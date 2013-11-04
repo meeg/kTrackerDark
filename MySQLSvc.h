@@ -57,6 +57,7 @@ public:
   bool getMCInfo(SRawMCEvent* mcEvent, int eventID);
 
   //Output to database/txt file/screen
+  void bookOutputTables();
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
   void writeTrackTable(int trackID, SRecTrack* recTrack);
   void writeTrackHitTable(int trackID, Tracklet* tracklet);
