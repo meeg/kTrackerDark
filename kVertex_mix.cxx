@@ -35,7 +35,7 @@ TLorentzVector getMom(double px, double py, double pz)
   return p;
 }
 
-void calc_variables(TLorentzVector& p1, TLorentzVector& p2, double& mass, double& pT, double& xF, double& x1, double& x2)
+void calc_variables(TLorentzVector p1, TLorentzVector p2, double& mass, double& pT, double& xF, double& x1, double& x2)
 {
   double mp = 0.938;
   double ebeam = 120.;
@@ -101,8 +101,14 @@ int main(int argc, char *argv[])
   double p1_pair, p1x_pair, p1y_pair, p1z_pair;
   double p2_pair, p2x_pair, p2y_pair, p2z_pair;
 
+  double p1_single, p1x_single, p1y_single, p1z_single;
+  double p2_single, p2x_single, p2y_single, p2z_single;
+
   double mass_pair;
-  double pT, xF, x1, x2;
+  double pT_pair, xF_pair, x1_pair, x2_pair;
+
+  double mass_single;
+  double pT_single, xF_single, x1_single, x2_single;
 
   TFile *saveFile = new TFile(argv[2], "recreate");
   TTree *saveTree = new TTree("save", "save");
@@ -113,6 +119,7 @@ int main(int argc, char *argv[])
 
   saveTree->Branch("chisq_pair", &chisq_pair, "chisq_pair/D");
   saveTree->Branch("chisq_single", &chisq_single, "chisq_single/D");
+  
   saveTree->Branch("p1_pair", &p1_pair, "p1_pair/D");
   saveTree->Branch("p1x_pair", &p1x_pair, "p1x_pair/D");
   saveTree->Branch("p1y_pair", &p1y_pair, "p1y_pair/D");
@@ -121,17 +128,33 @@ int main(int argc, char *argv[])
   saveTree->Branch("p2x_pair", &p2x_pair, "p2x_pair/D");
   saveTree->Branch("p2y_pair", &p2y_pair, "p2y_pair/D");
   saveTree->Branch("p2z_pair", &p2z_pair, "p2z_pair/D");
+ 
+  saveTree->Branch("p1_single", &p1_single, "p1_single/D");
+  saveTree->Branch("p1x_single", &p1x_single, "p1x_single/D");
+  saveTree->Branch("p1y_single", &p1y_single, "p1y_single/D");
+  saveTree->Branch("p1z_single", &p1z_single, "p1z_single/D");
+  saveTree->Branch("p2_single", &p2_single, "p2_single/D");
+  saveTree->Branch("p2x_single", &p2x_single, "p2x_single/D");
+  saveTree->Branch("p2y_single", &p2y_single, "p2y_single/D");
+  saveTree->Branch("p2z_single", &p2z_single, "p2z_single/D");
   
   saveTree->Branch("mass_pair", &mass_pair, "mass_pair/D");
-  saveTree->Branch("pT", &pT, "pT/D");
-  saveTree->Branch("xF", &xF, "xF/D");
-  saveTree->Branch("x1", &x1, "x1/D");
-  saveTree->Branch("x2", &x2, "x2/D");
+  saveTree->Branch("pT_pair", &pT_pair, "pT_pair/D");
+  saveTree->Branch("xF_pair", &xF_pair, "xF_pair/D");
+  saveTree->Branch("x1_pair", &x1_pair, "x1_pair/D");
+  saveTree->Branch("x2_pair", &x2_pair, "x2_pair/D");
+ 
+  saveTree->Branch("mass_single", &mass_single, "mass_single/D");
+  saveTree->Branch("pT_single", &pT_single, "pT_single/D");
+  saveTree->Branch("xF_single", &xF_single, "xF_single/D");
+  saveTree->Branch("x1_single", &x1_single, "x1_single/D");
+  saveTree->Branch("x2_single", &x2_single, "x2_single/D");
   
   //Initialize track finder
   Log("Initializing the track finder and kalman filter ... ");
-  VertexFit *vtxfit = new VertexFit();
+  VertexFit* vtxfit = new VertexFit();
 
+  //Load track bank of mu+ and mu-
   vector<SRecTrack> ptracks, mtracks;
   vector<int> pflags, mflags;
   ptracks.clear(); mtracks.clear();
@@ -167,6 +190,7 @@ int main(int argc, char *argv[])
       recEvent->clear();
     }
 
+  //Random combination
   TRandom rnd;
   int nPlus = ptracks.size();
   int nMinus = mtracks.size();
@@ -183,11 +207,9 @@ int main(int argc, char *argv[])
       if(pflags[id1] < 0 || mflags[id2] < 0) continue;
       
       //Total momentum constrain
-      double px1, py1, pz1;
-      double px2, py2, pz2;
-      ptracks[id1].getMomentumVertex(px1, py1, pz1);
-      mtracks[id2].getMomentumVertex(px2, py2, pz2);
-      if(pz1 + pz1 > 120.) continue;
+      p1_single = ptracks[id1].getMomentumVertex(p1x_single, p1y_single, p1z_single);
+      p2_single = mtracks[id2].getMomentumVertex(p2x_single, p2y_single, p2z_single);
+      if(p1z_single + p2z_single > 120.) continue;
 
       //Z separation constrain
       dz_single = ptracks[id1].getZVertex() - mtracks[id2].getZVertex();
@@ -212,7 +234,8 @@ int main(int argc, char *argv[])
 
       TLorentzVector p1_4mom = getMom(p1x_pair, p1y_pair, p1z_pair);
       TLorentzVector p2_4mom = getMom(p2x_pair, p2y_pair, p2z_pair);
-      calc_variables(p1_4mom, p2_4mom, mass_pair, pT, xF, x1, x2);
+      calc_variables(p1_4mom, p2_4mom, mass_pair, pT_pair, xF_pair, x1_pair, x2_pair);
+      calc_variables(getMom(p1x_single, p1y_single, p1z_single), getMom(p2x_single, p2y_single, p2z_single), mass_single, pT_single, xF_single, x1_single, x2_single);
 
       cout << id1 << "  " << id2 << endl;
       pflags[id1] = -1;
