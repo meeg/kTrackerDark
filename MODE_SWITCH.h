@@ -8,6 +8,9 @@
 //=== Enable this when running over MC events
 //#define MC_MODE
 
+//=== Enable alignment mode
+//#define ALIGNMENT_MODE
+
 //=== Enable multiple minimizer feature, disabled by default
 //#define _ENABLE_MULTI_MINI
 

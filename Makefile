@@ -35,77 +35,55 @@ CXXFLAGS     += -I$(MYSQL_INCLUDE)
 LDFLAGS      += -lz -L$(MYSQL_LIB) -lmysqlclient
 
 SRAWEVENTO    = SRawEvent.o SRawEventDict.o
-SRAWEVENTS    = SRawEvent.cxx SRawEventDict.cxx
 
 SRECEVENTO    = SRecEvent.o SRecEventDict.o
-SRECEVENTS    = SRecEvent.cxx SRecEventDict.cxx
 
 GEOMSVCO      = GeomSvc.o
-GEOMSVCS      = GeomSvc.cxx
 
 MYSQLSVCO     = MySQLSvc.o
-MYSQLSVCS     = MySQLSvc.cxx
 
 SEEDFINDERO   = SeedFinder.o
-SEEDFINDERS   = SeedFinder.cxx
 
 KALMANUTILO   = KalmanUtil.o
-KALMANUTILS   = KalmanUtil.cxx
 
 KALMANFILTERO = KalmanFilter.o
-KALMANFILTERS = KalmanFilter.cxx
 
 KALMANTRACKO  = KalmanTrack.o
-KALMANTRACKS  = KalmanTrack.cxx
 
 KALMANFINDERO = KalmanFinder.o
-KALMANFINDERS = KalmanFinder.cxx
 
 KALMANFITTERO = KalmanFitter.o
-KALMANFITTERS = KalmanFitter.cxx
 
 FASTTRACKLETO = FastTracklet.o FastTrackletDict.o
-FASTTRACKLETS = FastTracklet.cxx FastTrackletDict.cxx
 
 KALMANFASTO   = KalmanFastTracking.o
-KALMANFASTS   = KalmanFastTracking.cxx
 
 VERTEXFITO    = VertexFit.o
-VERTEXFITS    = VertexFit.cxx
 
 SMPUTILO      = SMillepedeUtil.o SMillepedeUtilDict.o
-SMPUTILS      = SMillepedeUtil.cxx SMillepedeUtilDict.cxx
 SMILLEPEDEO   = SMillepede.o
-SMILLEPEDES   = SMillepede.cxx
 MILLEPEDEO    = millepede.o
 MILLEPEDES    = millepede.f
 
 KSEEDERO      = kSeeder.o
-KSEEDERS      = kSeeder.cxx
 KSEEDER       = kSeeder
 
 KTRACKERMULO  = kTracker.o
-KTRACKERMULS  = kTracker.cxx
 KTRACKERMUL   = kTracker
 
 KFASTTRACKO   = kFastTracking.o
-KFASTTRACKS   = kFastTracking.cxx
 KFASTTRACK    = kFastTracking
 
 KONLINETRACKO   = kOnlineTracking.o
-KONLINETRACKS   = kOnlineTracking.cxx
 KONLINETRACK    = kOnlineTracking
 
 KVERTEXO      = kVertex.o 
-KVERTEXS      = kVertex.cxx 
 KVERTEX       = kVertex
 
 KVERTEXMO     = kVertex_mix.o 
-KVERTEXMS     = kVertex_mix.cxx 
 KVERTEXM      = kVertex_mix
 
 MILLEALIGNO   = milleAlign.o
-MILLEALIGNS   = milleAlign.cxx
 MILLEALIGN    = milleAlign
 
 KTRACKERSO    = libkTracker.so

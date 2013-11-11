@@ -215,6 +215,7 @@ void GeomSvc::init(std::string geometrySchema)
 	}
     }
 
+#ifdef ALIGNMENT_MODE
   //load the initial value in the planeOffsets table
   const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
     " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
@@ -250,6 +251,7 @@ void GeomSvc::init(std::string geometrySchema)
     }
 
   delete res;
+#endif
   delete con;
 
   /////Here starts the user-defined part

@@ -24,8 +24,8 @@ Created: 2013.9.29
 #include "SRawEvent.h"
 #include "FastTracklet.h"
 
-#define OUT_TO_SCREEN
-#define USE_M_TABLES
+//#define OUT_TO_SCREEN
+//#define USE_M_TABLES
 
 class MySQLSvc
 {
@@ -70,6 +70,9 @@ public:
   //Memory-safe sql queries
   int makeQuery();
   bool nextEntry();
+  
+  int getInt(const char* field, int default_val = 0) { return field == NULL ? default_val : atoi(field); }
+  double getDouble(const char* field, double default_val = 0.) { return field == NULL ? default_val : atof(field); }
 
 private:
   //pointer to the only instance

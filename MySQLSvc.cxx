@@ -74,7 +74,7 @@ bool MySQLSvc::isNewEvtAvailable()
   if(makeQuery() < 2) return false;
   
   nextEntry(); nextEntry();
-  int eventID_curr = atoi(row->GetField(0));
+  int eventID_curr = getInt(row->GetField(0));
   if(eventID_curr == eventID_last) return false;
     
   eventID_last = eventID_curr;
@@ -132,8 +132,8 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   if(makeQuery() != 1) return false;
 
   nextEntry();
-  runID = atoi(row->GetField(0));
-  spillID = atoi(row->GetField(1));
+  runID = getInt(row->GetField(0));
+  spillID = getInt(row->GetField(1));
   rawEvent->setEventInfo(runID, spillID, eventID);
 
 #ifdef USE_M_TABLES
@@ -153,19 +153,19 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       nextEntry();
 
       std::string detectorName(row->GetField(5));
-      int elementID = atoi(row->GetField(1));
+      int elementID = getInt(row->GetField(1));
       p_geomSvc->toLocalDetectorName(detectorName, elementID);
        
       Hit h;
-      h.index = atoi(row->GetField(0));
+      h.index = getInt(row->GetField(0));
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
       h.elementID = elementID;
-      h.tdcTime = row->GetField(2) == NULL ? 0. : atof(row->GetField(2));
-      h.inTime = row->GetField(6) == NULL ? 1 : atoi(row->GetField(6));
+      h.tdcTime = getDouble(row->GetField(2));
+      h.inTime = getInt(row->GetField(6), 1);
       h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-      h.driftTime = row->GetField(3) == NULL ? 0. : atof(row->GetField(3));
-      h.driftDistance = row->GetField(4) == NULL ? 0. : atof(row->GetField(4));
-      h.hodoMask = row->GetField(7) == NULL ? 1 : atoi(row->GetField(7));
+      h.driftTime = getDouble(row->GetField(3));
+      h.driftDistance = getDouble(row->GetField(4));
+      h.hodoMask = getInt(row->GetField(7), 1);
       
       rawEvent->insertHit(h);
     }
@@ -180,7 +180,7 @@ int MySQLSvc::getNEvents()
   if(makeQuery() != 1) return 0;
 
   nextEntry();
-  int nTotal = atoi(row->GetField(0));
+  int nTotal = getInt(row->GetField(0));
   return nTotal;
 }
 
@@ -190,16 +190,16 @@ bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
   if(makeQuery() != 1) return false;
   nextEntry();
 
-  int trackID[2] = {atoi(row->GetField(0)), atoi(row->GetField(1))};
-  mcEvent->weight = atof(row->GetField(2));
-  mcEvent->mass = atof(row->GetField(3));
-  mcEvent->xF = atof(row->GetField(4));
-  mcEvent->x1 = atof(row->GetField(5));
-  mcEvent->x2 = atof(row->GetField(6));
-  mcEvent->vtx.SetXYZ(atof(row->GetField(7)), atof(row->GetField(8)), atof(row->GetField(9)));
+  int trackID[2] = { getInt(row->GetField(0)), getInt(row->GetField(1)) };
+  mcEvent->weight = getDouble(row->GetField(2));
+  mcEvent->mass = getDouble(row->GetField(3));
+  mcEvent->xF = getDouble(row->GetField(4));
+  mcEvent->x1 = getDouble(row->GetField(5));
+  mcEvent->x2 = getDouble(row->GetField(6));
+  mcEvent->vtx.SetXYZ(getDouble(row->GetField(7)), getDouble(row->GetField(8)), getDouble(row->GetField(9)));
 
-  double px = atof(row->GetField(10));
-  double py = atof(row->GetField(11));
+  double px = getDouble(row->GetField(10));
+  double py = getDouble(row->GetField(11));
   mcEvent->pT = sqrt(px*px + py*py);
 
   for(int i = 0; i < 2; ++i)
@@ -209,27 +209,27 @@ bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
       if(makeQuery() != 1) return false;
       
       nextEntry();
-      mcEvent->p_vertex[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
+      mcEvent->p_vertex[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
     
       //At station 1,2,3,4
       sprintf(query, "SELECT hpx,hpy,hpz,hx,hy,hz FROM mGeantHit WHERE geantName RLIKE 'O[1-4]' AND mTrackID=%d", trackID[i]);
       if(makeQuery() != 4) return false;
 
       nextEntry();
-      mcEvent->p_station1[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
-      mcEvent->v_station1[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
+      mcEvent->p_station1[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
+      mcEvent->v_station1[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
     
       nextEntry();
-      mcEvent->p_station2[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
-      mcEvent->v_station2[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
+      mcEvent->p_station2[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
+      mcEvent->v_station2[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
 
       nextEntry();
-      mcEvent->p_station3[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
-      mcEvent->v_station3[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
+      mcEvent->p_station3[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
+      mcEvent->v_station3[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
 
       nextEntry();
-      mcEvent->p_station4[i].SetXYZ(atof(row->GetField(0)), atof(row->GetField(1)), atof(row->GetField(2)));
-      mcEvent->v_station4[i].SetXYZ(atof(row->GetField(3)), atof(row->GetField(4)), atof(row->GetField(5)));
+      mcEvent->p_station4[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
+      mcEvent->v_station4[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
     }
 
   return true;
@@ -324,7 +324,6 @@ void MySQLSvc::bookOutputTables()
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
-
 }
 
 void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
@@ -431,13 +430,14 @@ void MySQLSvc::writeDimuonTable(int dimuonID, int idx_positive, int idx_negative
   TLorentzVector p_sum = mom_vertex[idx_positive] + mom_vertex[idx_negative];
   TVector3 v_sum = pos_vertex[idx_positive] + pos_vertex[idx_negative];
 
-  double mass, xF, x1, x2, pT, x0, y0, z0, px0, py0, pz0;
+  double mass, xF, x1, x2, pT, x0, y0, z0, px0, py0, pz0, dz;
 
   mass = p_sum.M();
   pT = p_sum.Perp();
   px0 = p_sum.Px();
   py0 = p_sum.Py();
   pz0 = p_sum.Pz();
+  dz = (pos_vertex[idx_positive] - pos_vertex[idx_negative]).Z();
 
   p_sum.Boost(-bv_cms);
   xF = 2*p_sum.Pz()/TMath::Sqrt(s);
@@ -454,7 +454,7 @@ void MySQLSvc::writeDimuonTable(int dimuonID, int idx_positive, int idx_negative
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
 	  "dpy,dpz,mass,xF,xB,xT,trackSeparation) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
 	  dimuonID, runID, spillID, eventID_last, idx_positive+nTracks, idx_negative+nTracks, x0, y0, z0, 
-	  px0, py0, pz0, mass, xF, x1, x2, pos_vertex[idx_positive].Z() - pos_vertex[idx_negative].Z());
+	  px0, py0, pz0, mass, xF, x1, x2, dz);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else
