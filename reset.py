@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import sys
 
 os.chdir('TrackExtrapolator')
 os.system('make clean;make')

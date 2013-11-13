@@ -43,7 +43,7 @@ int main(int argc, char **argv)
   for(int i = 0; i < nEvents; ++i)
     {
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-      if(i % 1000 == 0)
+      if(saveTree->GetEntries() % 1000 == 0)
 	{
 	  cout << "Converting event " << rawEvent->getEventID() << endl;
 	  //rawEvent->print();
