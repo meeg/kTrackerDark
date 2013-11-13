@@ -49,25 +49,7 @@ int main(int argc, char *argv[])
 	      if(fabs(hits_old[j].tdcTime - h_center[hits_old[j].detectorID - 25]) > 15.) continue;
 	    }
 
-	  Hit h;
-	  h.index = hits_old[j].index;
-	  h.detectorID = hits_old[j].detectorID;
-	  h.elementID = hits_old[j].elementID;
-	  h.tdcTime = hits_old[j].tdcTime;
-	  h.driftTime = hits_old[j].driftTime;
-	  h.inTime = hits_old[j].inTime;
-	  h.pos = geometrySvc->getMeasurement(h.detectorID, h.elementID);
-	  h.hodoMask = 1;
-
-	  if(h.detectorID <= 24 && h.inTime > 0 && geometrySvc->calibrationLoaded())
-	    {
-	      h.driftDistance = geometrySvc->getDriftDistance(h.detectorID, h.tdcTime);
-	    }
-	  else
-	    {
-	      h.driftDistance = hits_old[j].driftDistance;
-	    }
-
+	  Hit h = hits_old[j];
 	  event->insertHit(h);
 	}
 
