@@ -23,8 +23,6 @@ endif
 FFLAGS        = -fPIC -m64 -pthread
 FLFLAGS       = -lgfortran
 
-LDFLAGS      += $(FLFLAGS)
-
 CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS)
 
@@ -35,35 +33,26 @@ CXXFLAGS     += -I$(MYSQL_INCLUDE)
 LDFLAGS      += -lz -L$(MYSQL_LIB) -lmysqlclient
 
 SRAWEVENTO    = SRawEvent.o SRawEventDict.o
-
 SRECEVENTO    = SRecEvent.o SRecEventDict.o
-
 GEOMSVCO      = GeomSvc.o
-
 MYSQLSVCO     = MySQLSvc.o
-
 SEEDFINDERO   = SeedFinder.o
-
 KALMANUTILO   = KalmanUtil.o
-
 KALMANFILTERO = KalmanFilter.o
-
 KALMANTRACKO  = KalmanTrack.o
-
 KALMANFINDERO = KalmanFinder.o
-
 KALMANFITTERO = KalmanFitter.o
-
 FASTTRACKLETO = FastTracklet.o FastTrackletDict.o
-
 KALMANFASTO   = KalmanFastTracking.o
-
 VERTEXFITO    = VertexFit.o
 
 SMPUTILO      = SMillepedeUtil.o SMillepedeUtilDict.o
 SMILLEPEDEO   = SMillepede.o
 MILLEPEDEO    = millepede.o
 MILLEPEDES    = millepede.f
+
+TRIGGERROADO  = TriggerRoad.o TriggerRoadDict.o
+TRIGGERANALYZERO = TriggerAnalyzer.o
 
 KSEEDERO      = kSeeder.o
 KSEEDER       = kSeeder
@@ -91,8 +80,9 @@ KTRACKERSO    = libkTracker.so
 TRKEXTOBJS    = TrackExtrapolator/TrackExtrapolator.o TrackExtrapolator/DetectorConstruction.o TrackExtrapolator/Field.o TrackExtrapolator/TabulatedField3D.o \
 		TrackExtrapolator/Settings.o TrackExtrapolator/GenericSD.o TrackExtrapolator/MCHit.o TrackExtrapolator/TPhysicsList.o 
 CLASSOBJS     = $(GEOMSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(SEEDFINDERO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFINDERO) $(KALMANFITTERO) $(VERTEXFITO) \
-		$(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO) $(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO)
-OBJS          = $(CLASSOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
+		$(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO) $(TRIGGERROADO) $(TRIGGERANALYZERO)
+ALIGNOBJS     = $(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO)
+OBJS          = $(CLASSOBJS) $(ALIGNOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
 SLIBS         = $(KTRACKERSO)
 PROGRAMS      = $(KSEEDER) $(KTRACKERMUL) $(KVERTEX) $(KVERTEXM) $(MILLEALIGN) $(KFASTTRACK) $(KONLINETRACK)
 
@@ -131,8 +121,8 @@ $(KVERTEXM):   $(KVERTEXMO) $(CLASSOBJS) $(TRKEXTOBJS)
 	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 
-$(MILLEALIGN):   $(MILLEALIGNO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $^ -o $@ $(LDFLAGS) 
+$(MILLEALIGN):   $(MILLEALIGNO) $(CLASSOBJS) $(ALIGNOBJS) $(TRKEXTOBJS)
+	$(LD) $^ -o $@ $(LDFLAGS) $(FLFLAGS) 
 	@echo "$@ done."
 
 .SUFFIXES: .cxx
@@ -150,6 +140,10 @@ SMillepedeUtilDict.cxx: SMillepedeUtil.h SMillepedeUtilLinkDef.h
 	$(ROOTCINT) -f $@ -c $^
 
 FastTrackletDict.cxx: FastTracklet.h FastTrackletLinkDef.h
+	@echo "Generating dictionary for $@ ..."
+	$(ROOTCINT) -f $@ -c $^
+
+TriggerRoadDict.cxx: TriggerRoad.h TriggerRoadLinkDef.h
 	@echo "Generating dictionary for $@ ..."
 	$(ROOTCINT) -f $@ -c $^
 
