@@ -19,13 +19,13 @@ int main(int argc, char *argv[])
   geometrySvc->init(GEOMETRY_VERSION);
   geometrySvc->loadCalibration("calibration.txt");
 
-  //Initialize inputs from MC truth 
+  //Old data
   SRawEvent *event_old = new SRawEvent();
 
-  TFile *truthFile = new TFile(argv[1], "READ");
-  TTree *truthTree = (TTree *)truthFile->Get("save");
+  TFile *dataFile = new TFile(argv[1], "READ");
+  TTree *dataTree = (TTree *)dataFile->Get("save");
 
-  truthTree->SetBranchAddress("rawEvent", &event_old);
+  dataTree->SetBranchAddress("rawEvent", &event_old);
  
   SRawEvent *event = new SRawEvent();
 
@@ -34,9 +34,9 @@ int main(int argc, char *argv[])
 
   saveTree->Branch("rawEvent", &event, 256000, 99);
  
-  for(int i = 0; i < truthTree->GetEntries(); i++)
+  for(int i = 0; i < dataTree->GetEntries(); i++)
     {
-      truthTree->GetEntry(i);
+      dataTree->GetEntry(i);
 
       event->setEventInfo(event_old->getRunID(), event_old->getSpillID(), event_old->getEventID());
       std::vector<Hit> hits_old = event_old->getAllHits();

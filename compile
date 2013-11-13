@@ -4,6 +4,6 @@ export CFLAGS=`root-config --cflags`
 export LDFLAGS=`root-config --ldflags --libs`
 
 g++ ${CFLAGS} -c ${1}.cxx
-g++ -o ${1} ${1}.o -lgfortran ${LDFLAGS} -L./ -lkTracker 
+g++ -o ${1} ${1}.o ${LDFLAGS} -L./ -lkTracker 
 
 rm ${1}.o
