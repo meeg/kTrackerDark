@@ -49,6 +49,11 @@ int main(int argc, char *argv[])
 	      if(fabs(hits_old[j].tdcTime - h_center[hits_old[j].detectorID - 25]) > 15.) continue;
 	    }
 
+	  if(hits_old[j].detectorID > 40)
+	    {
+	      if(hits_old[j].tdcTime < 1000. || hits_old[j].tdcTime > 1900.) continue;
+	    }
+
 	  Hit h = hits_old[j];
 	  event->insertHit(h);
 	}

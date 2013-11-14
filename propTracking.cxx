@@ -8,6 +8,7 @@
 
 #include "SRawEvent.h"
 #include "GeomSvc.h"
+#include "TriggerAnalyzer.h"
 #include "SeedFinder.h"
 
 using namespace std;
@@ -28,19 +29,18 @@ int main(int argc, char* argv[])
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
 
-  Int_t runID, spillID, eventID;
   Int_t nSeeds, nSeedsX, nSeedsY;
   Int_t nSeedHitsX[500], nSeedHitsY[500];
   Double_t ax[500], ay[500], bx[500], by[500];
   Double_t xchisq[500], ychisq[500];
   Int_t xIndex[500], yIndex[500];
 
+  SRawEvent* rawEvent_new = new SRawEvent();
+
   TFile *saveFile = new TFile(argv[2], "recreate");
   TTree *saveTree = dataTree->CloneTree(0);
 
-  saveTree->Branch("runID", &runID, "runID/I");
-  saveTree->Branch("spillID", &spillID, "spillID/I");
-  saveTree->Branch("eventID", &eventID, "eventID/I");
+  saveTree->Branch("rawEvent_new", &rawEvent_new, 256000, 99);
 
   saveTree->Branch("nSeedsX", &nSeedsX, "nSeedsX/I");
   saveTree->Branch("nSeedHitsX", nSeedHitsX, "nSeedHitsX[nSeedsX]/I");
@@ -57,7 +57,11 @@ int main(int argc, char* argv[])
   saveTree->Branch("nSeeds", &nSeeds, "nSeeds/I");
   saveTree->Branch("xIndex", xIndex, "xIndex[nSeeds]/I");
   saveTree->Branch("yIndex", yIndex, "yIndex[nSeeds]/I");
- 
+
+  TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
+  triggerAna->init("roads_DY.root", 1E-3, 1E6);
+  triggerAna->buildTriggerTree();
+
   Int_t nEventMax = argc > 3 ? atoi(argv[3]) : dataTree->GetEntries();
   SeedFinder *seeder = new SeedFinder();
 
@@ -87,37 +91,29 @@ int main(int argc, char* argv[])
 
       cout << "Processing event " << i << " with RunID = " << rawEvent->getRunID() << " and eventID = " << rawEvent->getEventID() << ": " << endl; 
 
-      runID = rawEvent->getRunID();
-      spillID = rawEvent->getSpillID();
-      eventID = rawEvent->getEventID();
-      
-      rawEvent->reIndex("oah");
+      rawEvent->reIndex("a");
+      triggerAna->acceptEvent(rawEvent);
+      if(triggerAna->getRoadsFound(+1).empty() && triggerAna->getRoadsFound(-1).empty()) continue;
 
+      //X-Z
       seeder->setDetectorIDs(start_X, end_X, all_X);
       seeder->setSeedLimits(0.2, 200.);
       
       nSeedsX = seeder->processOneEvent(rawEvent);
       list<Seed1D> xseeds = seeder->getFinalSeeds();
       ++nGoodXEvent;
-      //seeder->print();
 
-      //char buf[300];
-      //sprintf(buf, "seed_run%d_event%d_%d_x_z.jpg", event->getRunID(), i, event->getEventID());     
-      //seeder->printResults(string(buf)); 
-
+      //Y-Z
       seeder->setDetectorIDs(start_Y, end_Y, all_Y);
       seeder->setSeedLimits(0.1, 100.);
       
       nSeedsY = seeder->processOneEvent(rawEvent);
       list<Seed1D> yseeds = seeder->getFinalSeeds();
       ++nGoodYEvent;
-      //seeder->print();
-
-      //sprintf(buf, "seed_run%d_event%d_%d_y_z.jpg", event->getRunID(), i, event->getEventID());
-      //seeder->printResults(string(buf));
 
       if(nSeedsX < 1 || nSeedsY < 1) continue;
 
+      //X-Y combination
       nSeeds = 0;
       Int_t index_x = -1;
       Int_t index_y = -1;
@@ -128,7 +124,7 @@ int main(int argc, char* argv[])
 	  for(list<Seed1D>::iterator seedy = yseeds.begin(); seedy != yseeds.end(); ++seedy)
 	    {
 	      index_y++;
-	      cout << "Testing " << index_x << " with " << index_y << endl;
+	      
 	      if(!seeder->hodoMask(*seedx, *seedy)) continue;
 	      xIndex[nSeeds] = index_x;
 	      yIndex[nSeeds] = index_y;
@@ -139,6 +135,7 @@ int main(int argc, char* argv[])
 
       if(nSeeds < 1 || nSeeds > 200) continue;    
       
+      rawEvent_new->setEventInfo(rawEvent->getRunID(), rawEvent->getSpillID(), rawEvent->getEventID());
       index_x = 0; 
       for(list<Seed1D>::iterator seedx = xseeds.begin(); seedx != xseeds.end(); ++seedx)
         {
@@ -146,6 +143,11 @@ int main(int argc, char* argv[])
 	  ax[index_x] = seedx->ax;
 	  bx[index_x] = seedx->bx;
 	  xchisq[index_x] = seedx->chisq;
+
+	  for(list<int>::iterator iter = seedx->xhits.begin(); iter != seedx->xhits.end(); ++iter)
+	    {
+	      rawEvent_new->insertHit(rawEvent->getHit(*iter));
+	    }
 
 	  index_x++;
 	}	  
@@ -158,11 +160,17 @@ int main(int argc, char* argv[])
 	  by[index_y] = seedy->bx;
 	  ychisq[index_y] = seedy->chisq;
 
+	  for(list<int>::iterator iter = seedy->xhits.begin(); iter != seedy->xhits.end(); ++iter)
+	    {
+	      rawEvent_new->insertHit(rawEvent->getHit(*iter));
+	    }
+
 	  index_y++;
 	}	
 
       saveTree->Fill();
       rawEvent->clear();
+      rawEvent_new->clear();
     } 
 
   cout << "Nevent that passed basic quality cut: " << nGoodXEvent << "  " << nGoodYEvent << endl;
@@ -171,6 +179,9 @@ int main(int argc, char* argv[])
   saveFile->cd();
   saveTree->Write();
   saveFile->Close();
+
+  delete seeder;
+  delete triggerAna;
 
   return 1;
 }

@@ -112,8 +112,6 @@ SeedFinder::SeedFinder()
   geometrySvc = GeomSvc::instance();
 }
 
-
-
 void SeedFinder::setEvent(SRawEvent *event_input)
 {
   event = event_input;
@@ -162,12 +160,9 @@ int SeedFinder::processOneEvent(SRawEvent *event_input)
       iter->print();
     }
 #endif
-  
-  if(seed2d_candidates.empty())
-    {
-      return 0;
-    }
-
+ 
+  ///Remove the duplicate track candidates 
+  if(seed2d_candidates.empty()) return 0;
   reduceSeedList(seed2d_candidates, seed2d_final);
  
 #ifdef _DEBUG_ON
@@ -207,9 +202,8 @@ bool SeedFinder::acceptEvent()
   if(nHits_start_x < 2) return false;
   if(nHits_end_x < 2) return false;
 
-  if(nHits_start_x > 40) return false;
-  if(nHits_end_x > 40) return false;
-  //if(nHits_x > 70) return false;
+  if(nHits_start_x > 20) return false;
+  if(nHits_end_x > 20) return false;
 
   return true;  
 }
@@ -254,11 +248,6 @@ bool SeedFinder::acceptSeed(Seed1D& _seed)
 
 bool SeedFinder::hodoMask(Seed1D& _seedx, Seed1D& _seedy)
 {
-  //Log("X seed:");
-  //_seedx.print();
-  //Log("Y seed:");
-  //_seedy.print();
-
   int nMasks = 0;
   for(unsigned int i = 0; i < detectors_mask.size(); i++)
     {
@@ -351,7 +340,6 @@ bool SeedFinder::hodoMask(Seed1D& _seed)
   return false;
 }
 
-
 ///Random combinations of two hits from the first and last plane avaible is used to 
 ///make Track candidates.
 //
@@ -363,7 +351,7 @@ void SeedFinder::initializeSeedCandidates()
   hitID_start = event->getHitsIndexInDetectors(detectors_start_x);
   hitID_end = event->getHitsIndexInDetectors(detectors_end_x);
 
-  /*
+#ifdef _DEBUG_ON
   for(std::list<int>::iterator iter = hitID_start.begin(); iter != hitID_start.end(); ++iter)
     {
       std::cout << *iter << " === ";
@@ -375,7 +363,7 @@ void SeedFinder::initializeSeedCandidates()
       std::cout << *iter << " === ";
     }
   std::cout << std::endl;
-  */
+#endif
 
   std::list<int>::iterator iter_i, iter_j;
   for(iter_i = hitID_start.begin(); iter_i != hitID_start.end(); ++iter_i)

@@ -88,6 +88,7 @@ public:
   
   std::vector<Hit> getAllHits() { return fAllHits; }
   Hit getHit(Int_t index) { return fAllHits[index]; } 
+  Hit getHit(Int_t detectorID, Int_t elementID); 
 
   Int_t getRunID() { return fRunID; }
   Int_t getEventID() { return fEventID; }
@@ -100,7 +101,7 @@ public:
   void insertHit(Hit h);
 
   ///Find a hit
-  int findHit(int detectorID, int elementID);
+  Int_t findHit(Int_t detectorID, Int_t elementID);
 
   ///Manipulation of hit list
   void reIndex(std::string option = "");

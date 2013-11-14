@@ -10,6 +10,7 @@
 #include <TVector3.h>
 
 #include "GeomSvc.h"
+#include "SRawEvent.h"
 #include "TriggerRoad.h"
 #include "TriggerAnalyzer.h"
 
@@ -20,22 +21,15 @@ int main(int argc, char* argv[])
   GeomSvc* p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
 
-  Double_t px1, py1, pz1, p1;
-  Double_t px2, py2, pz2, p2;
-
-  Int_t nHits;
-  Int_t detectorIDs[5000];
-  Int_t elementIDs[5000];
+  SRawEvent* rawEvent = new SRawEvent();
 
   TFile* dataFile = new TFile(argv[1], "READ");
   TTree* dataTree = (TTree*)dataFile->Get("save");
 
-  dataTree->SetBranchAddress("nHits", &nHits); 
-  dataTree->SetBranchAddress("detectorID", detectorIDs);
-  dataTree->SetBranchAddress("elementID", elementIDs);  
+  dataTree->SetBranchAddress("rawEvent", &rawEvent); 
 
   TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
-  triggerAna->init("roads_DY.root", 0.001, 1E8);
+  triggerAna->init("roads_DY.root", 1.E-3, 1.E6);
   triggerAna->buildTriggerTree();
 
   Int_t nFired1;
@@ -50,8 +44,12 @@ int main(int argc, char* argv[])
   Int_t flag;
   Double_t p_mass, p_pT1, p_pT2;
 
+  SRawEvent* rawEvent_new = new SRawEvent();
+
   TFile* saveFile = new TFile(argv[2], "recreate");
   TTree* saveTree = dataTree->CloneTree(0);
+
+  saveTree->Branch("rawEvent_new", &rawEvent_new, 256000, 99);
 
   saveTree->Branch("nFired1", &nFired1, "nFired1/I");
   saveTree->Branch("pT1", pT1, "pT1[nFired1]/D");
@@ -71,7 +69,10 @@ int main(int argc, char* argv[])
     {
       dataTree->GetEntry(i);
     
-      flag = triggerAna->acceptEvent(nHits, detectorIDs, elementIDs) ? 1 : -1;
+      rawEvent->reIndex("a");
+      rawEvent_new->setEventInfo(rawEvent->getRunID(), rawEvent->getSpillID(), rawEvent->getEventID());
+
+      flag = triggerAna->acceptEvent(rawEvent) ? 1 : -1;
       std::list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
       std::list<TriggerRoad>& m_roads_found = triggerAna->getRoadsFound(-1);
 
@@ -79,15 +80,30 @@ int main(int argc, char* argv[])
       for(std::list<TriggerRoad>::iterator iter = p_roads_found.begin(); iter != p_roads_found.end(); ++iter)
 	{
 	  pT1[nFired1++] = iter->pT_mean;
+	  for(int j = 0; j < 4; ++j)
+	    {
+	      rawEvent_new->insertHit(rawEvent->getHit(iter->detectorIDs[j], iter->elementIDs[j]));
+	    }
 	}
 
       nFired2 = 0;
       for(std::list<TriggerRoad>::iterator iter = m_roads_found.begin(); iter != m_roads_found.end(); ++iter)
 	{
 	  pT2[nFired2++] = iter->pT_mean;
+	  for(int j = 0; j < 4; ++j)
+	    {
+	      rawEvent_new->insertHit(rawEvent->getHit(iter->detectorIDs[j], iter->elementIDs[j]));
+	    }
 	}
 
-      if(nFired1 > 50 || nFired2 > 50) continue;
+      if((nFired1 > 50 || nFired2 > 50) || (nFired1 == 0 && nFired2 == 0))
+	{
+	  rawEvent->clear();
+	  rawEvent_new->clear();
+
+	  continue;
+	}
+
       p_roads_found.sort(TriggerRoad::byWeight);
       m_roads_found.sort(TriggerRoad::byWeight);
 	 
@@ -112,8 +128,11 @@ int main(int argc, char* argv[])
 	  p_pT2 = m_roads_found.front().pT_mean;
 	  p_mass = p_pT1 + p_pT2;
 	}
-	  
-      saveTree->Fill();  
+
+      rawEvent_new->reIndex("a");
+      saveTree->Fill(); 
+      rawEvent->clear();
+      rawEvent_new->clear(); 
     }
 
   saveFile->cd();
