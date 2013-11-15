@@ -119,6 +119,18 @@ Int_t SRawEvent::findHit(Int_t detectorID, Int_t elementID)
   return -1;
 }
 
+Hit SRawEvent::getHit(Int_t detectorID, Int_t elementID)
+{
+  Int_t hitID = findHit(detectorID, elementID);
+  if(hitID >= 0) return getHit(hitID);
+
+  Hit dummy;
+  dummy.index = -1;
+  dummy.detectorID = -1;
+  dummy.elementID = -1;
+  return dummy;
+}
+
 std::list<Int_t> SRawEvent::getHitsIndexInDetector(Int_t detectorID)
 {
   std::list<Int_t> hit_list;

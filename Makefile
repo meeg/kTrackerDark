@@ -51,6 +51,9 @@ SMILLEPEDEO   = SMillepede.o
 MILLEPEDEO    = millepede.o
 MILLEPEDES    = millepede.f
 
+TRIGGERROADO  = TriggerRoad.o TriggerRoadDict.o
+TRIGGERANALYZERO = TriggerAnalyzer.o
+
 KSEEDERO      = kSeeder.o
 KSEEDER       = kSeeder
 
@@ -77,7 +80,7 @@ KTRACKERSO    = libkTracker.so
 TRKEXTOBJS    = TrackExtrapolator/TrackExtrapolator.o TrackExtrapolator/DetectorConstruction.o TrackExtrapolator/Field.o TrackExtrapolator/TabulatedField3D.o \
 		TrackExtrapolator/Settings.o TrackExtrapolator/GenericSD.o TrackExtrapolator/MCHit.o TrackExtrapolator/TPhysicsList.o 
 CLASSOBJS     = $(GEOMSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(SEEDFINDERO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFINDERO) $(KALMANFITTERO) $(VERTEXFITO) \
-		$(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO)
+		$(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO) $(TRIGGERROADO) $(TRIGGERANALYZERO)
 ALIGNOBJS     = $(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO)
 OBJS          = $(CLASSOBJS) $(ALIGNOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
 SLIBS         = $(KTRACKERSO)
@@ -137,6 +140,10 @@ SMillepedeUtilDict.cxx: SMillepedeUtil.h SMillepedeUtilLinkDef.h
 	$(ROOTCINT) -f $@ -c $^
 
 FastTrackletDict.cxx: FastTracklet.h FastTrackletLinkDef.h
+	@echo "Generating dictionary for $@ ..."
+	$(ROOTCINT) -f $@ -c $^
+
+TriggerRoadDict.cxx: TriggerRoad.h TriggerRoadLinkDef.h
 	@echo "Generating dictionary for $@ ..."
 	$(ROOTCINT) -f $@ -c $^
 
