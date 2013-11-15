@@ -1,9 +1,30 @@
-#!/bin/bash
+#!/usr/bin/python
 
-export CFLAGS=`root-config --cflags`
-export LDFLAGS=`root-config --ldflags --libs`
+import os
+import sys
+import re
 
-g++ ${CFLAGS} -c ${1}.cxx
-g++ -o ${1} ${1}.o ${LDFLAGS} -L./ -lkTracker 
+def compile(filename):
+    cflags = os.popen('root-config --cflags').readline().strip()
+    ldflags = os.popen('root-config --ldflags --libs').readline().strip()
 
-rm ${1}.o
+    os.system('g++ '+cflags+' -c '+filename+'.cxx')
+    os.system('g++ -o '+filename+' '+filename+'.o '+ldflags+' -L./ -lkTracker')
+    os.system('rm '+filename+'.o')
+
+if not os.path.isfile(sys.argv[1]):
+    print 'File does not exist!'
+    sys.exit(1)
+
+args = re.split('/', sys.argv[1])
+targetName = args[-1].replace('.cxx', '')
+sourceName = targetName + '.cxx'
+
+if len(args) == 1 or (len(args) == 2 and args[0] == '.'):
+    compile(targetName)
+elif os.path.isfile(sourceName):
+    print 'File exists in KTRACKER_ROOT!! Please check.'
+else:
+    os.system('cp '+sys.argv[1]+' '+sourceName)
+    compile(targetName)
+    os.system('rm '+sourceName)
