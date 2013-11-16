@@ -138,45 +138,37 @@ int main(int argc, char* argv[])
 	}
     }
 
-  ////Assign groupID and unique road ID
+  ////Assign groupID and unique road ID, drop low-pT roads
   int uniqueID = 0;
-  double binWidth = (pt_max - pt_min)/(nPtBin - 2);
-  for(list<TriggerRoad>::iterator iter = p_roads_unique.begin(); iter != p_roads_unique.end(); ++iter) 
+  double binWidth = (pt_max - pt_min)/nPtBin;
+  for(list<TriggerRoad>::iterator iter = p_roads_unique.begin(); iter != p_roads_unique.end(); ) 
     {
+      if(iter->pT_mean < pt_min || iter->pT_mean > pt_max)
+	{
+	  iter = p_roads_unique.erase(iter);
+	  continue;
+	}
+	  
       iter->roadID = uniqueID;
-      if(iter->pT_mean > pt_max) 
-	{
-	  iter->groupID = nPtBin;
-	}
-      else if(iter->pT_mean < pt_min)
-	{
-	  iter->groupID = 1;
-	}
-      else
-	{
-	  iter->groupID = int((iter->pT_mean - pt_min)/binWidth) + 2;
-	}
-      iter->groupID = iter->groupID*iter->getTB();
+      iter->groupID = (int((iter->pT_mean - pt_min)/binWidth) + 1)*iter->getTB();
+      
+      ++iter;
       ++uniqueID;
     }
 
   uniqueID = 0;
-  for(list<TriggerRoad>::iterator iter = m_roads_unique.begin(); iter != m_roads_unique.end(); ++iter) 
+  for(list<TriggerRoad>::iterator iter = m_roads_unique.begin(); iter != m_roads_unique.end(); ) 
     {
+      if(iter->pT_mean < pt_min || iter->pT_mean > pt_max)
+	{
+	  iter = m_roads_unique.erase(iter);
+	  continue;
+	}
+	  
       iter->roadID = uniqueID;
-      if(iter->pT_mean > pt_max) 
-	{
-	  iter->groupID = nPtBin;
-	}
-      else if(iter->pT_mean < pt_min)
-	{
-	  iter->groupID = 1;
-	}
-      else
-	{
-	  iter->groupID = int((iter->pT_mean - pt_min)/binWidth) + 2;
-	}
-      iter->groupID = iter->groupID*iter->getTB();
+      iter->groupID = (int((iter->pT_mean - pt_min)/binWidth) + 1)*iter->getTB();
+      
+      ++iter;
       ++uniqueID;
     }
 
