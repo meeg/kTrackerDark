@@ -34,7 +34,7 @@ public:
   static MySQLSvc* instance();
   
   //Connect to the server
-  bool connect(std::string sqlServer = "seaquel.physics.illinois.edu");
+  bool connect(std::string sqlServer = MYSQL_SERVER);
 
   //check if the new event is available
   bool isNewEvtAvailable();
