@@ -127,7 +127,7 @@ int SeedFinder::processOneEvent(SRawEvent *event_input)
   setEvent(event_input);
   if(!acceptEvent())
     {
-      Log("Event quality is not good. Will continue to next event ... ");
+      //Log("Event quality is not good. Will continue to next event ... ");
       return 0;
     }
 
