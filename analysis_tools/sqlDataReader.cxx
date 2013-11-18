@@ -46,7 +46,7 @@ int main(int argc, char **argv)
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
       if(saveTree->GetEntries() % 1000 == 0)
 	{
-	  cout << "\r Converting event " << rawEvent->getEventID() << ", " << setprecision(2) << double(i)/nEvents << "% finished." << flush;
+	  cout << "\r Converting event " << rawEvent->getEventID() << ", " << setprecision(2) << double(i)/nEvents*100. << "% finished." << flush;
 	  //rawEvent->print();
 	}
 
