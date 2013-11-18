@@ -36,14 +36,11 @@ int main(int argc, char* argv[])
   Double_t xchisq[500], ychisq[500];
   Int_t xIndex[500], yIndex[500];
 
-  Int_t topHits, bottomHits;
   SRawEvent* rawEvent_new = new SRawEvent();
 
   TFile *saveFile = new TFile(argv[2], "recreate");
   TTree *saveTree = dataTree->CloneTree(0);
 
-  saveTree->Branch("topHits", &topHits, "topHits/I");
-  saveTree->Branch("bottomHits", &bottomHits, "bottomHits/I");
   saveTree->Branch("rawEvent_new", &rawEvent_new, 256000, 99);
 
   saveTree->Branch("nSeedsX", &nSeedsX, "nSeedsX/I");
@@ -100,18 +97,6 @@ int main(int argc, char* argv[])
       triggerAna->acceptEvent(rawEvent);
       if(triggerAna->getRoadsFound(+1).empty() && triggerAna->getRoadsFound(-1).empty()) continue;
 
-      topHits = 0;
-      bottomHits = 0;
-
-      topHits = rawEvent->getNHitsInDetector(25) > 0 ? topHits+1 : topHits;
-      topHits = rawEvent->getNHitsInDetector(31) > 0 ? topHits+1 : topHits;
-      topHits = rawEvent->getNHitsInDetector(33) > 0 ? topHits+1 : topHits;
-      topHits = rawEvent->getNHitsInDetector(39) > 0 ? topHits+1 : topHits;
-
-      bottomHits = rawEvent->getNHitsInDetector(26) > 0 ? bottomHits+1 : bottomHits;
-      bottomHits = rawEvent->getNHitsInDetector(32) > 0 ? bottomHits+1 : bottomHits;
-      bottomHits = rawEvent->getNHitsInDetector(34) > 0 ? bottomHits+1 : bottomHits;
-      bottomHits = rawEvent->getNHitsInDetector(40) > 0 ? bottomHits+1 : bottomHits;
       //X-Z
       seeder->setDetectorIDs(start_X, end_X, all_X);
       seeder->setSeedLimits(0.2, 200.);

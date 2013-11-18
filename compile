@@ -12,7 +12,7 @@ def compile(filename):
     os.system('g++ -o '+filename+' '+filename+'.o '+ldflags+' -L./ -lkTracker')
     os.system('rm '+filename+'.o')
 
-if not os.path.isfile(sys.argv[1]):
+if (not os.path.isfile(sys.argv[1])) and (not os.path.isfile(sys.argv[1])+'.cxx'):
     print 'File does not exist!'
     sys.exit(1)
 
