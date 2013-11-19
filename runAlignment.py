@@ -22,7 +22,9 @@ for i in range(offset, nCycle+1):
     runCmd('./kFastTracking run_2167_align_'+str(i)+'.root'+' rec_2167_align_'+str(i)+'.root > log_2167 &')
     runCmd('./kFastTracking run_2168_align_'+str(i)+'.root'+' rec_2168_align_'+str(i)+'.root > log_2168 &')
 
-    nMinutes = 0
+    time.sleep(300)
+    
+    nMinutes = 5
     while int(os.popen('ps | grep kFastTracking | wc -l').read().strip()) != 0:
         nMinutes = nMinutes+1
 	print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
