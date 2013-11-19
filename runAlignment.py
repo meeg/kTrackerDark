@@ -9,17 +9,6 @@ def runCmd(cmd):
     print cmd
     os.system(cmd)
 
-def nEventAll():
-    n = 0
-    for i in range(2167, 2169):
-        output = os.popen('grep Process log_'+str(i)+' | wc -l')
-	text = output.read().strip()
-	n = n + int(text)
-
-    print str(n)+'/157764 ... '
-    return n
-    
-
 nCycle = int(sys.argv[1])
 if len(sys.argv) == 3:
     offset = int(sys.argv[2])
@@ -34,9 +23,9 @@ for i in range(offset, nCycle+1):
     runCmd('./kFastTracking run_2168_align_'+str(i)+'.root'+' rec_2168_align_'+str(i)+'.root > log_2168 &')
 
     nMinutes = 0
-    while nEventAll() != 157764:
+    while int(os.popen('ps | grep kFastTracking | wc -l').read().strip()) != 0:
         nMinutes = nMinutes+1
-        print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
+	print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
 	time.sleep(60)
 
     runCmd('hadd rec_align_'+str(i)+'.root rec_216[7,8]_align_'+str(i)+'.root')

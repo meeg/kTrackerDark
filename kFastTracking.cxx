@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
       rawEvent->clear();
     }
   cout << endl;
+  cout << "kFastTracking successfully exit" << endl;
 
   saveFile->cd();
   saveTree->Write();
