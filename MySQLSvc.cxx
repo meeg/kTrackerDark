@@ -171,6 +171,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
     }
 
   eventID_last = eventID;
+  rawEvent->reIndex();
   return true;
 }
 

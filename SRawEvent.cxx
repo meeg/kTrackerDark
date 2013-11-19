@@ -74,7 +74,7 @@ bool Hit::sameChannel(const Hit& elem1, const Hit& elem2)
 SRawEvent::SRawEvent()
 {
   fAllHits.clear();
-  for(Int_t i = 0; i < nChamberPlanes+1; i++)
+  for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+1; i++)
     {
       fNHits[i] = 0;
     }

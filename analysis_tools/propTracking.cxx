@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
       dataTree->GetEntry(i);
 
       cout << "\r Processing event " << i << " with RunID = " << rawEvent->getRunID() << " and eventID = " << rawEvent->getEventID() << ", ";
-      cout << setprecision(2) << Double_t(i)/nEventMax*100 << "% finished .. " << flush;
+      cout << i*100/nEventMax << "% finished .. " << flush;
 
       rawEvent->reIndex("a");
       triggerAna->acceptEvent(rawEvent);

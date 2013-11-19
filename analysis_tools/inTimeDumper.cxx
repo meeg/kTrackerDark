@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
 	  event->insertHit(h);
 	}
 
+      event->reIndex();
       saveTree->Fill();
       
       event_old->clear();

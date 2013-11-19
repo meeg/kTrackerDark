@@ -79,7 +79,8 @@ int main(int argc, char *argv[])
   for(int i = offset; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
-      Log("Processing event " << i << " with eventID = " << rawEvent->getEventID());
+      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
+      cout << (i - offset)*100/nEvtMax << "% finished .. " << flush;
 
       clock_t time_single = clock();
 
@@ -129,6 +130,7 @@ int main(int argc, char *argv[])
       recEvent->clear();
       rawEvent->clear();
     }
+  cout << endl;
 
   saveFile->cd();
   saveTree->Write();
