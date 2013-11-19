@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 
       saveTree->Fill();
     }
+  cout << endl;
 
   saveFile->cd();
   saveTree->Write();

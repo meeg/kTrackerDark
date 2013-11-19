@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
       for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
 	{
 	  iter->calcChisq();
-	  iter->print();
+	  //iter->print();
 	  new(arr_tracklets[nTracklets]) Tracklet(*iter);
 	  nTracklets++;
 
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
       std::list<KalmanTrack>& rec_tracks = fastfinder->getKalmanTracks();
       for(std::list<KalmanTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
 	{
-	  iter->print();
+	  //iter->print();
 	  SRecTrack recTrack = iter->getSRecTrack();
 	  recTrack.setHodoHits(); 
 	  recTrack.setZVertex(vtxfit->findSingleMuonVertex(recTrack));
