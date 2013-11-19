@@ -215,8 +215,9 @@ void GeomSvc::init(std::string geometrySchema)
 	}
     }
 
-#ifdef ALIGNMENT_MODE
+#ifndef ALIGNMENT_MODE
   //load the initial value in the planeOffsets table
+  cout << "Trying to read the alignment parameter from database ..." << endl;
   const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
     " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
   sprintf(query, buf_offsets, geometrySchema.c_str());
@@ -462,6 +463,7 @@ double GeomSvc::getDriftDistance(int planeID, double tdcTime)
 void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string alignmentFile_hodo, std::string alignmentFile_prop)
 {
   using namespace std;
+  cout << "Trying to read alignment parameters from " << alignmentFile_chamber << ", " << alignmentFile_hodo << " and " << alignmentFile_prop << endl;
 
   //load alignment numbers for chambers
   char filename[300];
@@ -550,7 +552,8 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
 {
   using namespace std;
-
+  cout << "Trying to read millepede-alignment parameters from " << alignmentFile_mille << endl;
+  
   //load alignment numbers for chambers
   char filename[300];
   sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_mille.c_str());
