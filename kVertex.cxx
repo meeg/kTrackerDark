@@ -193,6 +193,8 @@ int main(int argc, char *argv[])
 #endif
       vector<SRecTrack> tracks;
       vector<int> muplus, muminus;
+      tracks.clear();
+      muplus.clear(); muminus.clear();
       for(int j = 0; j < nTracks; j++)
 	{
 #ifndef _ENABLE_KF
@@ -211,6 +213,7 @@ int main(int argc, char *argv[])
 	      muminus.push_back(j);
 	    }
 	  _track.setZVertex(vtxfit->findSingleMuonVertex(_track));
+	  tracks.push_back(_track);
 	}
 
       int nPlus = muplus.size();
