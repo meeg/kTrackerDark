@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
   for(int i = 0; i < 24; i++)
     {
       string detectorName = p_geomSvc->getDetectorName(i+1);
-      sprintf(query, "SELECT MIN(tdcTime),MAX(tdcTime) FROM run_002167_R002.Hit WHERE detectorName LIKE '%s' AND inTime=1", detectorName.c_str());
+      sprintf(query, "SELECT MIN(tdcTime),MAX(tdcTime) FROM run_002167_R003.Hit WHERE detectorName LIKE '%s' AND inTime=1", detectorName.c_str());
 
       TSQLResult *res = con->Query(query);
       TSQLRow *row = res->Next();

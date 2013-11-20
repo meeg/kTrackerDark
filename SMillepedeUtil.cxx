@@ -44,7 +44,7 @@ MPNode::MPNode(Node& node_kalman)
   meas = node_kalman.getSmoothedResidual()[0][0];
   sigma = sqrt(node_kalman.getSmoothedResidualCov()[0][0]);
 
-  if(fabs(meas) > 1.5 ) 
+  if(fabs(meas) > 1.5) 
     {
       flag = false;
       return;

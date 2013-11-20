@@ -280,6 +280,7 @@ Node::Node(const Hit& hit_input)
 Node::Node(const SignedHit& hit_input)
 {
   _hit = hit_input.hit;
+  _hit.index = _hit.index*hit_input.sign;
 
   _measurement.ResizeTo(1, 1);
   _measurement_cov.ResizeTo(1, 1);

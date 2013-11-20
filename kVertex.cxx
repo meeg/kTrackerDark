@@ -84,13 +84,14 @@ int main(int argc, char *argv[])
   SRawEvent* rawEvent = new SRawEvent();
 #endif
   SRecEvent* recEvent = new SRecEvent();
+  TClonesArray* tracklets = new TClonesArray("Tracklet");
 
   TFile *dataFile = new TFile(argv[1], "READ");
   TTree *dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
   dataTree->SetBranchAddress("recEvent", &recEvent);
-
+  dataTree->SetBranchAddress("tracklets", &tracklets);
 
   int nDimuons;
   int pID[30], mID[30];
@@ -184,27 +185,44 @@ int main(int argc, char *argv[])
       Log("Processing event " << i << " with eventID = " << rawEvent->getEventID());
 
       rawEvent->reIndex("oah");
-      
+ 
+#ifndef _ENABLE_KF
+      int nTracks = tracklets->GetEntries();
+#else    
       int nTracks = recEvent->getNTracks();
+#endif
+      vector<SRecTrack> tracks;
+      vector<int> muplus, muminus;
       for(int j = 0; j < nTracks; j++)
 	{
+#ifndef _ENABLE_KF
+	  Tracklet* tracklet = (Tracklet*)tracklets->At(j);
+	  SRecTrack _track = tracklet->getSRecTrack();
+#else
 	  SRecTrack& _track = recEvent->getTrack(j);
+#endif
+	 
+	  if(_track.getCharge() > 0)
+	    {
+	      muplus.push_back(j);
+	    }
+	  else
+	    {
+	      muminus.push_back(j);
+	    }
 	  _track.setZVertex(vtxfit->findSingleMuonVertex(_track));
 	}
-
-      vector<int> muplus = recEvent->getChargedTrackIDs(+1);
-      vector<int> muminus = recEvent->getChargedTrackIDs(-1);
 
       int nPlus = muplus.size();
       int nMinus = muminus.size();
       nDimuons = 0;
       for(int j = 0; j < nPlus; j++)
 	{
-	  SRecTrack _trackp = recEvent->getTrack(muplus[j]);
+	  SRecTrack _trackp = tracks[muplus[j]];
 	  if(!trackOK(_trackp)) continue;
 	  for(int k = 0; k < nMinus; k++)
 	    {
-	      SRecTrack _trackm = recEvent->getTrack(muminus[k]);
+	      SRecTrack _trackm = tracks[muminus[k]];
 	      if(!trackOK(_trackm)) continue;
 
 	      pID[nDimuons] = muplus[j];

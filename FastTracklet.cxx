@@ -509,6 +509,7 @@ SRecTrack Tracklet::getSRecTrack()
       strack.insertZ(z);
     }
 
+  strack.setHodoHits();
   return strack;
 }
 

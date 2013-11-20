@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     {
       dataTree->GetEntry(i);
       cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
-      cout << (i - offset)*100/nEvtMax << "% finished .. " << flush;
+      cout << (i - offset)*100/nEvtMax << "% finished .. ";
 
       clock_t time_single = clock();
 
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
       time_single = clock() - time_single;
       time = double(time_single)/CLOCKS_PER_SEC;
-      Log("It takes " << time << " seconds for this event.");
+      cout << "it takes " << time << " seconds for this event." << flush;
 
       recEvent->reIndex();
       saveTree->Fill();
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
       rawEvent->clear();
     }
   cout << endl;
-  cout << "kFastTracking successfully exit" << endl;
+  cout << "kFastTracking ended successfully." << endl;
 
   saveFile->cd();
   saveTree->Write();
