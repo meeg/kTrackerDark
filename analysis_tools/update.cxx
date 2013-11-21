@@ -20,15 +20,19 @@ int main(int argc, char *argv[])
   geometrySvc->loadCalibration("calibration.txt");
 
   //Old data
-  SRawEvent *event_old = new SRawEvent();
+#ifndef MC_MODE
+  SRawEvent* event_old = new SRawEvent();
+  SRawEvent* event = new SRawEvent();
+#else
+  SRawMCEvent* event_old = new SRawMCEvent();
+  SRawMCEvent* event = new SRawMCEvent();
+#endif
 
   TFile *dataFile = new TFile(argv[1], "READ");
   TTree *dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &event_old);
  
-  SRawEvent *event = new SRawEvent();
-
   TFile *saveFile = new TFile(argv[2], "recreate");
   TTree *saveTree = new TTree("save", "save");
 
