@@ -128,13 +128,20 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   rawEvent->clear();
  
   //Get the event header
-  sprintf(query, "SELECT runID,spillID FROM Event WHERE eventID=%d", eventID);
+  sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
   if(makeQuery() != 1) return false;
 
   nextEntry();
   runID = getInt(row->GetField(0));
   spillID = getInt(row->GetField(1));
   rawEvent->setEventInfo(runID, spillID, eventID);
+
+  int triggers[10];
+  for(int i = 0; i < 10; ++i)
+    {
+      triggers[i] = getInt(row->GetField(i+2));
+    }
+  rawEvent->setTriggerBits(triggers);
 
 #ifdef USE_M_TABLES
   sprintf(query, "SELECT mHitID,elementID,tdcTime,driftTime,driftDistance,detectorName,1,1 FROM mHit WHERE (detectorName LIKE 'D%%'"
@@ -177,7 +184,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 
 int MySQLSvc::getNEvents()
 {
-  sprintf(query, "SELECT COUNT(*) FROM Event");
+  sprintf(query, "SELECT MAX(eventID) FROM Event");
   if(makeQuery() != 1) return 0;
 
   nextEntry();

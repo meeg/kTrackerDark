@@ -2,7 +2,7 @@
 #define _MODE_SWITCH_H
 
 //-------------- kTracker ROOT -------------------
-#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
+//#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
 
 //--------------- Mode controls ------------------
 //=== Enable this when running over MC events
@@ -18,7 +18,7 @@
 #define _ENABLE_KF
 
 //--------------- Geometry version ---------------
-#define GEOMETRY_VERSION "geometry_R1061_run2"
+#define GEOMETRY_VERSION "geometry_R997"
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER "localhost"

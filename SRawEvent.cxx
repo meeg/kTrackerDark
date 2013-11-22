@@ -82,6 +82,8 @@ SRawEvent::SRawEvent()
   fRunID = -1;
   fEventID = -1;
   fSpillID = -1;
+
+  fTriggerBits = 0;
 }
 
 SRawEvent::~SRawEvent()
@@ -563,7 +565,18 @@ void SRawEvent::clear()
     }
 
   fRunID = -1;
+  fSpillID = -1;
   fEventID = -1;
+  fTriggerBits = 0;
+}
+
+void SRawEvent::setTriggerBits(Int_t trigger[])
+{
+  for(int i = 0; i < 10; ++i)
+    {
+      if(trigger[i] != 0) continue;
+      SETBIT(fTriggerBits, BIT(i+1));
+    }
 }
 
 void SRawEvent::print()

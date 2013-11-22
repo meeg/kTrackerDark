@@ -107,28 +107,51 @@ public:
   void reIndex(std::string option = "");
 
   ///Type of pair with two adjacent wiree
-  typedef std::pair<int, int> hit_pair;
+  typedef std::pair<Int_t, Int_t> hit_pair;
   std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Int_t detectorID);
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID);  
   std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);  
   
+  ///Set/get the trigger types
+  void setTriggerBits(Int_t trigger[]);
+  bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
+
   ///Clear the internal event structure
   void clear();
 
   ///Print for debugging purposes
   void print(); 
 
+public:
+  //Trigger type
+  enum TriggerType 
+    {
+      NIM1 = BIT(1),
+      NIM2 = BIT(2),
+      NIM3 = BIT(3),
+      NIM4 = BIT(4),
+      NIM5 = BIT(5),
+      MATRIX1 = BIT(6),
+      MATRIX2 = BIT(7),
+      MATRIX3 = BIT(8),
+      MATRIX4 = BIT(9),
+      MATRIX5 = BIT(10)
+    };
+
 private:
   Int_t fRunID;
   Int_t fEventID;
   Int_t fSpillID;
 
+  //Trigger bit
+  Int_t fTriggerBits;
+
   ///Hits of this event
   Int_t fNHits[nChamberPlanes+nHodoPlanes+nPropPlanes+1];  //0 for all hits, 1, 2, ..., 24 for number of hits in plane 1, 2, ..., 24
   std::vector<Hit> fAllHits;
 
-  ClassDef(SRawEvent, 2)
+  ClassDef(SRawEvent, 3)
 };
 
 class SRawMCEvent: public SRawEvent

@@ -38,8 +38,12 @@ int main(int argc, char *argv[])
 
   //Retrieve the raw event
   Log("Retrieving the event stored in ROOT file ... ");
-#ifdef _ENABLE_KF
+#ifndef MC_MODE
   SRawEvent* rawEvent = new SRawEvent();
+#else
+  SRawMCEvent* rawEvent = new SRawMCEvent();
+#endif
+#ifdef _ENABLE_KF
   SRecEvent* recEvent = new SRecEvent();
 #else
   TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -49,8 +53,8 @@ int main(int argc, char *argv[])
   TFile *dataFile = new TFile(argv[1], "READ");
   TTree *dataTree = (TTree *)dataFile->Get("save");
 
-#ifdef _ENABLE_KF
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
+#ifdef _ENABLE_KF
   dataTree->SetBranchAddress("recEvent", &recEvent);
 #else
   dataTree->SetBranchAddress("tracklets", &tracklets);

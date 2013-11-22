@@ -102,14 +102,15 @@ public:
   //Fill track info.
   void addTrack(SRecTrack& trk);
   void addTrack(Tracklet& trk);
+  void addVertex();
 
   //Simutaneous fit to global parameters
   void fitAlignment();
 
   //Fix detector parameters
-  void fixDetectorParameter(int detectorID, int parameterID);
-  void setDetectorParError(int detectorID, int parameterID, double err) { err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = err; }
-  void setDetectorParameter(int detectorID, int parameterID, double val) { par_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = val; }
+  void fixDetectorParameter(int detectorID, int parameterID, float val = 0.);
+  void setDetectorParError(int detectorID, int parameterID, float err) { err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = err; }
+  void setDetectorParameter(int detectorID, int parameterID, float val) { par_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = val; }
   void constrainDetectors(int detectorID1, int detectorID2, int parameterID);
 
   //Book/Fill evaluation tree

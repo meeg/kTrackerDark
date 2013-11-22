@@ -145,7 +145,10 @@ void SMillepede::addTrack(Tracklet& trk)
       nodes.push_back(node_dummy);
     }
   std::sort(nodes.begin(), nodes.end());
-  
+ 
+  //Add vertex point constrain
+  //addVertex();
+
   setSingleTrack();
   fillEvaluationTree();
 }
@@ -189,8 +192,66 @@ void SMillepede::addTrack(SRecTrack& trk)
     }
   std::sort(nodes.begin(), nodes.end());
 
+  //Add vertex point constrain
+  //addVertex();
+
   setSingleTrack();
   fillEvaluationTree();
+}
+
+void SMillepede::addVertex()
+{
+  //Find the most upstream valid node info
+  double tx = 0.;
+  double ty = 0.;
+  double x0 = 0.;
+  double y0 = 0.;
+  for(std::vector<MPNode>::iterator node = nodes.begin(); node != nodes.end(); ++node)
+    {
+      if(node->isValid())
+	{
+	  tx = node->tx;
+	  ty = node->ty;
+	  x0 = node->x0;
+	  y0 = node->y0;
+
+	  break;
+	}
+    }
+
+  //Vertex constrain for x0
+  MPNode node_x0(0);
+  node_x0.flag = true;
+
+  node_x0.meas = 0.;
+  node_x0.sigma = 5.;
+
+  node_x0.tx = tx;
+  node_x0.ty = ty;
+  node_x0.x0 = x0;
+  node_x0.y0 = y0;
+  node_x0.z = 275. - Z_REF;
+
+  node_x0.setDerivatives(node_x0.z, 1., 0., tx, ty, x0, y0);
+  nodes.push_back(node_x0);
+
+  //Vertex constrain for x0
+  MPNode node_y0(-1);
+  node_y0.flag = true;
+
+  node_y0.meas = 0.;
+  node_y0.sigma = 5.;
+
+  node_y0.tx = tx;
+  node_y0.ty = ty;
+  node_y0.x0 = x0;
+  node_y0.y0 = y0;
+  node_y0.z = 40. - Z_REF;
+
+  node_y0.setDerivatives(node_y0.z, 0., 1., tx, ty, x0, y0);
+  nodes.push_back(node_y0);
+
+  std::sort(nodes.begin(), nodes.end());
 }
 
 void SMillepede::constrainDetectors(int detectorID1, int detectorID2, int paraID)
@@ -222,21 +283,16 @@ void SMillepede::initMillepede()
   //By default all parameters are fixed at zero
   for(int i = 1; i <= MILLEPEDE::NPLAN; i++)
     {
-      setDetectorParError(i, 0, 0.0);
-      setDetectorParError(i, 1, 0.0);
+      setDetectorParError(i, 0, 1.);
+      setDetectorParError(i, 1, 0.01);
       setDetectorParError(i, 2, 0.1);
 
       //if(i <= 6) setDetectorParError(i, 0, 2);
     }
 
-  //Fix the rotation of D2V and D2Vp to be zero
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D2V"), 1);
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D2Vp"), 1);
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 0);
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D3pXp"), 0);
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 2);
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D3mVp"), 2);
-  
+  //fixDetectorParameter(p_geomSvc->getDetectorID("D1X"), 2, 0.002089);
+  //fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 2, -0.080011);
+
   // Now pass the info above to millepede
   parglo_(par_align);
   for(int i = 0; i < MILLEPEDE::NGLB; i++)
@@ -294,14 +350,15 @@ void SMillepede::initMillepede()
   initun_(&iUnit, &cFactor);
 }
 
-void SMillepede::fixDetectorParameter(int detectorID, int parameterID)
+void SMillepede::fixDetectorParameter(int detectorID, int parameterID, float val)
 {
   //initial error
+  par_align[MILLEPEDE::NPARPLAN*(detectorID - 1) + parameterID] = val;
   err_align[MILLEPEDE::NPARPLAN*(detectorID - 1) + parameterID] = 0.;
 
   //Contrain
   float dercs[MILLEPEDE::NGLB];
-  float rhs = 0.;
+  float rhs = val;
 
   for(int i = 0; i < MILLEPEDE::NGLB; i++) dercs[i] = 0.;
   dercs[MILLEPEDE::NPARPLAN*(detectorID - 1) + parameterID] = 1.;
@@ -339,35 +396,16 @@ void SMillepede::setSingleTrack()
       derlc[3] = node->dwdty;
 
       //Fill global derivatives
-      dergb[NPARPLAN*index + 0] = node->dwdz;
-      dergb[NPARPLAN*index + 1] = node->dwdphi;
-      dergb[NPARPLAN*index + 2] = node->dwdw;
+      if(index > 0) 
+	{
+	  dergb[NPARPLAN*index + 0] = node->dwdz;
+	  dergb[NPARPLAN*index + 1] = node->dwdphi;
+	  dergb[NPARPLAN*index + 2] = node->dwdw;
+	}
 
       //Book the local/global derivatives, measurement and error
       equloc_(dergb, derlc, &meas, &sigma);
     }
-
-  /*
-  //Add virtual node to contrain derlc at z = 40 cm (dump face)
-  zerloc_(dergb, derlc);
-  meas = 0.;
-  sigma = 5.;
-
-  derlc[1] = 1.;
-  derlc[3] = 40.;
-
-  equloc_(dergb, derlc, &meas, &sigma);
-
-  //Add virtual node to contrain derlc at z = 275 cm (FMAG bend plane)
-  zerloc_(dergb, derlc);
-  meas = 0.;
-  sigma = 5.;
-
-  derlc[0] = 1.;
-  derlc[2] = 275.;
-
-  equloc_(dergb, derlc, &meas, &sigma);
-  */
 
   //Perform local track fit
   fitloc_();
@@ -513,6 +551,6 @@ void SMillepede::fillEvaluationTree()
 
       *evalNode = *node;
       evalTree->Fill();
-      evalHist[node->detectorID-1]->Fill(node->meas);
+      if(node->detectorID > 0) evalHist[node->detectorID-1]->Fill(node->meas);
     }
 }
