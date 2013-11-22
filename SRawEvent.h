@@ -25,6 +25,8 @@ Created: 07-02-2012
 
 #include "GeomSvc.h"
 
+#define triggerBit(n) (1 << (n))
+
 ///Definition of hit structure
 class Hit: public TObject
 {
@@ -114,7 +116,7 @@ public:
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);  
   
   ///Set/get the trigger types
-  void setTriggerBits(Int_t trigger[]);
+  void setTriggerBits(Int_t triggers[]);
   bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
 
   ///Clear the internal event structure
@@ -127,16 +129,16 @@ public:
   //Trigger type
   enum TriggerType 
     {
-      NIM1 = BIT(1),
-      NIM2 = BIT(2),
-      NIM3 = BIT(3),
-      NIM4 = BIT(4),
-      NIM5 = BIT(5),
-      MATRIX1 = BIT(6),
-      MATRIX2 = BIT(7),
-      MATRIX3 = BIT(8),
-      MATRIX4 = BIT(9),
-      MATRIX5 = BIT(10)
+      NIM1 = triggerBit(1),
+      NIM2 = triggerBit(2),
+      NIM3 = triggerBit(3),
+      NIM4 = triggerBit(4),
+      NIM5 = triggerBit(5),
+      MATRIX1 = triggerBit(6),
+      MATRIX2 = triggerBit(7),
+      MATRIX3 = triggerBit(8),
+      MATRIX4 = triggerBit(9),
+      MATRIX5 = triggerBit(10)
     };
 
 private:

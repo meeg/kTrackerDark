@@ -570,12 +570,12 @@ void SRawEvent::clear()
   fTriggerBits = 0;
 }
 
-void SRawEvent::setTriggerBits(Int_t trigger[])
+void SRawEvent::setTriggerBits(Int_t triggers[])
 {
   for(int i = 0; i < 10; ++i)
     {
-      if(trigger[i] != 0) continue;
-      SETBIT(fTriggerBits, BIT(i+1));
+      if(triggers[i] == 0) continue;
+      fTriggerBits |= triggerBit(i+1);
     }
 }
 
