@@ -14,18 +14,20 @@ Track reconstruction for E906/SeaQuest experiment
   * PATH: $GEANT4SYS/bin and $ROOTSYS/bin
   * LD_LIBRARY_PATH: $GEANT4SYS/lib and $ROOTSYS/lib
   
-  On e906-gat2, there is one example environment setup script at ~liuk/env.sh.
+  On e906-gat2, there is an example environment setup script at ~liuk/env.sh.
   
   Also one needs to modify the MODE_SWITCH.h:
   * KTRACKER_ROOT: change to the location of kTracker
   * MYSQL_SERVER: address of mysql server (contains geometry schema and/or data)
+  * ALIGNMENT_MODE: enable if running the alignment (it will set both FMag and KMag to 0.)
   * MC_MODE: enable if running MC productions
   * DIMUON_MODE: change to 0 if one wants to save events with less than 2 muons
   * KMAG_ON: change to 0 to turn off kMag
   * ENABLE_KF: comment out if one wants to disable Kalman Filter
   * Other variables
   
-  Go to TrackExtrapolator and make first, then go back to KTRACKER_ROOT directory and make.
+  Go to TrackExtrapolator and make first, then go back to KTRACKER_ROOT directory and make. Or run './reset.py'
+  to do both with one command.
   
 2. Executables
 
@@ -40,8 +42,10 @@ Track reconstruction for E906/SeaQuest experiment
   * kVertex: find the single muon/dimuon vertex via vertex fit with Kalman-fitted tracks
   * kVertex_mix: run vertex fit upon randomly combined tracks
   
-  If needed, there are several executables that needs be compiled individually using: ./compile executable_name
+  If needed, there are several standalone executables that needs be compiled individually. Most likely those
+  source files are located at KTRACKER_ROOT/analysis_tools, use './compile analysis_tools/executable_name' to compile:
   * sqlDataReader: reads the data from MySQL and save it in ROOT file
+  * sqlMCReader: reads the MC data from MySQL and save it in ROOT file
   * update: update the wire position calucation with new alignment parameters
   * makeRTProfile: produce the R-T profile for drift chambers based on tracking results
   * hodoAlign: find the alignment parameters (shift only) for hodoscopes
