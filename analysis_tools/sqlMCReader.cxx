@@ -28,7 +28,14 @@ int main(int argc, char **argv)
   p_geomSvc->init(GEOMETRY_VERSION);
 
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  p_mysqlSvc->connect();
+  if(argc > 3)
+    {
+      p_mysqlSvc->connect(argv[3]);
+    }
+  else
+    {
+      p_mysqlSvc->connect();
+    }
   p_mysqlSvc->setWorkingSchema(argv[1]);
 
   SRawMCEvent* rawEvent = new SRawMCEvent();
