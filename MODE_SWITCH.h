@@ -2,7 +2,7 @@
 #define _MODE_SWITCH_H
 
 //-------------- kTracker ROOT -------------------
-//#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
+#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
 
 //--------------- Mode controls ------------------
 //=== Enable this when running over MC events

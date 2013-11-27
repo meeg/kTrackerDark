@@ -59,9 +59,28 @@ int main(int argc, char* argv[])
   saveTree->Branch("xIndex", xIndex, "xIndex[nSeeds]/I");
   saveTree->Branch("yIndex", yIndex, "yIndex[nSeeds]/I");
 
+  //Only used in calculating prop. tube efficiency
+  Int_t nSeedsSingle;
+  Int_t nSeedHits[50];
+  Int_t xyflag[50];
+  Double_t a[50];
+  Double_t b[50];
+  Double_t chisq[50];
+  Int_t hitIndex[50][8];
+
+  saveTree->Branch("nSeedsSingle", &nSeedsSingle, "nSeedsSingle/I");
+  saveTree->Branch("nSeedHits", nSeedHits, "nSeedHits[nSeedsSingle]/I");
+  saveTree->Branch("xyflag", xyflag, "xyflag[nSeedsSingle]/I");
+  saveTree->Branch("a", b, "a[nSeedsSingle]/D");
+  saveTree->Branch("b", b, "b[nSeedsSingle]/D");
+  saveTree->Branch("chisq", chisq, "chisq[nSeedsSingle]/D");
+  saveTree->Branch("hitIndex", hitIndex, "hitIndex[nSeedsSingle][8]/D");
+
+  /*
   TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
   triggerAna->init("roads_DY.root", 1E-3, 1E6);
   triggerAna->buildTriggerTree();
+  */
 
   Int_t nEventMax = argc > 3 ? atoi(argv[3]) : dataTree->GetEntries();
   SeedFinder *seeder = new SeedFinder();
@@ -94,8 +113,8 @@ int main(int argc, char* argv[])
       cout << i*100/nEventMax << "% finished .. " << flush;
 
       rawEvent->reIndex("a");
-      triggerAna->acceptEvent(rawEvent);
-      if(triggerAna->getRoadsFound(+1).empty() && triggerAna->getRoadsFound(-1).empty()) continue;
+      //triggerAna->acceptEvent(rawEvent);
+      //if(triggerAna->getRoadsFound(+1).empty() && triggerAna->getRoadsFound(-1).empty()) continue;
 
       //X-Z
       seeder->setDetectorIDs(start_X, end_X, all_X);
@@ -113,7 +132,7 @@ int main(int argc, char* argv[])
       list<Seed1D> yseeds = seeder->getFinalSeeds();
       ++nGoodYEvent;
 
-      if(nSeedsX < 1 || nSeedsY < 1) continue;
+      //if(nSeedsX < 1 || nSeedsY < 1) continue;
 
       //X-Y combination
       nSeeds = 0;
@@ -135,10 +154,11 @@ int main(int argc, char* argv[])
 	    }
 	}
 
-      if(nSeeds < 1 || nSeeds > 200) continue;    
+      if(nSeeds > 200) continue;    
       
       rawEvent_new->setEventInfo(rawEvent->getRunID(), rawEvent->getSpillID(), rawEvent->getEventID());
       index_x = 0; 
+      nSeedsSingle = 0;
       for(list<Seed1D>::iterator seedx = xseeds.begin(); seedx != xseeds.end(); ++seedx)
         {
 	  nSeedHitsX[index_x] = seedx->nHits;
@@ -146,11 +166,20 @@ int main(int argc, char* argv[])
 	  bx[index_x] = seedx->bx;
 	  xchisq[index_x] = seedx->chisq;
 
+	  xyflag[nSeedsSingle] = 1;
+	  nSeedHits[nSeedsSingle] = seedx->xhits.size();
+	  a[nSeedsSingle] = seedx->ax;
+	  b[nSeedsSingle] = seedx->bx;
+	  chisq[nSeedsSingle] = seedx->chisq;
+
+	  Int_t id = 0;
 	  for(list<int>::iterator iter = seedx->xhits.begin(); iter != seedx->xhits.end(); ++iter)
 	    {
 	      rawEvent_new->insertHit(rawEvent->getHit(*iter));
+	      hitIndex[nSeedsSingle][id++] = *iter;
 	    }
 
+	  ++nSeedsSingle;
 	  index_x++;
 	}	  
 
@@ -162,11 +191,20 @@ int main(int argc, char* argv[])
 	  by[index_y] = seedy->bx;
 	  ychisq[index_y] = seedy->chisq;
 
+	  xyflag[nSeedsSingle] = -1;
+	  nSeedHits[nSeedsSingle] = seedy->xhits.size();
+       	  a[nSeedsSingle] = seedy->ax;
+	  b[nSeedsSingle] = seedy->bx;
+	  chisq[nSeedsSingle] = seedy->chisq;
+
+          Int_t id = 0;	  
 	  for(list<int>::iterator iter = seedy->xhits.begin(); iter != seedy->xhits.end(); ++iter)
 	    {
 	      rawEvent_new->insertHit(rawEvent->getHit(*iter));
+	      hitIndex[nSeedsSingle][id++] = *iter;
 	    }
 
+	  ++nSeedsSingle;
 	  index_y++;
 	}	
 
@@ -184,7 +222,7 @@ int main(int argc, char* argv[])
   saveFile->Close();
 
   delete seeder;
-  delete triggerAna;
+  //delete triggerAna;
 
   return 1;
 }

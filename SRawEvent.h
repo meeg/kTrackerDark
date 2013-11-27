@@ -23,8 +23,6 @@ Created: 07-02-2012
 #include <TROOT.h>
 #include <TVector3.h>
 
-#include "GeomSvc.h"
-
 #define triggerBit(n) (1 << (n))
 
 ///Definition of hit structure
@@ -66,7 +64,7 @@ public:
   ~SRawEvent();
 
   ///Mix events for MC study
-  void mixEvent(SRawEvent *event, int nBkgHits = -1);
+  void mixEvent(SRawEvent* event, int nBkgHits = -1);
 
   ///Gets
   std::list<Int_t> getHitsIndexInDetector(Int_t detectorID);
@@ -142,6 +140,7 @@ public:
     };
 
 private:
+  //RunID, spillID, eventID
   Int_t fRunID;
   Int_t fEventID;
   Int_t fSpillID;
