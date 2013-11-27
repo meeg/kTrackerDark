@@ -53,8 +53,9 @@ public:
   bool getNextEvent(SRawEvent* rawEvent);
   bool getNextEvent(SRawMCEvent* rawEvent);
 
-  //Get the MC truth
-  bool getMCInfo(SRawMCEvent* mcEvent, int eventID);
+  //Get the event header
+  bool getEventHeader(SRawEvent* rawEvent, int eventID);
+  bool getEventHeader(SRawMCEvent* mcEvent, int eventID);
 
   //Output to database/txt file/screen
   void bookOutputTables();

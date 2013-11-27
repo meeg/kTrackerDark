@@ -109,6 +109,11 @@ bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 {
   ++eventID_last;
+  
+  if(!getEventHeader(rawEvent, eventID_last))
+    {
+      return false;
+    }
   return getEvent(rawEvent, eventID_last);
 }
 
@@ -116,7 +121,7 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 {
   ++eventID_last;
 
-  if(!getMCInfo(mcEvent, eventID_last))
+  if(!getEventHeader(mcEvent, eventID_last))
     {
       return false;
     }
@@ -127,22 +132,6 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
   rawEvent->clear();
  
-  //Get the event header
-  sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
-  if(makeQuery() != 1) return false;
-
-  nextEntry();
-  runID = getInt(row->GetField(0));
-  spillID = getInt(row->GetField(1));
-  rawEvent->setEventInfo(runID, spillID, eventID);
-
-  int triggers[10];
-  for(int i = 0; i < 10; ++i)
-    {
-      triggers[i] = getInt(row->GetField(i+2));
-    }
-  rawEvent->setTriggerBits(triggers);
-
 #ifdef USE_M_TABLES
   sprintf(query, "SELECT mHitID,elementID,tdcTime,driftTime,driftDistance,detectorName,1,1 FROM mHit WHERE (detectorName LIKE 'D%%'"
 	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
@@ -192,7 +181,28 @@ int MySQLSvc::getNEvents()
   return nTotal;
 }
 
-bool MySQLSvc::getMCInfo(SRawMCEvent* mcEvent, int eventID)
+bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
+{
+  //Get the event header
+  sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
+  if(makeQuery() != 1) return false;
+
+  nextEntry();
+  runID = getInt(row->GetField(0));
+  spillID = getInt(row->GetField(1));
+  rawEvent->setEventInfo(runID, spillID, eventID);
+
+  int triggers[10];
+  for(int i = 0; i < 10; ++i)
+    {
+      triggers[i] = getInt(row->GetField(i+2));
+    }
+  rawEvent->setTriggerBits(triggers);
+
+  return true;
+}
+
+bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
 {
   sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
   if(makeQuery() != 1) return false;
