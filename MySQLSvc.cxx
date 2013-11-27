@@ -204,9 +204,13 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 
 bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
 {
-  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
+  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
   if(makeQuery() != 1) return false;
   nextEntry();
+
+  runID = getInt(row->GetField(12));
+  spillID = getInt(row->GetField(13));
+  mcEvent->setEventInfo(runID, spillID, eventID);
 
   int trackID[2] = { getInt(row->GetField(0)), getInt(row->GetField(1)) };
   mcEvent->weight = getDouble(row->GetField(2));
