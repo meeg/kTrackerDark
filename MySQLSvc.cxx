@@ -97,19 +97,32 @@ bool MySQLSvc::isRunStopped()
 bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
 {
   if(!isNewEvtAvailable()) return false;
+
+  rawEvent->clear();
+  if(!getEventHeader(rawEvent, eventID_last))
+    {
+      return false;
+    }
   return getEvent(rawEvent, eventID_last);
 }
 
 bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 {
-  int eventID = int(rndm.Rndm()*getNEventsFast());
-  return getEvent(rawEvent, eventID);
+  eventID_last = int(rndm.Rndm()*getNEventsFast());
+  
+  rawEvent->clear();
+  if(!getEventHeader(rawEvent, eventID_last))
+    {
+      return false;
+    }
+  return getEvent(rawEvent, eventID_last);
 }
 
 bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 {
   ++eventID_last;
   
+  rawEvent->clear();
   if(!getEventHeader(rawEvent, eventID_last))
     {
       return false;
@@ -121,6 +134,7 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 {
   ++eventID_last;
 
+  mcEvent->clear();
   if(!getEventHeader(mcEvent, eventID_last))
     {
       return false;
@@ -130,8 +144,6 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
-  rawEvent->clear();
- 
 #ifdef USE_M_TABLES
   sprintf(query, "SELECT mHitID,elementID,tdcTime,driftTime,driftDistance,detectorName,1,1 FROM mHit WHERE (detectorName LIKE 'D%%'"
 	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
