@@ -50,11 +50,7 @@ int main(int argc, char **argv)
   for(int i = 0; i < nEvents; ++i)
     {
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-      if(saveTree->GetEntries() % 10 == 0)
-	{
-	  cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEvents << "% finished." << flush;
-	  //rawEvent->print();
-	}
+      cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEvents << "% finished." << flush;
 
       saveTree->Fill();
     }
