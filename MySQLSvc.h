@@ -100,7 +100,7 @@ private:
   int nEvents;
 
   //Query string used in all clause
-  char query[500];
+  char query[2000];
 
   //name of the production schema working on
   std::string dataSchema;
