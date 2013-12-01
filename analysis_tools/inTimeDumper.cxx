@@ -48,11 +48,10 @@ int main(int argc, char *argv[])
   
   saveTree->Branch("rawEvent", &event, 256000, 99);
  
-  double h_center[16] = {634., 634., 638., 638., 646., 646., 638., 642., 730., 732., 738., 738., 738., 736., 728., 730.};
+  double h_center[16] = {880., 880., 890., 890., 900., 900., 890., 890., 970., 970., 975., 975., 970., 970., 965., 965.};
   for(int i = 0; i < dataTree->GetEntries(); i++)
     {
       dataTree->GetEntry(i);
-      event_old->reIndex("a");
 
       H1B = event_old->getNHitsInDetector(25) > 0 ? 1 : 0;
       H2B = event_old->getNHitsInDetector(31) > 0 ? 1 : 0;
@@ -70,23 +69,16 @@ int main(int argc, char *argv[])
     
       for(unsigned int j = 0; j < hits_old.size(); j++)
 	{
-	  /*
 	  if(hits_old[j].detectorID >= 25 && hits_old[j].detectorID <= 40)
 	    {
 	      if(fabs(hits_old[j].tdcTime - h_center[hits_old[j].detectorID - 25]) > 15.) continue;
 	    }
-	  */
-
-	  if(hits_old[j].detectorID > 40)
-	    {
-	      if(hits_old[j].tdcTime < 1000. || hits_old[j].tdcTime > 1900.) continue;
-	    }
-
+	  
 	  Hit h = hits_old[j];
 	  event->insertHit(h);
 	}
 
-      event->reIndex();
+      event->reIndex("a");
       saveTree->Fill();
       
       event_old->clear();

@@ -84,22 +84,22 @@ void GeomSvc::init(std::string geometrySchema)
   map_detectorID.insert(nameToID("D3mV", 23));
   map_detectorID.insert(nameToID("D3mVp", 24));
   
-  map_detectorID.insert(nameToID("H1X1", 25));
-  map_detectorID.insert(nameToID("H1X2", 26));
-  map_detectorID.insert(nameToID("H1Y1", 27));
-  map_detectorID.insert(nameToID("H1Y2", 28));
-  map_detectorID.insert(nameToID("H2Y1", 29));
-  map_detectorID.insert(nameToID("H2Y2", 30));
-  map_detectorID.insert(nameToID("H2X1", 31));
-  map_detectorID.insert(nameToID("H2X2", 32));
-  map_detectorID.insert(nameToID("H3X1", 33));
-  map_detectorID.insert(nameToID("H3X2", 34));
-  map_detectorID.insert(nameToID("H4Y11", 35));
-  map_detectorID.insert(nameToID("H4Y12", 36));
-  map_detectorID.insert(nameToID("H4Y21", 37));
-  map_detectorID.insert(nameToID("H4Y22", 38));
-  map_detectorID.insert(nameToID("H4X1", 39));
-  map_detectorID.insert(nameToID("H4X2", 40));
+  map_detectorID.insert(nameToID("H1B", 25));
+  map_detectorID.insert(nameToID("H1T", 26));
+  map_detectorID.insert(nameToID("H1L", 27));
+  map_detectorID.insert(nameToID("H1R", 28));
+  map_detectorID.insert(nameToID("H2L", 29));
+  map_detectorID.insert(nameToID("H2R", 30));
+  map_detectorID.insert(nameToID("H2B", 31));
+  map_detectorID.insert(nameToID("H2T", 32));
+  map_detectorID.insert(nameToID("H3B", 33));
+  map_detectorID.insert(nameToID("H3T", 34));
+  map_detectorID.insert(nameToID("H4Y1L", 35));
+  map_detectorID.insert(nameToID("H4Y1R", 36));
+  map_detectorID.insert(nameToID("H4Y2L", 37));
+  map_detectorID.insert(nameToID("H4Y2R", 38));
+  map_detectorID.insert(nameToID("H4B", 39));
+  map_detectorID.insert(nameToID("H4T", 40));
 
   map_detectorID.insert(nameToID("P1Y1", 41));
   map_detectorID.insert(nameToID("P1Y2", 42));
@@ -423,33 +423,6 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 	{
 	  eID = (9 - moduleID)*8 + eID;
 	}	  
-    }
-  else if(detectorName.find("H") != string::npos)
-    {
-      string suffix;
-      if(detectorName.find("B") != string::npos || detectorName.find("L") != string::npos)
-	{
-	  suffix = "1";
-	}
-      else if(detectorName.find("T") != string::npos || detectorName.find("R") != string::npos)
-	{
-	  suffix = "2";
-	}
-
-      if(detectorName.find("H4Y") != string::npos)
-	{
-	  detectorName.replace(4, detectorName.length(), "");
-	}
-      else if(detectorName.find("T") != string::npos || detectorName.find("B") != string::npos)
-	{
-	  detectorName.replace(2, detectorName.length(), "X");
-	}
-      else if(detectorName.find("L") != string::npos || detectorName.find("R") != string::npos)
-	{
-	  detectorName.replace(2, detectorName.length(), "Y");
-	}
-
-      detectorName += suffix;
     }
 }
 
