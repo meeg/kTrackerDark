@@ -706,10 +706,18 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
 
 #ifdef _DEBUG_ON
   Log("Hit pairs in this event: ");
-  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_X.begin(); iter != pairs_X.end(); ++iter) Log("X :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << hitAll[iter->second].index);
-  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_U.begin(); iter != pairs_U.end(); ++iter) Log("U :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << hitAll[iter->second].index);
-  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_V.begin(); iter != pairs_V.end(); ++iter) Log("V :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << hitAll[iter->second].index);
+  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_X.begin(); iter != pairs_X.end(); ++iter) Log("X :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
+  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_U.begin(); iter != pairs_U.end(); ++iter) Log("U :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
+  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_V.begin(); iter != pairs_V.end(); ++iter) Log("V :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
 #endif
+
+  if(pairs_X.empty() || pairs_U.empty() || pairs_V.empty())
+    {
+#ifdef _DEBUG_ON
+      Log("Not all view has hits in station " << stationID);
+#endif
+      return;
+    }
 
   //X-U combination first, then add V pairs
   for(std::list<SRawEvent::hit_pair>::iterator xiter = pairs_X.begin(); xiter != pairs_X.end(); ++xiter)
@@ -1102,7 +1110,7 @@ void KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
   if(!fitTrack(kmtrk)) return;
 
   //Resolve left-right based on the current solution, re-fit if anything changed
-  resolveLeftRight(kmtrk);
+  //resolveLeftRight(kmtrk);
   if(kmtrk.isValid()) tracks.push_back(kmtrk);
 }
 

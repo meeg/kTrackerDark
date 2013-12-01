@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 
       clock_t time_single = clock();
 
-      rawEvent->reIndex("oa");
+      rawEvent->reIndex("a");
       if(!fastfinder->setRawEvent(rawEvent)) continue;
 
       //Fill the TClonesArray

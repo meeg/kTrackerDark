@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
       spillID = rawEvent->getSpillID();
       eventID = rawEvent->getEventID();
       
-      rawEvent->reIndex("oah");
+      rawEvent->reIndex("a");
 
       seeder->setDetectorIDs(start_X, end_X, all_X);
       seeder->setSeedLimits(0.2, 200.);

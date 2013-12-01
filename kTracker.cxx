@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
       if((rawEvent->getRunID() != 2166) && (nSeeds < 2 || nSeedsX < 2)) continue;
       if(nSeeds > 50) continue;
 
-      rawEvent->reIndex("oah");
+      rawEvent->reIndex("a");
       finder->setEvent(rawEvent);
 
       std::list<Seed> _seeds;

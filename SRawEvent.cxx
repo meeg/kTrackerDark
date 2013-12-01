@@ -230,7 +230,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Int_
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[13] = {0., 0.38, 0.38, 0.38, 1.22, 1.22, 1.22, 1.2, 1.2, 1.2, 0.6, 0.6, 0.6};
+  double spacing[13] = {0., 0.38, 0.38, 0.38, 1.22, 1.22, 1.22, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
 
   int index1 = -1;
   int index2 = -1;
@@ -276,7 +276,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Int_
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[13] = {0., 0.38, 0.38, 0.38, 1.22, 1.22, 1.22, 1.2, 1.2, 1.2, 0.6, 0.6, 0.6};
+  double spacing[13] = {0., 0.38, 0.38, 0.38, 1.22, 1.22, 1.22, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
 
   int index1 = -1;
   int index2 = -1;

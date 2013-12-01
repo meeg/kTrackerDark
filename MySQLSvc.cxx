@@ -144,19 +144,18 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
+  //All hits but in station 4
 #ifdef USE_M_TABLES
   sprintf(query, "SELECT mHitID,elementID,tdcTime,driftTime,driftDistance,detectorName,1,1 FROM mHit WHERE (detectorName LIKE 'D%%'"
 	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
 #else
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%'"
-	  " OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
+	  " OR detectorName LIKE 'H__' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
 #endif
-  if(makeQuery() == 0) return false;
-
-  int nHits = res->GetRowCount();
-  if(nHits < 1) return false;
-
-  for(int i = 0; i < nHits; ++i)
+  int nHits_part1 = makeQuery();
+  if(res == NULL) return false;
+  
+  for(int i = 0; i < nHits_part1; ++i)
     {
       nextEntry();
 
@@ -174,6 +173,45 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       h.driftTime = getDouble(row->GetField(3));
       h.driftDistance = getDouble(row->GetField(4));
       h.hodoMask = getInt(row->GetField(7), 1);
+      
+      rawEvent->insertHit(h);
+    }
+
+  //Hits in station 4, take the mean-timer into account
+#ifdef USE_M_TABLES
+  sprintf(query, "SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),h1.detectorName,h1.inTime AND h2.inTime FROM "
+	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND (detectorName LIKE 'H4_u' OR detectorName LIKE 'H4Y__l')) AS h1,"
+	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND (detectorName LIKE 'H4_d' OR detectorName LIKE 'H4Y__r')) AS h2 "
+	  "WHERE ((h1.detectorName like 'H4__' AND (substr(h1.detectorName,1,3) LIKE (h2.detectorName,1,3))) "
+	  "OR (h1.detectorName like 'H4Y___' AND (substr(h1.detectorName,1,5) LIKE (h2.detectorName,1,5)))) AND h1.elementID=h2.elementID", eventID, eventID);
+#else
+  sprintf(query, "SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),h1.detectorName,h1.inTime AND h2.inTime FROM "
+	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND (detectorName LIKE 'H4_u' OR detectorName LIKE 'H4Y__l')) AS h1,"
+	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND (detectorName LIKE 'H4_d' OR detectorName LIKE 'H4Y__r')) AS h2 "
+	  "WHERE ((h1.detectorName like 'H4__' AND (substr(h1.detectorName,1,3) LIKE (h2.detectorName,1,3))) "
+	  "OR (h1.detectorName like 'H4Y___' AND (substr(h1.detectorName,1,5) LIKE (h2.detectorName,1,5)))) AND h1.elementID=h2.elementID", eventID, eventID);
+#endif
+  int nHits_part2 = makeQuery();
+  if(res == NULL || nHits_part1 + nHits_part2 == 0) return false;
+
+  for(int i = 0; i < nHits_part2; ++i)
+    {
+      nextEntry();
+
+      std::string detectorName(row->GetField(3));
+      int elementID = getInt(row->GetField(1));
+      p_geomSvc->toLocalDetectorName(detectorName, elementID);
+       
+      Hit h;
+      h.index = getInt(row->GetField(0));
+      h.detectorID = p_geomSvc->getDetectorID(detectorName);
+      h.elementID = elementID;
+      h.tdcTime = getDouble(row->GetField(2));
+      h.inTime = getInt(row->GetField(4), 1);
+      h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
+      h.driftTime = 0.;
+      h.driftDistance = 0.;
+      h.hodoMask = 1.;
       
       rawEvent->insertHit(h);
     }

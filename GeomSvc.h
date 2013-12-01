@@ -102,6 +102,7 @@ public:
   void print();
   void printAlignPar();
   void printTable();
+  void printWirePosition();
 
 private:
 

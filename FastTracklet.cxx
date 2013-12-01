@@ -417,7 +417,7 @@ double Tracklet::calcChisq()
       double z = p_geomSvc->getPlanePosition(detectorID);
 
       double sigma;
-      if(iter->sign == 0) sigma = iter->hit.driftDistance;//p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
+      if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
@@ -432,7 +432,7 @@ double Tracklet::calcChisq()
 	}
      
       chisq += (residual[index]*residual[index]/sigma/sigma);
-      //std::cout << iter->hit.detectorID << "  " << iter->hit.elementID << "  " << iter->sign << "  " << iter->hit.pos << "  " << iter->hit.driftDistance << "  " << costheta << "  " << sintheta << "  " << z << "  " << (x0_st1 + tx_st1*z) << "  " << (x0 + tx*z) << "  " << (y0 + ty*z) << "  " << r << "  " << sigma << std::endl;
+      //std::cout << iter->hit.detectorID << "  " << iter->hit.elementID << "  " << iter->sign << "  " << iter->hit.pos << "  " << iter->hit.driftDistance << "  " << costheta << "  " << sintheta << "  " << z << "  " << (x0_st1 + tx_st1*z) << "  " << (x0 + tx*z) << "  " << (y0 + ty*z) << "  " << sigma << std::endl;
     }
 
   //std::cout << chisq << std::endl;

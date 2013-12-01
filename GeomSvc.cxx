@@ -11,6 +11,7 @@ Created: 10-19-2011
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <iomanip>
 
 #include <TROOT.h>
 #include <TTree.h>
@@ -191,7 +192,10 @@ void GeomSvc::init(std::string geometrySchema)
       delete row;      
     }
   delete res;
- 
+  
+  //Very temporary fix for the geometry
+  z0[5] = 636.200;
+
   for(int i = 41; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
     {
       x0[i] = x0[i]/9.;
@@ -656,6 +660,25 @@ void GeomSvc::print()
     }
 }
 
+void GeomSvc::printWirePosition()
+{
+  for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
+    {
+      int detectorID = (*iter).second;
+      std::cout << " ====================== " << (*iter).first << " ==================== " << std::endl;
+      for(int i = 1; i <= nElements[detectorID]; ++i)
+	{
+	  std::cout << std::setw(6) << std::setiosflags(std::ios::right) << detectorID;
+	  std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).first;
+	  std::cout << std::setw(6) << std::setiosflags(std::ios::right) << i;
+	  std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)];
+	  std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)] - 0.5*cellWidth[detectorID];
+	  std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)] + 0.5*cellWidth[detectorID];
+	  std::cout << std::endl;
+	}
+    }
+}
+
 void GeomSvc::printAlignPar()
 {
   std::cout << "detectorID         DetectorName            offset_pos             offset_z             offset_phi" << std::endl;
@@ -670,17 +693,17 @@ void GeomSvc::printTable()
   std::cout << "detectorName    detectorID      Spacing     Xoffset     overlap     width       height       nElement       angleFromVertical       Z" << std::endl;
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
     {
-      std::cout << (*iter).first << "     ";
-      std::cout << (*iter).second << "     ";
-      std::cout << spacing[(*iter).second] << "     ";
-      std::cout << xoffset[(*iter).second] << "     ";
-      std::cout << overlap[(*iter).second] << "     ";
-      std::cout << getPlaneScaleX((*iter).second) << "     ";
-      std::cout << getPlaneScaleY((*iter).second) << "     ";
-      std::cout << nElements[(*iter).second] << "     ";
-      std::cout << angleFromVert[(*iter).second] << "     ";
-      std::cout << z0[(*iter).second] << "     ";
-      std::cout << x0[(*iter).second] << "     ";
-      std::cout << y0[(*iter).second] << std::endl;
+      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).first;
+      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).second;
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << spacing[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << xoffset[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << overlap[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << getPlaneScaleX((*iter).second);
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << getPlaneScaleY((*iter).second);
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << nElements[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << angleFromVert[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << z0[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << x0[(*iter).second];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << y0[(*iter).second] << std::endl;
     }
 }
