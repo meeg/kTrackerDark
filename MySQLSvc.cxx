@@ -35,6 +35,16 @@ MySQLSvc::MySQLSvc()
   rndm.SetSeed(0);
 }
 
+MySQLSvc::~MySQLSvc()
+{
+  if(server != NULL) delete server;
+  if(res != NULL) delete res;
+  if(row != NULL) delete row;
+
+  mom_vertex.clear();
+  pos_vertex.clear();
+}
+
 MySQLSvc* MySQLSvc::instance()
 {
   if(p_mysqlSvc == NULL)
@@ -183,13 +193,15 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND (detectorName LIKE 'H4_u' OR detectorName LIKE 'H4Y__l')) AS h1,"
 	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND (detectorName LIKE 'H4_d' OR detectorName LIKE 'H4Y__r')) AS h2 "
 	  "WHERE ((h1.detectorName LIKE 'H4__' AND (substr(h1.detectorName,1,3) LIKE substr(h2.detectorName,1,3))) "
-	  "OR (h1.detectorName LIKE 'H4Y___' AND (substr(h1.detectorName,1,5) LIKE substr(h2.detectorName,1,5)))) AND h1.elementID=h2.elementID", eventID, eventID);
+	  "OR (h1.detectorName LIKE 'H4Y___' AND (substr(h1.detectorName,1,5) LIKE substr(h2.detectorName,1,5)))) "
+	  "AND Abs(h1.tdcTime-h2.tdcTime)<15. AND h1.elementID=h2.elementID", eventID, eventID);
 #else
   sprintf(query, "SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),h1.detectorName,h1.inTime AND h2.inTime FROM "
 	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND (detectorName LIKE 'H4_u' OR detectorName LIKE 'H4Y__l')) AS h1,"
 	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND (detectorName LIKE 'H4_d' OR detectorName LIKE 'H4Y__r')) AS h2 "
 	  "WHERE ((h1.detectorName LIKE 'H4__' AND (substr(h1.detectorName,1,3) LIKE substr(h2.detectorName,1,3))) "
-	  "OR (h1.detectorName LIKE 'H4Y___' AND (substr(h1.detectorName,1,5) LIKE substr(h2.detectorName,1,5)))) AND h1.elementID=h2.elementID", eventID, eventID);
+	  "OR (h1.detectorName LIKE 'H4Y___' AND (substr(h1.detectorName,1,5) LIKE substr(h2.detectorName,1,5)))) "
+	  "AND Abs(h1.tdcTime-h2.tdcTime)<15. AND h1.elementID=h2.elementID", eventID, eventID);
 #endif
   int nHits_part2 = makeQuery();
   if(res == NULL || nHits_part1 + nHits_part2 == 0) return false;
@@ -211,7 +223,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
       h.driftTime = 0.;
       h.driftDistance = 0.;
-      h.hodoMask = 1.;
+      h.hodoMask = 1;
       
       rawEvent->insertHit(h);
     }

@@ -31,6 +31,7 @@ class MySQLSvc
 {
 public:
   MySQLSvc();
+  ~MySQLSvc();
   static MySQLSvc* instance();
   
   //Connect to the server
