@@ -73,3 +73,25 @@ Track reconstruction for E906/SeaQuest experiment
   
   5. After tracks are found, one can run both single muon/dimuon vertex finding to calculate Minv, etc.
      * With Kalman-fitted tracks: ./kVertex raw_data_with_track raw_data_with_vertex
+    
+4. Table of naming scheme of hodos and mapping to detectorID
+   
+   H1B    H1X1  25
+   H1T    H1X2  26
+   H1L    H1Y1  27
+   H1R    H1Y2  28
+   H2L    H2Y1  29
+   H2R    H2Y2  30
+   H2B    H2X1  31
+   H2T    H2X2  32
+   H3T    H3X1  33
+   H3B    H3X2  34
+   H4Y1L  H4Y11 35
+   H4Y1R  H4Y12 36
+   H4Y2L  H4Y21 37
+   H4T2R  H4Y22 38
+   H4B    H4X1  39
+   H4T    H4X2  40
+  
+   
+     
