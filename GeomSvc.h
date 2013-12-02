@@ -50,7 +50,7 @@ public:
   ///Get the plane position
   int getDetectorID(std::string detectorName) { return map_detectorID[detectorName]; }
   std::string getDetectorName(int detectorID) { return map_detectorName[detectorID]; }
-  std::vector<int> getDetectorIDs(std::string detectorName);
+  std::vector<int> getDetectorIDs(std::string pattern);
   
   double getPlanePosition(int planeID) { return z0[planeID]; }
   double getPlaneSpacing(int planeID) { return spacing[planeID]; }

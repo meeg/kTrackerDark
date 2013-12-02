@@ -72,31 +72,22 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
     }
 
   //Initialize hodoscope IDs
-  detectorIDs_mask[0] = p_geomSvc->getDetectorIDs("H1"); 
-  detectorIDs_mask[1] = p_geomSvc->getDetectorIDs("H2"); 
-  detectorIDs_mask[2] = p_geomSvc->getDetectorIDs("H3"); 
-  detectorIDs_mask[3] = p_geomSvc->getDetectorIDs("H4"); 
-  detectorIDs_maskX[0] = p_geomSvc->getDetectorIDs("H1X"); 
-  detectorIDs_maskX[1] = p_geomSvc->getDetectorIDs("H2X"); 
-  detectorIDs_maskX[2] = p_geomSvc->getDetectorIDs("H3X"); 
-  detectorIDs_maskX[3] = p_geomSvc->getDetectorIDs("H4X"); 
-  detectorIDs_maskY[0] = p_geomSvc->getDetectorIDs("H1Y"); 
-  detectorIDs_maskY[1] = p_geomSvc->getDetectorIDs("H2Y"); 
-  detectorIDs_maskY[2] = p_geomSvc->getDetectorIDs("H3Y"); 
-  detectorIDs_maskY[3] = p_geomSvc->getDetectorIDs("H4Y"); 
+  detectorIDs_mask[0] = p_geomSvc->getDetectorIDs("H1.*"); 
+  detectorIDs_mask[1] = p_geomSvc->getDetectorIDs("H2.*"); 
+  detectorIDs_mask[2] = p_geomSvc->getDetectorIDs("H3.*"); 
+  detectorIDs_mask[3] = p_geomSvc->getDetectorIDs("H4.*"); 
+  detectorIDs_maskX[0] = p_geomSvc->getDetectorIDs("H1[TB]"); 
+  detectorIDs_maskX[1] = p_geomSvc->getDetectorIDs("H2[TB]"); 
+  detectorIDs_maskX[2] = p_geomSvc->getDetectorIDs("H3[TB]"); 
+  detectorIDs_maskX[3] = p_geomSvc->getDetectorIDs("H4[TB]"); 
+  detectorIDs_maskY[0] = p_geomSvc->getDetectorIDs("H1[LR]"); 
+  detectorIDs_maskY[1] = p_geomSvc->getDetectorIDs("H2[LR]"); 
+  detectorIDs_maskY[2] = p_geomSvc->getDetectorIDs("H4Y1[LR]"); 
+  detectorIDs_maskY[3] = p_geomSvc->getDetectorIDs("H4Y2[LR]"); 
 
-  detectorIDs_mask[4] = p_geomSvc->getDetectorIDs("P1");
-  detectorIDs_maskX[4] = p_geomSvc->getDetectorIDs("P1X");
-  detectorIDs_maskY[4] = p_geomSvc->getDetectorIDs("P1Y");
-
-  std::vector<int> temp_mask, temp_maskX, temp_maskY;
-  temp_mask = p_geomSvc->getDetectorIDs("P2");
-  temp_maskX = p_geomSvc->getDetectorIDs("P2X");
-  temp_maskY = p_geomSvc->getDetectorIDs("P2Y");
-
-  detectorIDs_mask[4].insert(detectorIDs_mask[4].end(), temp_mask.begin(), temp_mask.end());
-  detectorIDs_maskX[4].insert(detectorIDs_maskX[4].end(), temp_maskX.begin(), temp_maskX.end());
-  detectorIDs_maskY[4].insert(detectorIDs_maskY[4].end(), temp_maskY.begin(), temp_maskY.end());
+  detectorIDs_mask[4] = p_geomSvc->getDetectorIDs("P[12].*");
+  detectorIDs_maskX[4] = p_geomSvc->getDetectorIDs("P[12]X.*");
+  detectorIDs_maskY[4] = p_geomSvc->getDetectorIDs("P[12]Y.*");
 
   //Initialize masking window sizes, with 10% contingency
   for(int i = 25; i <= 48; i++)
@@ -157,7 +148,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   cout << "======================" << endl;
   cout << "U plane window sizes: " << endl;
 #endif
-  double u_factor[] = {0., 0., 0., 0.};
+  double u_factor[] = {5., 5., 5., 5.};
   for(int i = 0; i < 4; i++)
     {
       int xID = 2*superIDs[i][0] - 1;
@@ -357,8 +348,8 @@ void KalmanFastTracking::buildBackPartialTracks()
 	{
 	  Tracklet tracklet_23 = (*tracklet2) + (*tracklet3);
 	  fitTracklet(tracklet_23);
-	  resolveLeftRight(tracklet_23, 25.);
-	  resolveLeftRight(tracklet_23, 100.);
+	  //resolveLeftRight(tracklet_23, 25.);
+	  //resolveLeftRight(tracklet_23, 100.);
 
 #ifdef _DEBUG_ON
 	  Log("New tracklet: ");
@@ -421,11 +412,11 @@ void KalmanFastTracking::buildGlobalTracks()
 	  fitTracklet(tracklet_global);
   
 	  //Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
-  	  resolveLeftRight(tracklet_global, 100.);
+  	  //resolveLeftRight(tracklet_global, 100.);
           if(!tracklet_global.isValid()) continue;
 
-	  resolveLeftRight(tracklet_global, 1000.);
-          resolveSingleLeftRight(tracklet_global);
+	  //resolveLeftRight(tracklet_global, 1000.);
+          //resolveSingleLeftRight(tracklet_global);
 
 	  //Remove bad hits if needed
 	  removeBadHits(tracklet_global);
@@ -746,7 +737,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
 	  double v_win1 = p_geomSvc->getPlaneSpacing(hitAll[uiter->first].detectorID)*2.*u_costheta[sID];
 	  double v_win2 = (z_u + z_v - 2.*z_x)*u_costheta[sID]*TX_MAX;
 	  double v_win3 = (z_v - z_u)*u_sintheta[sID]*TY_MAX;
-	  double v_win = v_win1 + v_win2 + v_win3;
+	  double v_win = v_win1 + v_win2 + v_win3 + 5.;
 	  double v_min = 2*x_pos*u_costheta[sID] - u_pos - v_win;
 	  double v_max = v_min + 2.*v_win;
 

@@ -12,6 +12,7 @@ Created: 10-19-2011
 #include <sstream>
 #include <cmath>
 #include <iomanip>
+#include <regex>
 
 #include <TROOT.h>
 #include <TTree.h>
@@ -220,6 +221,7 @@ void GeomSvc::init(std::string geometrySchema)
     }
 
 #ifndef ALIGNMENT_MODE
+  /*
   //load the initial value in the planeOffsets table
   cout << "Trying to read the alignment parameter from database ..." << endl;
   const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
@@ -256,6 +258,7 @@ void GeomSvc::init(std::string geometrySchema)
     }
 
   delete res;
+  */
 #endif
   delete con;
 
@@ -311,14 +314,16 @@ void GeomSvc::init(std::string geometrySchema)
   zmax_kmag = 1064.26 + 120.*2.54;
 }
 
-std::vector<int> GeomSvc::getDetectorIDs(std::string detectorName)
+std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
 {
+  std::regex pattern_re(pattern.c_str());
+
   std::vector<int> detectorIDs;
   detectorIDs.clear();
 
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
     {
-      if((*iter).first.find(detectorName) != std::string::npos)
+      if(std::regex_match((*iter).first, pattern_re))
 	{
 	  detectorIDs.push_back((*iter).second);
 	}
@@ -373,7 +378,7 @@ int GeomSvc::getExpElementID(int detectorID, double pos_exp)
 void GeomSvc::get2DBoxSize(int detectorID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max)
 {
   std::string detectorName = getDetectorName(detectorID);
-  if(detectorName.find("X") != std::string::npos)
+  if(detectorName.find("T") != std::string::npos || detectorName.find("B") != std::string::npos)
     {
       double x_center = map_wirePosition[std::make_pair(detectorID, elementID)];
       double x_width = 0.5*(spacing[detectorID] + overlap[detectorID]);
