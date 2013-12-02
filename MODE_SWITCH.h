@@ -18,7 +18,7 @@
 //#define _ENABLE_KF
 
 //--------------- Geometry version ---------------
-#define GEOMETRY_VERSION "geometry_R1061_run2"
+#define GEOMETRY_VERSION "geometry_R1076_run2"
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER "localhost"

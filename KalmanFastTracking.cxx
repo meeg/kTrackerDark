@@ -72,10 +72,10 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
     }
 
   //Initialize hodoscope IDs
-  detectorIDs_mask[0] = p_geomSvc->getDetectorIDs("H1.*"); 
-  detectorIDs_mask[1] = p_geomSvc->getDetectorIDs("H2.*"); 
-  detectorIDs_mask[2] = p_geomSvc->getDetectorIDs("H3.*"); 
-  detectorIDs_mask[3] = p_geomSvc->getDetectorIDs("H4.*"); 
+  detectorIDs_mask[0] = p_geomSvc->getDetectorIDs("H1"); 
+  detectorIDs_mask[1] = p_geomSvc->getDetectorIDs("H2"); 
+  detectorIDs_mask[2] = p_geomSvc->getDetectorIDs("H3"); 
+  detectorIDs_mask[3] = p_geomSvc->getDetectorIDs("H4"); 
   detectorIDs_maskX[0] = p_geomSvc->getDetectorIDs("H1[TB]"); 
   detectorIDs_maskX[1] = p_geomSvc->getDetectorIDs("H2[TB]"); 
   detectorIDs_maskX[2] = p_geomSvc->getDetectorIDs("H3[TB]"); 
@@ -85,9 +85,9 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   detectorIDs_maskY[2] = p_geomSvc->getDetectorIDs("H4Y1[LR]"); 
   detectorIDs_maskY[3] = p_geomSvc->getDetectorIDs("H4Y2[LR]"); 
 
-  detectorIDs_mask[4] = p_geomSvc->getDetectorIDs("P[12].*");
-  detectorIDs_maskX[4] = p_geomSvc->getDetectorIDs("P[12]X.*");
-  detectorIDs_maskY[4] = p_geomSvc->getDetectorIDs("P[12]Y.*");
+  detectorIDs_mask[4] = p_geomSvc->getDetectorIDs("P[12]");
+  detectorIDs_maskX[4] = p_geomSvc->getDetectorIDs("P[12]X");
+  detectorIDs_maskY[4] = p_geomSvc->getDetectorIDs("P[12]Y");
 
   //Initialize masking window sizes, with 10% contingency
   for(int i = 25; i <= 48; i++)
@@ -112,7 +112,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 #ifdef _DEBUG_ON
   cout << "========================" << endl;
   cout << "Hodo. masking settings: " << endl;
-  for(int i = 0; i < 4; i++)
+  for(int i = 0; i < 5; i++)
     {
       cout << "For station " << i+1 << endl;
       for(std::vector<int>::iterator iter = detectorIDs_mask[i].begin(); iter != detectorIDs_mask[i].end(); ++iter) cout << "All: " << *iter << endl;

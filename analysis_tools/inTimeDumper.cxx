@@ -48,7 +48,8 @@ int main(int argc, char *argv[])
   saveTree->Branch("H4B", &H4B, "H4B/I");
   
   saveTree->Branch("rawEvent", &event, 256000, 99);
- 
+
+  //Look for the intime peak 
   double h_center[16];
   TH1D* hist[16];
   for(int i = 0; i < 16; ++i)
@@ -75,20 +76,10 @@ int main(int argc, char *argv[])
       cout << geometrySvc->getDetectorName(i+25) << "  " << h_center[i] << endl;
     }
 
+  //Remove the out-of-time hodo hits
   for(int i = 0; i < dataTree->GetEntries(); i++)
     {
       dataTree->GetEntry(i);
-
-      H1B = event_old->getNHitsInDetector(25) > 0 ? 1 : 0;
-      H2B = event_old->getNHitsInDetector(31) > 0 ? 1 : 0;
-      H3B = event_old->getNHitsInDetector(33) > 0 ? 1 : 0;
-      H4B = event_old->getNHitsInDetector(39) > 0 ? 1 : 0;
-      H1T = event_old->getNHitsInDetector(26) > 0 ? 1 : 0;
-      H2T = event_old->getNHitsInDetector(32) > 0 ? 1 : 0;
-      H3T = event_old->getNHitsInDetector(34) > 0 ? 1 : 0;
-      H4T = event_old->getNHitsInDetector(40) > 0 ? 1 : 0;
-      topHits = H1T + H2T + H3T + H4T;
-      bottomHits = H1B + H2B + H3B + H4B;
 
       event->setEventInfo(event_old->getRunID(), event_old->getSpillID(), event_old->getEventID());
       std::vector<Hit> hits_old = event_old->getAllHits();
@@ -105,8 +96,20 @@ int main(int argc, char *argv[])
 	}
 
       event->reIndex("a");
+    
+      H1B = event->getNHitsInDetector(25) > 0 ? 1 : 0;
+      H2B = event->getNHitsInDetector(31) > 0 ? 1 : 0;
+      H3B = event->getNHitsInDetector(33) > 0 ? 1 : 0;
+      H4B = event->getNHitsInDetector(39) > 0 ? 1 : 0;
+      H1T = event->getNHitsInDetector(26) > 0 ? 1 : 0;
+      H2T = event->getNHitsInDetector(32) > 0 ? 1 : 0;
+      H3T = event->getNHitsInDetector(34) > 0 ? 1 : 0;
+      H4T = event->getNHitsInDetector(40) > 0 ? 1 : 0;
+    
+      topHits = H1T + H2T + H3T + H4T;
+      bottomHits = H1B + H2B + H3B + H4B;
+
       saveTree->Fill();
-      
       event_old->clear();
       event->clear();
     }

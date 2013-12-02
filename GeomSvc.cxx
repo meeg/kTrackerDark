@@ -12,7 +12,6 @@ Created: 10-19-2011
 #include <sstream>
 #include <cmath>
 #include <iomanip>
-#include <regex>
 
 #include <TROOT.h>
 #include <TTree.h>
@@ -21,6 +20,7 @@ Created: 10-19-2011
 #include <TSQLRow.h>
 #include <TMath.h>
 #include <TString.h>
+#include <TPRegexp.h>
 
 #include "GeomSvc.h"
 
@@ -316,14 +316,15 @@ void GeomSvc::init(std::string geometrySchema)
 
 std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
 {
-  std::regex pattern_re(pattern.c_str());
+  TPRegexp pattern_re(pattern.c_str());
 
   std::vector<int> detectorIDs;
   detectorIDs.clear();
 
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
     {
-      if(std::regex_match((*iter).first, pattern_re))
+      TString detectorName((*iter).first.c_str());
+      if(detectorName(pattern_re) != "")
 	{
 	  detectorIDs.push_back((*iter).second);
 	}
