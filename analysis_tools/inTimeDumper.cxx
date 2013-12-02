@@ -6,6 +6,7 @@
 #include <TROOT.h>
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1D.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -48,7 +49,32 @@ int main(int argc, char *argv[])
   
   saveTree->Branch("rawEvent", &event, 256000, 99);
  
-  double h_center[16] = {880., 880., 890., 890., 900., 900., 890., 890., 970., 970., 975., 975., 970., 970., 965., 965.};
+  double h_center[16];
+  TH1D* hist[16];
+  for(int i = 0; i < 16; ++i)
+    {
+      hist[i] = new TH1D(geometrySvc->getDetectorName(i+25).c_str(), geometrySvc->getDetectorName(i+25).c_str(), 200, 800, 1200);
+    }
+
+  for(int i = 0; i < dataTree->GetEntries(); ++i)
+    {
+      dataTree->GetEntry(i);
+
+      std::vector<Hit> hits = event_old->getAllHits();
+      for(unsigned int j = 0; j < hits.size(); j++)
+	{
+	  if(hits[j].detectorID < 25 || hits[j].detectorID > 40) continue;
+
+	  hist[hits[j].detectorID - 25]->Fill(hits[j].tdcTime);
+	}
+    }
+
+  for(int i = 0; i < 16; ++i)
+    {
+      h_center[i] = hist[i]->GetBinCenter(hist[i]->GetMaximumBin());
+      cout << geometrySvc->getDetectorName(i+25) << "  " << h_center[i] << endl;
+    }
+
   for(int i = 0; i < dataTree->GetEntries(); i++)
     {
       dataTree->GetEntry(i);
