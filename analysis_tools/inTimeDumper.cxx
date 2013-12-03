@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     }
 
   //Remove the out-of-time hodo hits
-  for(int i = 0; i < dataTree->GetEntries(); i++)
+  for(int i = 0; i < dataTree->GetEntries(); ++i)
     {
       dataTree->GetEntry(i);
 

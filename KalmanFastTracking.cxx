@@ -157,7 +157,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
       double spacing = p_geomSvc->getPlaneSpacing(uID);
       double x_span = p_geomSvc->getPlaneScaleY(uID);
 
-      u_win[i] = fabs(0.5*x_span/(spacing/sintheta_plane[uID])) + 2.*spacing + u_factor[i];
+      //u_win[i] = fabs(0.5*x_span/(spacing/sintheta_plane[uID])) + 2.*spacing + u_factor[i];
+      u_win[i] = fabs(0.5*x_span*sintheta_plane[uID]) + 2.*spacing + u_factor[i];
       u_costheta[i] = costheta_plane[uID];
       u_sintheta[i] = sintheta_plane[uID];
 
@@ -719,14 +720,14 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
       double u_max = u_min + 2.*u_win[sID];
 
 #ifdef _DEBUG_ON
-      Log("Trying X hits " << xiter->first << "  " << xiter->second);
+      Log("Trying X hits " << xiter->first << "  " << xiter->second << "  " << hitAll[xiter->first].elementID << " at " << x_pos);
       Log("U plane window:" << u_min << "  " << u_max);
 #endif
       for(std::list<SRawEvent::hit_pair>::iterator uiter = pairs_U.begin(); uiter != pairs_U.end(); ++uiter)
 	{
 	  double u_pos = uiter->second >= 0 ? 0.5*(hitAll[uiter->first].pos + hitAll[uiter->second].pos) : hitAll[uiter->first].pos;
 #ifdef _DEBUG_ON
-	  Log("Trying U hits " << uiter->first << "  " << uiter->second << " at " << u_pos);
+	  Log("Trying U hits " << uiter->first << "  " << uiter->second << "  " << hitAll[uiter->first].elementID << " at " << u_pos);
 #endif
 	  if(u_pos < u_min || u_pos > u_max) continue;
 
@@ -748,7 +749,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
 	    {
 	      double v_pos = viter->second >= 0 ? 0.5*(hitAll[viter->first].pos + hitAll[viter->second].pos) : hitAll[viter->first].pos;
 #ifdef _DEBUG_ON
-    	      Log("Trying V hits " << viter->first << "  " << viter->second << " at " << v_pos);
+    	      Log("Trying V hits " << viter->first << "  " << viter->second << "  " << hitAll[viter->first].elementID << " at " << v_pos);
 #endif
 	      if(v_pos < v_min || v_pos > v_max) continue;
 

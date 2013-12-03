@@ -329,7 +329,15 @@ std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
 
   return detectorIDs;
 }
-     
+
+bool GeomSvc::findPatternInDetector(int detectorID, std::string pattern)
+{
+  TPRegexp pattern_re(pattern.c_str());
+  TString detectorName(map_detectorName[detectorID]);
+
+  return detectorName(pattern_re) != "";
+}
+
 bool GeomSvc::isInPlane(int detectorID, double x, double y)
 {
   if(x < x1[detectorID] || x > x2[detectorID]) return false;

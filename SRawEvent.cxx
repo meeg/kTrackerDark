@@ -19,15 +19,6 @@ ClassImp(SRawMCEvent)
 
 bool Hit::operator<(const Hit& elem) const
 {
-  if(inTime > elem.inTime)
-    {
-      return true;
-    }
-  else if(inTime < elem.inTime)
-    {
-      return false;
-    }
-
   if(detectorID < elem.detectorID)
     {
       return true;
@@ -489,7 +480,7 @@ void SRawEvent::reIndex(std::string option)
     {
       hitlist_temp.unique(Hit::sameChannel);
     }
-
+  
   fAllHits.clear();
   fAllHits.assign(hitlist_temp.begin(), hitlist_temp.end());
 
