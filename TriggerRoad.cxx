@@ -218,19 +218,19 @@ std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs
   for(int i = 0; i < nHits; i++)
     {
       std::string detectorName = p_geomSvc->getDetectorName(dIDs[i]);
-      if(detectorName.find("H1X") != std::string::npos)
+      if(detectorName.find("H1T") != std::string::npos || detectorName.find("H1B") != std::string::npos)
 	{
 	  hodoHits[0].push_back(std::make_pair(dIDs[i], eIDs[i]));
 	}
-      else if(detectorName.find("H2X") != std::string::npos)
+      else if(detectorName.find("H2T") != std::string::npos || detectorName.find("H2B") != std::string::npos)
 	{
 	  hodoHits[1].push_back(std::make_pair(dIDs[i], eIDs[i]));
 	}      
-      else if(detectorName.find("H3X") != std::string::npos)
+      else if(detectorName.find("H3T") != std::string::npos || detectorName.find("H3B") != std::string::npos)
 	{
 	  hodoHits[2].push_back(std::make_pair(dIDs[i], eIDs[i]));
 	}
-       else if(detectorName.find("H4X") != std::string::npos)
+      else if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
 	{
 	  hodoHits[3].push_back(std::make_pair(dIDs[i], eIDs[i]));
 	}

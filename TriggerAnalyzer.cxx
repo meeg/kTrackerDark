@@ -20,10 +20,10 @@ TriggerAnalyzer::TriggerAnalyzer()
 {
   GeomSvc* p_geomSvc = GeomSvc::instance();
 
-  detectorIDs_trigger = p_geomSvc->getDetectorIDs("H1X");
-  std::vector<int> H2X_trigger = p_geomSvc->getDetectorIDs("H2X");
-  std::vector<int> H3X_trigger = p_geomSvc->getDetectorIDs("H3X");
-  std::vector<int> H4X_trigger = p_geomSvc->getDetectorIDs("H4X");
+  detectorIDs_trigger = p_geomSvc->getDetectorIDs("H1[TB]");
+  std::vector<int> H2X_trigger = p_geomSvc->getDetectorIDs("H2[TB]");
+  std::vector<int> H3X_trigger = p_geomSvc->getDetectorIDs("H3[TB]");
+  std::vector<int> H4X_trigger = p_geomSvc->getDetectorIDs("H4[TB]");
 
   detectorIDs_trigger.insert(detectorIDs_trigger.end(), H2X_trigger.begin(), H2X_trigger.end());
   detectorIDs_trigger.insert(detectorIDs_trigger.end(), H3X_trigger.begin(), H3X_trigger.end());
@@ -161,19 +161,19 @@ bool TriggerAnalyzer::buildData(int nHits, int detectorIDs[], int elementIDs[])
     {
       std::string detectorName = p_geomSvc->getDetectorName(detectorIDs[i]);
       int uniqueID = detectorIDs[i]*100 + elementIDs[i];
-      if(detectorName.find("H1X") != std::string::npos)
+      if(detectorName.find("H1T") != std::string::npos || detectorName.find("H1B") != std::string::npos)
 	{
 	  HX[0].insert(uniqueID);
 	}
-      else if(detectorName.find("H2X") != std::string::npos)
+      else if(detectorName.find("H2T") != std::string::npos || detectorName.find("H2B") != std::string::npos)
 	{
 	  HX[1].insert(uniqueID);
 	}
-      else if(detectorName.find("H3X") != std::string::npos)
+      else if(detectorName.find("H3T") != std::string::npos || detectorName.find("H3B") != std::string::npos)
 	{
 	  HX[2].insert(uniqueID);
 	}
-      else if(detectorName.find("H4X") != std::string::npos)
+      else if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
 	{
 	  HX[3].insert(uniqueID);
 	}

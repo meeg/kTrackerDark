@@ -194,9 +194,6 @@ void GeomSvc::init(std::string geometrySchema)
     }
   delete res;
   
-  //Very temporary fix for the geometry
-  z0[5] = 636.200;
-
   for(int i = 41; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
     {
       x0[i] = x0[i]/9.;
