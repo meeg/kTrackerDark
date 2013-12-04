@@ -106,8 +106,6 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 	  x_mask_max[i-25][j-1] = x_max;
 	  y_mask_min[i-25][j-1] = y_min;
 	  y_mask_max[i-25][j-1] = y_max;
-	
-	  std::cout << i << "  " << j << " : " << x_min << "  "  << x_max << "  " << y_min << "  " << y_max << std::endl;
 	}      
     }
 
@@ -364,6 +362,14 @@ void KalmanFastTracking::buildBackPartialTracks()
 	  tracklet_23.print();
 #endif
 	  fitTracklet(tracklet_23);
+	  if(tracklet_23.chisq > 3000.)
+	    {
+#ifdef _DEBUG_ON
+	      Log("Impossible combination!");
+#endif
+	      continue;
+	    }
+
 #ifndef COARSE_MODE
 	  resolveLeftRight(tracklet_23, 25.);
 	  resolveLeftRight(tracklet_23, 100.);

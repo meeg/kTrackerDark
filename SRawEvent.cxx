@@ -11,6 +11,8 @@ Created: 10-24-2011
 #include <cmath>
 #include <TRandom.h>
 
+#include <TString.h>
+
 #include "SRawEvent.h"
 
 ClassImp(Hit)
@@ -456,11 +458,12 @@ void SRawEvent::reIndex(std::string option)
   bool _outoftime = false;
   bool _nonchamber = false;
 
-  std::transform(option.begin(), option.end(), option.begin(), tolower);
-  if(option.find("a") != std::string::npos) _afterhit = true;
-  if(option.find("h") != std::string::npos) _hodomask = true;
-  if(option.find("o") != std::string::npos) _outoftime = true;
-  if(option.find("n") != std::string::npos) _nonchamber = true;
+  TString option_lower(option.c_str());
+  option_lower.ToLower();
+  if(option_lower.Contains("a")) _afterhit = true;
+  if(option_lower.Contains("h")) _hodomask = true;
+  if(option_lower.Contains("o")) _outoftime = true;
+  if(option_lower.Contains("n")) _nonchamber = true;
 
   ///Dump the vector into a list and do the reduction
   std::list<Hit> hitlist_temp;
