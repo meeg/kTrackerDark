@@ -384,7 +384,7 @@ int GeomSvc::getExpElementID(int detectorID, double pos_exp)
 void GeomSvc::get2DBoxSize(int detectorID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max)
 {
   std::string detectorName = getDetectorName(detectorID);
-  if(detectorName.find("T") != std::string::npos || detectorName.find("B") != std::string::npos)
+  if(detectorName.find("T") != std::string::npos || detectorName.find("B") != std::string::npos || detectorName.find("X") != std::string::npos)
     {
       double x_center = map_wirePosition[std::make_pair(detectorID, elementID)];
       double x_width = 0.5*(spacing[detectorID] + overlap[detectorID]);

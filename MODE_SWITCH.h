@@ -14,7 +14,10 @@
 //=== Enable multiple minimizer feature, disabled by default
 //#define _ENABLE_MULTI_MINI
 
-//==== Enable Kalman fitting in fast tracking and alignment, enabled by default
+//=== Coarse mode, no driftTime info is used, disabled by default
+#define COARSE_MODE
+
+//=== Enable Kalman fitting in fast tracking and alignment, enabled by default
 //#define _ENABLE_KF
 
 //--------------- Geometry version ---------------
@@ -22,6 +25,8 @@
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER "localhost"
+//#define MYSQL_SERVER "seaquel.physics.illinois.edu"
+//#define MYSQL_SERVER "e906-db1.fnal.gov"
 
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0
@@ -30,7 +35,7 @@
 #define KMAG_ON 1
 
 //==== Enable massive debugging output, disabled by default
-#define _DEBUG_ON
+//#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
 
 //---------------------FOLLOWING PART SHOULD NOT BE CHANGED FOR NO GOOD REASON -----------------------

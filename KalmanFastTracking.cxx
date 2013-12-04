@@ -106,6 +106,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 	  x_mask_max[i-25][j-1] = x_max;
 	  y_mask_min[i-25][j-1] = y_min;
 	  y_mask_max[i-25][j-1] = y_max;
+	
+	  std::cout << i << "  " << j << " : " << x_min << "  "  << x_max << "  " << y_min << "  " << y_max << std::endl;
 	}      
     }
 
@@ -157,14 +159,16 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
       double spacing = p_geomSvc->getPlaneSpacing(uID);
       double x_span = p_geomSvc->getPlaneScaleY(uID);
 
-      //u_win[i] = fabs(0.5*x_span/(spacing/sintheta_plane[uID])) + 2.*spacing + u_factor[i];
-      u_win[i] = fabs(0.5*x_span*sintheta_plane[uID]) + 2.*spacing + u_factor[i];
-      u_costheta[i] = costheta_plane[uID];
-      u_sintheta[i] = sintheta_plane[uID];
-
       z_plane_x[i] = 0.5*(p_geomSvc->getPlanePosition(xID) + p_geomSvc->getPlanePosition(xID+1));
       z_plane_u[i] = 0.5*(p_geomSvc->getPlanePosition(uID) + p_geomSvc->getPlanePosition(uID+1));
       z_plane_v[i] = 0.5*(p_geomSvc->getPlanePosition(vID) + p_geomSvc->getPlanePosition(vID+1));
+
+      u_costheta[i] = costheta_plane[uID];
+      u_sintheta[i] = sintheta_plane[uID];
+      
+      //u_win[i] = fabs(0.5*x_span/(spacing/sintheta_plane[uID])) + 2.*spacing + u_factor[i];
+      u_win[i] = fabs(0.5*x_span*sintheta_plane[uID]) + TX_MAX*fabs((z_plane_u[i] - z_plane_x[i])*u_costheta[i]) + TY_MAX*fabs((z_plane_u[i] - z_plane_x[i])*u_sintheta[i]) + 2.*spacing + u_factor[i];
+
 #ifdef _DEBUG_ON
       cout << "Station " << i << ": " << u_win[i] << endl; 
 #endif
@@ -176,8 +180,12 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
       z_plane[i] = p_geomSvc->getPlanePosition(i);
       slope_max[i] = costheta_plane[i]*TX_MAX + sintheta_plane[i]*TY_MAX;
       intersection_max[i] = costheta_plane[i]*X0_MAX + sintheta_plane[i]*Y0_MAX;
-  
+
+#ifdef COARSE_MODE
+      resol_plane[i] = p_geomSvc->getPlaneSpacing(i)/sqrt(12.);
+#else 
       resol_plane[i] = p_geomSvc->getPlaneResolution(i);
+#endif
     }
 
 #ifdef _DEBUG_ON
@@ -348,9 +356,18 @@ void KalmanFastTracking::buildBackPartialTracks()
       for(std::list<Tracklet>::iterator tracklet2 = trackletsInSt[1].begin(); tracklet2 != trackletsInSt[1].end(); ++tracklet2)
 	{
 	  Tracklet tracklet_23 = (*tracklet2) + (*tracklet3);
+#ifdef _DEBUG_ON
+	  Log("Using following two tracklets:");
+	  tracklet2->print();
+	  tracklet3->print();
+	  Log("Yield this combination:");
+	  tracklet_23.print();
+#endif
 	  fitTracklet(tracklet_23);
-	  //resolveLeftRight(tracklet_23, 25.);
-	  //resolveLeftRight(tracklet_23, 100.);
+#ifndef COARSE_MODE
+	  resolveLeftRight(tracklet_23, 25.);
+	  resolveLeftRight(tracklet_23, 100.);
+#endif
 
 #ifdef _DEBUG_ON
 	  Log("New tracklet: ");
@@ -368,6 +385,12 @@ void KalmanFastTracking::buildBackPartialTracks()
 	    {
 	      tracklet_best = tracklet_23;
 	    }
+#ifdef _DEBUG_ON
+	  else
+	    {
+	      Log("Rejected!!");
+	    }
+#endif
 	}
 
       if(tracklet_best.isValid()) trackletsInSt[3].push_back(tracklet_best);
@@ -412,15 +435,15 @@ void KalmanFastTracking::buildGlobalTracks()
 	  Tracklet tracklet_global = (*tracklet23) * (*tracklet1);
 	  fitTracklet(tracklet_global);
   
-	  //Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
-  	  //resolveLeftRight(tracklet_global, 100.);
-          if(!tracklet_global.isValid()) continue;
+#ifndef COARSE_MODE
+	  ///Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
+	  resolveLeftRight(tracklet_global, 100.);
+	  resolveLeftRight(tracklet_global, 1000.);
+          resolveSingleLeftRight(tracklet_global);
 
-	  //resolveLeftRight(tracklet_global, 1000.);
-          //resolveSingleLeftRight(tracklet_global);
-
-	  //Remove bad hits if needed
+	  ///Remove bad hits if needed
 	  removeBadHits(tracklet_global);
+#endif
 
 #ifdef _DEBUG_ON
 	  Log("New tracklet: ");
@@ -439,6 +462,11 @@ void KalmanFastTracking::buildGlobalTracks()
 #endif
 	      tracklet_best = tracklet_global;
     	    }
+#ifdef _DEBUG_ON
+	    {
+	      Log("Rejected!!!");
+	    }
+#endif
 	}
 
       if(tracklet_best.isValid()) trackletsInSt[4].push_back(tracklet_best);
@@ -736,9 +764,9 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
           double z_u = uiter->second >= 0 ? z_plane_u[sID] : z_plane[hitAll[uiter->first].detectorID];
           double z_v = z_plane_v[sID];
 	  double v_win1 = p_geomSvc->getPlaneSpacing(hitAll[uiter->first].detectorID)*2.*u_costheta[sID];
-	  double v_win2 = (z_u + z_v - 2.*z_x)*u_costheta[sID]*TX_MAX;
-	  double v_win3 = (z_v - z_u)*u_sintheta[sID]*TY_MAX;
-	  double v_win = v_win1 + v_win2 + v_win3 + 5.;
+	  double v_win2 = fabs((z_u + z_v - 2.*z_x)*u_costheta[sID]*TX_MAX);
+	  double v_win3 = fabs((z_v - z_u)*u_sintheta[sID]*TY_MAX);
+	  double v_win = v_win1 + v_win2 + v_win3 + 2.*p_geomSvc->getPlaneSpacing(hitAll[uiter->first].detectorID);
 	  double v_min = 2*x_pos*u_costheta[sID] - u_pos - v_win;
 	  double v_max = v_min + 2.*v_win;
 
@@ -859,7 +887,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 #ifdef _DEBUG_ON
 	  Log(*iter);
 	  hitAll[*iter].print();
-	  Log(nHodoHits << "   " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
+	  Log(nHodoHits << "/" << nMinimum << ":  " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
 #endif
 	  if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
     	    {

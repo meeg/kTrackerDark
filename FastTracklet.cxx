@@ -315,7 +315,8 @@ Tracklet Tracklet::operator+(const Tracklet& elem) const
 
   tracklet.invP = 1./tracklet.getMomentum();
   tracklet.err_invP = 0.25*tracklet.invP;
-
+  
+  tracklet.calcChisq();
   return tracklet;
 }
 
@@ -367,6 +368,7 @@ Tracklet Tracklet::operator*(const Tracklet& elem) const
       tracklet.err_invP = 0.25*tracklet.invP;
     }
 
+  tracklet.calcChisq();
   return tracklet;
 }
 
@@ -417,7 +419,11 @@ double Tracklet::calcChisq()
       double z = p_geomSvc->getPlanePosition(detectorID);
 
       double sigma;
+#ifdef COARSE_MODE
       if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
+#else
+      if(iter->sign == 0) sigma = fabs(iter->hit.driftDistance);
+#endif
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
