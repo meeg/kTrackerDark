@@ -285,33 +285,6 @@ void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack
 	      _track_new.push_back(kmtrk_mp);
 	    }
 #endif
-	  /*
-	  ///One left, one right
-	  ///For ST1V, both assumptions needs to be considered
-	  ///For other stations, either +/- or -/+ is considered according to their relative position
-	  KalmanTrack kmtrk_pm = *kmtrk;
-	  if(fabs(_hits[iter->first].pos - _hits[iter->second].pos) < 1E-4) //This is for station 1V 
-	    {
-	      if(addHitPairToTrack(*iter, 1, -1, kmtrk_pm))
-		{
-		  _track_new.push_back(kmtrk_pm);
-		}
-
-	      KalmanTrack kmtrk_mp = *kmtrk;
-              if(addHitPairToTrack(*iter, -1, 1, kmtrk_mp))
-		{
-		  _track_new.push_back(kmtrk_mp);
-		}
-	    }
-	  else if(_hits[iter->first].pos < _hits[iter->second].pos && addHitPairToTrack(*iter, 1, -1, kmtrk_pm))
-	    {
-	      _track_new.push_back(kmtrk_pm);
-	    }
-	  else if(_hits[iter->first].pos > _hits[iter->second].pos && addHitPairToTrack(*iter, -1, 1, kmtrk_pm))
-	    {
-	      _track_new.push_back(kmtrk_pm);
-	    }
-	  */
 
 	  ///Fill the last inserted one for evaluation	 
      	  fillEvaluation(iTrack, _track_new.back());
@@ -386,6 +359,7 @@ bool KalmanFinder::addHitPairToTrack(SRawEvent::hit_pair _hitpair, int sign1, in
   hit2.index = hit2.index*sign2*(hit2.driftDistance > 0 ? 1 : -1);
   hit2.driftDistance = sign2*fabs(hit2.driftDistance);
 
+#ifndef COARSE_MODE
   ///Effective checksum, the local slope shouldn't be too much different with the expected value
   int detectorID = hit1.detectorID;
   double slop_exp = _track.getExpLocalSlop();
@@ -399,6 +373,7 @@ bool KalmanFinder::addHitPairToTrack(SRawEvent::hit_pair _hitpair, int sign1, in
 
   if(detectorID > 6 && fabs(slop_local - slop_exp) > 4*slop_err) return false;
   if(fabs(slop_local) > 0.25) return false;
+#endif
 
   if(!_track.addHit(hit1)) return false;
   if(!_track.propagateTo(hit2.detectorID)) return false;
