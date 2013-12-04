@@ -247,6 +247,13 @@ void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack
 	      continue;
 	    }
 
+#ifdef COARSE_MODE
+	  KalmanTrack kmtrk_new = *kmtrk;
+	  if(addHitPairToTrack(*iter, 0, 0, kmtrk_new))
+	    {
+	      _track_new.push_back(kmtrk_new);
+	    }
+#else
 	  ///Both from right side
 	  KalmanTrack kmtrk_pp = *kmtrk;
 	  if(addHitPairToTrack(*iter, 1, 1, kmtrk_pp))
@@ -277,7 +284,7 @@ void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack
 	    {
 	      _track_new.push_back(kmtrk_mp);
 	    }
-
+#endif
 	  /*
 	  ///One left, one right
 	  ///For ST1V, both assumptions needs to be considered
