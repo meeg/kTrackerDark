@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
   saveTree->Branch("a", b, "a[nSeedsSingle]/D");
   saveTree->Branch("b", b, "b[nSeedsSingle]/D");
   saveTree->Branch("chisq", chisq, "chisq[nSeedsSingle]/D");
-  saveTree->Branch("hitIndex", hitIndex, "hitIndex[nSeedsSingle][8]/D");
+  saveTree->Branch("hitIndex", hitIndex, "hitIndex[nSeedsSingle][8]/I");
 
   /*
   TriggerAnalyzer* triggerAna = new TriggerAnalyzer();

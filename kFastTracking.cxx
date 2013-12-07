@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
   TClonesArray& arr_tracklets = *tracklets;
 
   TClonesArray* tracklets_back = new TClonesArray("Tracklet");
-  TClonesArray& arr_tracklets_back = *tracklets;
+  TClonesArray& arr_tracklets_back = *tracklets_back;
 
   int nTracklets;
   int nTracklets_back;
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
       arr_tracklets_back.Clear();
       std::list<Tracklet>& rec_tracklets = fastfinder->getFinalTracklets();
       std::list<Tracklet>& rec_tracklets_back = fastfinder->getBackPartials();
-      if(rec_tracklets.empty() || rec_tracklets_back.empty()) continue;
+      if(rec_tracklets_back.empty()) continue;
 
       nTracklets_back = 0;
       for(std::list<Tracklet>::iterator iter = rec_tracklets_back.begin(); iter != rec_tracklets_back.end(); ++iter)
