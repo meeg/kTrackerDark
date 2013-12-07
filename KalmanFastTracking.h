@@ -83,6 +83,7 @@ public:
 
   ///Final output
   std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
+  std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
   std::list<KalmanTrack>& getKalmanTracks() { return tracks; }
 
 private:

@@ -48,7 +48,11 @@ int main(int argc, char *argv[])
   TClonesArray* tracklets = new TClonesArray("Tracklet");
   TClonesArray& arr_tracklets = *tracklets;
 
+  TClonesArray* tracklets_back = new TClonesArray("Tracklet");
+  TClonesArray& arr_tracklets_back = *tracklets;
+
   int nTracklets;
+  int nTracklets_back;
   double time;
 
   SRecEvent* recEvent = new SRecEvent();
@@ -60,7 +64,10 @@ int main(int argc, char *argv[])
   saveTree->Branch("time", &time, "time/D");
   saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
   saveTree->Branch("tracklets", &tracklets, 256000, 99);
+  saveTree->Branch("nTracklets_back", &nTracklets_back, "nTracklets_back/I");
+  saveTree->Branch("tracklets_back", &tracklets_back, 256000, 99);
   tracklets->BypassStreamer();
+  tracklets_back->BypassStreamer();
 
   //Initialize track finder
   Log("Initializing the track finder and kalman filter ... ");
@@ -89,8 +96,19 @@ int main(int argc, char *argv[])
 
       //Fill the TClonesArray
       arr_tracklets.Clear();
+      arr_tracklets_back.Clear();
       std::list<Tracklet>& rec_tracklets = fastfinder->getFinalTracklets();
-      if(rec_tracklets.empty()) continue;
+      std::list<Tracklet>& rec_tracklets_back = fastfinder->getBackPartials();
+      if(rec_tracklets.empty() || rec_tracklets_back.empty()) continue;
+
+      nTracklets_back = 0;
+      for(std::list<Tracklet>::iterator iter = rec_tracklets_back.begin(); iter != rec_tracklets_back.end(); ++iter)
+	{
+	  iter->calcChisq();
+
+	  new(arr_tracklets_back[nTracklets_back]) Tracklet(*iter);
+	  ++nTracklets_back;
+	}
 
       nTracklets = 0;
       recEvent->setRawEvent(rawEvent);
@@ -99,7 +117,7 @@ int main(int argc, char *argv[])
 	  iter->calcChisq();
 	  //iter->print();
 	  new(arr_tracklets[nTracklets]) Tracklet(*iter);
-	  nTracklets++;
+	  ++nTracklets;
 
 #ifndef _ENABLE_KF
 	  SRecTrack recTrack = iter->getSRecTrack();

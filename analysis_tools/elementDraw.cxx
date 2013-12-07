@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
   TFile* dataFile = new TFile(argv[1], "READ");
   TTree* dataTree = (TTree *)dataFile->Get("save");
 
-  dataTree->SetBranchAddress("rawEvent", &rawEvent);
+  dataTree->SetBranchAddress("rawEvent_new", &rawEvent);
 
   char histName[100];
   TH1D* hist[8][72];
@@ -32,14 +32,14 @@ int main(int argc, char *argv[])
       for(int j = 0; j < 72; ++j)
 	{
 	  sprintf(histName, "%s_%i", p_geomSvc->getDetectorName(i+41).c_str(), j);
-	  hist[i][j] = new TH1D(histName, histName, 50, 1000., 2200.);
+	  hist[i][j] = new TH1D(histName, histName, 70, 0., 1400.);
 	}
     }
 
   for(Int_t i = 0; i < dataTree->GetEntries(); i++)
     {
       dataTree->GetEntry(i);
-      cout << i << endl;
+      rawEvent->reIndex("a");
       for(int j = 0; j < rawEvent->getNHitsAll(); ++j)
 	{
 	  Hit h = rawEvent->getHit(j);
