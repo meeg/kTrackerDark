@@ -18,7 +18,7 @@ MySQLSvc::MySQLSvc()
 {
   runID = -1;
   spillID = -1;
-  eventID_last = 0;
+  eventIDs.clear();
   
   server = NULL;
   res = NULL;
@@ -76,19 +76,7 @@ void MySQLSvc::setWorkingSchema(std::string schema)
   sprintf(query, "USE %s", dataSchema.c_str());
 
   server->Exec(query);
-}
-
-bool MySQLSvc::isNewEvtAvailable()
-{
-  sprintf(query, "SELECT eventID FROM Event ORDER BY eventID DESC LIMIT 2");
-  if(makeQuery() < 2) return false;
-  
-  nextEntry(); nextEntry();
-  int eventID_curr = getInt(row->GetField(0));
-  if(eventID_curr == eventID_last) return false;
-    
-  eventID_last = eventID_curr;
-  return true;
+  eventIDs.clear();
 }
 
 bool MySQLSvc::isRunStopped()
@@ -106,50 +94,56 @@ bool MySQLSvc::isRunStopped()
 
 bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
 {
-  if(!isNewEvtAvailable()) return false;
+  sprintf(query, "SELECT eventID FROM Event ORDER BY eventID DESC LIMIT 2");
+  if(makeQuery() != 2) return false;
+
+  nextEntry(); nextEntry();
+  int eventID = getInt(row->GetField(0));
+  if(isEventLoaded(eventID)) return false;
 
   rawEvent->clear();
-  if(!getEventHeader(rawEvent, eventID_last))
+  if(!getEventHeader(rawEvent, eventID))
     {
       return false;
     }
-  return getEvent(rawEvent, eventID_last);
+  return getEvent(rawEvent, eventID);
 }
 
 bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 {
-  eventID_last = int(rndm.Rndm()*getNEventsFast());
+  int eventID = int(rndm.Rndm()*getNEvents() - 1);
+  if(isEventLoaded(eventID)) return false;
   
   rawEvent->clear();
-  if(!getEventHeader(rawEvent, eventID_last))
+  if(!getEventHeader(rawEvent, eventID))
     {
       return false;
     }
-  return getEvent(rawEvent, eventID_last);
+  return getEvent(rawEvent, eventID);
 }
 
 bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 {
-  ++eventID_last;
+  int eventID = eventIDs.back() + 1;
   
   rawEvent->clear();
-  if(!getEventHeader(rawEvent, eventID_last))
+  if(!getEventHeader(rawEvent, eventID))
     {
       return false;
     }
-  return getEvent(rawEvent, eventID_last);
+  return getEvent(rawEvent, eventID);
 }
 
 bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 {
-  ++eventID_last;
+  int eventID = eventIDs.back() + 1;
 
   mcEvent->clear();
-  if(!getEventHeader(mcEvent, eventID_last))
+  if(!getEventHeader(mcEvent, eventID))
     {
       return false;
     }
-  return getEvent(mcEvent, eventID_last);
+  return getEvent(mcEvent, eventID);
 }
 
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
@@ -210,8 +204,9 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       rawEvent->insertHit(h);
     }
 
-  eventID_last = eventID;
+  eventIDs.push_back(eventID);
   rawEvent->reIndex();
+
   return true;
 }
 
@@ -457,7 +452,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   //Database output
   sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
 	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3 VALUE(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
-	  "%f,%f,%f,%f,%f,%f,%f,%f,)", trackID, runID, spillID, eventID_last, charge, numHits, chisq, x0, y0, 
+	  "%f,%f,%f,%f,%f,%f,%f,%f,)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
 	  z0, px0, py0, pz0, x1, y1, z1, px0, py0, pz0, x3, y3, z3, px3, py3, pz3);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
@@ -473,7 +468,7 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
       if(iter->hit.index < 0) continue;
 
       sprintf(query, "INSERT INTO kTrackHit(runID,eventID,trackID,hitID,driftSign,residual) VALUES(%d,%d,%d,%d,%d,%f)",
-	      runID, eventID_last, trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
+	      runID, eventIDs.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
 #ifndef OUT_TO_SCREEN
       server->Exec(query);
 #else
@@ -519,7 +514,7 @@ void MySQLSvc::writeDimuonTable(int dimuonID, int idx_positive, int idx_negative
 
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
 	  "dpy,dpz,mass,xF,xB,xT,trackSeparation) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
-	  dimuonID, runID, spillID, eventID_last, idx_positive+nTracks, idx_negative+nTracks, x0, y0, z0, 
+	  dimuonID, runID, spillID, eventIDs.back(), idx_positive+nTracks, idx_negative+nTracks, x0, y0, z0, 
 	  px0, py0, pz0, mass, xF, x1, x2, dz);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);

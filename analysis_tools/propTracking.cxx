@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
       list<Seed1D> yseeds = seeder->getFinalSeeds();
       ++nGoodYEvent;
 
-      if(nSeedsX < 1 || nSeedsY < 1) continue;
+      if(nSeedsX < 1 && nSeedsY < 1) continue;
 
       //X-Y combination
       nSeeds = 0;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 	    }
 
 	  ++nSeedsSingle;
-	  index_x++;
+	  ++index_x;
 	}	  
 
       index_y = 0; 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
 	    }
 
 	  ++nSeedsSingle;
-	  index_y++;
+	  ++index_y;
 	}	
 
       saveTree->Fill();

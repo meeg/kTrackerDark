@@ -15,7 +15,7 @@
 //#define _ENABLE_MULTI_MINI
 
 //=== Coarse mode, no driftTime info is used, disabled by default
-#define COARSE_MODE
+//#define COARSE_MODE
 
 //=== Enable Kalman fitting in fast tracking and alignment, enabled by default
 //#define _ENABLE_KF

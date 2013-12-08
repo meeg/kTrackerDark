@@ -11,6 +11,8 @@ Created: 2013.9.29
 #include <iostream>
 #include <vector>
 #include <string>
+#include <list>
+#include <algorithm>
 
 #include <TSQLServer.h>
 #include <TSQLResult.h>
@@ -37,9 +39,6 @@ public:
   //Connect to the server
   bool connect(std::string sqlServer = MYSQL_SERVER);
 
-  //check if the new event is available
-  bool isNewEvtAvailable();
-
   //check if the run is stopped
   bool isRunStopped();
 
@@ -47,12 +46,15 @@ public:
   int getNEventsFast();
   int getNEvents();
 
-  //Get the latest event
+  //Gets
   bool getEvent(SRawEvent* rawEvent, int eventID);
   bool getLatestEvt(SRawEvent* rawEvent);
   bool getRandomEvt(SRawEvent* rawEvent);
   bool getNextEvent(SRawEvent* rawEvent);
   bool getNextEvent(SRawMCEvent* rawEvent);
+
+  //Check if the event has been loaded
+  bool isEventLoaded(int eventID) { return std::find(eventIDs.begin(), eventIDs.end(), eventID) != eventIDs.end(); } 
 
   //Get the event header
   bool getEventHeader(SRawEvent* rawEvent, int eventID);
@@ -98,6 +100,7 @@ private:
   int runID;
   int spillID;
   int nEvents;
+  std::list<int> eventIDs;
 
   //Query string used in all clause
   char query[2000];

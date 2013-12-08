@@ -59,7 +59,6 @@ int main(int argc, char *argv[])
   while(!stopRun)
     {
       //Read data
-      //if(!p_mysqlSvc->getLatestEvt(rawEvent)) continue;
       if(!p_mysqlSvc->getRandomEvt(rawEvent)) continue;
 
       //Do the tracking

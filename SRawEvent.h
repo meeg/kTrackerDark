@@ -115,6 +115,7 @@ public:
   
   ///Set/get the trigger types
   void setTriggerBits(Int_t triggers[]);
+  void setTriggerBits(Int_t triggers) { fTriggerBits = triggers; }
   bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
 
   ///Clear the internal event structure
