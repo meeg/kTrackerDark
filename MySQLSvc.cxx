@@ -77,6 +77,7 @@ void MySQLSvc::setWorkingSchema(std::string schema)
 
   server->Exec(query);
   eventIDs.clear();
+  eventIDs.push_back(0);
 }
 
 bool MySQLSvc::isRunStopped()

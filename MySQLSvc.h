@@ -93,9 +93,6 @@ private:
   //Random generator
   TRandom rndm;
 
-  //Last eventID used
-  int eventID_last;
-
   //run-related info
   int runID;
   int spillID;
