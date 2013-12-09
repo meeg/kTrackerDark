@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
       for(unsigned int j = 0; j < hits_old.size(); j++)
 	{
 	  Hit h = hits_old[j];
-	  if(h.detectorID >= 25 && h.detectorID <= 40) h.inTime = fabs(h.tdcTime - h_center[h.detectorID-25]) > 15. ? 0 : 1;
+	  //if(h.detectorID >= 25 && h.detectorID <= 40) h.inTime = fabs(h.tdcTime - h_center[h.detectorID-25]) < 15. ? 1 : 0;
 	  if(h.detectorID > 40) h.inTime = h.tdcTime > 200. && h.tdcTime < 1100. ? 1 : 0;
 	  
 	  event->insertHit(h);

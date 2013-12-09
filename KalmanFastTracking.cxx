@@ -148,7 +148,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   cout << "======================" << endl;
   cout << "U plane window sizes: " << endl;
 #endif
-  double u_factor[] = {5., 5., 5., 5.};
+  double u_factor[] = {5., 5., 15., 15.};
   for(int i = 0; i < 4; i++)
     {
       int xID = 2*superIDs[i][0] - 1;
@@ -365,6 +365,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 	  if(tracklet_23.chisq > 3000.)
 	    {
 #ifdef _DEBUG_ON
+	      tracklet_23.print();
 	      Log("Impossible combination!");
 #endif
 	      continue;
@@ -374,6 +375,9 @@ void KalmanFastTracking::buildBackPartialTracks()
 	  resolveLeftRight(tracklet_23, 25.);
 	  resolveLeftRight(tracklet_23, 100.);
 #endif
+	  ///Remove bad hits if needed
+	  //removeBadHits(tracklet_23);
+
 
 #ifdef _DEBUG_ON
 	  Log("New tracklet: ");
@@ -446,10 +450,9 @@ void KalmanFastTracking::buildGlobalTracks()
 	  resolveLeftRight(tracklet_global, 100.);
 	  resolveLeftRight(tracklet_global, 1000.);
           resolveSingleLeftRight(tracklet_global);
-
+#endif
 	  ///Remove bad hits if needed
 	  removeBadHits(tracklet_global);
-#endif
 
 #ifdef _DEBUG_ON
 	  Log("New tracklet: ");
@@ -725,8 +728,9 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
     }
   else
     {
-      pairs_X = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][0], pos_exp[0], window[0]);
-      pairs_U = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][1], pos_exp[1], window[1]);
+      //Note that in pos_exp[], index 0 stands for U, index 1 stands for X, index 2 stands for V
+      pairs_X = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][0], pos_exp[1], window[1]);
+      pairs_U = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][1], pos_exp[0], window[0]);
       pairs_V = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][2], pos_exp[2], window[2]);
     }
 
@@ -833,7 +837,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
     } 
 
   //Reduce the tracklet list and add dummy hits
-  //reduceTrackletList(trackletsInSt[listID]);
+  reduceTrackletList(trackletsInSt[listID]);
   for(std::list<Tracklet>::iterator iter = trackletsInSt[listID].begin(); iter != trackletsInSt[listID].end(); ++iter)
     {
       iter->addDummyHits();
@@ -902,7 +906,9 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 	}
     }
 
-  //Log(tracklet.stationID << "  " << nHodoHits);
+#ifdef _DEBUG_ON
+  Log(tracklet.stationID << "  " << nHodoHits);
+#endif
   if(nHodoHits < nMinimum) return false;
 
   if(tracklet.stationID > 4)
