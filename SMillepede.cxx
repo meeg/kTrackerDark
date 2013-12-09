@@ -310,17 +310,24 @@ void SMillepede::initMillepede()
       //constrainDetectors(i, i+1, 2);
     }
 
-  //2. Fix all 6 planes of station 3+ to be the same in z and phi
+  //2. Fix all 6 planes of station 3+/3- to be the same in z and phi
   for(int i = 14; i < 17; i += 2)
     {
       constrainDetectors(i, i+1, 0);
       constrainDetectors(i, i+1, 1);
     }
 
-  //3. a special one: the global offsets of station 3+ is fixed
+  for(int i = 20; i < 23; i += 2)
+    {
+      constrainDetectors(i, i+1, 0);
+      constrainDetectors(i, i+1, 1);
+    }
+
+  //3. a special one: the global offsets of station 3+ and 3- is fixed
   float rhs = 0.;
   float dercs[MILLEPEDE::NGLB];
 
+  //3+
   for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
   dercs[MILLEPEDE::NPARPLAN*12 + 2] = 1.;
   dercs[MILLEPEDE::NPARPLAN*13 + 2] = 1.;
@@ -328,6 +335,17 @@ void SMillepede::initMillepede()
   dercs[MILLEPEDE::NPARPLAN*15 + 2] = -1.;
   dercs[MILLEPEDE::NPARPLAN*16 + 2] = 1.;
   dercs[MILLEPEDE::NPARPLAN*17 + 2] = 1.;
+
+  constf_(dercs, &rhs);
+
+  //3-
+  for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
+  dercs[MILLEPEDE::NPARPLAN*18 + 2] = 1.;
+  dercs[MILLEPEDE::NPARPLAN*19 + 2] = 1.;
+  dercs[MILLEPEDE::NPARPLAN*20 + 2] = -1.;
+  dercs[MILLEPEDE::NPARPLAN*21 + 2] = -1.;
+  dercs[MILLEPEDE::NPARPLAN*22 + 2] = 1.;
+  dercs[MILLEPEDE::NPARPLAN*23 + 2] = 1.;
 
   constf_(dercs, &rhs);
 
