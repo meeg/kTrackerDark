@@ -163,6 +163,9 @@ void GeomSvc::init(std::string geometrySchema)
       theta_y[detectorID] = atof(row->GetField(13));
       theta_z[detectorID] = atof(row->GetField(14));
 
+      //Temp fix for stupid geometry errors
+      if(detectorID >= 19 && detectorID <= 24) angleFromVert[detectorID] = -angleFromVert[detectorID];
+
       //Following items need to be sumed or averaged over all modules
       nElements[detectorID] += atoi(row->GetField(4));
       double x0_i = atof(row->GetField(7));
