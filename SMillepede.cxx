@@ -285,13 +285,14 @@ void SMillepede::initMillepede()
     {
       setDetectorParError(i, 0, 0.);
       setDetectorParError(i, 1, 0.);
-      setDetectorParError(i, 2, 0.1);
+      setDetectorParError(i, 2, 0.01);
 
       //if(i <= 6) setDetectorParError(i, 0, 2);
     }
 
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D1X"), 2, 0.002089);
-  //fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 2, -0.080011);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 0, 0.);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 1, 0.);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 2, 0.);
 
   // Now pass the info above to millepede
   parglo_(par_align);
