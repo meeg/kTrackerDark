@@ -283,8 +283,8 @@ void SMillepede::initMillepede()
   //By default all parameters are fixed at zero
   for(int i = 1; i <= MILLEPEDE::NPLAN; i++)
     {
-      setDetectorParError(i, 0, 1.);
-      setDetectorParError(i, 1, 0.01);
+      setDetectorParError(i, 0, 0.);
+      setDetectorParError(i, 1, 0.);
       setDetectorParError(i, 2, 0.1);
 
       //if(i <= 6) setDetectorParError(i, 0, 2);
