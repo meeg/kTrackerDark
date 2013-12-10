@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     {
       dataTree->GetEntry(i);
       cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
-      cout << (i - offset + 1)*100/nEvtMax << "% finished .. ";
+      cout << (i - offset + 1)*100/(nEvtMax - offset) << "% finished .. ";
 
       clock_t time_single = clock();
 

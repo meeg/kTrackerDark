@@ -837,7 +837,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
     } 
 
   //Reduce the tracklet list and add dummy hits
-  reduceTrackletList(trackletsInSt[listID]);
+  //reduceTrackletList(trackletsInSt[listID]);
   for(std::list<Tracklet>::iterator iter = trackletsInSt[listID].begin(); iter != trackletsInSt[listID].end(); ++iter)
     {
       iter->addDummyHits();
