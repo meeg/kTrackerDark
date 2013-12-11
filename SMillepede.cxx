@@ -334,7 +334,7 @@ void SMillepede::initMillepede()
   //3+
   for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
   dercs[MILLEPEDE::NPARPLAN*12 + 2] = 1.;
-  dercs[MILLEPEDE::NPARPLAN*14 + 2] = -1.;
+  dercs[MILLEPEDE::NPARPLAN*14 + 2] = -(p_geomSvc->getCostheta(13) + p_geomSvc->getCostheta(17));
   dercs[MILLEPEDE::NPARPLAN*16 + 2] = 1.;
 
   constf_(dercs, &rhs);
@@ -342,7 +342,7 @@ void SMillepede::initMillepede()
   //3-
   for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
   dercs[MILLEPEDE::NPARPLAN*18 + 2] = 1.;
-  dercs[MILLEPEDE::NPARPLAN*20 + 2] = -1.;
+  dercs[MILLEPEDE::NPARPLAN*20 + 2] = -(p_geomSvc->getCostheta(19) + p_geomSvc->getCostheta(23));
   dercs[MILLEPEDE::NPARPLAN*22 + 2] = 1.;
 
   constf_(dercs, &rhs);
