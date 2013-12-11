@@ -79,8 +79,8 @@ namespace MILLEPEDE
   static const int NHITSMIN = 16;
 
   //Maximum allowed chi square/prob
-  static const double CHISQMAX = 13.;
-  static const double PROBMIN = 0.6;
+  static const double CHISQMAX = 8.;
+  static const double PROBMIN = 0.8;
   
   //Lowest allowed momentum
   static const double MOMMIN = 25.;

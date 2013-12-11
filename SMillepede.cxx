@@ -82,6 +82,8 @@ bool SMillepede::acceptTrack(Tracklet& track)
   //if(track.chisq > MILLEPEDE::CHISQMAX) return false;
   if(track.getProb() < MILLEPEDE::PROBMIN) return false;
   if(1./track.invP < MILLEPEDE::MOMMIN) return false;
+  if(fabs(track.getExpPositionX(285.)) > 15.) return false;
+  if(fabs(track.getExpPositionY(40.)) > 15.) return false;
 
   return true;
 }
@@ -285,14 +287,12 @@ void SMillepede::initMillepede()
     {
       setDetectorParError(i, 0, 0.);
       setDetectorParError(i, 1, 0.);
-      setDetectorParError(i, 2, 0.01);
+      setDetectorParError(i, 2, 0.05);
 
       //if(i <= 6) setDetectorParError(i, 0, 2);
     }
 
-  fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 0, 0.);
-  fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 1, 0.);
-  fixDetectorParameter(p_geomSvc->getDetectorID("D3pX"), 2, 0.);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 2, 0.);
 
   // Now pass the info above to millepede
   parglo_(par_align);
@@ -309,6 +309,9 @@ void SMillepede::initMillepede()
       constrainDetectors(i, i+1, 0);
       constrainDetectors(i, i+1, 1);
       //constrainDetectors(i, i+1, 2);
+      
+      //for station 3, w offset is also fixed together 
+      if(i > 12) constrainDetectors(i, i+1, 2);
     }
 
   //2. Fix all 6 planes of station 3+/3- to be the same in z and phi
@@ -331,22 +334,16 @@ void SMillepede::initMillepede()
   //3+
   for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
   dercs[MILLEPEDE::NPARPLAN*12 + 2] = 1.;
-  dercs[MILLEPEDE::NPARPLAN*13 + 2] = 1.;
   dercs[MILLEPEDE::NPARPLAN*14 + 2] = -1.;
-  dercs[MILLEPEDE::NPARPLAN*15 + 2] = -1.;
   dercs[MILLEPEDE::NPARPLAN*16 + 2] = 1.;
-  dercs[MILLEPEDE::NPARPLAN*17 + 2] = 1.;
 
   constf_(dercs, &rhs);
 
   //3-
   for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
   dercs[MILLEPEDE::NPARPLAN*18 + 2] = 1.;
-  dercs[MILLEPEDE::NPARPLAN*19 + 2] = 1.;
   dercs[MILLEPEDE::NPARPLAN*20 + 2] = -1.;
-  dercs[MILLEPEDE::NPARPLAN*21 + 2] = -1.;
   dercs[MILLEPEDE::NPARPLAN*22 + 2] = 1.;
-  dercs[MILLEPEDE::NPARPLAN*23 + 2] = 1.;
 
   constf_(dercs, &rhs);
 
