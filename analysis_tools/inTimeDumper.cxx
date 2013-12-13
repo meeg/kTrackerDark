@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	  Hit h = hits_old[j];
 	  if(h.detectorID <= 24)
 	    {
-	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.driftDistance = p_geomSvc->getCellWidth(h.detectorID);
+	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.driftDistance = geometrySvc->getCellWidth(h.detectorID);
 	    }
 
 	  if(h.detectorID > 40) h.inTime = h.tdcTime > 200. && h.tdcTime < 1100. ? 1 : 0;
