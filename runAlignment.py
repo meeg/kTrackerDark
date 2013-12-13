@@ -7,36 +7,40 @@ import time
 
 def runCmd(cmd):
     print cmd
-    os.system(cmd)
+    #os.system(cmd)
 
-nCycle = int(sys.argv[1])
-if len(sys.argv) == 3:
-    offset = int(sys.argv[2])
+runID = sys.argv[1]
+nCycle = int(sys.argv[2])
+if len(sys.argv) == 4:
+    offset = int(sys.argv[3])
 else:
     offset = 1
+
+nEvtMax = 60000
+nJobs = 5
 
 for i in range(offset, nCycle+1):
     print 'Working on the '+str(i)+'th optimization cycle ... '
 
-    runCmd('./update run_2167_raw.root run_2167_align_'+str(i)+'.root;./update run_2168_raw.root run_2168_align_'+str(i)+'.root');
-    runCmd('./kFastTracking run_2167_align_'+str(i)+'.root'+' rec_2167_align_'+str(i)+'.root > log_2167 &')
-    runCmd('./kFastTracking run_2168_align_'+str(i)+'.root'+' rec_2168_align_'+str(i)+'.root > log_2168 &')
+    rawFile = 'run_'+runID+'_raw.root'
+    alignFile = 'run'+runID+'_align_'+str(i)+'.root'
+    recFile_initial = 'rec_'+runID+'_align_'+str(i)
+
+    runCmd('./update '+rawFile+' '+alignFile)
+
+    nEvents_single = nEvtMax/nJobs
+    for j in range(nJobs):
+        runCmd('./kFastTracking '+alignFile+' '+recFile_initial+'_'+str(j+1)+'.root '+str(j*nEvents_single)+' '+str(nEvents_single)+' > log_'+runID+'_'+str(j+1)+' &')
 
     time.sleep(300)
     
-    nMinutes = 5
+    nMinutes = 4
     while int(os.popen('ps | grep kFastTracking | wc -l').read().strip()) != 0:
         nMinutes = nMinutes+1
-	print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
+        print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
 	time.sleep(60)
 
-    runCmd('hadd rec_align_'+str(i)+'.root rec_216[7,8]_align_'+str(i)+'.root')
-    runCmd('./milleAlign rec_align_'+str(i)+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
-    runCmd('./makeRTProfile rec_align_'+str(i)+'.root calibration_'+str(i)+'.txt')
-    runCmd('./hodoAlign rec_align_'+str(i)+'.root hodoAlign_temp.root alignment_hodo_'+str(i)+'.txt > log_hodo_'+str(i))
-    runCmd('./propAlign rec_align_'+str(i)+'.root propAlign_temp.root alignment_prop_'+str(i)+'.txt > log_prop_'+str(i))
+    runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
+    runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
     runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
     runCmd('cp align_mille_'+str(i)+'.txt align_mille.txt')
-    runCmd('cp alignment_hodo_'+str(i)+'.txt alignment_hodo.txt')
-    runCmd('cp alignment_prop_'+str(i)+'.txt alignment_prop.txt')
-    runCmd('cp calibration_'+str(i)+'.txt calibration.txt')

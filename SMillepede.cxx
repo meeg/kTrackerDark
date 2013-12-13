@@ -82,8 +82,8 @@ bool SMillepede::acceptTrack(Tracklet& track)
   //if(track.chisq > MILLEPEDE::CHISQMAX) return false;
   if(track.getProb() < MILLEPEDE::PROBMIN) return false;
   if(1./track.invP < MILLEPEDE::MOMMIN) return false;
-  if(fabs(track.getExpPositionX(285.)) > 15.) return false;
-  if(fabs(track.getExpPositionY(40.)) > 15.) return false;
+  if(fabs(track.getExpPositionX(275.)) > 10.) return false;
+  if(fabs(track.getExpPositionY(40.)) > 10.) return false;
 
   return true;
 }
