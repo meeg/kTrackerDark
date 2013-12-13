@@ -23,7 +23,7 @@ for i in range(offset, nCycle+1):
     print 'Working on the '+str(i)+'th optimization cycle ... '
 
     rawFile = 'run_'+runID+'_raw.root'
-    alignFile = 'run'+runID+'_align_'+str(i)+'.root'
+    alignFile = 'run_'+runID+'_align_'+str(i)+'.root'
     recFile_initial = 'rec_'+runID+'_align_'+str(i)
 
     runCmd('./update '+rawFile+' '+alignFile)

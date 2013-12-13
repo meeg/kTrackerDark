@@ -76,7 +76,7 @@ namespace MILLEPEDE
   static const int NSTDEV = 3;
   
   //Minimun number of hits
-  static const int NHITSMIN = 16;
+  static const int NHITSMIN = 15;
 
   //Maximum allowed chi square/prob
   static const double CHISQMAX = 8.;
