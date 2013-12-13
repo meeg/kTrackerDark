@@ -114,6 +114,7 @@ public:
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);  
   
   ///Set/get the trigger types
+  int getTriggerBits() { return fTriggerBits; }
   void setTriggerBits(Int_t triggers[]);
   void setTriggerBits(Int_t triggers) { fTriggerBits = triggers; }
   bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }

@@ -205,7 +205,6 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       rawEvent->insertHit(h);
     }
 
-  eventIDs.push_back(eventID);
   rawEvent->reIndex();
 
   return true;
@@ -223,6 +222,8 @@ int MySQLSvc::getNEvents()
 
 bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 {
+  eventIDs.push_back(eventID);
+  
   //Get the event header
   sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
   if(makeQuery() != 1) return false;
@@ -244,6 +245,8 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 
 bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
 {
+  eventIDs.push_back(eventID);
+  
   sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
   if(makeQuery() != 1) return false;
   nextEntry();

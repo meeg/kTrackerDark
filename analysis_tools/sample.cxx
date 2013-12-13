@@ -31,13 +31,24 @@ int main(int argc, char *argv[])
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
 
+  SRawEvent* rawEvent_new = new SRawEvent();
 
-  for(Int_t i = 0; i < dataTree->GetEntries(); i++)
+  TFile* saveFile = new TFile(argv[2], "recreate");
+  TTree* saveTree = new TTree("save", "save");
+
+  saveTree->Branch("rawEvent", &rawEvent_new, 256000, 99);
+
+  for(Int_t i = 0; i < dataTree->GetEntries(); ++i)
     {
       dataTree->GetEntry(i);
 
       rawEvent->clear();
+      rawEvent_new->clear();
     }
   
+  saveFile->cd();
+  saveTree->Write();
+  saveFile->Close();
+
   return 1;
 }
