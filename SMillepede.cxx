@@ -292,7 +292,9 @@ void SMillepede::initMillepede()
       //if(i <= 6) setDetectorParError(i, 0, 2);
     }
 
-  fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 2, 0.);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 0, 0.);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 1, 0.);
+  fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 2, 0.);
 
   // Now pass the info above to millepede
   parglo_(par_align);
