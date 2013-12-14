@@ -90,10 +90,11 @@ int main(int argc, char *argv[])
 	  if(h.detectorID <= 24)
 	    {
 	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.inTime = 0;
+	      if(h.driftDistance > 0.95*0.5*geometrySvc->getCellWidth(h.detectorID)) h.inTime = 0;
 	      if(h.driftTime < 1E-6) h.inTime = 0; 
 	    }
 
-	  if(h.detectorID > 40) h.inTime = h.tdcTime > 200. && h.tdcTime < 1100. ? 1 : 0;
+	  if(h.detectorID > 40) h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
 	  
 	  event->insertHit(h);
 	}
