@@ -39,7 +39,7 @@ bool Hit::operator<(const Hit& elem) const
       return false;
     }
 
-  if(driftTime < elem.driftTime)
+  if(tdcTime > elem.tdcTime)
     {
       return true;
     }
