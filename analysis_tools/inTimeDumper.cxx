@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
 	  if(h.detectorID <= 24)
 	    {
 	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.inTime = 0;
-	      if(h.driftDistance > 0.95*0.5*geometrySvc->getCellWidth(h.detectorID)) h.inTime = 0;
 	      if(h.driftTime < 1E-6) h.inTime = 0; 
 	    }
 
@@ -99,8 +98,6 @@ int main(int argc, char *argv[])
 	  event->insertHit(h);
 	}
 
-      event->reIndex("a");
-    
       H1B = event->getNHitsInDetector(25) > 0 ? 1 : 0;
       H2B = event->getNHitsInDetector(31) > 0 ? 1 : 0;
       H3B = event->getNHitsInDetector(33) > 0 ? 1 : 0;
