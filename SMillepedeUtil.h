@@ -37,6 +37,9 @@ public:
   int detectorID;
   int elementID;
 
+  //Left/right
+  int sign;
+
   //Measurement (actually residual due to the definition of millepede)
   double meas;
 
