@@ -20,6 +20,10 @@ public:
   bool isValid();
   bool isEnabled() { return enabled; }
 
+  //Get reflection in T/B, LR
+  TriggerRoad reflectTB();
+  TriggerRoad reflectLR();
+
   //Insert a hodo paddle into the road
   void addElement(int detectorID, int elementID);
   
@@ -46,6 +50,10 @@ public:
   //T/B , L/R
   int getTB();
   int getLR();
+
+  //counts of mu+, mu-
+  int nPlus;
+  int nMinus;
 
   //print
   void print();

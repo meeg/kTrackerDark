@@ -1,6 +1,10 @@
 #include <fstream>
 #include <sstream>
 
+#include <TSQLServer.h>
+#include <TSQLResult.h>
+#include <TSQLRow.h>
+
 #include "TriggerAnalyzer.h"
 
 #define REQUIRE_TB
@@ -33,6 +37,48 @@ TriggerAnalyzer::TriggerAnalyzer()
 TriggerAnalyzer::~TriggerAnalyzer()
 {
   clear(1); clear(-1);
+}
+
+void TriggerAnalyzer::init(std::string schemaName)
+{
+  GeomSvc* p_geomSvc = GeomSvc::instance();
+
+  char query[300];
+  sprintf(query, "SELECT charge,St1DetectorName,St1ElementID,St2DetectorName,St2ElementID,"
+	  "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
+  
+  char serverName[200];
+  sprintf(serverName, "mysql://%s", MYSQL_SERVER);
+  TSQLServer* server = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
+  TSQLResult* res = server->Query(query);
+
+  unsigned int nRoads = res->GetRowCount();
+  for(unsigned int i = 0; i < nRoads; ++i)
+    {
+      TSQLRow* row = res->Next();
+
+      TriggerRoad road_new;
+      for(int j = 1; j <= 4; ++j)
+	{
+	  road_new.addElement(p_geomSvc->getDetectorID(row->GetField(2*j-1)), atoi(row->GetField(2*j)));
+	}
+      road_new.enable();
+
+      int charge = atoi(row->GetField(0));
+      if(charge > 0)
+	{
+	  roads_enabled[0].push_back(road_new);
+	}
+      else
+	{
+	  roads_enabled[1].push_back(road_new);
+	}
+
+      delete row;
+    }
+
+  delete res;
+  delete server;
 }
 
 void TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)

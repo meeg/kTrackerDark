@@ -40,18 +40,17 @@ int main(int argc, char *argv[])
   p_geomSvc->init(GEOMETRY_VERSION);
 
   ///Retrieve the maximum and minimum of tdc time spectra
-  TSQLServer *con = TSQLServer::Connect("mysql://seaquel.physics.illinois.edu", "seaguest","qqbar2mu+mu-");
+  TSQLServer *con = TSQLServer::Connect("mysql://e906-db1.fnal.gov", "seaguest","qqbar2mu+mu-");
   char query[300];
   double tmin[24], tmax[24], tmid[24];
   double rmin[24], rmax[24];
   double r_cutoff_low[24], r_cutoff_high[24];
   double t_cutoff_low[24], t_cutoff_high[24];
-  double t0[24] = {1195., 1195., 1195., 1195., 1195., 1195., 1165., 1165., 1165., 1165., 1165., 1165., 1035., 1035., 1035., 1035., 1035., 1035., 1158., 1158., 1158., 1158., 1158., 1158.};
   int nbin[24];
   for(int i = 0; i < 24; i++)
     {
       string detectorName = p_geomSvc->getDetectorName(i+1);
-      sprintf(query, "SELECT MIN(tdcTime),MAX(tdcTime) FROM run_002167_R003.Hit WHERE detectorName LIKE '%s' AND inTime=1", detectorName.c_str());
+      sprintf(query, "SELECT MIN(tdcTime),MAX(tdcTime) FROM run_004886.Hit WHERE detectorName LIKE '%s' AND inTime=1", detectorName.c_str());
 
       TSQLResult *res = con->Query(query);
       TSQLRow *row = res->Next();
@@ -75,8 +74,8 @@ int main(int argc, char *argv[])
       r_cutoff_low[i] = rmin[i] + 1./10.*(rmax[i] - rmin[i]);
       r_cutoff_high[i] = rmin[i] + ratio*(rmax[i] - rmin[i]);
 
-      double binSize = 5.;
-      if(detectorName.find("D3p") != string::npos)
+      double binSize = 10.;
+      if(detectorName.find("D3p") != string::npos || detectorName.find("D3m") != string::npos)
 	{
 	  binSize = 10.;
 	}
@@ -161,7 +160,7 @@ int main(int argc, char *argv[])
     {
       //Extract data
       int nKnots = 0;
-      double R[100], T[100];
+      double R[500], T[500];
       for(int j = 1; j <= nbin[i]; j++)
 	{
 	  double center = prof_RT[i]->GetBinCenter(j);
@@ -236,33 +235,5 @@ int main(int argc, char *argv[])
   saveTree->Write();
   saveFile->Close();
   
-  if(argc == 3) return 1;
-
-  fout.open(argv[3], ios::out);
-  for(int i = 0; i < 24; i++)
-    {
-      fout << p_geomSvc->getDetectorName(i+1) << endl;
-      double tdcTime = tmin[i];
-      while(tdcTime <= tmax[i])
-	{
-	  fout << tdcTime << "  " << p_geomSvc->getRTCurve(i+1)->Eval(tdcTime) << endl;
-	  tdcTime += 2.5;
-	}
-    }
-  fout.close();
-
-  if(argc == 4) return 1;
-  for(int i = 0; i < 24; i++)
-    {
-      fout.open((p_geomSvc->getDetectorName(i+1) + string(".tsv")).c_str(), ios::out);
-      double tdcTime = tmin[i];
-      while(tdcTime <= tmax[i])
-	{
-	  fout << t0[i] + 12. - tdcTime << "  " << p_geomSvc->getRTCurve(i+1)->Eval(tdcTime) << "  " << p_geomSvc->getPlaneResolution(i+1) << endl;
-	  tdcTime += 2.5;
-	}
-      fout.close();
-    }
-
   return 1;
 }

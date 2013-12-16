@@ -7,7 +7,7 @@ import time
 
 def runCmd(cmd):
     print cmd
-    #os.system(cmd)
+    os.system(cmd)
 
 runID = sys.argv[1]
 nCycle = int(sys.argv[2])
@@ -42,5 +42,7 @@ for i in range(offset, nCycle+1):
 
     runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
+    runCmd('./makeRTProfile '+recFile_initial+'.root calibration_'+str(i)+'.txt')
     runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
+    runCmd('cp calibration_'+str(i)+'.txt calibration.txt')
     runCmd('cp align_mille_'+str(i)+'.txt align_mille.txt')

@@ -19,6 +19,9 @@ TriggerRoad::TriggerRoad()
 
   rndf = 0.;
 
+  nPlus = 0;
+  nMinus = 0;
+
   enabled = true;
 }
 
@@ -58,13 +61,16 @@ void TriggerRoad::print()
 
 std::ostream& operator << (std::ostream& os, const TriggerRoad& road)
 {
+  //os << std::setw(6) << road.detectorIDs[0] << std::setw(6) << road.detectorIDs[1] << std::setw(6) << road.detectorIDs[2] << std::setw(6) << road.detectorIDs[3] 
   os << std::setw(6) << road.elementIDs[0] << std::setw(6) << road.elementIDs[1] << std::setw(6) << road.elementIDs[2] << std::setw(6) << road.elementIDs[3] 
      << std::setprecision(3) << std::setw(10) << std::setiosflags(std::ios::right) << road.pT_mean 
      << std::setw(6) << std::setiosflags(std::ios::right) << abs(road.groupID)
      << std::setw(10) << road.getNEntries()
      << std::setprecision(4) << std::setw(20) << std::setiosflags(std::ios::right) << road.weight() 
      << std::setprecision(4) << std::setw(20) << std::setiosflags(std::ios::right) << road.ratio() 
-     << std::setprecision(3) << std::setw(20) << std::setiosflags(std::ios::right) << road.rndf;
+     //<< std::setprecision(4) << std::setw(20) << std::setiosflags(std::ios::right) << road.nPlus 
+     //<< std::setprecision(4) << std::setw(20) << std::setiosflags(std::ios::right) << road.nMinus 
+     << std::setprecision(5) << std::setw(20) << std::setiosflags(std::ios::right) << road.rndf;
 
   return os;
 }
@@ -138,6 +144,9 @@ TriggerRoad& TriggerRoad::operator+=(const TriggerRoad& elem)
   pT_mean = (pT_mean*pTs.size() + elem.pT_mean*elem.pTs.size())/(pTs.size() + elem.pTs.size());
   pTs.insert(pTs.end(), elem.pTs.begin(), elem.pTs.end());
 
+  nPlus += elem.nPlus;
+  nMinus += elem.nMinus;
+
   return *this;
 }
 
@@ -209,6 +218,33 @@ int TriggerRoad::getTB()
   return 0;
 }
 
+TriggerRoad TriggerRoad::reflectTB()
+{
+  TriggerRoad reflected = *this;
+ 
+  int corr = getTB();
+  for(int i = 0; i < 4; ++i)
+    {
+      reflected.detectorIDs[i] -= corr;
+    }
+
+  return reflected;
+}
+
+TriggerRoad TriggerRoad::reflectLR()
+{
+  GeomSvc* p_geomSvc = GeomSvc::instance();
+  TriggerRoad reflected = *this;
+  
+  for(int i = 0; i < 4; ++i)
+    {
+      int nElements = p_geomSvc->getPlaneNElements(detectorIDs[i]);
+      reflected.elementIDs[i] = nElements - reflected.elementIDs[i] + 1;
+    }
+
+  return reflected;
+}
+
 std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pT, double weight)
 {
   GeomSvc* p_geomSvc = GeomSvc::instance();
@@ -274,6 +310,7 @@ std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs
 
 		  road_new.pT_mean = pT;
 		  roads_new.push_back(road_new);
+		  roads_new.push_back(road_new.reflectTB());
 		}
 	    }
 	}

@@ -40,6 +40,7 @@ public:
   //initialization
   void init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad> m_roads, double cut_td = 0., double cut_gun = 1E8);
   void init(std::string fileName, double cut_td = 0., double cut_gun = 1E8);
+  void init(std::string schemaName);
   void filterRoads(double cut_td, double cut_gun);
 
   //Accept a event
