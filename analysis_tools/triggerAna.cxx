@@ -35,12 +35,17 @@ int main(int argc, char* argv[])
 
   SRawEvent* rawEvent = new SRawEvent();
 
-  for(int i = 0; i < dataTree->GetEntries(); i++)
+  TFile* saveFile = new TFile(argv[2], "recreate");
+  TTree* saveTree = new TTree("save", "save");
+
+  saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+
+  int nEvents = p_mysqlSvc->getNEventsFast();
+  for(int i = 0; i < nEvents; ++i)
     {
-      dataTree->GetEntry(i);
+      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
+      cout << "\r Converting event " << rawEvent->getEventID() << ", " << i*100/nEvents << "% finished." << flush;
     
-      rawEvent->reIndex("a");
-      rawEvent_new->setEventInfo(rawEvent->getRunID(), rawEvent->getSpillID(), rawEvent->getEventID());
 
       flag = triggerAna->acceptEvent(rawEvent) ? 1 : -1;
       std::list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);

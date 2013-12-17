@@ -77,6 +77,7 @@ SRawEvent::SRawEvent()
   fSpillID = -1;
 
   fTriggerBits = 0;
+  fTriggerHits.clear();
 }
 
 SRawEvent::~SRawEvent()
