@@ -240,6 +240,33 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
     }
   rawEvent->setTriggerBits(triggers);
 
+  //Get trigger hits
+  sprintf(query, "SELECT hitID,detectorID,elementID,tdcTime,inTime FROM TriggerHit WHERE eventID=%d", eventID);
+  int nTriggerHits = makeQuery();
+
+  for(int i = 0; i < nTriggerHits; ++i)
+    {
+      nextEntry();
+
+      Hit h;
+      h.index = getInt(row->GetField(0));
+      h.elementID = getInt(row->GetField(2));
+      h.tdcTime = getDouble(row->GetField(3));
+      h.inTime = getInt(row->GetField(4));
+      h.driftTime = 0.;
+      h.driftDistance = 0.;
+      h.hodoMask = 0;
+
+      std::string detectorName(row->GetField(1));
+      if(detectorName.find("H4") != std::string::npos)
+	{
+	  detectorName.replace(2, detectorName.length(), "");
+	}
+      h.detectorID = p_geomSvc->getDetectorID(detectorName);
+
+      rawEvent->insertTriggerHit(h);
+    }
+
   return true;
 }
 

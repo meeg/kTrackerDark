@@ -207,6 +207,8 @@ void GeomSvc::init(std::string geometrySchema)
       offset_pos[i] = 0.;
       offset_z0[i] = 0.;
       offset_phi[i] = 0.;
+    
+      if(i <= nChamberPlanes) rtprofile[i-1] = NULL;
     }
 
   for(int i = 0; i < 4; i++)
@@ -592,7 +594,7 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
  
   char buf[300];
   int iBin, nBin, detectorID;
-  double R[200], T[200];
+  double R[500], T[500];
   if(_cali_file)
     {
       calibration_loaded = true;
@@ -610,6 +612,7 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
 	      cali_line >> iBin >> T[i] >> R[i];
 	    }
 
+	  if(rtprofile[detectorID-1] != NULL) delete rtprofile[detectorID-1];
 	  rtprofile[detectorID-1] = new TSpline3(getDetectorName(detectorID).c_str(), T, R, nBin, "b1e1");
 	}
     }

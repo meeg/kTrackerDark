@@ -81,6 +81,55 @@ void TriggerAnalyzer::init(std::string schemaName)
   delete server;
 }
 
+void TriggerAnalyzer::init()
+{
+  using namespace std;
+
+  std::string fileNames[4] = {"roads_plus_top.txt", "roads_plus_bottom.txt", "roads_minus_top.txt", "roads_minus_bottom.txt"};
+  char buffer[300];
+  for(int i = 0; i < 4; ++i)
+    {
+      ifstream fin(fileNames[i], ios::in);
+
+      while(fin.getline(buffer, 300))
+	{
+	  istringstream stringBuf(buffer);
+
+	  int elementIDs[4];
+	  double pT;
+	  int groupID;
+	  stringBuf >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> pT >> groupID;
+
+	  TriggerRoad road_new;
+	  if(i == 0 || i == 3)
+	    {
+	      road_new.addElement(26, elementIDs[0]);
+	      road_new.addElement(32, elementIDs[1]);
+	      road_new.addElement(34, elementIDs[2]);
+	      road_new.addElement(40, elementIDs[3]);
+	    }
+	  else
+	    {
+	      road_new.addElement(25, elementIDs[0]);
+	      road_new.addElement(31, elementIDs[1]);
+	      road_new.addElement(33, elementIDs[2]);
+	      road_new.addElement(39, elementIDs[3]);
+	    }
+	  road_new.pT_mean = pT;
+	  road_new.groupID = groupID;
+
+	  if(i < 2)
+	    {
+	      roads_enabled[0].push_back(road_new);
+	    }
+	  else
+	    {
+	      roads_enabled[1].push_back(road_new);
+	    }
+	}
+    }
+}
+
 void TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
 {
   TriggerRoad* road = new TriggerRoad(); road->clear();

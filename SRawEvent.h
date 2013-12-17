@@ -87,6 +87,8 @@ public:
   Int_t getNHitsInDetectors(std::vector<Int_t>& detectorIDs);
   
   std::vector<Hit> getAllHits() { return fAllHits; }
+  std::vector<Hit> getTriggerHits() { return fTriggerHits; }
+  Hit getTriggerHit(Int_t index) { return fTriggerHits[index]; } 
   Hit getHit(Int_t index) { return fAllHits[index]; } 
   Hit getHit(Int_t detectorID, Int_t elementID); 
 
@@ -99,6 +101,7 @@ public:
 
   ///Insert a new hit
   void insertHit(Hit h);
+  void insertTriggerHit(Hit h) { fTriggerHits.push_back(h); }
 
   ///Find a hit
   Int_t findHit(Int_t detectorID, Int_t elementID);
@@ -153,8 +156,9 @@ private:
   ///Hits of this event
   Int_t fNHits[nChamberPlanes+nHodoPlanes+nPropPlanes+1];  //0 for all hits, 1, 2, ..., 24 for number of hits in plane 1, 2, ..., 24
   std::vector<Hit> fAllHits;
+  std::vector<Hit> fTriggerHits;
 
-  ClassDef(SRawEvent, 3)
+  ClassDef(SRawEvent, 4)
 };
 
 class SRawMCEvent: public SRawEvent

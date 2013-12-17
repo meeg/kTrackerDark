@@ -27,7 +27,7 @@ using namespace std;
 
 bool acceptTracklet(Tracklet& tracklet)
 {
-  if(tracklet.getNHits() < 16) return false;
+  if(tracklet.getNHits() < 15) return false;
   if(tracklet.getProb() < 0.8) return false;
   if(1./tracklet.invP < 25.) return false;
 
@@ -50,34 +50,45 @@ int main(int argc, char *argv[])
   for(int i = 0; i < 24; i++)
     {
       string detectorName = p_geomSvc->getDetectorName(i+1);
-      sprintf(query, "SELECT MIN(tdcTime),MAX(tdcTime) FROM run_004886.Hit WHERE detectorName LIKE '%s' AND inTime=1", detectorName.c_str());
+      sprintf(query, "SELECT MIN(tdcTime),MAX(tdcTime) FROM run_004886_R001.Hit WHERE detectorName LIKE '%s' AND inTime=1", detectorName.c_str());
 
       TSQLResult *res = con->Query(query);
       TSQLRow *row = res->Next();
 
-      tmin[i] = atoi(row->GetField(0));
-      tmax[i] = atoi(row->GetField(1));
+      tmin[i] = atof(row->GetField(0));
+      tmax[i] = atof(row->GetField(1));
       tmid[i] = tmin[i] + 2./3.*(tmax[i] - tmin[i]);
 
-      double ratio = 9./10.;
+      double ratio_low, ratio_high;
       if(i < 6)
 	{
-	  ratio = 8./10.;
+	  ratio_low = 0.75;
+	  ratio_high = 0.95;
 	}
+      else if(i < 12)
+	{
+	  ratio_low = 0.55;
+	  ratio_high = 0.95;
+	}
+      else
+	{
+	  ratio_low = 0.6;
+	  ratio_high = 0.9;
+	}	  
 
-      t_cutoff_low[i] = tmin[i] + 1./10.*(tmax[i] - tmin[i]);
-      t_cutoff_high[i] = tmin[i] + ratio*(tmax[i] - tmin[i]);
+      t_cutoff_low[i] = tmin[i] + ratio_low*(tmax[i] - tmin[i]);
+      t_cutoff_high[i] = tmin[i] + ratio_high*(tmax[i] - tmin[i]);
 
       rmin[i] = 0.;
       rmax[i] = p_geomSvc->getPlaneSpacing(i+1)/2.;
 
-      r_cutoff_low[i] = rmin[i] + 1./10.*(rmax[i] - rmin[i]);
-      r_cutoff_high[i] = rmin[i] + ratio*(rmax[i] - rmin[i]);
+      r_cutoff_low[i] = rmin[i] + ratio_low*(rmax[i] - rmin[i]);
+      r_cutoff_high[i] = rmin[i] + ratio_high*(rmax[i] - rmin[i]);
 
-      double binSize = 10.;
+      double binSize = 20.;
       if(detectorName.find("D3p") != string::npos || detectorName.find("D3m") != string::npos)
 	{
-	  binSize = 10.;
+	  binSize = 20.;
 	}
       nbin[i] = int((tmax[i] - tmin[i] + 0.1)/binSize);
      
@@ -155,17 +166,27 @@ int main(int argc, char *argv[])
 
   //Output the temporary knots
   fstream fout;
-  fout.open(argv[2], ios::out);
+  fout.open("temp.txt", ios::out);
   for(int i = 0; i < 24; i++)
     {
       //Extract data
       int nKnots = 0;
       double R[500], T[500];
+
+      //Add constrains at Tmin
+      R[nKnots] = rmax[i];
+      T[nKnots] = tmin[i];
+      ++nKnots;
+
+      R[nKnots] = rmax[i];
+      T[nKnots] = t_cutoff_low[i];
+      ++nKnots;
+
       for(int j = 1; j <= nbin[i]; j++)
 	{
 	  double center = prof_RT[i]->GetBinCenter(j);
-	  //if(center < t_cutoff_low[i] || center > t_cutoff_high[i]) continue;
-	  if(center > t_cutoff_high[i]) continue;
+	  if(center < t_cutoff_low[i] || center > t_cutoff_high[i]) continue;
+	  //if(center > t_cutoff_high[i]) continue;
 
 	  R[nKnots] = prof_RT[i]->GetBinContent(j);
 	  T[nKnots] = prof_RT[i]->GetBinCenter(j);
@@ -177,20 +198,11 @@ int main(int argc, char *argv[])
       T[nKnots] = tmax[i];
       ++nKnots;
 
-      //Enforce smoothness
-      /*
-      //Simple method 1
-      for(int j = 1; j < nKnots - 1; j++)
-	{
-	  if((R[j-1] - R[j])*(R[j] - R[j+1]) < 0.) R[j] = 0.5*(R[j-1] + R[j+1]);
-	}
-      */
-
       //ROOT TH1 method
-      TH1::SmoothArray(nKnots, R, 2);
+      TH1::SmoothArray(nKnots, R, 10);
       //if(i == 0 || i == 1) TH1::SmoothArray(nKnots, R, 50);
 
-      /*
+            
       //Recursive method 2
       bool isMono = false;
       while(!isMono)
@@ -201,13 +213,15 @@ int main(int argc, char *argv[])
 	      if((R[j-1] - R[j])*(R[j] - R[j+1]) < 0.)
 		{
 		  R[j] = 0.5*(R[j-1] + R[j+1]);
+		  if(R[j] > rmax[i]) R[j] = rmax[i];
+
 		  isMono = false;
 		}
 	    }
 	}
-      */
+      
 
-      //Final output
+      //Temp output
       fout << i+1 << "  " << nKnots << "  " << tmin[i] << "  " << tmax[i] << "  " << p_geomSvc->getDetectorName(i+1) << endl;
       for(int j = 0; j < nKnots; j++)
 	{
@@ -215,8 +229,30 @@ int main(int argc, char *argv[])
 	}
     }
   fout.close();
+  p_geomSvc->loadCalibration("temp.txt");
 
-  //
+  //Ensure reasonable range
+  fout.open(argv[2], ios::out);
+  for(int i = 0; i < 24; ++i)
+    {
+      double tdcTime = tmin[i];
+      fout << i+1 << "  " << int((tmax[i]-tmin[i])/2.5)+1 << "  " << tmin[i] << "  " << tmax[i] << "  " << p_geomSvc->getDetectorName(i+1) << endl;
+      
+      int nPoints = 0;
+      while(tdcTime < tmax[i])
+	{
+	  double driftDistance = p_geomSvc->getRTCurve(i+1)->Eval(tdcTime);
+	  if(driftDistance > rmax[i]) driftDistance = rmax[i];
+	  if(driftDistance < rmin[i]) driftDistance = rmin[i];
+
+	  fout << nPoints << "  " << tdcTime << "  " << driftDistance << endl;
+	  tdcTime += 2.5;
+	}
+    }
+  fout.close();
+
+
+  //Make plots
   p_geomSvc->loadCalibration(argv[2]);
 
   TCanvas *c1 = new TCanvas();
