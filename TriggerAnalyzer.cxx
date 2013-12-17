@@ -129,7 +129,6 @@ void TriggerAnalyzer::init()
 	}
     }
 
-  std::cout << "Loaded " << roads[0].size() << " positive roads and " << roads[1].size() << " negative roads" << std::endl;
   std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
 }
 
