@@ -16,7 +16,6 @@
 #include "SRawEvent.h"
 #include "TriggerRoad.h"
 #include "TriggerAnalyzer.h"
-#include "MySQLSvc.h"
 
 using namespace std;
 
@@ -25,89 +24,95 @@ int main(int argc, char* argv[])
   GeomSvc* p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
 
-  MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  p_mysqlSvc->connect("e906-db1.fnal.gov");
-  p_mysqlSvc->setWorkingSchema(argv[1]);
-
   TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
   triggerAna->init();
   triggerAna->buildTriggerTree();
 
   SRawEvent* rawEvent = new SRawEvent();
 
+  TFile* dataFile = new TFile(argv[1], "READ");
+  TTree* dataTree = (TTree*)dataFile->Get("save");
+
+  dataTree->SetBranchAddress("rawEvent", &rawEvent);
+
+  int H1XT, H2XT, H4XT, H4XT;
+  int H1XB, H2XB, H4XB, H4XB;
+
+  int H1YT, H2YT, H4YT, H4YT;
+  int H1YB, H2YB, H4YB, H4YB;
+
+  int p_FPGA, m_FPGA;
+
   TFile* saveFile = new TFile(argv[2], "recreate");
-  TTree* saveTree = new TTree("save", "save");
+  TTree* saveTree = dataTree->CloneTree(0);
 
-  saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+  saveTree->Branch("H1XT", &H1XT, "H1XT/I");
+  saveTree->Branch("H2XT", &H2XT, "H2XT/I");
+  saveTree->Branch("H3XT", &H3XT, "H3XT/I");
+  saveTree->Branch("H4XT", &H4XT, "H4XT/I");
+  saveTree->Branch("H1XB", &H1XB, "H1XB/I");
+  saveTree->Branch("H2XB", &H2XB, "H2XB/I");
+  saveTree->Branch("H3XB", &H3XB, "H3XB/I");
+  saveTree->Branch("H4XB", &H4XB, "H4XB/I");
 
-  int nEvents = p_mysqlSvc->getNEventsFast();
+  saveTree->Branch("H1YT", &H1YT, "H1YT/I");
+  saveTree->Branch("H2YT", &H2YT, "H2YT/I");
+  saveTree->Branch("H3YT", &H3YT, "H3YT/I");
+  saveTree->Branch("H4YT", &H4YT, "H4YT/I");
+  saveTree->Branch("H1YB", &H1YB, "H1YB/I");
+  saveTree->Branch("H2YB", &H2YB, "H2YB/I");
+  saveTree->Branch("H3YB", &H3YB, "H3YB/I");
+  saveTree->Branch("H4YB", &H4YB, "H4YB/I");
+
+  saveTree->Branch("p_FPGA", &p_FPGA, "p_FPGA/I");
+  saveTree->Branch("m_FPGA", &m_FPGA, "m_FPGA/I");
+
+  int nEvents = dataTree->GetEntries();
   for(int i = 0; i < nEvents; ++i)
     {
-      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-      cout << "\r Converting event " << rawEvent->getEventID() << ", " << i*100/nEvents << "% finished." << flush;
+      cout << "\r Processing event " << rawEvent->getEventID() << ", " << i*100/nEvents << "% finished." << flush;
     
+      //Init
+      H1XT = 0; H2XT = 0; H3XT = 0; H4XT = 0;
+      H1XB = 0; H2XB = 0; H3XB = 0; H4XB = 0;
+      H1YT = 0; H2YT = 0; H3YT = 0; H4YT = 0;
+      H1YB = 0; H2YB = 0; H3YB = 0; H4YB = 0;
+      p_FPGA = 0; m_FPGA = 0;
 
-      flag = triggerAna->acceptEvent(rawEvent) ? 1 : -1;
-      std::list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
-      std::list<TriggerRoad>& m_roads_found = triggerAna->getRoadsFound(-1);
-
-      nFired1 = 0;
-      for(std::list<TriggerRoad>::iterator iter = p_roads_found.begin(); iter != p_roads_found.end(); ++iter)
+      //NIM trigger part
+      vector<Hit> triggerHits = rawEvent->getTriggerHits();
+      for(vector<Hit>::iterator hit = triggerHits.begin(); hit != triggerHits.end(); ++hit)
 	{
-	  pT1[nFired1++] = iter->pT_mean;
-	  for(int j = 0; j < 4; ++j)
-	    {
-	      rawEvent_new->insertHit(rawEvent->getHit(iter->detectorIDs[j], iter->elementIDs[j]));
-	    }
+	  int detectorID = hit->detectorID;
+	  int elementID = hit->elementID;
+
+	  if(detectorID == 25) ++H1XB;
+	  if(detectorID == 31) ++H2XB;
+	  if(detectorID == 33) ++H3XB;
+	  if(detectorID == 39) ++H4XB;
+	  if(detectorID == 26) ++H1XT;
+	  if(detectorID == 32) ++H2XT;
+	  if(detectorID == 34) ++H3XT;
+	  if(detectorID == 40) ++H4XT;
+
+	  if((detectorID == 27 || detectorID == 28) && elemenID > 10) ++H1YT;
+	  if((detectorID == 29 || detectorID == 30) && elemenID > 10) ++H2YT;
+	  if((detectorID == 35 || detectorID == 36) && elemenID > 8) ++H3YT;
+	  if((detectorID == 37 || detectorID == 38) && elemenID > 8) ++H4YT;
+	  if((detectorID == 27 || detectorID == 28) && elemenID <= 10) ++H1YB;
+	  if((detectorID == 29 || detectorID == 30) && elemenID < 10) ++H2YB;
+	  if((detectorID == 35 || detectorID == 36) && elemenID <= 8) ++H3YB;
+	  if((detectorID == 37 || detectorID == 38) && elemenID <= 8) ++H4YB;
 	}
 
-      nFired2 = 0;
-      for(std::list<TriggerRoad>::iterator iter = m_roads_found.begin(); iter != m_roads_found.end(); ++iter)
-	{
-	  pT2[nFired2++] = iter->pT_mean;
-	  for(int j = 0; j < 4; ++j)
-	    {
-	      rawEvent_new->insertHit(rawEvent->getHit(iter->detectorIDs[j], iter->elementIDs[j]));
-	    }
-	}
+      triggerAna->acceptEvent(rawEvent);
+      list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
+      list<TriggerRoad>& m_roads_found = triggerAna->getRoadsFound(-1);
+      p_FPGA = p_roads_found.size();
+      m_FPGA = m_roads_found.size();
 
-      if((nFired1 > 50 || nFired2 > 50) || (nFired1 == 0 && nFired2 == 0))
-	{
-	  rawEvent->clear();
-	  rawEvent_new->clear();
-
-	  continue;
-	}
-
-      p_roads_found.sort(TriggerRoad::byWeight);
-      m_roads_found.sort(TriggerRoad::byWeight);
-	 
-      nAll = 0;	  
-      for(std::list<TriggerRoad>::iterator iter = p_roads_found.begin(); iter != p_roads_found.end(); ++iter)
-	{
-	  for(std::list<TriggerRoad>::iterator jter = m_roads_found.begin(); jter != m_roads_found.end(); ++jter)
-	    {
-	      mass[nAll++] = iter->pT_mean + jter->pT_mean;
-	    }
-	}
-
-      if(nAll == 0)
-	{
-	  p_mass = -1.;
-	  p_pT1 = -1.;
-	  p_pT2 = -1.;
-	}
-      else
-	{
-	  p_pT1 = p_roads_found.front().pT_mean;
-	  p_pT2 = m_roads_found.front().pT_mean;
-	  p_mass = p_pT1 + p_pT2;
-	}
-
-      rawEvent_new->reIndex("a");
       saveTree->Fill(); 
       rawEvent->clear();
-      rawEvent_new->clear(); 
     }
 
   saveFile->cd();

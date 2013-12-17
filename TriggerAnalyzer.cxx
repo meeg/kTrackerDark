@@ -290,17 +290,15 @@ bool TriggerAnalyzer::buildData(int nHits, int detectorIDs[], int elementIDs[])
 
 bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent)
 {
-  rawEvent->reIndex("a");
-
   int nHits = 0;
   int detectorIDs[1000];
   int elementIDs[1000];
 
-  std::list<int> triggerHitIDs = rawEvent->getHitsIndexInDetectors(detectorIDs_trigger);
-  for(std::list<int>::iterator iter = triggerHitIDs.begin(); iter != triggerHitIDs.end(); ++iter)
+  std::vector<Hit> triggerHits = rawEvent->getTriggerHits();
+  for(std::vector<Hit>::iterator iter = triggerHits.begin(); iter != triggerHits.end(); ++iter)
     {
-      detectorIDs[nHits] = rawEvent->getHit(*iter).detectorID;
-      elementIDs[nHits] = rawEvent->getHit(*iter).elementID;
+      detectorIDs[nHits] = iter->detectorID;
+      elementIDs[nHits] = iter->elementID;
     
       ++nHits;
     }
