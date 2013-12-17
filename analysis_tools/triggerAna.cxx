@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
   int nEvents = dataTree->GetEntries();
   for(int i = 0; i < nEvents; ++i)
     {
+      dataTree->GetEntry(i);
       cout << "\r Processing event " << rawEvent->getEventID() << ", " << i*100/nEvents << "% finished." << flush;
     
       //Init
