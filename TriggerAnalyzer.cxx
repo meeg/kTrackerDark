@@ -89,7 +89,7 @@ void TriggerAnalyzer::init()
   char buffer[300];
   for(int i = 0; i < 4; ++i)
     {
-      ifstream fin(fileNames[i], ios::in);
+      fstream fin(fileNames[i].c_str(), ios::in);
 
       while(fin.getline(buffer, 300))
 	{
