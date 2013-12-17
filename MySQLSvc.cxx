@@ -241,7 +241,7 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
   rawEvent->setTriggerBits(triggers);
 
   //Get trigger hits
-  sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE eventID=%d", eventID);
+  sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' eventID=%d", eventID);
   int nTriggerHits = makeQuery();
 
   for(int i = 0; i < nTriggerHits; ++i)
