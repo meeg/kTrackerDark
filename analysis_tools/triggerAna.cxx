@@ -35,11 +35,11 @@ int main(int argc, char* argv[])
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
 
-  int H1XT, H2XT, H4XT, H4XT;
-  int H1XB, H2XB, H4XB, H4XB;
+  int H1XT, H2XT, H3XT, H4XT;
+  int H1XB, H2XB, H3XB, H4XB;
 
-  int H1YT, H2YT, H4YT, H4YT;
-  int H1YB, H2YB, H4YB, H4YB;
+  int H1YT, H2YT, H3YT, H4YT;
+  int H1YB, H2YB, H3YB, H4YB;
 
   int p_FPGA, m_FPGA;
 
@@ -95,14 +95,14 @@ int main(int argc, char* argv[])
 	  if(detectorID == 34) ++H3XT;
 	  if(detectorID == 40) ++H4XT;
 
-	  if((detectorID == 27 || detectorID == 28) && elemenID > 10) ++H1YT;
-	  if((detectorID == 29 || detectorID == 30) && elemenID > 10) ++H2YT;
-	  if((detectorID == 35 || detectorID == 36) && elemenID > 8) ++H3YT;
-	  if((detectorID == 37 || detectorID == 38) && elemenID > 8) ++H4YT;
-	  if((detectorID == 27 || detectorID == 28) && elemenID <= 10) ++H1YB;
-	  if((detectorID == 29 || detectorID == 30) && elemenID < 10) ++H2YB;
-	  if((detectorID == 35 || detectorID == 36) && elemenID <= 8) ++H3YB;
-	  if((detectorID == 37 || detectorID == 38) && elemenID <= 8) ++H4YB;
+	  if((detectorID == 27 || detectorID == 28) && elementID > 10) ++H1YT;
+	  if((detectorID == 29 || detectorID == 30) && elementID > 10) ++H2YT;
+	  if((detectorID == 35 || detectorID == 36) && elementID > 8) ++H3YT;
+	  if((detectorID == 37 || detectorID == 38) && elementID > 8) ++H4YT;
+	  if((detectorID == 27 || detectorID == 28) && elementID <= 10) ++H1YB;
+	  if((detectorID == 29 || detectorID == 30) && elementID < 10) ++H2YB;
+	  if((detectorID == 35 || detectorID == 36) && elementID <= 8) ++H3YB;
+	  if((detectorID == 37 || detectorID == 38) && elementID <= 8) ++H4YB;
 	}
 
       triggerAna->acceptEvent(rawEvent);
