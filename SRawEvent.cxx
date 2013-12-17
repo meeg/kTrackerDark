@@ -563,6 +563,7 @@ void SRawEvent::clear()
   fSpillID = -1;
   fEventID = -1;
   fTriggerBits = 0;
+  fTriggerHits.clear();
 }
 
 void SRawEvent::setTriggerBits(Int_t triggers[])
