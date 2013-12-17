@@ -43,6 +43,9 @@ int main(int argc, char* argv[])
 
   int p_FPGA, m_FPGA;
 
+  int NIMXT, NIMXB;
+  int NIMYT, NIMYB;
+
   TFile* saveFile = new TFile(argv[2], "recreate");
   TTree* saveTree = dataTree->CloneTree(0);
 
@@ -67,6 +70,11 @@ int main(int argc, char* argv[])
   saveTree->Branch("p_FPGA", &p_FPGA, "p_FPGA/I");
   saveTree->Branch("m_FPGA", &m_FPGA, "m_FPGA/I");
 
+  saveTree->Branch("NIMXT", &NIMXT, "NIMXT/I");
+  saveTree->Branch("NIMXB", &NIMXB, "NIMXB/I");
+  saveTree->Branch("NIMYT", &NIMYT, "NIMYT/I");
+  saveTree->Branch("NIMYB", &NIMYB, "NIMYB/I");
+  
   int nEvents = dataTree->GetEntries();
   for(int i = 0; i < nEvents; ++i)
     {
@@ -105,6 +113,10 @@ int main(int argc, char* argv[])
 	  if((detectorID == 35 || detectorID == 36) && elementID <= 8) ++H3YB;
 	  if((detectorID == 37 || detectorID == 38) && elementID <= 8) ++H4YB;
 	}
+      NIMXT = H1XT > 0 && H2XT > 0 && H3XT > 0 && H4XT > 0 ? 1 : 0;
+      NIMXB = H1XB > 0 && H2XB > 0 && H3XB > 0 && H4XB > 0 ? 1 : 0;
+      NIMYT = H1YT > 0 && H2YT > 0 && H3YT > 0 && H4YT > 0 ? 1 : 0;
+      NIMYB = H1YB > 0 && H2YB > 0 && H3YB > 0 && H4YB > 0 ? 1 : 0;
 
       triggerAna->acceptEvent(rawEvent);
       list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
