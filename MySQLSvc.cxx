@@ -258,11 +258,12 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
       h.hodoMask = 0;
 
       std::string detectorName(row->GetField(1));
-      if(detectorName.find("H4") != std::string::npos)
+      if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
 	{
 	  detectorName.replace(2, detectorName.length(), "");
 	}
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
+      h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
 
       rawEvent->insertTriggerHit(h);
     }
