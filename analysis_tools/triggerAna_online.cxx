@@ -12,11 +12,11 @@
 #include <TSQLResult.h>
 #include <TSQLRow.h>
 
+#include "MySQLSvc.h"
 #include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "TriggerRoad.h"
 #include "TriggerAnalyzer.h"
-#include "MySQLSvc.h"
 
 using namespace std;
 
