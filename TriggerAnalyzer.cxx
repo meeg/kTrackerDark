@@ -100,7 +100,12 @@ void TriggerAnalyzer::init()
 	  int elementIDs[4];
 	  double px;
 	  int groupID;
-	  stringBuf >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> px >> groupID;
+	  int mcCount;
+	  double weight;
+	  double ratio;
+	  double rndf;
+	  stringBuf >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> px >> groupID
+	    >> mcCount >> weight >> ratio >> rndf;
 
 	  TriggerRoad road_new;
 	  if(i == 0 || i == 3)
@@ -118,6 +123,11 @@ void TriggerAnalyzer::init()
 	      road_new.addElement(39, elementIDs[3]);
 	    }
 	  road_new.px_mean = px;
+	  road_new.px_min = px;
+	  road_new.px_max = px;
+	  road_new.targetWeight = weight*ratio;
+	  road_new.dumpWeight = weight*(1. - ratio);
+	  road_new.rndf = rndf;
 	  road_new.groupID = groupID;
 
 	  if(i < 2)
@@ -303,6 +313,8 @@ bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent)
   std::vector<Hit> triggerHits = rawEvent->getTriggerHits();
   for(std::vector<Hit>::iterator iter = triggerHits.begin(); iter != triggerHits.end(); ++iter)
     {
+      if(iter->inTime != 1) continue;
+
       detectorIDs[nHits] = iter->detectorID;
       elementIDs[nHits] = iter->elementID;
     
