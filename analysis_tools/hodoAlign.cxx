@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <TROOT.h>
+#include <TString.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TRandom.h>
@@ -16,6 +17,8 @@
 #include <TCanvas.h>
 #include <TGraph.h>
 #include <TClonesArray.h>
+#include <TArrow.h>
+#include <TPaveText.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -26,16 +29,15 @@ using namespace std;
 
 double findCenter(TH1D *hist, double spacing)
 {
-  if(hist->GetEntries() < 150) return 9999;
-  if(hist->GetRMS() < spacing/5. && hist->GetEntries() < 1000) return 9999;
+  //Basic quality cut
+  if(hist->GetEntries() < 150) return 9999.;
+  if(hist->GetRMS() < spacing/5. && hist->GetEntries() < 1000) return 9999.;
 
   int nBin = hist->GetNbinsX();
   int nBinInSize = nBin/2;
   double binWidth = hist->GetBinWidth(1);
 
-  //cout << hist->GetName() << endl;
-  //cout << nBin << "  " << nBinInSize << "  " << binWidth << endl;
-
+  //Search from left side
   int nEvt_max = 0;
   int index_max_left = 0;
   for(int i = 1; i <= nBinInSize; ++i)
@@ -50,6 +52,7 @@ double findCenter(TH1D *hist, double spacing)
 	}
     }
 
+  //Search from right side
   nEvt_max = 0;
   int index_max_right = nBin;
   for(int i = nBin; i >= nBinInSize; --i)
@@ -63,59 +66,81 @@ double findCenter(TH1D *hist, double spacing)
 	}
     }
 
-  return (hist->GetBinCenter(index_max_left) + hist->GetBinCenter(index_max_right))/2.;
+  //Left-right difference should not be too large
+  double left_center = hist->GetBinCenter(index_max_left + nBinInSize/2);
+  double right_center = hist->GetBinCenter(index_max_right - nBinInSize/2);
+
+ 
+  if(fabs(left_center - right_center) > 5.*binWidth) return 9999.;
+  return (left_center + right_center)/2.;
 }
 
 int main(int argc, char *argv[])
 {
-  GeomSvc *p_geomSvc = GeomSvc::instance();
+  //Initialization of geometry and tracked data
+  GeomSvc* p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
 
-  SRawEvent *rawEvent = new SRawEvent();
+  SRawEvent* rawEvent = new SRawEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");
 
-  TFile *dataFile = new TFile(argv[1], "READ");
-  TTree *dataTree = (TTree *)dataFile->Get("save");
+  TFile* dataFile = new TFile(argv[1], "READ");
+  TTree* dataTree = (TTree*)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
   dataTree->SetBranchAddress("tracklets", &tracklets);
 
-  int m_hodoIDs[] = {25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40};
-  vector<int> hodoIDs(m_hodoIDs, m_hodoIDs+sizeof(m_hodoIDs)/sizeof(int));
+  //Hodoscope IDs
+  vector<int> hodoIDs = p_geomSvc->getDetectorIDs("^H");
   const int nHodos = hodoIDs.size();
 
-  double z_exp, x_exp, y_exp, pos_exp;
+  //Evaluation tree structure
+  double z_exp, x_exp, y_exp, pos_exp, pos;
   int hodoID, elementID;
   int nFired;
 
-  TFile *saveFile = new TFile(argv[2], "recreate");
-  TTree *saveTree = new TTree("save", "save");
+  TFile* saveFile = new TFile(argv[2], "recreate");
+  TTree* saveTree = new TTree("save", "save");
 
   saveTree->Branch("z_exp", &z_exp, "z_exp/D");
   saveTree->Branch("x_exp", &x_exp, "x_exp/D");
   saveTree->Branch("y_exp", &y_exp, "y_exp/D");
   saveTree->Branch("pos_exp", &pos_exp, "pos_exp/D");
+  saveTree->Branch("pos", &pos, "pos/D");
   saveTree->Branch("hodoID", &hodoID, "hodoID/I");
   saveTree->Branch("elementID", &elementID, "elementID/I");
   saveTree->Branch("nFired", &nFired, "nFired/I");
 
   //Initialization of container and hists
-  vector<TH1D*> hist[nHodos];
-  vector<double> offset[nHodos];
+  //Offsets using all elements added together
+  TH1D* hist_all[nHodos];
+  double offset_all[nHodos];
+ 
+ 
+  //Offsets using each individual elements
+  double offset_plane[nHodos]; //Global shifts extracted by fitting individual elements
+  int nValidEntries[nHodos];   //Number of effective hits on each element
+  vector<TH1D*> hist[nHodos];  //Residual hist
+  vector<double> offset[nHodos]; //Offset of each individual element
+
+  //Other useful hodo properties
   int nElement[nHodos];
   double spacing[nHodos];
-  for(int i = 0; i < nHodos; i++)
+  for(int i = 0; i < nHodos; ++i)
     {
       nElement[i] = p_geomSvc->getPlaneNElements(hodoIDs[i]);
-      spacing[i] = p_geomSvc->getPlaneSpacing(hodoIDs[i]);
+      spacing[i] = p_geomSvc->getCellWidth(hodoIDs[i]);
       string detectorName = p_geomSvc->getDetectorName(hodoIDs[i]);
+      
+      hist_all[i] = new TH1D(detectorName.c_str(), detectorName.c_str(), 200, -spacing[i], spacing[i]);
+      offset_all[i] = 9999.;
       for(int j = 0; j < nElement[i]; j++)
 	{
 	  stringstream suffix;
 	  suffix << j;
 	  string histName = detectorName + "_" + suffix.str();
 
-	  TH1D *hist_temp = new TH1D(histName.c_str(), histName.c_str(), 200, -spacing[i], spacing[i]);
+	  TH1D* hist_temp = new TH1D(histName.c_str(), histName.c_str(), 200, -spacing[i], spacing[i]);
 	  hist[i].push_back(hist_temp);
 	  offset[i].push_back(9999.);
 	}
@@ -123,7 +148,7 @@ int main(int argc, char *argv[])
 
   //User tracks to fill residual distributions
   int nEvtMax = dataTree->GetEntries();
-  for(int i = 0; i < nEvtMax; i++)
+  for(int i = 0; i < nEvtMax; ++i)
     {
       dataTree->GetEntry(i);
       if(tracklets->GetEntries() < 1) continue;
@@ -133,7 +158,7 @@ int main(int argc, char *argv[])
 
       //Only the first track is used, for simplicity
       Tracklet* _track = (Tracklet*)tracklets->At(0);
-      for(int j = 0; j < nHodos; j++)
+      for(int j = 0; j < nHodos; ++j)
 	{
 	  if((rawEvent->getNHitsInDetector(hodoIDs[j]) != 1) && (rawEvent->getNHitsInDetector(hodoIDs[j]) != 2)) continue;
 
@@ -154,14 +179,18 @@ int main(int argc, char *argv[])
 	  //Fill the first or the only hit
 	  hodoID = hitAll[hitlist.front()].detectorID;
 	  elementID = hitAll[hitlist.front()].elementID;     
-	  hist[j][elementID-1]->Fill(pos_exp - p_geomSvc->getMeasurement(hodoIDs[j], elementID)); 
+	  pos = p_geomSvc->getMeasurement(hodoIDs[j], elementID);
+	  hist[j][elementID-1]->Fill(pos_exp - pos); 
+	  hist_all[j]->Fill(pos_exp - pos);
 	  saveTree->Fill();
 
 	  //Fill the second hit if available
 	  if(nFired != 2) continue;
 	  hodoID = hitAll[hitlist.back()].detectorID;
 	  elementID = hitAll[hitlist.back()].elementID;
-	  hist[j][elementID-1]->Fill(pos_exp - p_geomSvc->getMeasurement(hodoIDs[j], elementID)); 
+	  pos = p_geomSvc->getMeasurement(hodoIDs[j], elementID);
+	  hist[j][elementID-1]->Fill(pos_exp - pos);
+	  hist_all[j]->Fill(pos_exp - pos); 
 	
 	  saveTree->Fill();
 	}
@@ -171,10 +200,10 @@ int main(int argc, char *argv[])
     }
 
   //Process the residual distributions
-  double offset_plane[nHodos];
-  int nValidEntries[nHodos];
-  for(int i = 0; i < nHodos; i++)
+  for(int i = 0; i < nHodos; ++i)
     {
+      offset_all[i] = findCenter(hist_all[i], spacing[i]);
+
       offset_plane[i] = 0.;
       nValidEntries[i] = 0;
       for(int j = 0; j < nElement[i]; j++)
@@ -184,7 +213,7 @@ int main(int argc, char *argv[])
 	    {
 	      hist[i][j]->Rebin(2);
 	    }
-	 
+	
 	  offset[i][j] = findCenter(hist[i][j], spacing[i]);
 	  if(offset[i][j] < 100.)
 	    {
@@ -200,7 +229,7 @@ int main(int argc, char *argv[])
   ofstream fout(argv[3], ios::out);
   for(int i = 0; i < nHodos; i++)
     {
-      cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << offset_plane[i] << endl;
+      cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << offset_plane[i] << "  " << offset_all[i] << endl;
       fout << offset_plane[i] + p_geomSvc->getPlaneWOffset(hodoIDs[i]) << endl;
       for(int j = 0; j < nElement[i]; j++)
 	{
@@ -209,11 +238,44 @@ int main(int argc, char *argv[])
 	}
     }
 
+  //Output results to eps file
+  TCanvas* c1 = new TCanvas();
+  c1->Divide(4, 4);
+  for(int i = 0; i < nHodos; ++i)
+    {
+      c1->cd(i+1);
+      hist_all[i]->Draw();
+
+      double y_max = hist_all[i]->GetBinContent(hist_all[i]->GetMaximumBin());
+      TArrow* ar_center = new TArrow(offset_all[i], y_max, offset_all[i], 0., 0.01, ">");
+      TArrow* ar_left = new TArrow(offset_all[i] - 0.5*spacing[i], y_max, offset_all[i] - 0.5*spacing[i], 0., 0.01, ">");
+      TArrow* ar_right = new TArrow(offset_all[i] + 0.5*spacing[i], y_max, offset_all[i] + 0.5*spacing[i], 0., 0.01, ">");
+
+      ar_center->SetLineWidth(2);
+      ar_left->SetLineWidth(2);
+      ar_right->SetLineWidth(2);
+
+      ar_center->SetLineColor(kRed);
+      ar_right->SetLineColor(kBlue);
+      ar_left->SetLineColor(kBlue);
+
+      ar_center->Draw();
+      ar_left->Draw();
+      ar_right->Draw();
+   
+      char content[100];
+      sprintf(content, "Offsets: %f cm", offset_all[i]); 
+      TText* text = new TText();
+      text->DrawTextNDC(0.1, 0.92, content);
+    }
+
   //Save the temporary results into the ROOT file
   saveFile->cd();
   saveTree->Write();
+  c1->Write();
   for(int i = 0; i < nHodos; i++)
     {
+      hist_all[i]->Write();
       for(int j = 0; j < nElement[i]; j++)
 	{
 	  hist[i][j]->Write();

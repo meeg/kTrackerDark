@@ -87,6 +87,8 @@ void TriggerAnalyzer::init()
 
   std::string fileNames[4] = {"roads_plus_top.txt", "roads_plus_bottom.txt", "roads_minus_top.txt", "roads_minus_bottom.txt"};
   char buffer[300];
+  int pRoads = 0;
+  int mRoads = 0;
   for(int i = 0; i < 4; ++i)
     {
       fstream fin(fileNames[i].c_str(), ios::in);
@@ -96,9 +98,9 @@ void TriggerAnalyzer::init()
 	  istringstream stringBuf(buffer);
 
 	  int elementIDs[4];
-	  double pT;
+	  double px;
 	  int groupID;
-	  stringBuf >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> pT >> groupID;
+	  stringBuf >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> px >> groupID;
 
 	  TriggerRoad road_new;
 	  if(i == 0 || i == 3)
@@ -115,15 +117,17 @@ void TriggerAnalyzer::init()
 	      road_new.addElement(33, elementIDs[2]);
 	      road_new.addElement(39, elementIDs[3]);
 	    }
-	  road_new.pT_mean = pT;
+	  road_new.px_mean = px;
 	  road_new.groupID = groupID;
 
 	  if(i < 2)
 	    {
+	      road_new.roadID = pRoads++;
 	      roads_enabled[0].push_back(road_new);
 	    }
 	  else
 	    {
+	      road_new.roadID = mRoads++;
 	      roads_enabled[1].push_back(road_new);
 	    }
 	}

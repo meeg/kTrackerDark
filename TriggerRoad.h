@@ -42,10 +42,10 @@ public:
   double ratio() const { return targetWeight/(targetWeight + dumpWeight); }
   double mratio() const { return highMWeight/(lowMWeight + highMWeight); }
 
-  //Mean and sigma of pT distribution
-  int getNEntries() const { return pTs.size(); }
-  double getPtMean();
-  double getPtWidth();
+  //Mean and sigma of pX distribution
+  int getNEntries() const { return pXs.size(); }
+  double getpXMean() const;
+  double getpXWidth() const;
 
   //T/B , L/R
   int getTB();
@@ -74,7 +74,7 @@ public:
   TriggerRoad& operator+=(const TriggerRoad& elem);
 
   //Road maker
-  static std::list<TriggerRoad> makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pT, double weight);
+  static std::list<TriggerRoad> makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pX, double weight);
 
   //overload stream operator <<
   friend std::ostream& operator << (std::ostream& os, const TriggerRoad& road);
@@ -92,9 +92,11 @@ public:
   double lowMWeight;
   double highMWeight;
 
-  //pT distributions
-  std::vector<double> pTs;
-  double pT_mean;
+  //pX distributions
+  std::vector<double> pXs;
+  double px_min;
+  double px_max;
+  double px_mean;
 
   //Random frequency
   double rndf;
@@ -106,7 +108,7 @@ public:
   std::vector<int> detectorIDs;
   std::vector<int> elementIDs;
 
-  ClassDef(TriggerRoad, 1)
+  ClassDef(TriggerRoad, 2)
 };
 
 typedef std::pair<int, int> Trigger;

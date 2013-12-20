@@ -15,7 +15,9 @@ TriggerRoad::TriggerRoad()
   detectorIDs.clear();
   elementIDs.clear();
 
-  pT_mean = 0.;
+  px_min = 0.;
+  px_max = 0.;
+  px_mean = 0.;
 
   rndf = 0.;
 
@@ -63,7 +65,10 @@ std::ostream& operator << (std::ostream& os, const TriggerRoad& road)
 {
   //os << std::setw(6) << road.detectorIDs[0] << std::setw(6) << road.detectorIDs[1] << std::setw(6) << road.detectorIDs[2] << std::setw(6) << road.detectorIDs[3] 
   os << std::setw(6) << road.elementIDs[0] << std::setw(6) << road.elementIDs[1] << std::setw(6) << road.elementIDs[2] << std::setw(6) << road.elementIDs[3] 
-     << std::setprecision(3) << std::setw(10) << std::setiosflags(std::ios::right) << road.pT_mean 
+     << std::setprecision(3) << std::setw(10) << std::setiosflags(std::ios::right) << road.px_mean 
+     << std::setprecision(3) << std::setw(10) << std::setiosflags(std::ios::right) << road.getpXWidth() 
+     << std::setprecision(3) << std::setw(10) << std::setiosflags(std::ios::right) << road.px_min 
+     << std::setprecision(3) << std::setw(10) << std::setiosflags(std::ios::right) << road.px_max 
      << std::setw(6) << std::setiosflags(std::ios::right) << abs(road.groupID)
      << std::setw(10) << road.getNEntries()
      << std::setprecision(4) << std::setw(20) << std::setiosflags(std::ios::right) << road.weight() 
@@ -83,6 +88,8 @@ void TriggerRoad::clear()
 
   detectorIDs.clear();
   elementIDs.clear();
+
+  pXs.clear();
 
   enabled = true;
 }
@@ -126,7 +133,7 @@ bool TriggerRoad::byMass(const TriggerRoad& elem1, const TriggerRoad& elem2)
 
 bool TriggerRoad::byPt(const TriggerRoad& elem1, const TriggerRoad& elem2)
 {
-  return elem1.pT_mean > elem2.pT_mean;
+  return elem1.px_min > elem2.px_min;
 }
 
 bool TriggerRoad::byRndFrequency(const TriggerRoad& elem1, const TriggerRoad& elem2)
@@ -141,8 +148,10 @@ TriggerRoad& TriggerRoad::operator+=(const TriggerRoad& elem)
   lowMWeight += elem.lowMWeight;
   highMWeight += elem.highMWeight;
 
-  pT_mean = (pT_mean*pTs.size() + elem.pT_mean*elem.pTs.size())/(pTs.size() + elem.pTs.size());
-  pTs.insert(pTs.end(), elem.pTs.begin(), elem.pTs.end());
+  px_mean = (px_mean*pXs.size() + elem.px_mean*elem.pXs.size())/(pXs.size() + elem.pXs.size());
+  px_min = px_min < elem.px_min ? px_min : elem.px_min;
+  px_max = px_max > elem.px_max ? px_max : elem.px_max;
+  pXs.insert(pXs.end(), elem.pXs.begin(), elem.pXs.end());
 
   nPlus += elem.nPlus;
   nMinus += elem.nMinus;
@@ -150,27 +159,26 @@ TriggerRoad& TriggerRoad::operator+=(const TriggerRoad& elem)
   return *this;
 }
 
-double TriggerRoad::getPtMean()
+double TriggerRoad::getpXMean() const
 {
   double sum = 0.;
-  for(unsigned int i = 0; i < pTs.size(); i++)
+  for(unsigned int i = 0; i < pXs.size(); i++)
     {
-      sum += pTs[i];
+      sum += pXs[i];
     }
 
-  return sum/pTs.size();
+  return sum/pXs.size();
 }
 
-double TriggerRoad::getPtWidth()
+double TriggerRoad::getpXWidth() const
 {
-  double mean = getPtMean();
   double sigma = 0.;
-  for(unsigned int i = 0; i < pTs.size(); i++)
+  for(unsigned int i = 0; i < pXs.size(); i++)
     {
-      sigma += ((pTs[i] - mean)*(pTs[i] - mean));
+      sigma += ((pXs[i] - px_mean)*(pXs[i] - px_mean));
     }
 
-  return sqrt(sigma/pTs.size());
+  return sqrt(sigma/pXs.size());
 }
 
 int TriggerRoad::getLR()
@@ -245,7 +253,7 @@ TriggerRoad TriggerRoad::reflectLR()
   return reflected;
 }
 
-std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pT, double weight)
+std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pX, double weight)
 {
   GeomSvc* p_geomSvc = GeomSvc::instance();
 
@@ -288,8 +296,12 @@ std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs
 		  road_new.enable();
 	
 	          if(!road_new.isValid()) continue;  
-	
-		  road_new.pTs.push_back(pT);
+
+	          pX = fabs(pX);	  
+		  road_new.pXs.push_back(pX);
+		  road_new.px_mean = pX;
+		  road_new.px_min = pX;
+		  road_new.px_max = pX;
 		  if(z > 0)
 		    {
 		      road_new.dumpWeight = weight;
@@ -308,7 +320,7 @@ std::list<TriggerRoad> TriggerRoad::makeRoadList(int nHits, int dIDs[], int eIDs
 		      road_new.highMWeight = weight;
 		    }
 
-		  road_new.pT_mean = pT;
+		  road_new.px_mean = pX;
 		  roads_new.push_back(road_new);
 		  roads_new.push_back(road_new.reflectTB());
 		}
