@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
   int hodoID, elementID;
   int nFired;
 
-  TFile* saveFile = new TFile(argv[2], "recreate");
+  TFile* saveFile = new TFile("hodo_eval.root", "recreate");
   TTree* saveTree = new TTree("save", "save");
 
   saveTree->Branch("z_exp", &z_exp, "z_exp/D");
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
     }
 
   //Output alignment parameters into the txt file
-  ofstream fout(argv[3], ios::out);
+  ofstream fout(argv[2], ios::out);
   for(int i = 0; i < nHodos; i++)
     {
       cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << offset_plane[i] << "  " << offset_all[i] << endl;

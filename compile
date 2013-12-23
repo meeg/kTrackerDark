@@ -4,22 +4,28 @@ import os
 import sys
 import re
 
+# compile with ROOT and BOOST
 def compile(filename):
     cflags = os.popen('root-config --cflags').readline().strip()
     ldflags = os.popen('root-config --ldflags --libs').readline().strip()
+
+    cflags = cflags + ' -I'+os.environ("BOOST")
 
     os.system('g++ '+cflags+' -c '+filename+'.cxx')
     os.system('g++ -o '+filename+' '+filename+'.o '+ldflags+' -L./ -lkTracker')
     os.system('rm '+filename+'.o')
 
+# make sure it exists
 if not os.path.isfile(sys.argv[1].replace('.cxx', '')+'.cxx'):
     print 'File does not exist!'
     sys.exit(1)
 
+# extract the path and source file name
 args = re.split('/', sys.argv[1])
 targetName = args[-1].replace('.cxx', '')
 sourceName = targetName + '.cxx'
 
+# copy the source file to KTRACKER_ROOT, compile an delete it afterwards
 if len(args) == 1 or (len(args) == 2 and args[0] == '.'):
     compile(targetName)
 elif os.path.isfile(sourceName):

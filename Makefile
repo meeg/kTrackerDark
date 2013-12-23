@@ -26,6 +26,8 @@ FLFLAGS       = -lgfortran
 CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS)
 
+CXXFLAGS     += -I$(BOOST)
+
 CXXFLAGS     += $(G4CFLAGS)
 LDFLAGS      += $(G4LDFLAGS)
 
