@@ -42,8 +42,8 @@ int main(int argc, char* argv[])
   int H1YB, H2YB, H3YB, H4YB;
 
   int p_FPGA, m_FPGA;
-  int p_roadID[1000];
-  int m_roadID[1000];
+  int p_roadID[10000];
+  int m_roadID[10000];
 
   int NIMXT, NIMXB;
   int NIMYT, NIMYB;
@@ -140,6 +140,8 @@ int main(int argc, char* argv[])
 
       saveTree->Fill(); 
     }
+  cout << endl;
+  cout << "triggerAna ended successfully." << endl;
 
   saveFile->cd();
   saveTree->Write();

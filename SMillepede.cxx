@@ -520,24 +520,37 @@ void SMillepede::printQAPlots()
   phi_vs_id.GetYaxis()->CenterTitle();
   z_vs_id.GetYaxis()->CenterTitle();
 
-  TCanvas c;
-  c.cd(); c.SetGridx(); c.SetGridy(); w_vs_id.Draw("APL");
-  c.SaveAs("w_vs_id.eps");
-  c.cd(); c.SetGridx(); c.SetGridy(); phi_vs_id.Draw("APL");
-  c.SaveAs("phi_vs_id.eps");
-  c.cd(); c.SetGridx(); c.SetGridy(); z_vs_id.Draw("APL");
-  c.SaveAs("z_vs_id.eps");
+  TCanvas* c1 = new TCanvas("w_vs_id", "w_vs_id");
+  c1->cd(); c1->SetGridx(); c1->SetGridy(); w_vs_id.Draw("APL");
+  c1->SaveAs("w_vs_id.eps");
+  
+  TCanvas* c2 = new TCanvas("phi_vs_id", "phi_vs_id");
+  c2->cd(); c2->SetGridx(); c2->SetGridy(); phi_vs_id.Draw("APL");
+  c2->SaveAs("phi_vs_id.eps");
+  
+  TCanvas* c3 = new TCanvas("z_vs_id", "z_vs_id");
+  c3->cd(); c3->SetGridx(); c3->SetGridy(); z_vs_id.Draw("APL");
+  c3->SaveAs("z_vs_id.eps");
 
   if(evalTree == NULL) return;
 
-  TCanvas r;
-  r.Divide(6, 4);
+  TCanvas* c4 = new TCanvas("residuals", "residuals");
+  c4->Divide(6, 4);
   for(int i = 0; i < MILLEPEDE::NPLAN; i++)
     {
-      r.cd(i+1);
+      c4->cd(i+1);
       evalHist[i]->Draw();
     }
-  r.SaveAs("residuals.eps");
+  c4->SaveAs("residuals.eps");
+
+  if(evalFile != NULL)
+    {
+      evalFile->cd();
+      c1->Write();
+      c2->Write();
+      c3->Write();
+      c4->Write();
+    }
 }
 
 void SMillepede::bookEvaluationTree(std::string evalFileName)

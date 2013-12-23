@@ -39,7 +39,7 @@ TriggerAnalyzer::~TriggerAnalyzer()
   clear(1); clear(-1);
 }
 
-void TriggerAnalyzer::init(std::string schemaName)
+bool TriggerAnalyzer::init(std::string schemaName)
 {
   GeomSvc* p_geomSvc = GeomSvc::instance();
 
@@ -50,7 +50,10 @@ void TriggerAnalyzer::init(std::string schemaName)
   char serverName[200];
   sprintf(serverName, "mysql://%s", MYSQL_SERVER);
   TSQLServer* server = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
+  if(server == NULL) return false;
+
   TSQLResult* res = server->Query(query);
+  if(res == NULL) return false;
 
   unsigned int nRoads = res->GetRowCount();
   for(unsigned int i = 0; i < nRoads; ++i)
@@ -79,9 +82,11 @@ void TriggerAnalyzer::init(std::string schemaName)
 
   delete res;
   delete server;
+
+  return true;
 }
 
-void TriggerAnalyzer::init()
+bool TriggerAnalyzer::init()
 {
   using namespace std;
 
@@ -144,9 +149,10 @@ void TriggerAnalyzer::init()
     }
 
   std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
+  return true;
 }
 
-void TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
+bool TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
 {
   TriggerRoad* road = new TriggerRoad(); road->clear();
 
@@ -174,9 +180,10 @@ void TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
     }
 
   filterRoads(cut_td, cut_gun);
+  return true;
 }
 
-void TriggerAnalyzer::init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad> m_roads, double cut_td, double cut_gun)
+bool TriggerAnalyzer::init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad> m_roads, double cut_td, double cut_gun)
 {
   roads[0].clear();
   roads[0].assign(p_roads.begin(), p_roads.end());
@@ -185,6 +192,7 @@ void TriggerAnalyzer::init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad
   roads[1].assign(m_roads.begin(), m_roads.end());
 
   filterRoads(cut_td, cut_gun);
+  return true;
 }
 
 void TriggerAnalyzer::filterRoads(double cut_td, double cut_gun)

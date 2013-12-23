@@ -42,6 +42,8 @@ int main(int argc, char* argv[])
   int H1YB, H2YB, H3YB, H4YB;
 
   int p_FPGA, m_FPGA;
+  int p_roadID[10000];
+  int m_roadID[10000];
 
   int NIMXT, NIMXB;
   int NIMYT, NIMYB;
@@ -68,7 +70,9 @@ int main(int argc, char* argv[])
   saveTree->Branch("H4YB", &H4YB, "H4YB/I");
 
   saveTree->Branch("p_FPGA", &p_FPGA, "p_FPGA/I");
+  saveTree->Branch("p_roadID", p_roadID, "p_roadID[p_FPGA]/I");
   saveTree->Branch("m_FPGA", &m_FPGA, "m_FPGA/I");
+  saveTree->Branch("m_roadID", m_roadID, "m_roadID[m_FPGA]/I");
 
   saveTree->Branch("NIMXT", &NIMXT, "NIMXT/I");
   saveTree->Branch("NIMXB", &NIMXB, "NIMXB/I");
@@ -121,12 +125,22 @@ int main(int argc, char* argv[])
       triggerAna->acceptEvent(rawEvent);
       list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
       list<TriggerRoad>& m_roads_found = triggerAna->getRoadsFound(-1);
-      p_FPGA = p_roads_found.size();
-      m_FPGA = m_roads_found.size();
+      p_FPGA = 0;;
+      for(list<TriggerRoad>::iterator iter = p_roads_found.begin(); iter != p_roads_found.end(); ++iter)
+	{
+	  p_roadID[p_FPGA++] = iter->roadID;
+	}
+      m_FPGA = 0;;
+      for(list<TriggerRoad>::iterator iter = m_roads_found.begin(); iter != m_roads_found.end(); ++iter)
+	{
+	  m_roadID[m_FPGA++] = iter->roadID;
+	}
 
       saveTree->Fill(); 
       rawEvent->clear();
     }
+  cout << endl;
+  cout << "triggerAna ended successfully." << endl;
 
   saveFile->cd();
   saveTree->Write();

@@ -104,6 +104,7 @@ private:
   std::vector<int> detectorIDs_maskX[5];
   std::vector<int> detectorIDs_maskY[5];
   std::list<int> hitIDs_mask[5]; //hits in T/B, L/R are combined
+  std::vector<int> stationIDs_mask[6];
 
   //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
   double x_mask_min[24][72];

@@ -89,6 +89,25 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   detectorIDs_maskX[4] = p_geomSvc->getDetectorIDs("P[12]X");
   detectorIDs_maskY[4] = p_geomSvc->getDetectorIDs("P[12]Y");
 
+  //Masking stations for tracklets in station-1, 2, 3+/-
+  stationIDs_mask[0].push_back(1);
+  stationIDs_mask[1].push_back(2);
+  stationIDs_mask[2].push_back(3);
+  stationIDs_mask[3].push_back(3);
+
+  //Masking stations for back partial
+  stationIDs_mask[4].push_back(2);
+  stationIDs_mask[4].push_back(3);
+  stationIDs_mask[4].push_back(4);
+  stationIDs_mask[4].push_back(5);
+
+  //Masking stations for global track
+  stationIDs_mask[5].push_back(1);
+  stationIDs_mask[5].push_back(2);
+  stationIDs_mask[5].push_back(3);
+  stationIDs_mask[5].push_back(4);
+  stationIDs_mask[5].push_back(5);
+
   //Initialize masking window sizes, with 10% contingency
   for(int i = 25; i <= 48; i++)
     {
@@ -118,7 +137,18 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
       for(std::vector<int>::iterator iter = detectorIDs_mask[i].begin(); iter != detectorIDs_mask[i].end(); ++iter) cout << "All: " << *iter << endl;
       for(std::vector<int>::iterator iter = detectorIDs_maskX[i].begin(); iter != detectorIDs_maskX[i].end(); ++iter) cout << "X: " << *iter << endl;
       for(std::vector<int>::iterator iter = detectorIDs_maskY[i].begin(); iter != detectorIDs_maskY[i].end(); ++iter) cout << "Y: " << *iter << endl;
-    } 
+    }
+  
+  for(int i = 0; i < 6; ++i)
+    {
+      std::cout << "Masking stations for tracklets with stationID = " << i + 1 << ": " << std::endl; 
+      for(std::vector<int>::iterator iter = stationIDs_mask[i].begin(); iter != stationIDs_mask[i].end(); ++iter)
+	{
+	  std::cout << *iter << "  ";
+	}
+      std::cout << std::endl;
+    }
+ 
 #endif
 
   //Initialize super stationIDs
@@ -855,40 +885,25 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
       return false;
     }
 
-  //See hodo. projections
-  std::vector<int> stationIDs_mask;
-  if(tracklet.stationID <= 3)
-    {
-      stationIDs_mask.push_back(tracklet.stationID - 1);
-    }
-  else if(tracklet.stationID == 4)
-    {
-      stationIDs_mask.push_back(2);
-    }
-  else if(tracklet.stationID == 5)
-    {
-      for(int i = 1; i <= 4; i++) stationIDs_mask.push_back(i);
-    }
-  else if(tracklet.stationID == 6)
-    {
-      for(int i = 0; i <= 4; i++) stationIDs_mask.push_back(i);
-    }
-  int nMinimum = stationIDs_mask.size();
+  int nMinimum = stationIDs_mask[tracklet.stationID-1].size();
  
   //Log(tracklet.stationID);
   int nHodoHits = 0;
-  for(std::vector<int>::iterator stationID = stationIDs_mask.begin(); stationID != stationIDs_mask.end(); ++stationID)
+  for(std::vector<int>::iterator stationID = stationIDs_mask[tracklet.stationID-1].begin(); stationID != stationIDs_mask[tracklet.stationID-1].end(); ++stationID)
     {
-      for(std::list<int>::iterator iter = hitIDs_mask[*stationID].begin(); iter != hitIDs_mask[*stationID].end(); ++iter)
+      for(std::list<int>::iterator iter = hitIDs_mask[*stationID-1].begin(); iter != hitIDs_mask[*stationID-1].end(); ++iter)
        	{
-	  double z_hodo = p_geomSvc->getPlanePosition(hitAll[*iter].detectorID);
+	  int detectorID = hitAll[*iter].detectorID;
+	  int elementID = hitAll[*iter].elementID;
+	  
+	  double z_hodo = p_geomSvc->getPlanePosition(detectorID);
     	  double x_hodo = tracklet.getExpPositionX(z_hodo);
 	  double y_hodo = tracklet.getExpPositionY(z_hodo);
     	  double err_x = 3.*tracklet.getExpPosErrorX(z_hodo);
 	  double err_y = 3.*tracklet.getExpPosErrorY(z_hodo);
 
-	  int idx1 = hitAll[*iter].detectorID - 25;
-	  int idx2 = hitAll[*iter].elementID - 1;
+	  int idx1 = detectorID - 25;
+	  int idx2 = elementID - 1;
 	  double x_min = x_mask_min[idx1][idx2] - err_x;
 	  double x_max = x_mask_max[idx1][idx2] + err_x;
 	  double y_min = y_mask_min[idx1][idx2] - err_y;

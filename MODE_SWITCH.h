@@ -17,6 +17,9 @@
 //=== Coarse mode, no driftTime info is used, disabled by default
 //#define COARSE_MODE
 
+//=== Enable hodo masking with trigger road info
+//#define _ENABLE_TRIGGER_MASK
+
 //=== Enable Kalman fitting in fast tracking and alignment, enabled by default
 //#define _ENABLE_KF
 
