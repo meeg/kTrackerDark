@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stdio.h>
 
+#include <boost/array.hpp>
+
 #include <TROOT.h>
 #include <TString.h>
 #include <TFile.h>
@@ -92,7 +94,7 @@ int main(int argc, char *argv[])
 
   //Hodoscope IDs
   vector<int> hodoIDs = p_geomSvc->getDetectorIDs("^H");
-  const int nHodos = hodoIDs.size();
+  const int nHodos = 16;
 
   //Evaluation tree structure
   double z_exp, x_exp, y_exp, pos_exp, pos;
@@ -113,19 +115,19 @@ int main(int argc, char *argv[])
 
   //Initialization of container and hists
   //Offsets using all elements added together
-  TH1D* hist_all[nHodos];
-  double offset_all[nHodos];
+  boost::array<TH1D*, nHodos> hist_all;
+  boost::array<double, nHodos> offset_all;
  
  
   //Offsets using each individual elements
-  double offset_plane[nHodos]; //Global shifts extracted by fitting individual elements
-  int nValidEntries[nHodos];   //Number of effective hits on each element
-  vector<TH1D*> hist[nHodos];  //Residual hist
-  vector<double> offset[nHodos]; //Offset of each individual element
+  boost::array<double, nHodos> offset_plane; //Global shifts extracted by fitting individual elements
+  boost::array<int, nHodos> nValidEntries;   //Number of effective hits on each element
+  boost::array<vector<TH1D*>, nHodos> hist;  //Residual hist
+  boost::array<vector<double>, nHodos> offset; //Offset of each individual element
 
   //Other useful hodo properties
-  int nElement[nHodos];
-  double spacing[nHodos];
+  boost::array<int, nHodos> nElement;
+  boost::array<double, nHodos> spacing;
   for(int i = 0; i < nHodos; ++i)
     {
       nElement[i] = p_geomSvc->getPlaneNElements(hodoIDs[i]);

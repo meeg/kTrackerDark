@@ -150,6 +150,7 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 {
   //All hits but in station 4
+  /* This query will enforce paired hits in station-4 hodo
 #ifdef USE_M_TABLES
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
 	  "OR detectorName LIKE 'H__' OR detectorName LIKE 'P%%') AND eventID=%d "
@@ -180,6 +181,14 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 	  "WHERE substr(h3.detectorName,1,3) LIKE substr(h4.detectorName,1,3) AND Abs(h3.tdcTime-h4.tdcTime)<15. AND h3.elementID=h4.elementID",
 	  eventID, eventID, eventID, eventID, eventID);
 #endif
+  */
+#ifdef USE_M_TABLES
+  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
+	  "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
+#else
+  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%' "
+	  "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
+#endif
   int nHits = makeQuery();
   if(nHits < 1) return false;
   
@@ -204,7 +213,6 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       
       rawEvent->insertHit(h);
     }
-
   rawEvent->reIndex();
 
   return true;

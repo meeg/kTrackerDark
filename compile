@@ -9,7 +9,7 @@ def compile(filename):
     cflags = os.popen('root-config --cflags').readline().strip()
     ldflags = os.popen('root-config --ldflags --libs').readline().strip()
 
-    cflags = cflags + ' -I'+os.environ("BOOST")
+    cflags = cflags + ' -I'+os.environ["BOOST"]
 
     os.system('g++ '+cflags+' -c '+filename+'.cxx')
     os.system('g++ -o '+filename+' '+filename+'.o '+ldflags+' -L./ -lkTracker')
