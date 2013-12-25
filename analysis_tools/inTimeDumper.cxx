@@ -89,9 +89,11 @@ int main(int argc, char *argv[])
 	  Hit h = hits_old[j];
 	  if(h.detectorID <= 24)
 	    {
-	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.inTime = 0.5*geometrySvc->getCellWidth(h.detectorID);
-	      //if(h.driftTime < 1E-6) h.inTime = 0; 
+	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.driftDistance = 0.5*geometrySvc->getCellWidth(h.detectorID);
+	      if(h.driftTime < 1E-6) h.driftDistance = 0; 
 	    }
+
+	  if(h.detectorID > 24 && h.detectorID <= 40) h.inTime = fabs(h.tdcTime - h_center[h.detectorID-25]) < 15. ? 1 : 0;
 
 	  if(h.detectorID > 40) h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
 	  
