@@ -437,6 +437,17 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 	  eID = (9 - moduleID)*8 + eID;
 	}	  
     }
+  else if(detectorName.find("H4") != string::npos)
+    {
+      if(detectorName.find("T") != string::npos || detectorName.find("B") != string::npos)
+	{
+	  detectorName.replace(3, detectorName.length(), "");
+	}
+      else
+	{
+	  detectorName.replace(5, detectorName.length(), "");
+	}
+    }
 }
 
 double GeomSvc::getDriftDistance(int planeID, double tdcTime)
