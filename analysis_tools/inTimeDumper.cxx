@@ -82,11 +82,12 @@ int main(int argc, char *argv[])
       dataTree->GetEntry(i);
 
       event->setEventInfo(event_old->getRunID(), event_old->getSpillID(), event_old->getEventID());
-      std::vector<Hit> hits_old = event_old->getAllHits();
-    
-      for(unsigned int j = 0; j < hits_old.size(); j++)
+      std::vector<Hit> hits = event_old->getAllHits();
+      std::vector<Hit> hits_trigger = event_old->getTriggerHits();
+
+      for(unsigned int j = 0; j < hits.size(); j++)
 	{
-	  Hit h = hits_old[j];
+	  Hit h = hits[j];
 	  if(h.detectorID <= 24)
 	    {
 	      if(h.driftTime > 100. && h.driftDistance < 0.1) h.driftDistance = 0.5*geometrySvc->getCellWidth(h.detectorID);
@@ -98,6 +99,12 @@ int main(int argc, char *argv[])
 	  if(h.detectorID > 40) h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
 	  
 	  event->insertHit(h);
+	}
+
+      for(unsigned int j = 0; j < hits_trigger.size(); ++j)
+	{
+	  Hit h = hits_trigger[j];
+	  event->insertTriggerHit(h);
 	}
 
       H1B = event->getNHitsInDetector(25) > 0 ? 1 : 0;

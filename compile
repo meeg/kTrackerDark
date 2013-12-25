@@ -24,6 +24,7 @@ if not os.path.isfile(sys.argv[1].replace('.cxx', '')+'.cxx'):
 args = re.split('/', sys.argv[1])
 targetName = args[-1].replace('.cxx', '')
 sourceName = targetName + '.cxx'
+sourcePath = sys.argv[1].replace('.cxx', '').replace(targetName, '')
 
 # copy the source file to KTRACKER_ROOT, compile an delete it afterwards
 if len(args) == 1 or (len(args) == 2 and args[0] == '.'):
@@ -31,6 +32,6 @@ if len(args) == 1 or (len(args) == 2 and args[0] == '.'):
 elif os.path.isfile(sourceName):
     print 'File already exists in both KTRACKER_ROOT and '+sys.argv[1].replace(sourceName, '')+'!! Please check.'
 else:
-    os.system('cp '+sys.argv[1]+' '+sourceName)
+    os.system('cp '+sourcePath+'/'+sourceName+' '+sourceName)
     compile(targetName)
     os.system('rm '+sourceName)
