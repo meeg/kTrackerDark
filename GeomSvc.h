@@ -88,7 +88,8 @@ public:
 
   bool calibrationLoaded() { return calibration_loaded; }
   double getDriftDistance(int planeID, double tdcTime);
-  TSpline3 *getRTCurve(int planeID) { return rtprofile[planeID-1]; }
+  bool isInTime(int planeID, double tdcTime);
+  TSpline3* getRTCurve(int planeID) { return rtprofile[planeID-1]; }
 
   ///Convert the stereo hits to Y value
   double getYinStereoPlane(int planeID, double x, double u) { return u/sintheta[planeID] - x/tantheta[planeID]; }
@@ -138,8 +139,9 @@ private:
 
   //Calibration parameters
   bool calibration_loaded;
-  TSpline3 *rtprofile[24];
-
+  TSpline3 *rtprofile[nChamberPlanes];
+  double tmin[nChamberPlanes], tmax[nChamberPlanes];
+  
   double xmin_kmag, xmax_kmag;
   double ymin_kmag, ymax_kmag;
   double zmin_kmag, zmax_kmag;

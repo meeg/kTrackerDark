@@ -78,12 +78,12 @@ void GeomSvc::init(std::string geometrySchema)
   map_detectorID.insert(nameToID("D3pX", 16));
   map_detectorID.insert(nameToID("D3pUp", 17));
   map_detectorID.insert(nameToID("D3pU", 18));
-  map_detectorID.insert(nameToID("D3mU", 19));
-  map_detectorID.insert(nameToID("D3mUp", 20));
-  map_detectorID.insert(nameToID("D3mX", 21));
-  map_detectorID.insert(nameToID("D3mXp", 22));
-  map_detectorID.insert(nameToID("D3mV", 23));
-  map_detectorID.insert(nameToID("D3mVp", 24));
+  map_detectorID.insert(nameToID("D3mVp", 19));
+  map_detectorID.insert(nameToID("D3mV", 20));
+  map_detectorID.insert(nameToID("D3mXp", 21));
+  map_detectorID.insert(nameToID("D3mX", 22));
+  map_detectorID.insert(nameToID("D3mUp", 23));
+  map_detectorID.insert(nameToID("D3mV", 24));
   
   map_detectorID.insert(nameToID("H1B", 25));
   map_detectorID.insert(nameToID("H1T", 26));
@@ -452,9 +452,11 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 
 double GeomSvc::getDriftDistance(int planeID, double tdcTime)
 {
-  if(!calibration_loaded) return -1.;
+  if(!calibration_loaded) return 0.;
   if(planeID <= 24)
     {
+      if(tdcTime < tmin[planeID-1]) return 0.5*cellWidth[planeID];
+      if(tdcTime > tmax[planeID-1]) return 0.;
       return rtprofile[planeID-1]->Eval(tdcTime);
     }
   
@@ -605,6 +607,7 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
  
   char buf[300];
   int iBin, nBin, detectorID;
+  double tmin_temp, tmax_temp;
   double R[500], T[500];
   if(_cali_file)
     {
@@ -613,7 +616,9 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
       while(_cali_file.getline(buf, 100))
 	{
 	  istringstream detector_info(buf);
-	  detector_info >> detectorID >> nBin;
+	  detector_info >> detectorID >> nBin >> tmin_temp >> tmax_temp;
+	  tmax[detectorID-1] = tmax_temp;
+	  tmin[detectorID-1] = tmin_temp;
 
 	  for(int i = 0; i < nBin; i++)
 	    {
@@ -628,6 +633,14 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
 	}
     }
   _cali_file.close();
+}
+
+bool GeomSvc::isInTime(int planeID, double tdcTime)
+{
+  if(planeID <= 24) return tdcTime > tmin[planeID-1] && tdcTime < tmax[planeID-1];
+  if(planeID > 40) return tdcTime > 400. && tdcTime < 1100.;
+
+  return true;
 }
 
 double GeomSvc::getPlaneWOffset(int planeID, int moduleID)
