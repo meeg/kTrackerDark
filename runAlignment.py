@@ -16,7 +16,7 @@ if len(sys.argv) == 4:
 else:
     offset = 1
 
-nEvtMax = 60000
+nEvtMax = 100000
 nJobs = 5
 
 for i in range(offset, nCycle+1):
@@ -53,8 +53,13 @@ for i in range(offset, nCycle+1):
     
     # hodoscope alignment
     runCmd('./hodoAlign '+recFile_initial+'.root alignment_hodo_'+str(i)+'.txt')
-    runCmd('mv hodo_align.root hodo_align_'+str(i)+'.root')
-    runCmd('cp alignment_hodo_'+str(i).root+'.txt alignment_hodo.txt')
+    runCmd('mv hodo_eval.root hodo_eval_'+str(i)+'.root')
+    runCmd('cp alignment_hodo_'+str(i)+'.txt alignment_hodo.txt')
+
+    # hodoscope alignment
+    runCmd('./propAlign '+recFile_initial+'.root alignment_prop_'+str(i)+'.txt')
+    runCmd('mv prop_eval.root prop_eval_'+str(i)+'.root')
+    runCmd('cp alignment_prop_'+str(i)+'.txt alignment_prop.txt')
     
     # chamber calibration
     runCmd('./makeRTProfile '+recFile_initial+'.root calibration_'+str(i)+'.txt')

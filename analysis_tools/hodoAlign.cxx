@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
   boost::array<TH1D*, nHodos> hist_all;
   boost::array<double, nHodos> offset_all;
  
- 
   //Offsets using each individual elements
   boost::array<double, nHodos> offset_plane; //Global shifts extracted by fitting individual elements
   boost::array<int, nHodos> nValidEntries;   //Number of effective hits on each element
@@ -193,7 +192,6 @@ int main(int argc, char *argv[])
 	  pos = p_geomSvc->getMeasurement(hodoIDs[j], elementID);
 	  hist[j][elementID-1]->Fill(pos_exp - pos);
 	  hist_all[j]->Fill(pos_exp - pos); 
-	
 	  saveTree->Fill();
 	}
 
