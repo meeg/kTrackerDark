@@ -83,7 +83,7 @@ void GeomSvc::init(std::string geometrySchema)
   map_detectorID.insert(nameToID("D3mXp", 21));
   map_detectorID.insert(nameToID("D3mX", 22));
   map_detectorID.insert(nameToID("D3mUp", 23));
-  map_detectorID.insert(nameToID("D3mV", 24));
+  map_detectorID.insert(nameToID("D3mU", 24));
   
   map_detectorID.insert(nameToID("H1B", 25));
   map_detectorID.insert(nameToID("H1T", 26));

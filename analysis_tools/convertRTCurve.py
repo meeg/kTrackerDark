@@ -47,5 +47,3 @@ for detectorID in rt_curve.keys():
 	for (tdcTime, driftDistance) in rt_sorted:
 		fout.write('0   '+str(tdcTime)+'  '+str(driftDistance)+'\n')
 fout.close()
-
-
