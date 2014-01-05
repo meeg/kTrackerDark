@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     }
   else
     {
-      p_mysqlSvc->connect();
+      p_mysqlSvc->connect("seaquel.physics.illinois.edu");
     }
   p_mysqlSvc->setWorkingSchema(argv[1]);
 

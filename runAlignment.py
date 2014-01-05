@@ -44,7 +44,10 @@ for i in range(offset, nCycle+1):
     
     # combine the outputs
     runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
+
+    # clean up space
     runCmd('rm '+recFile_initial+'_[1-'+str(nJobs)+'].root')
+    runCmd('rm '+alignFile)
 
     # chamber alignment based on millepede
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
