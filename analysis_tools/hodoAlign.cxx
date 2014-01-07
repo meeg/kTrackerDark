@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   dataTree->SetBranchAddress("tracklets", &tracklets);
 
   //Hodoscope IDs
-  vector<int> hodoIDs = p_geomSvc->getDetectorIDs("^H");
+  boost::array<int, 16> hodoIDs = {25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40};
   const int nHodos = 16;
 
   //Evaluation tree structure
