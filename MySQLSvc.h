@@ -75,8 +75,8 @@ public:
   int makeQuery();
   bool nextEntry();
   
-  int getInt(const char* field, int default_val = 0) { return field == NULL ? default_val : atoi(field); }
-  double getDouble(const char* field, double default_val = 0.) { return field == NULL ? default_val : atof(field); }
+  int getInt(int id, int default_val = 0);
+  double getDouble(int id, double default_val = 0.);
 
 private:
   //pointer to the only instance

@@ -117,10 +117,14 @@ public:
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);  
   
   ///Set/get the trigger types
-  int getTriggerBits() { return fTriggerBits; }
+  Int_t getTriggerBits() { return fTriggerBits; }
   void setTriggerBits(Int_t triggers[]);
   void setTriggerBits(Int_t triggers) { fTriggerBits = triggers; }
   bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
+
+  //Set/get the target position
+  Int_t getTargetPos() { return fTargetPos; }
+  void setTargetPos(Int_t targetPos) { fTargetPos = targetPos; }
 
   ///Clear the internal event structure
   void clear();
@@ -153,12 +157,15 @@ private:
   //Trigger bit
   Int_t fTriggerBits;
 
+  //Target pos
+  Int_t fTargetPos;
+
   ///Hits of this event
   Int_t fNHits[nChamberPlanes+nHodoPlanes+nPropPlanes+1];  //0 for all hits, 1, 2, ..., 24 for number of hits in plane 1, 2, ..., 24
   std::vector<Hit> fAllHits;
   std::vector<Hit> fTriggerHits;
 
-  ClassDef(SRawEvent, 4)
+  ClassDef(SRawEvent, 5)
 };
 
 class SRawMCEvent: public SRawEvent

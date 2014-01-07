@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
   SRecEvent* recEvent = new SRecEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");
 
-  TFile *dataFile = new TFile(argv[1], "READ");
-  TTree *dataTree = (TTree *)dataFile->Get("save");
+  TFile* dataFile = new TFile(argv[1], "READ");
+  TTree* dataTree = (TTree*)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
   dataTree->SetBranchAddress("recEvent", &recEvent);
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
   double pT_pair[30], xF_pair[30], x1_pair[30], x2_pair[30];
   double pT_single[30], xF_single[30], x1_single[30], x2_single[30];
 
-  TFile *saveFile = new TFile(argv[2], "recreate");
-  TTree *saveTree = new TTree("save", "save");
+  TFile* saveFile = new TFile(argv[2], "recreate");
+  TTree* saveTree = new TTree("save", "save");
 
   saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
   saveTree->Branch("recEvent", &recEvent, 256000, 99);
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
   
   //Initialize track finder
   Log("Initializing the track finder and kalman filter ... ");
-  VertexFit *vtxfit = new VertexFit();
+  VertexFit* vtxfit = new VertexFit();
 
   int offset = argc > 3 ? atoi(argv[3]) : 0;
   int nEvtMax = argc > 4 ? atoi(argv[4]) + offset : dataTree->GetEntries();
@@ -182,10 +182,10 @@ int main(int argc, char *argv[])
   for(int i = offset; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
-      Log("Processing event " << i << " with eventID = " << rawEvent->getEventID());
+      rawEvent->reIndex("oa");
+      
+      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID();
 
-      rawEvent->reIndex("oah");
- 
 #ifndef _ENABLE_KF
       int nTracks = tracklets->GetEntries();
 #else    
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 	      r1_pair[nDimuons] = _trackp.getRVertex();
 	      r2_pair[nDimuons] = _trackm.getRVertex();
 
-	      vtxfit->print(); 
+	      //vtxfit->print(); 
 	      
 	      mass_pair[nDimuons] = (p1_4mom + p2_4mom).M();
               angle_pair[nDimuons] = p1_4mom.Angle(p2_4mom.Vect());
@@ -275,6 +275,8 @@ int main(int argc, char *argv[])
       rawEvent->clear();
       recEvent->clear();
     }
+  cout << endl;
+  cout << "kVertex ends successfully." << endl;
 
   saveFile->cd();
   saveTree->Write();

@@ -7,6 +7,7 @@ Author: Kun Liu, liuk@fnal.gov
 Created: 9-29-2013
 */
 
+#include <boost/lexical_cast.hpp>
 #include <TLorentzVector.h>
 
 #include "FastTracklet.h"
@@ -99,7 +100,7 @@ bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
   if(makeQuery() != 2) return false;
 
   nextEntry(); nextEntry();
-  int eventID = getInt(row->GetField(0));
+  int eventID = getInt(0);
   if(isEventLoaded(eventID)) return false;
 
   rawEvent->clear();
@@ -197,19 +198,19 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       nextEntry();
 
       std::string detectorName(row->GetField(5));
-      int elementID = getInt(row->GetField(1));
+      int elementID = getInt(1);
       p_geomSvc->toLocalDetectorName(detectorName, elementID);
        
       Hit h;
-      h.index = getInt(row->GetField(0));
+      h.index = getInt(0);
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
       h.elementID = elementID;
-      h.tdcTime = getDouble(row->GetField(2));
-      h.inTime = getInt(row->GetField(6), 1);
+      h.tdcTime = getDouble(2);
+      h.inTime = getInt(6, 1);
       h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-      h.driftTime = getDouble(row->GetField(3));
-      h.driftDistance = getDouble(row->GetField(4));
-      h.hodoMask = getInt(row->GetField(7), 1);
+      h.driftTime = getDouble(3);
+      h.driftDistance = getDouble(4);
+      h.hodoMask = getInt(7, 1);
       
       rawEvent->insertHit(h);
     }
@@ -224,7 +225,7 @@ int MySQLSvc::getNEvents()
   if(makeQuery() != 1) return 0;
 
   nextEntry();
-  int nTotal = getInt(row->GetField(0));
+  int nTotal = getInt(0);
   return nTotal;
 }
 
@@ -237,16 +238,25 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
   if(makeQuery() != 1) return false;
 
   nextEntry();
-  runID = getInt(row->GetField(0));
-  spillID = getInt(row->GetField(1));
+  runID = getInt(0);
+  spillID = getInt(1);
   rawEvent->setEventInfo(runID, spillID, eventID);
 
+  //Get the trigger bits
   int triggers[10];
   for(int i = 0; i < 10; ++i)
     {
-      triggers[i] = getInt(row->GetField(i+2));
+      triggers[i] = getInt(i+2);
     }
   rawEvent->setTriggerBits(triggers);
+
+  //Get target position
+  sprintf(query, "SELECT targetPos FROM Spill WHERE spillID=%d", spillID);
+  if(makeQuery() != 1) return false;
+
+  nextEntry();
+  rawEvent->setTargetPos(getInt(0));
+
 
   //Get trigger hits
   sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' AND eventID=%d", eventID);
@@ -257,10 +267,10 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
       nextEntry();
 
       Hit h;
-      h.index = getInt(row->GetField(0));
-      h.elementID = getInt(row->GetField(2));
-      h.tdcTime = getDouble(row->GetField(3));
-      h.inTime = getInt(row->GetField(4));
+      h.index = getInt(0);
+      h.elementID = getInt(2);
+      h.tdcTime = getDouble(3);
+      h.inTime = getInt(4);
       h.driftTime = 0.;
       h.driftDistance = 0.;
       h.hodoMask = 0;
@@ -287,20 +297,20 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
   if(makeQuery() != 1) return false;
   nextEntry();
 
-  runID = getInt(row->GetField(12));
-  spillID = getInt(row->GetField(13));
+  runID = getInt(12);
+  spillID = getInt(13);
   mcEvent->setEventInfo(runID, spillID, eventID);
 
-  int trackID[2] = { getInt(row->GetField(0)), getInt(row->GetField(1)) };
-  mcEvent->weight = getDouble(row->GetField(2));
-  mcEvent->mass = getDouble(row->GetField(3));
-  mcEvent->xF = getDouble(row->GetField(4));
-  mcEvent->x1 = getDouble(row->GetField(5));
-  mcEvent->x2 = getDouble(row->GetField(6));
-  mcEvent->vtx.SetXYZ(getDouble(row->GetField(7)), getDouble(row->GetField(8)), getDouble(row->GetField(9)));
+  int trackID[2] = { getInt(0), getInt(1) };
+  mcEvent->weight = getDouble(2);
+  mcEvent->mass = getDouble(3);
+  mcEvent->xF = getDouble(4);
+  mcEvent->x1 = getDouble(5);
+  mcEvent->x2 = getDouble(6);
+  mcEvent->vtx.SetXYZ(getDouble(7), getDouble(8), getDouble(9));
 
-  double px = getDouble(row->GetField(10));
-  double py = getDouble(row->GetField(11));
+  double px = getDouble(10);
+  double py = getDouble(11);
   mcEvent->pT = sqrt(px*px + py*py);
 
   for(int i = 0; i < 2; ++i)
@@ -310,27 +320,27 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
       if(makeQuery() != 1) return false;
       
       nextEntry();
-      mcEvent->p_vertex[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
+      mcEvent->p_vertex[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
     
       //At station 1,2,3,4
       sprintf(query, "SELECT hpx,hpy,hpz,hx,hy,hz FROM mGeantHit WHERE geantName RLIKE 'O[1-4]' AND mTrackID=%d", trackID[i]);
       if(makeQuery() != 4) return false;
 
       nextEntry();
-      mcEvent->p_station1[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
-      mcEvent->v_station1[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
+      mcEvent->p_station1[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
+      mcEvent->v_station1[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
     
       nextEntry();
-      mcEvent->p_station2[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
-      mcEvent->v_station2[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
+      mcEvent->p_station2[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
+      mcEvent->v_station2[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
 
       nextEntry();
-      mcEvent->p_station3[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
-      mcEvent->v_station3[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
+      mcEvent->p_station3[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
+      mcEvent->v_station3[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
 
       nextEntry();
-      mcEvent->p_station4[i].SetXYZ(getDouble(row->GetField(0)), getDouble(row->GetField(1)), getDouble(row->GetField(2)));
-      mcEvent->v_station4[i].SetXYZ(getDouble(row->GetField(3)), getDouble(row->GetField(4)), getDouble(row->GetField(5)));
+      mcEvent->p_station4[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
+      mcEvent->v_station4[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
     }
 
   return true;
@@ -590,4 +600,24 @@ bool MySQLSvc::nextEntry()
 
   if(row != NULL) return true;
   return false;
+}
+
+int MySQLSvc::getInt(int id, int default_val)
+{
+  if(row->GetField(id) == NULL)
+    {
+      return default_val;
+    }
+
+  return boost::lexical_cast<int>(row->GetField(id));
+}
+
+double MySQLSvc::getDouble(int id, double default_val)
+{
+  if(row->GetField(id) == NULL)
+    {
+      return default_val;
+    }
+
+  return boost::lexical_cast<double>(row->GetField(id));
 }
