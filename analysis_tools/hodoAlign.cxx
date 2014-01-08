@@ -44,7 +44,7 @@ double findCenter(TH1D *hist, double spacing)
   int index_max_left = 0;
   for(int i = 1; i <= nBinInSize; ++i)
     {
-      int nEvt_curr = hist->Integral(i, i + nBinInSize);
+      int nEvt_curr = int(hist->Integral(i, i + nBinInSize));
       //cout << i << " : " << hist->GetBinCenter(i) << " <===> " << hist->GetBinCenter(i + nBinInSize) << " : " << nEvt_curr << " === " << nEvt_max << endl;
     
       if(nEvt_curr > nEvt_max)
@@ -59,7 +59,7 @@ double findCenter(TH1D *hist, double spacing)
   int index_max_right = nBin;
   for(int i = nBin; i >= nBinInSize; --i)
     {
-      int nEvt_curr = hist->Integral(i - nBinInSize, i);
+      int nEvt_curr = int(hist->Integral(i - nBinInSize, i));
       
       if(nEvt_curr > nEvt_max)
 	{
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
       nValidEntries[i] = 0;
       for(int j = 0; j < nElement[i]; j++)
 	{
-	  int nEntries = hist[i][j]->GetEntries();
+	  int nEntries = int(hist[i][j]->GetEntries());
 	  if(nEntries < 500)
 	    {
 	      hist[i][j]->Rebin(2);
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 	  if(offset[i][j] < 100.)
 	    {
 	      offset_plane[i] += offset[i][j]*hist[i][j]->GetEntries();
-	      nValidEntries[i] += hist[i][j]->GetEntries();
+	      nValidEntries[i] += int(hist[i][j]->GetEntries());
 	    }
 	}
 

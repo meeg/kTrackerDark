@@ -126,6 +126,9 @@ public:
   Int_t getTargetPos() { return fTargetPos; }
   void setTargetPos(Int_t targetPos) { fTargetPos = targetPos; }
 
+  //Set the event info from another event
+  void setEventInfo(SRawEvent* event);
+
   ///Clear the internal event structure
   void clear();
 

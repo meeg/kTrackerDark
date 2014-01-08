@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     {
       dataTree->GetEntry(i);
 
-      event->setEventInfo(event_old->getRunID(), event_old->getSpillID(), event_old->getEventID());
+      event->setEventInfo(event_old);
       std::vector<Hit> hits = event_old->getAllHits();
       std::vector<Hit> hits_trigger = event_old->getTriggerHits();
 

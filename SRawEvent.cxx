@@ -551,6 +551,18 @@ void SRawEvent::mixEvent(SRawEvent *event, int nBkgHits)
   fNHits[0] = fAllHits.size();
 }
 
+void SRawEvent::setEventInfo(SRawEvent* event)
+{
+  //Set runID, eventID, spillID
+  setEventInfo(event->getRunID(), event->getSpillID(), event->getEventID());
+
+  //Set trigger bits
+  setTriggerBits(event->getTriggerBits());
+
+  //Set target position
+  setTargetPos(event->getTargetPos());
+}
+
 void SRawEvent::clear()
 {
   fAllHits.clear();

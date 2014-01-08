@@ -42,8 +42,7 @@ int main(int argc, char *argv[])
     {
       dataTree->GetEntry(i);
 
-      event->setEventInfo(event_old->getRunID(), event_old->getSpillID(), event_old->getEventID());
-      event->setTriggerBits(event_old->getTriggerBits());
+      event->setEventInfo(event_old);
       std::vector<Hit> hits_old = event_old->getAllHits();
 
       for(unsigned int j = 0; j < hits_old.size(); j++)
