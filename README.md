@@ -21,7 +21,7 @@ Track reconstruction for E906/SeaQuest experiment
   * MYSQL_SERVER: address of mysql server (contains geometry schema and/or data)
   * ALIGNMENT_MODE: enable if running the alignment (it will set both FMag and KMag to 0.)
   * MC_MODE: enable if running MC productions
-  * DIMUON_MODE: change to 0 if one wants to save events with less than 2 muons
+  * DIMUON_MODE: change to 0 if one wants to save events without muons pairs
   * KMAG_ON: change to 0 to turn off kMag
   * ENABLE_KF: comment out if one wants to disable Kalman Filter
   * Other variables
@@ -32,8 +32,6 @@ Track reconstruction for E906/SeaQuest experiment
 2. Executables
 
   After compilation, following executables should appear:
-  * kSeeder: find track seeds using prop tube and station 3&4 hodo
-  * kTracker: find/fit tracks using track seeds produced by kSeeder (slow)
   * kFastTracking: E866-style track finding with Kalman filter/chi square track fitting
   * kOnlineTracking: track the data in real-time directly from MySQL while it is being decoded, 
                      results are stored in local ROOT file and also pushed back to the database. 
@@ -46,6 +44,8 @@ Track reconstruction for E906/SeaQuest experiment
   source files are located at KTRACKER_ROOT/analysis_tools, use './compile analysis_tools/executable_name' to compile:
   * sqlDataReader: reads the data from MySQL and save it in ROOT file
   * sqlMCReader: reads the MC data from MySQL and save it in ROOT file
+  * inTimeDumper: read calibration.txt file located at KTRACKER_ROOT to re-define the intime flag for chambers; also find the intime peak
+                  of hodoscopes and re-apply the intime selection
   * update: update the wire position calucation with new alignment parameters
   * makeRTProfile: produce the R-T profile for drift chambers based on tracking results
   * hodoAlign: find the alignment parameters (shift only) for hodoscopes
@@ -59,17 +59,13 @@ Track reconstruction for E906/SeaQuest experiment
   1. Before running track finding/fitting, data needs to be extracted from MySQL to local ROOT files, 
      and/or apply latest alignment parameters
      * Read data: ./sqlDataReader run_name_in_mysql raw_data
-     * Apply alignment parameters: ./update original_root_file updated_root_file
+     * Apply alignment parameters: ./update original_root_file updated_root_file     
      
-  2. Run complete Kalman filter based track finding and fitting:
-     * Find seeds: ./kSeeder raw_data raw_data_with_seed
-     * Find tracks: ./kTracker raw_data_with_seed raw_data_with_track
-     
-  3. Alternatively, one can also directly run fast tracking:
+  2. Alternatively, one can also directly run fast tracking:
      * Fast tracking: ./kFastTracking raw_data raw_data_with_track
   
-  4. One can also run online track reconstruction which directly read data from MySQL database
+  3. One can also run online track reconstruction which directly read data from MySQL database
      * Online tracking: ./kOnlineTracking run_name_in_mysql raw_data_with_track
   
-  5. After tracks are found, one can run both single muon/dimuon vertex finding to calculate Minv, etc.
+  4. After tracks are found, one can run both single muon/dimuon vertex finding to calculate Minv, etc.
      * With Kalman-fitted tracks: ./kVertex raw_data_with_track raw_data_with_vertex
