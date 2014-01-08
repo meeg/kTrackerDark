@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
   for(int i = 0; i < nHodos; i++)
     {
       cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << offset_plane[i] << "  " << offset_all[i] << endl;
-      fout << offset_plane[i] + p_geomSvc->getPlaneWOffset(hodoIDs[i]) << endl;
+      fout << offset_all[i] + p_geomSvc->getPlaneWOffset(hodoIDs[i]) << endl;
       for(int j = 0; j < nElement[i]; j++)
 	{
 	  if(offset[i][j] > 100.) offset[i][j] = offset_plane[i];
