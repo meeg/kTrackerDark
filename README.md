@@ -10,6 +10,7 @@ Track reconstruction for E906/SeaQuest experiment
   Before installation, following environmental variables should be set/added:
   * Geant4 (4.9.6p02 or higher): $GEANTSYS
   * ROOT (5.34 or higher): $ROOTSYS
+  * BOOST: $BOOST
   * MySQL_dev: $MYSQL_LIB and $MYSQL_INCLUDE
   * PATH: $GEANT4SYS/bin and $ROOTSYS/bin
   * LD_LIBRARY_PATH: $GEANT4SYS/lib and $ROOTSYS/lib
