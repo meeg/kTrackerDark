@@ -9,6 +9,7 @@ Created: 05-01-2013
 */
 
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 #include <vector>
 #include <list>
@@ -472,30 +473,30 @@ void SMillepede::fitAlignment()
 void SMillepede::printResults(std::string outputFileName, std::string increamentFileName)
 {
   using namespace MILLEPEDE;
-  using namespace std;
-  cout << nTracks << " tracks are used in the alignment. " << endl;
+  //using namespace std;
+  std::cout << nTracks << " tracks are used in the alignment. " << std::endl;
 
   fstream fout1, fout2;
-  fout1.open(outputFileName.c_str(), ios::out);
-  fout2.open(increamentFileName.c_str(), ios::out);
+  fout1.open(outputFileName.c_str(), std::ios::out);
+  fout2.open(increamentFileName.c_str(), std::ios::out);
   for(int i = 0; i < NPLAN; i++)
     {
-      cout << i+1 << "   " << p_geomSvc->getDetectorName(i+1) << "     " << nHits[i]
+      std::cout << i+1 << "   " << p_geomSvc->getDetectorName(i+1) << "     " << nHits[i]
 	   << "     " << par_align[i*NPARPLAN + 0] << " +/- " << err_align[i*NPARPLAN + 0]
            << "     " << par_align[i*NPARPLAN + 1] << " +/- " << err_align[i*NPARPLAN + 1]
            << "     " << par_align[i*NPARPLAN + 2] << " +/- " << err_align[i*NPARPLAN + 2]
-	   << "     " << evalHist[i]->GetMean() << " +/- " << evalHist[i]->GetRMS() << endl;   
+	   << "     " << evalHist[i]->GetMean() << " +/- " << evalHist[i]->GetRMS() << std::endl;   
+      
+      fout1 << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 0] + p_geomSvc->getPlaneZOffset(i+1) 
+            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 1] + p_geomSvc->getPlanePhiOffset(i+1)
+            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 2] + p_geomSvc->getPlaneWOffset(i+1) 
+	    << std::setw(10) << std::setiosflags(std::ios::right) << evalHist[i]->GetRMS() << std::endl;   
 
-      fout1 << "     " << par_align[i*NPARPLAN + 0] + p_geomSvc->getPlaneZOffset(i+1) 
-            << "     " << par_align[i*NPARPLAN + 1] + p_geomSvc->getPlanePhiOffset(i+1)
-            << "     " << par_align[i*NPARPLAN + 2] + p_geomSvc->getPlaneWOffset(i+1) 
-	    << "     " << evalHist[i]->GetRMS() << endl;   
-
-      fout2 << "     " << par_align[i*NPARPLAN + 0] 
-            << "     " << par_align[i*NPARPLAN + 1] 
-            << "     " << par_align[i*NPARPLAN + 2] 
-	    << "     " << evalHist[i]->GetMean() 
-	    << "     " << evalHist[i]->GetRMS() << endl;   
+      fout2 << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 0] 
+            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 1] 
+            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 2] 
+	    << std::setw(10) << std::setiosflags(std::ios::right) << evalHist[i]->GetMean() 
+	    << std::setw(10) << std::setiosflags(std::ios::right) << evalHist[i]->GetRMS() << std::endl;   
     }
 
   fout1.close();

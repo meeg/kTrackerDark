@@ -10,20 +10,44 @@ def runCmd(cmd):
     os.system(cmd)
 
 def prepareConf(log_prev, conf):
-    fout = open(conf, 'w')
+    # read previous log and decide whether to turn on/off a detector alignment
+    controls = []
     if os.path.isfile(log_prev):
         fin = open(log_prev, 'r')
-        for index, line in enumerate(fin.readlines()):
+        for line in fin.readlines():
             delta = float(line.strip().split()[3])
 
             if abs(delta) < 0.002:
-                fout.write(str(index+1) + '  0\n')
+                controls.append(0)
             else:
-                fout.write(str(index+1) + '  1\n')
+                controls.append(1)
     else:
         for detectorID in xrange(1, 25):
-            fout.write(str(detectorID) + '  0\n')
+            controls.append(0)
 
+    # adjust the controls for D1 and D2
+    for index in xrange(0, 12, 2):
+        if controls[index] == 1 or controls[index+1] == 1:
+            controls[index] = 1
+            controls[index+1] = 1
+
+    # adjust the controls for D3p and D3m
+    for index in xrange(12, 18):
+        if controls[index] == 1:
+            for detectorID in xrange(12, 18):
+                controls[detectorID] = 1
+            break
+
+    for index in xrange(18, 24):
+        if controls[index] == 1:
+            for detectorID in xrange(18, 24):
+                controls[detectorID] = 1
+            break   
+    
+    # save the results
+    fout = open(conf, 'w')
+    for index, onoff in enumerate(controls):
+        fout.write(str(index+1)+'  '+str(onoff)+'\n')
     fout.close()
 
 runID = sys.argv[1]
