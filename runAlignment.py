@@ -9,6 +9,23 @@ def runCmd(cmd):
     print cmd
     os.system(cmd)
 
+def prepareConf(log_prev, conf):
+    fout = open(conf, 'w')
+    if os.path.isfile(log_prev):
+        fin = open(log_prev, 'r')
+        for index, line in enumerate(fin.readlines()):
+            delta = float(line.strip().split()[3])
+
+            if abs(delta) < 0.002:
+                fout.write(str(index+1) + '  0\n')
+            else:
+                fout.write(str(index+1) + '  1\n')
+    else:
+        for detectorID in xrange(1, 25):
+            fout.write(str(detectorID) + '  0\n')
+
+    fout.close()
+
 runID = sys.argv[1]
 nCycle = int(sys.argv[2])
 if len(sys.argv) == 4:
@@ -50,9 +67,11 @@ for i in range(offset, nCycle+1):
     runCmd('rm '+alignFile)
 
     # chamber alignment based on millepede
+    prepareConf('increament.log_'+str(i), 'mille.conf')
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
     runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
     runCmd('cp align_mille_'+str(i)+'.txt align_mille.txt')
+    runCmd('cp mille.conf mille.conf_'+str(i))
     
     # hodoscope alignment
     runCmd('./hodoAlign '+recFile_initial+'.root alignment_hodo_'+str(i)+'.txt')

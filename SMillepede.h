@@ -13,6 +13,8 @@ Created: Apr. 29, 2013
 
 #include "MODE_SWITCH.h"
 
+#include <string>
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1D.h>
@@ -93,7 +95,7 @@ public:
   ~SMillepede();
 
   //Initialization
-  void init();
+  void init(std::string configFileName = "mille.conf");
 
   //Set the reconstructed event
   void setEvent(SRawEvent* rawEvt, SRecEvent* recEvt);
@@ -130,7 +132,7 @@ public:
   double getPhiOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1]; }
 
   //Wrapping with precision conversion and clearer method name
-  void initMillepede();
+  void initMillepede(std::string configFileName);
   void setSingleTrack();
 
   //Track quality cut for alignment

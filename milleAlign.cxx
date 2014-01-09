@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
   //Initialize track finder
   Log("Initializing the millepede ... ");
   SMillepede* mille = new SMillepede();
-  mille->init();
+  mille->init("mille.conf");
   if(argc > 4)
     {
       mille->bookEvaluationTree(argv[4]);

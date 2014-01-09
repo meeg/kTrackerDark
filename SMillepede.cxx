@@ -46,7 +46,7 @@ SMillepede::~SMillepede()
   delete evalNode;
 }
 
-void SMillepede::init()
+void SMillepede::init(std::string configFileName)
 {
   //Initialization of counters
   nTracks = 0;
@@ -63,7 +63,7 @@ void SMillepede::init()
     }
 
   //Initialization of millepede
-  initMillepede();
+  initMillepede(configFileName);
 }
 
 bool SMillepede::acceptTrack(SRecTrack& recTrack)
@@ -271,7 +271,7 @@ void SMillepede::constrainDetectors(int detectorID1, int detectorID2, int paraID
   constf_(dercs, &rhs);
 }
 
-void SMillepede::initMillepede()
+void SMillepede::initMillepede(std::string configFileName)
 {
   //Define the dimension of arrays in millepede
   int nGlobal = MILLEPEDE::NGLB;
@@ -282,14 +282,42 @@ void SMillepede::initMillepede()
   initgl_(&nGlobal, &nLocal, &nStdev, &iPrint);
 
   //Set parameter initial value and resolution parameter
-  //By default all parameters are fixed at zero
+  double err_z[MILLEPEDE::NPLAN], err_phi[MILLEPEDE::NPLAN], err_w[MILLEPEDE::NPLAN];
+  for(int i = 1; i <= MILLEPEDE::NPLAN; ++i)
+    {
+      err_z[i-1] = 0.1;
+      err_phi[i-1] = 0.005;
+      err_w[i-1] = 0.05;
+    }
+
+  std::fstream conf;
+  conf.open(configFileName.c_str(), std::ios::in);
+  if(conf)
+    {
+      int detectorID;
+      int onoff;
+      char buf[200];
+      while(conf.getline(buf, 200))
+	{
+	  std::istringstream stringBuf(buf);
+	  stringBuf >> detectorID >> onoff;
+
+	  if(onoff == 0) 
+	    {
+	      Log("Turning off detectorID = " << detectorID);
+	      err_z[detectorID-1] = 0.;
+	      err_phi[detectorID-1] = 0.;
+	      err_w[detectorID-1] = 0.;
+	    }
+	}
+    }
+  conf.close();
+ 
   for(int i = 1; i <= MILLEPEDE::NPLAN; i++)
     {
-      setDetectorParError(i, 0, 0.);
-      setDetectorParError(i, 1, 0.);
-      setDetectorParError(i, 2, 0.05);
-
-      //if(i <= 6) setDetectorParError(i, 0, 2);
+      setDetectorParError(i, 0, err_z[i-1]);
+      setDetectorParError(i, 1, err_phi[i-1]);
+      setDetectorParError(i, 2, err_w[i-1]);
     }
 
   fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 0, 0.);
@@ -466,7 +494,8 @@ void SMillepede::printResults(std::string outputFileName, std::string increament
       fout2 << "     " << par_align[i*NPARPLAN + 0] 
             << "     " << par_align[i*NPARPLAN + 1] 
             << "     " << par_align[i*NPARPLAN + 2] 
-	    << "     " << evalHist[i]->GetMean() << endl;   
+	    << "     " << evalHist[i]->GetMean() 
+	    << "     " << evalHist[i]->GetRMS() << endl;   
     }
 
   fout1.close();
@@ -550,6 +579,8 @@ void SMillepede::printQAPlots()
       c2->Write();
       c3->Write();
       c4->Write();
+
+      for(int i = 0; i < MILLEPEDE::NPLAN; i++) evalHist[i]->Write();
     }
 }
 
