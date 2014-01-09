@@ -11,6 +11,7 @@ Created: 10-19-2011
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#include <algorithm>
 #include <iomanip>
 
 #include <TROOT.h>
@@ -328,6 +329,7 @@ std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
 	  detectorIDs.push_back((*iter).second);
 	}
     }
+  std::sort(detectorIDs.begin(), detectorIDs.end());
 
   return detectorIDs;
 }

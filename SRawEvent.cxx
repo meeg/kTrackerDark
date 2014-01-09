@@ -9,8 +9,9 @@ Created: 10-24-2011
 
 #include <iostream>
 #include <cmath>
-#include <TRandom.h>
 
+#include <TRandom.h>
+#include <TMath.h>
 #include <TString.h>
 
 #include "SRawEvent.h"
