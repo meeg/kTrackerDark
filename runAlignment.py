@@ -23,7 +23,7 @@ def prepareConf(log_prev, conf):
                 controls.append(1)
     else:
         for detectorID in xrange(1, 25):
-            controls.append(0)
+            controls.append(1)
 
     # adjust the controls for D1 and D2
     for index in xrange(0, 12, 2):
@@ -45,10 +45,15 @@ def prepareConf(log_prev, conf):
             break   
     
     # save the results
+    nActivated = 0
     fout = open(conf, 'w')
     for index, onoff in enumerate(controls):
         fout.write(str(index+1)+'  '+str(onoff)+'\n')
+        if onoff == 1:
+            nActivated++
     fout.close()
+
+    return nActivated
 
 runID = sys.argv[1]
 nCycle = int(sys.argv[2])
@@ -91,7 +96,9 @@ for i in range(offset, nCycle+1):
     runCmd('rm '+alignFile)
 
     # chamber alignment based on millepede
-    prepareConf('increament.log_'+str(i), 'mille.conf')
+    if prepareConf('increament.log_'+str(i), 'mille.conf') == 0:
+        print 'Convergence achieved!! Will exit ...'
+        break
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
     runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
     runCmd('cp align_mille_'+str(i)+'.txt align_mille.txt')

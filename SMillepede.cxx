@@ -487,16 +487,16 @@ void SMillepede::printResults(std::string outputFileName, std::string increament
            << "     " << par_align[i*NPARPLAN + 2] << " +/- " << err_align[i*NPARPLAN + 2]
 	   << "     " << evalHist[i]->GetMean() << " +/- " << evalHist[i]->GetRMS() << std::endl;   
       
-      fout1 << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 0] + p_geomSvc->getPlaneZOffset(i+1) 
-            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 1] + p_geomSvc->getPlanePhiOffset(i+1)
-            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 2] + p_geomSvc->getPlaneWOffset(i+1) 
-	    << std::setw(10) << std::setiosflags(std::ios::right) << evalHist[i]->GetRMS() << std::endl;   
+      fout1 << std::setw(20) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 0] + p_geomSvc->getPlaneZOffset(i+1) 
+            << std::setw(20) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 1] + p_geomSvc->getPlanePhiOffset(i+1)
+            << std::setw(20) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 2] + p_geomSvc->getPlaneWOffset(i+1) 
+	    << std::setw(20) << std::setiosflags(std::ios::right) << evalHist[i]->GetRMS() << std::endl;   
 
-      fout2 << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 0] 
-            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 1] 
-            << std::setw(10) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 2] 
-	    << std::setw(10) << std::setiosflags(std::ios::right) << evalHist[i]->GetMean() 
-	    << std::setw(10) << std::setiosflags(std::ios::right) << evalHist[i]->GetRMS() << std::endl;   
+      fout2 << std::setw(20) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 0] 
+            << std::setw(20) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 1] 
+            << std::setw(20) << std::setiosflags(std::ios::right) << par_align[i*NPARPLAN + 2] 
+	    << std::setw(20) << std::setiosflags(std::ios::right) << evalHist[i]->GetMean() 
+	    << std::setw(20) << std::setiosflags(std::ios::right) << evalHist[i]->GetRMS() << std::endl;   
     }
 
   fout1.close();
