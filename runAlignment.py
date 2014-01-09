@@ -50,7 +50,7 @@ def prepareConf(log_prev, conf):
     for index, onoff in enumerate(controls):
         fout.write(str(index+1)+'  '+str(onoff)+'\n')
         if onoff == 1:
-            nActivated++
+            nActivated = nActivated + 1
     fout.close()
 
     return nActivated
