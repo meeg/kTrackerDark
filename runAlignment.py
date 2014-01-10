@@ -96,7 +96,7 @@ for i in range(offset, nCycle+1):
     runCmd('rm '+alignFile)
 
     # chamber alignment based on millepede
-    if prepareConf('increament.log_'+str(i), 'mille.conf') == 0:
+    if prepareConf('increament.log_'+str(i-1), 'mille.conf') == 0:
         print 'Convergence achieved!! Will exit ...'
         break
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
