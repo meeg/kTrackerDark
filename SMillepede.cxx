@@ -306,9 +306,9 @@ void SMillepede::initMillepede(std::string configFileName)
 	  if(onoff == 0) 
 	    {
 	      Log("Turning off detectorID = " << detectorID);
-	      err_z[detectorID-1] = 0.;
-	      err_phi[detectorID-1] = 0.;
-	      err_w[detectorID-1] = 0.;
+	      err_z[detectorID-1] = err_z[detectorID-1]/100.;
+	      err_phi[detectorID-1] = err_phi[detectorID-1]/100.;
+	      err_w[detectorID-1] = err_w[detectorID-1]/100.;
 	    }
 	}
     }

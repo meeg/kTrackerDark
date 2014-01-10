@@ -10,6 +10,8 @@ def runCmd(cmd):
     os.system(cmd)
 
 def prepareConf(log_prev, conf):
+    print 'Generating configuration file for millepede according to '+log_prev
+
     # read previous log and decide whether to turn on/off a detector alignment
     controls = []
     if os.path.isfile(log_prev):
@@ -92,6 +94,7 @@ for i in range(offset, nCycle+1):
     runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
 
     # clean up space
+    runCmd('rm log_'+str(runID)+'_[1-'+str(nJobs)+']')
     runCmd('rm '+recFile_initial+'_[1-'+str(nJobs)+'].root')
     runCmd('rm '+alignFile)
 
@@ -102,7 +105,7 @@ for i in range(offset, nCycle+1):
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
     runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
     runCmd('cp align_mille_'+str(i)+'.txt align_mille.txt')
-    runCmd('cp mille.conf mille.conf_'+str(i))
+    runCmd('mv mille.conf mille.conf_'+str(i))
     
     # hodoscope alignment
     runCmd('./hodoAlign '+recFile_initial+'.root alignment_hodo_'+str(i)+'.txt')
