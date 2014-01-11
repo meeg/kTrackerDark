@@ -16,8 +16,13 @@ suffix1 = sys.argv[3]
 suffix2 = sys.argv[4]
 
 ## Read in run list
-fin = open(sys.argv[2], 'r')
-schemas = [line.strip() for line in fin.readlines()]
+if os.path.isfile(runlist): 
+    fin = open(sys.argv[2], 'r')
+    schemas = [line.strip() for line in fin.readlines()]
+    fin.close()
+else:
+    runlist = raw_input('Input the run list separated by space: ')
+    schemas = [word.strip() for word in runlist.strip().split()]
 
 ## Decide how many jobs should be run at the same time
 nJobsMax = 6
@@ -32,7 +37,11 @@ while nSubmitted < len(schemas):
     print(sys.argv[1]+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
     for i in range(nRunning, nJobsMax):
         ## make the actual command
-        cmd = './'+exe+' run_'+schemas[nSubmitted]+'_'+suffix1+'.root run_'+schemas[nSubmitted]+'_'+suffix2+'.root > log_'+exe+'_'+schemas[nSubmitted]+' &'
+        inputFile = 'run_'+schemas[nSubmitted]+'_'+suffix1+'.root'
+        outputFile = 'run_'+schemas[nSubmitted]+'_'+suffix2+'.root'
+        logFile = 'log_'+exe+'_'+schemas[nSubmitted]
+        cmd = './%s %s %s > %s &' % (exe, inputFile, outputFile, logFile)
+        
         runCmd(cmd)
 	nSubmitted = nSubmitted + 1
         
