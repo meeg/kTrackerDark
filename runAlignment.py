@@ -52,7 +52,7 @@ def prepareConf(log_prev, conf):
     for index, onoff in enumerate(controls):
         fout.write(str(index+1)+'  '+str(onoff)+'\n')
         if onoff == 1:
-            nActivated = nActivated + 1
+            nActivated += 1
     fout.close()
 
     return nActivated
@@ -99,7 +99,10 @@ for i in range(offset, nCycle+1):
     runCmd('rm '+alignFile)
 
     # chamber alignment based on millepede
-    if prepareConf('increament.log_'+str(i-1), 'mille.conf') == 0:
+    nActivated = prepareConf('increament.log_'+str(i-1), 'mille.conf')
+    if nActivated != 0:
+        print nActivated, 'detectors are still on ...'
+    else:
         print 'Convergence achieved!! Will exit ...'
         break
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
