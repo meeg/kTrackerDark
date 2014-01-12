@@ -41,7 +41,7 @@ while nSubmitted < len(schemas):
         outputFile = 'run_'+schemas[nSubmitted]+'_'+suffix2+'.root'
         logFile = 'log_'+exe+'_'+schemas[nSubmitted]
         cmd = './%s %s %s > %s &' % (exe, inputFile, outputFile, logFile)
-        
+
         runCmd(cmd)
 	nSubmitted = nSubmitted + 1
         
@@ -51,6 +51,7 @@ while nSubmitted < len(schemas):
     nMinutes = nMinutes + 1.
 
 ## Only when all jobs are finished should the script quit
+nRunning = int(os.popen('pgrep '+exe+' | wc -l').read().strip())
 while nRunning != 0:
     time.sleep(30)
     nMinutes = nMinutes + 0.5
