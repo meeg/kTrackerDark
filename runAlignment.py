@@ -57,6 +57,7 @@ def prepareConf(log_prev, conf):
 
     return nActivated
 
+## command line control
 runID = sys.argv[1]
 nCycle = int(sys.argv[2])
 if len(sys.argv) == 4:
@@ -64,6 +65,7 @@ if len(sys.argv) == 4:
 else:
     offset = 1
 
+## Key performance knob
 nEvtMax = 100000
 nJobs = 5
 
@@ -85,12 +87,12 @@ for i in range(offset, nCycle+1):
     
     # check if all jobs are done running
     nMinutes = 4
-    while int(os.popen('ps | grep kFastTracking | wc -l').read().strip()) != 0:
+    while int(os.popen('pgrep -u %s -g %d kFastTracking | wc -l' % (os.environ['USER'], os.getpgrp())).read().strip()) != 1:
         nMinutes = nMinutes+1
         print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
         time.sleep(60)
     
-    # combine the outputs
+    # combine the outputsxw
     runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
 
     # clean up space

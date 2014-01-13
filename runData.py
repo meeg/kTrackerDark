@@ -11,35 +11,40 @@ def runCmd(cmd):
 
 ## command line parser
 exe = sys.argv[1]
-runlist = sys.argv[2]
-suffix1 = sys.argv[3]
-suffix2 = sys.argv[4]
-
-## Read in run list
-if os.path.isfile(runlist): 
-    fin = open(sys.argv[2], 'r')
-    schemas = [line.strip() for line in fin.readlines()]
-    fin.close()
-else:
-    runlist = raw_input('Input the run list separated by space: ')
-    schemas = [word.strip() for word in runlist.strip().split()]
+suffix1 = sys.argv[2]
+suffix2 = sys.argv[3]
+runlist = 'runlist.txt'
+if len(sys.argv) > 4:
+    runlist = sys.argv[4]
 
 ## Decide how many jobs should be run at the same time
 nJobsMax = 6
 if len(sys.argv) > 5:
     nJobsMax = int(sys.argv[5])
 
+## get the username
+username = os.environ['USER']
+
+## Read in run list
+if os.path.isfile(runlist): 
+    fin = open(runlist, 'r')
+    schemas = [line.strip() for line in fin.readlines()]
+    fin.close()
+else:
+    runlist = raw_input('Input the run list separated by space: ')
+    schemas = [word.strip() for word in runlist.strip().split()]
+
 ## Check the active job list
 nSubmitted = 0
 nMinutes = 0.
 while nSubmitted < len(schemas):
-    nRunning = int(os.popen('pgrep '+exe+' | wc -l').read().strip())
-    print(sys.argv[1]+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
+    # control the total number of running programs, no matter it's from this thread or nor
+    nRunning = int(os.popen('pgrep -u %s %s | wc -l' % (username, exe)).read().strip())
     for i in range(nRunning, nJobsMax):
         ## make the actual command
-        inputFile = 'run_'+schemas[nSubmitted]+'_'+suffix1+'.root'
-        outputFile = 'run_'+schemas[nSubmitted]+'_'+suffix2+'.root'
-        logFile = 'log_'+exe+'_'+schemas[nSubmitted]
+        inputFile = 'run_%s_%s.root' % (schemas[nSubmitted], suffix1)
+        outputFile = 'run_%s_%s.root' % (schemas[nSubmitted], suffix2)
+        logFile = 'log_%s_%s' % (schemas[nSubmitted], suffix2)
         cmd = './%s %s %s > %s &' % (exe, inputFile, outputFile, logFile)
 
         runCmd(cmd)
@@ -50,11 +55,11 @@ while nSubmitted < len(schemas):
     time.sleep(60)
     nMinutes = nMinutes + 1.
 
-## Only when all jobs are finished should the script quit
-nRunning = int(os.popen('pgrep '+exe+' | wc -l').read().strip())
+## Only when all jobs are finished should the script quit, depanding on the jobs started by this script only
+nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip()) - 1
 while nRunning != 0:
     time.sleep(30)
     nMinutes = nMinutes + 0.5
 
-    nRunning = int(os.popen('pgrep '+exe+' | wc -l').read().strip())
+    nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip()) - 1
     print(exe+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
