@@ -186,23 +186,14 @@ int main(int argc, char *argv[])
       
       cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID();
 
-#ifndef _ENABLE_KF
-      int nTracks = tracklets->GetEntries();
-#else    
       int nTracks = recEvent->getNTracks();
-#endif
       vector<SRecTrack> tracks;
       vector<int> muplus, muminus;
       tracks.clear();
       muplus.clear(); muminus.clear();
       for(int j = 0; j < nTracks; j++)
 	{
-#ifndef _ENABLE_KF
-	  Tracklet* tracklet = (Tracklet*)tracklets->At(j);
-	  SRecTrack _track = tracklet->getSRecTrack();
-#else
 	  SRecTrack& _track = recEvent->getTrack(j);
-#endif
 	 
 	  if(_track.getCharge() > 0)
 	    {

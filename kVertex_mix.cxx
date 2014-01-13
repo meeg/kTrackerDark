@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
 #endif
   SRecEvent* recEvent = new SRecEvent();
 
-  TFile *dataFile = new TFile(argv[1], "READ");
-  TTree *dataTree = (TTree *)dataFile->Get("save");
+  TFile* dataFile = new TFile(argv[1], "READ");
+  TTree* dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
   dataTree->SetBranchAddress("recEvent", &recEvent);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
   for(int i = 0; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
-      rawEvent->reIndex("oah");
+      rawEvent->reIndex("oa");
       
       int nTracks = recEvent->getNTracks();
       for(int j = 0; j < nTracks; j++)
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
       //Z separation constrain
       dz_single = ptracks[id1].getZVertex() - mtracks[id2].getZVertex();
       z_single = (ptracks[id1].getZVertex() + mtracks[id2].getZVertex())/2.;
-      if(fabs(dz_single) > 50.) continue;
+      //if(fabs(dz_single) > 50.) continue;
 
       vtxfit->init();
       vtxfit->addTrack(0, ptracks[id1]);
