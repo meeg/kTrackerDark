@@ -40,6 +40,7 @@ nMinutes = 0.
 while nSubmitted < len(schemas):
     # control the total number of running programs, no matter it's from this thread or nor
     nRunning = int(os.popen('pgrep -u %s %s | wc -l' % (username, exe)).read().strip())
+    print(exe+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
     for i in range(nRunning, nJobsMax):
         ## make the actual command
         inputFile = 'run_%s_%s.root' % (schemas[nSubmitted], suffix1)
