@@ -82,14 +82,14 @@ for i in range(offset, nCycle+1):
     # divide the task to nJobs jobs and submit them all to background
     nEvents_single = nEvtMax/nJobs
     for j in range(nJobs):
-        runCmd('./kFastTracking '+alignFile+' '+recFile_initial+'_'+str(j+1)+'.root '+str(j*nEvents_single)+' '+str(nEvents_single)+' > log_'+runID+'_'+str(j+1)+' &')
+    	runCmd('./kFastTracking %s %s_%d.root %d %d > log_%s_%d &' % (alignFile, recFile_initial, j+1, j*nEvents_single, nEvents_single, j+1)
     time.sleep(300)
     
     # check if all jobs are done running
     nMinutes = 4
-    while int(os.popen('pgrep -u %s -g %d kFastTracking | wc -l' % (os.environ['USER'], os.getpgrp())).read().strip()) != 1:
+    while int(os.popen('pgrep -u %s -g %d kFastTracking | wc -l' % (os.environ['USER'], os.getpgrp())).read().strip()) != 0:
         nMinutes = nMinutes+1
-        sys.stdout.write(str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...')
+        sys.stdout.write('\r'+str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...')
         sys.stdout.flush()
         time.sleep(60)
     sys.stdout.write('\n')
