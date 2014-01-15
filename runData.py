@@ -57,10 +57,10 @@ while nSubmitted < len(schemas):
     nMinutes = nMinutes + 1.
 
 ## Only when all jobs are finished should the script quit, depanding on the jobs started by this script only
-nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip()) - 1
+nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip())
 while nRunning != 0:
     time.sleep(30)
     nMinutes = nMinutes + 0.5
 
-    nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip()) - 1
+    nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip())
     print(exe+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )

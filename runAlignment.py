@@ -89,8 +89,10 @@ for i in range(offset, nCycle+1):
     nMinutes = 4
     while int(os.popen('pgrep -u %s -g %d kFastTracking | wc -l' % (os.environ['USER'], os.getpgrp())).read().strip()) != 1:
         nMinutes = nMinutes+1
-        print str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...'
+        sys.stdout.write(str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...')
+        sys.stdout.flush()
         time.sleep(60)
+    sys.stdout.write('\n')
     
     # combine the outputsxw
     runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
@@ -118,11 +120,11 @@ for i in range(offset, nCycle+1):
     runCmd('cp alignment_hodo_'+str(i)+'.txt alignment_hodo.txt')
 
     # hodoscope alignment
-    runCmd('./propAlign '+recFile_initial+'.root alignment_prop_'+str(i)+'.txt')
-    runCmd('mv prop_eval.root prop_eval_'+str(i)+'.root')
-    runCmd('cp alignment_prop_'+str(i)+'.txt alignment_prop.txt')
+    #runCmd('./propAlign '+recFile_initial+'.root alignment_prop_'+str(i)+'.txt')
+    #runCmd('mv prop_eval.root prop_eval_'+str(i)+'.root')
+    #runCmd('cp alignment_prop_'+str(i)+'.txt alignment_prop.txt')
     
     # chamber calibration
-    runCmd('./makeRTProfile '+recFile_initial+'.root calibration_'+str(i)+'.txt')
-    runCmd('mv cali_eval.root cali_eval_'+str(i)+'.root')
-    runCmd('cp calibration_'+str(i)+'.txt calibration.txt')
+    #runCmd('./makeRTProfile '+recFile_initial+'.root calibration_'+str(i)+'.txt')
+    #runCmd('mv cali_eval.root cali_eval_'+str(i)+'.root')
+    #runCmd('cp calibration_'+str(i)+'.txt calibration.txt')

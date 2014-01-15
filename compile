@@ -4,15 +4,28 @@ import os
 import sys
 import re
 
-# compile with ROOT and BOOST
+# compile with ROOT, Geant4, MySQL and BOOST
 def compile(filename):
+	## ROOT part
     cflags = os.popen('root-config --cflags').readline().strip()
     ldflags = os.popen('root-config --ldflags --libs').readline().strip()
 
-    cflags = cflags + ' -I'+os.environ["BOOST"]
+    ## Geant part
+    cflags = cflags + ' ' + os.popen('geant4-config --cflags').readline().strip()
+    ldflags = ldflags + ' ' + os.popen('geant4-config --libs').readline().strip()
+
+    ## BOOST part
+    cflags = cflags + ' -I' + os.environ['BOOST']
+
+    ## MySQL part
+    cflags = cflags + ' -I' + os.environ['MYSQL_INCLUDE']
+    ldflags = ldflags + ' -lz -L'+os.environ['MYSQL_LIB'] + ' -lmysqlclient'
+
+    ## kTracker part
+    ldflags = ldflags + ' -L./ -lkTracker'
 
     os.system('g++ '+cflags+' -c '+filename+'.cxx')
-    os.system('g++ -o '+filename+' '+filename+'.o '+ldflags+' -L./ -lkTracker')
+    os.system('g++ -o '+filename+' '+filename+'.o '+ldflags)
     os.system('rm '+filename+'.o')
 
 # make sure it exists
