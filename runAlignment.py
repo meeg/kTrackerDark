@@ -82,7 +82,7 @@ for i in range(offset, nCycle+1):
     # divide the task to nJobs jobs and submit them all to background
     nEvents_single = nEvtMax/nJobs
     for j in range(nJobs):
-    	runCmd('./kFastTracking %s %s_%d.root %d %d > log_%s_%d &' % (alignFile, recFile_initial, j+1, j*nEvents_single, nEvents_single, j+1)
+    	runCmd('./kFastTracking %s %s_%d.root %d %d > log_%s_%d &' % (alignFile, recFile_initial, j+1, j*nEvents_single, nEvents_single, j+1))
     time.sleep(300)
     
     # check if all jobs are done running
