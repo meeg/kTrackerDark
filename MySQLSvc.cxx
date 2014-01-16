@@ -212,6 +212,19 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       h.driftDistance = getDouble(4);
       h.hodoMask = getInt(7, 1);
       
+      if(p_geomSvc->isCalibrationLoaded())
+	{
+	  if(h.detectorID >= 1 && h.detectorID <= 24)
+	    {
+	      h.inTime = p_geomSvc->isInTime(h.detectorID, h.tdcTime) ? 1 : 0;
+	      if(h.inTime > 0) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
+	    }
+	  else if(h.detectorID > 40)
+	    {
+	      h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
+	    }
+	}
+       
       rawEvent->insertHit(h);
     }
   rawEvent->reIndex();

@@ -30,11 +30,13 @@ int main(int argc, char *argv[])
   //Initialize geometry service
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init(GEOMETRY_VERSION);
+  geometrySvc->loadCalibration("calibration.txt");
 
+  //Initialize MySQL service and connect to database, e906-db1 by default
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->connect();
   p_mysqlSvc->setWorkingSchema(argv[1]);
-  p_mysqlSvc->bookOutputTables();
+  //p_mysqlSvc->bookOutputTables();
 
   //Data output definition
   SRawEvent* rawEvent = new SRawEvent();
@@ -52,23 +54,19 @@ int main(int argc, char *argv[])
 
   //Initialize track finder
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
-  VertexFit*          vtxfinder  = new VertexFit();
+  VertexFit* vtxfinder  = new VertexFit();
 
   //Start endless tracking, until we see the end run signal
-  bool stopRun = false;
-  while(!stopRun)
+  int nEvents = p_mysqlSvc->getNEvents();
+  for(int i = 0; i < nEvents; ++i) 
     {
       //Read data
-      if(!p_mysqlSvc->getRandomEvt(rawEvent)) continue;
+      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
 
       //Do the tracking
-      cout << "Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << " with " << rawEvent->getNHitsAll() << " hits: " << endl;
+      cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << " with " << rawEvent->getNHitsAll() << " hits: ";
       rawEvent->reIndex("oa");
-      if(!fastfinder->setRawEvent(rawEvent))
-	{
-	  cout << "Tracking failed!" << endl;
-  	  continue;
-	}
+      if(!fastfinder->setRawEvent(rawEvent)) continue;
 
       //Output
       arr_tracklets.Clear();
@@ -90,14 +88,11 @@ int main(int argc, char *argv[])
   
       if(nTracklets > 0)
 	{
-	  p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
+	  //p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
   	  saveTree->Fill();
 	}	 
       rawEvent->clear();
       recEvent->clear();
-
-      //Get stop run signal
-      stopRun = p_mysqlSvc->isRunStopped();
     }
 
   saveFile->cd();

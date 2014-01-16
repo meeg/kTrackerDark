@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	  h.pos = geometrySvc->getMeasurement(h.detectorID, h.elementID);
 	  h.hodoMask = 1;
 
-	  if(h.detectorID <= 24 && h.inTime > 0 && geometrySvc->calibrationLoaded())
+	  if(h.detectorID <= 24 && h.inTime > 0 && geometrySvc->isCalibrationLoaded())
 	    {
 	      h.driftDistance = geometrySvc->getDriftDistance(h.detectorID, h.tdcTime);
 	    }

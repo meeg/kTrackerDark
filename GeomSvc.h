@@ -86,7 +86,7 @@ public:
   void get2DBoxSize(int planeID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max);
   int getExpElementID(int planeID, double pos_exp);
 
-  bool calibrationLoaded() { return calibration_loaded; }
+  bool isCalibrationLoaded() { return calibration_loaded; }
   double getDriftDistance(int planeID, double tdcTime);
   bool isInTime(int planeID, double tdcTime);
   TSpline3* getRTCurve(int planeID) { return rtprofile[planeID-1]; }

@@ -457,8 +457,14 @@ double GeomSvc::getDriftDistance(int planeID, double tdcTime)
   if(!calibration_loaded) return 0.;
   if(planeID <= 24)
     {
-      if(tdcTime < tmin[planeID-1]) return 0.5*cellWidth[planeID];
-      if(tdcTime > tmax[planeID-1]) return 0.;
+      if(tdcTime < tmin[planeID-1]) 
+	{
+	  return 0.5*cellWidth[planeID];
+	}
+      else if(tdcTime > tmax[planeID-1])
+	{
+  	  return 0.;
+	}
       return rtprofile[planeID-1]->Eval(tdcTime);
     }
   
