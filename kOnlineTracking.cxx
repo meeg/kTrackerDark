@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   TClonesArray* tracklets = new TClonesArray("Tracklet");
   TClonesArray& arr_tracklets = *tracklets;
 
-  TFile* saveFile = new TFile(argv[2], "READ");
+  TFile* saveFile = new TFile(argv[2], "recreate");
   TTree* saveTree = new TTree("save", "save");
 
   saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
