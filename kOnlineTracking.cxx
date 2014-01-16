@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
   //p_mysqlSvc->bookOutputTables();
 
   //Data output definition
+  int nTracklets;
   SRawEvent* rawEvent = new SRawEvent();
   SRecEvent* recEvent = new SRecEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
   TFile* saveFile = new TFile(argv[2], "recreate");
   TTree* saveTree = new TTree("save", "save");
 
+  saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
   saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
   saveTree->Branch("recEvent", &recEvent, 256000, 99);
   saveTree->Branch("tracklets", &tracklets, 256000, 99);
@@ -56,17 +58,26 @@ int main(int argc, char *argv[])
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
   VertexFit* vtxfinder  = new VertexFit();
 
-  //Start endless tracking, until we see the end run signal
+  //Quality control numbers and plots
+  int nEvents_loaded = 0;
+  int nEvents_tracked = 0;
+  int nEvents_dimuon = 0;
+  
+  //Start tracking
   int nEvents = p_mysqlSvc->getNEvents();
+  cout << "There are " << nEvents << " events in " << argv[1] << endl;
   for(int i = 0; i < nEvents; ++i) 
     {
       //Read data
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
+      ++nEvents_loaded;
 
       //Do the tracking
-      cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << " with " << rawEvent->getNHitsAll() << " hits: ";
+      cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished. ";
+      cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair.";
       rawEvent->reIndex("oa");
       if(!fastfinder->setRawEvent(rawEvent)) continue;
+      ++nEvents_tracked;
 
       //Output
       arr_tracklets.Clear();
@@ -74,17 +85,23 @@ int main(int argc, char *argv[])
       if(rec_tracklets.empty()) continue;
 
       recEvent->setRawEvent(rawEvent);
-      int nTracklets = 0;
+      nTracklets = 0;
+      int nPos = 0;
+      int nNeg = 0;
       for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
 	{
-	  iter->print();
+	  //iter->print();
 	  iter->calcChisq();
 	  new(arr_tracklets[nTracklets++]) Tracklet(*iter);
 
 	  SRecTrack recTrack = iter->getSRecTrack();
 	  recTrack.setZVertex(vtxfinder->findSingleMuonVertex(recTrack));
 	  recEvent->insertTrack(recTrack);
+
+	  iter->getCharge() > 0 ? ++nPos : ++nNeg;
 	}
+
+      if(nPos > 0 && nNeg > 0) ++nEvents_dimuon;
   
       if(nTracklets > 0)
 	{
@@ -94,6 +111,10 @@ int main(int argc, char *argv[])
       rawEvent->clear();
       recEvent->clear();
     }
+  cout << endl;
+  cout << "kOnlineTracking ended successfully." << endl;
+  cout << "In total " << nEvents_loaded << " events loaded from " << argv[1] << ": " << nEvents_tracked << " events have at least one track, ";
+  cout << nEvents_dimuon << " events have at least one dimuon pair." << endl;
 
   saveFile->cd();
   saveTree->Write();
