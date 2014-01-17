@@ -439,7 +439,7 @@ void MySQLSvc::bookOutputTables()
 	  "xB          DOUBLE, "
 	  "xT          DOUBLE, "
 	  "trackSeparation DOUBLE,"
-	  "PRIMARY KEY(runID, dimiunID, eventID))");
+	  "PRIMARY KEY(runID, dimuonID, eventID))");
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else
