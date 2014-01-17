@@ -64,7 +64,8 @@ int main(int argc, char *argv[])
   for(int i = offset; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
-      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID();
+      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
+      cout << (i - offset + 1)*100/(nEvtMax - offset) << "% finished .. ";
 
       vtxfit->setRecEvent(recEvent);
 

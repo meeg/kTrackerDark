@@ -56,13 +56,14 @@ int main(int argc, char *argv[])
 
   //Initialize track finder
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
-  VertexFit* vtxfinder  = new VertexFit();
+  VertexFit* vtxfit  = new VertexFit();
 
   //Quality control numbers and plots
   int nEvents_loaded = 0;
   int nEvents_tracked = 0;
   int nEvents_dimuon = 0;
-  
+  int nEvents_dimuon_real = 0;
+
   //Start tracking
   int nEvents = p_mysqlSvc->getNEvents();
   cout << "There are " << nEvents << " events in " << argv[1] << endl;
@@ -74,7 +75,9 @@ int main(int argc, char *argv[])
 
       //Do the tracking
       cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished. ";
-      cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair.";
+      cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
+      cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
+
       rawEvent->reIndex("oa");
       if(!fastfinder->setRawEvent(rawEvent)) continue;
       ++nEvents_tracked;
@@ -95,14 +98,16 @@ int main(int argc, char *argv[])
 	  new(arr_tracklets[nTracklets++]) Tracklet(*iter);
 
 	  SRecTrack recTrack = iter->getSRecTrack();
-	  recTrack.setZVertex(vtxfinder->findSingleMuonVertex(recTrack));
 	  recEvent->insertTrack(recTrack);
 
 	  iter->getCharge() > 0 ? ++nPos : ++nNeg;
 	}
-
+      recEvent->reIndex();
       if(nPos > 0 && nNeg > 0) ++nEvents_dimuon;
-  
+ 
+      //Perform dimuon vertex fit 
+      if(vtxfit->setRecEvent(recEvent)) ++nEvents_dimuon_real;
+
       if(nTracklets > 0)
 	{
 	  //p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
@@ -114,14 +119,15 @@ int main(int argc, char *argv[])
   cout << endl;
   cout << "kOnlineTracking ended successfully." << endl;
   cout << "In total " << nEvents_loaded << " events loaded from " << argv[1] << ": " << nEvents_tracked << " events have at least one track, ";
-  cout << nEvents_dimuon << " events have at least one dimuon pair." << endl;
+  cout << nEvents_dimuon << " events have at least one dimuon pair, ";
+  cout << nEvents_dimuon_real << " events have successful dimuon vertex fit." << endl;
 
   saveFile->cd();
   saveTree->Write();
   saveFile->Close();
 
   delete fastfinder;
-  delete vtxfinder;
+  delete vtxfit;
 
   return 1;
 }
