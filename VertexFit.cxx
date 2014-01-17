@@ -69,16 +69,16 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 
   for(int i = 0; i < nPos; ++i)
     {
-      SRecTrack track_pos = recEvent->getTrack(i);
+      SRecTrack track_pos = recEvent->getTrack(idx_pos[i]);
       if(!track_pos.isValid()) continue;
       for(int j = 0; j < nNeg; ++j)
 	{
-	  SRecTrack track_neg = recEvent->getTrack(j);
+	  SRecTrack track_neg = recEvent->getTrack(idx_neg[j]);
 	  if(!track_neg.isValid()) continue;
 
 	  SRecDimuon dimuon;
-	  dimuon.trackID_pos = i;
-	  dimuon.trackID_neg = j;
+	  dimuon.trackID_pos = idx_pos[i];
+	  dimuon.trackID_neg = idx_neg[j];
 
 	  dimuon.p_pos_single = track_pos.getMomentumVertex();
 	  dimuon.p_neg_single = track_neg.getMomentumVertex();

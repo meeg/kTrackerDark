@@ -269,7 +269,7 @@ void SRecDimuon::calcVariables()
   p_sum.Boost(-bv_cms);
   xF = 2.*p_sum.Pz()/TMath::Sqrt(s);
   Double_t tau = p_sum.M2()/s;
-  Double_t y = 0.5*TMath::Log(p_sum.E() + p_sum.Pz())/(p_sum.E() - p_sum.Pz());
+  Double_t y = 0.5*TMath::Log((p_sum.E() + p_sum.Pz())/(p_sum.E() - p_sum.Pz()));
 
   x1 = TMath::Sqrt(tau)*TMath::Exp(y);
   x2 = TMath::Sqrt(tau)*TMath::Exp(-y);
