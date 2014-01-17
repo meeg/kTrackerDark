@@ -64,6 +64,9 @@ public:
       _tolerance = tolerance; 
     }
 
+  ///Set the SRecEvent, main external call the use vertex fit
+  bool setRecEvent(SRecEvent* recEvent);
+
   ///Initialize and reset
   void init();
   void addHypothesis(double z, double sigz = 50.) { z_start.push_back(z); sig_z_start.push_back(sigz); }
@@ -73,10 +76,9 @@ public:
   void addTrack(int index, SRecTrack& _track);
   void addTrack(int index, KalmanTrack& _track);
   void addTrack(int index, TrkPar& _trkpar);
-  void addTrack(int index, Tracklet& _trkpar);
 
-  ///Main external call to find the vertex
-  int processOneEvent();
+  ///After setting both tracks and hypothesis, start the iteration
+  int processOnePair();
 
   ///Find the primary vertex
   int findVertex();

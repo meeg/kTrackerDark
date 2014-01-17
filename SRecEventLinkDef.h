@@ -5,6 +5,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class SRecTrack+;
+#pragma link C++ class SRecDimuon+;
 #pragma link C++ class SRecEvent+;
 
 #endif

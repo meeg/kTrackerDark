@@ -73,12 +73,12 @@ bool trackOK(SRecTrack& _track)
 int main(int argc, char *argv[])
 {
   //Initialize geometry service
-  Log("Initializing geometry service ... ");
+  LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init(GEOMETRY_VERSION);
 
   //Retrieve the raw event
-  Log("Retrieving the event stored in ROOT file ... ");
+  LogInfo("Retrieving the event stored in ROOT file ... ");
 #ifdef MC_MODE
   SRawMCEvent* rawEvent = new SRawMCEvent();
 #else
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
   saveTree->Branch("x2_single", &x2_single, "x2_single/D");
   
   //Initialize track finder
-  Log("Initializing the track finder and kalman filter ... ");
+  LogInfo("Initializing the track finder and kalman filter ... ");
   VertexFit* vtxfit = new VertexFit();
 
   //Load track bank of mu+ and mu-
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
       vtxfit->addTrack(1, mtracks[id2]);
 
       vtxfit->addHypothesis(z_single, 50);
-      vtxfit->processOneEvent();
+      vtxfit->processOnePair();
 
       z_pair = vtxfit->getVertexZ0();
       chisq_pair = vtxfit->getKFChisq();

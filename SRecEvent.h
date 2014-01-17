@@ -5,6 +5,8 @@ Definition of the class SRecEvent and SRecTrack. SRecTrack is the  final track s
 Contains nothing but ROOT classes, light-weighted and can be used as input for physics analysis. SRecEvent serves
 as a container of SRecTrack
 
+Added SRecDimuon, containing the dimuon info
+
 Author: Kun Liu, liuk@fnal.gov
 Created: 01-21-2013
 */
@@ -25,7 +27,7 @@ Created: 01-21-2013
 #include <TObject.h>
 #include <TROOT.h>
 #include <TMatrixD.h>
-//#include <TLorentzVector.h>
+#include <TLorentzVector.h>
 
 #include "SRawEvent.h"
 
@@ -83,12 +85,16 @@ public:
   bool isVertexValid();
   void setZVertex(Double_t z);
 
-  //TLorentzVector getMomentumVertex() { return TLorentzVector(0,0,0,0); }
+  TLorentzVector getMomentumVertex();
   Double_t getMomentumVertex(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fStateVertex, px, py, pz); }
   Double_t getZVertex() { return fVtxPar[2]; }
   Double_t getRVertex() { return sqrt(fVtxPar[0]*fVtxPar[0] + fVtxPar[1]*fVtxPar[1]); }
+  TVector3 getVertex() { return fVtxPar; }
   Double_t getVtxPar(Int_t i) { return fVtxPar[i]; }
   Double_t getChisqVertex() { return fChisqVertex; }
+
+  //Overall track quality cut
+  bool isValid();
 
   ///Debugging output
   void print();
@@ -114,6 +120,43 @@ private:
   ClassDef(SRecTrack, 2)
 };
 
+class SRecDimuon: public TObject
+{
+public:
+  void calcVariables();
+
+  //Index of muon track used in host SRecEvent
+  Int_t trackID_pos;
+  Int_t trackID_neg;
+
+  //4-momentum of the muon tracks after vertex fit
+  TLorentzVector p_pos;
+  TLorentzVector p_neg;
+
+  //4-momentum of the muon tracks before vertex fit
+  TLorentzVector p_pos_single;
+  TLorentzVector p_neg_single;
+
+  //3-vector vertex position
+  TVector3 vtx;
+  TVector3 vtx_pos;
+  TVector3 vtx_neg;
+
+  //Kinematic variables
+  Double_t mass;
+  Double_t pT;
+  Double_t xF;
+  Double_t x1;
+  Double_t x2;
+  Double_t costh;
+
+  //Vertex fit chisqs
+  Double_t chisq_kf;
+  Double_t chisq_vx;
+
+  ClassDef(SRecDimuon, 1)
+};
+
 class SRecEvent: public TObject
 {
 public:
@@ -135,12 +178,16 @@ public:
   ///Get track IDs
   std::vector<Int_t> getChargedTrackIDs(Int_t charge);
 
+  ///Get dimuons
+  Int_t getNDimuons() { return fDimuons.size(); }
+  SRecDimuon getDimuon(Int_t i) { return fDimuons[i]; }
+
   ///Insert tracks
   void insertTrack(SRecTrack trk) { fAllTracks.push_back(trk); }
   void reIndex() { sort(fAllTracks.begin(), fAllTracks.end()); } 
 
-  ///Output to MySQL database
-  void outputMySQL(); 
+  ///Insert dimuon
+  void insertDimuon(SRecDimuon dimuon) { fDimuons.push_back(dimuon); }
 
   ///Clear everything
   void clear();
@@ -154,10 +201,13 @@ private:
   ///Container of SRecTrack
   std::vector<SRecTrack> fAllTracks;
 
+  ///Dimuons reconstructed
+  std::vector<SRecDimuon> fDimuons;
+
   ///Mapping of hitID to local container ID in SRawEvent
   std::map<Int_t, Int_t> fLocalID;
 
-  ClassDef(SRecEvent, 1)
+  ClassDef(SRecEvent, 2)
 };
 
 #endif

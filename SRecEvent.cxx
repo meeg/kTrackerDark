@@ -17,6 +17,7 @@ Created: 01-21-2013
 #include "KalmanFilter.h"
 
 ClassImp(SRecTrack)
+ClassImp(SRecDimuon)
 ClassImp(SRecEvent)
 
 SRecTrack::SRecTrack()
@@ -95,8 +96,8 @@ void SRecTrack::setZVertex(Double_t z)
 bool SRecTrack::isVertexValid()
 {
   if(fVtxPar[2] > 480. || fVtxPar[2] < -240.) return false;
+  if(fChisqVertex > 15.) return false;
   if(getRVertex() > 10.) return false;
-  if(fChisq < 0. || fChisq > 200.) return false;
 
   return true;
 }
@@ -203,7 +204,6 @@ Double_t SRecTrack::getPosition(TMatrixD& state, Double_t& x, Double_t& y)
   return sqrt(x*x + y*y);
 }
 
-/*
 TLorentzVector SRecTrack::getMomentumVertex()
 {
   Double_t mmu = 0.10566;
@@ -214,7 +214,23 @@ TLorentzVector SRecTrack::getMomentumVertex()
 
   return TLorentzVector(px, py, pz, E);
 }
-*/
+
+bool SRecTrack::isValid()
+{
+  //Vertex valid
+  if(!isVertexValid()) return false;
+
+  //Number of hits cut
+  if(getNHits() < 12) return false;
+
+  //Total chisq, may change to cut on prob
+  if(getChisq() > 5.) return false;
+
+  //hodo and prop. tube masking
+  if(!isHodoMasked()) return false;
+
+  return true;
+}
 
 void SRecTrack::print()
 {
@@ -232,6 +248,31 @@ void SRecTrack::print()
 
   std::cout << "Momentum at vertex: " << 1./fabs(fStateVertex[0][0]) << std::endl; 
   std::cout << "Chi square at vertex: " << fChisqVertex << std::endl;
+}
+
+void SRecDimuon::calcVariables()
+{
+  Double_t mp = 0.938;
+  Double_t ebeam = 120.;
+
+  TLorentzVector p_beam(0., 0., sqrt(ebeam*ebeam - mp*mp), ebeam);
+  TLorentzVector p_target(0., 0., 0., mp);
+
+  TLorentzVector p_cms = p_beam + p_target;
+  TVector3 bv_cms = p_cms.BoostVector();
+  Double_t s = p_cms.M2();
+
+  TLorentzVector p_sum = p_pos + p_neg;
+  mass = p_sum.M();
+  pT = p_sum.Perp();
+
+  p_sum.Boost(-bv_cms);
+  xF = 2.*p_sum.Pz()/TMath::Sqrt(s);
+  Double_t tau = p_sum.M2()/s;
+  Double_t y = 0.5*TMath::Log(p_sum.E() + p_sum.Pz())/(p_sum.E() - p_sum.Pz());
+
+  x1 = TMath::Sqrt(tau)*TMath::Exp(y);
+  x2 = TMath::Sqrt(tau)*TMath::Exp(-y);
 }
 
 SRecEvent::SRecEvent()
@@ -282,13 +323,9 @@ std::vector<Int_t> SRecEvent::getChargedTrackIDs(Int_t charge)
   return trkIDs;
 }
 
-void SRecEvent::outputMySQL()
-{
-  ///Will be implemented later
-}
-
 void SRecEvent::clear()
 {
   fAllTracks.clear();
   fLocalID.clear();
+  fDimuons.clear();
 }

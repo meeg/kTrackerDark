@@ -47,6 +47,69 @@ VertexFit::~VertexFit()
 {
 }
 
+bool VertexFit::setRecEvent(SRecEvent* recEvent)
+{
+  //if the single vertex is not set, set it first
+  int nTracks = recEvent->getNTracks();
+  for(int i = 0; i < nTracks; ++i)
+    {
+      SRecTrack& recTrack = recEvent->getTrack(i);
+      if(recTrack.getChisqVertex() < 0.)
+	{
+	  recTrack.setZVertex(findSingleMuonVertex(recTrack));
+	}
+    }
+
+  std::vector<int> idx_pos = recEvent->getChargedTrackIDs(+1);
+  std::vector<int> idx_neg = recEvent->getChargedTrackIDs(-1);
+
+  int nPos = idx_pos.size();
+  int nNeg = idx_neg.size();
+  if(nPos*nNeg == 0) return false;
+
+  for(int i = 0; i < nPos; ++i)
+    {
+      SRecTrack track_pos = recEvent->getTrack(i);
+      if(!track_pos.isValid()) continue;
+      for(int j = 0; j < nNeg; ++j)
+	{
+	  SRecTrack track_neg = recEvent->getTrack(j);
+	  if(!track_neg.isValid()) continue;
+
+	  SRecDimuon dimuon;
+	  dimuon.trackID_pos = i;
+	  dimuon.trackID_neg = j;
+
+	  dimuon.p_pos_single = track_pos.getMomentumVertex();
+	  dimuon.p_neg_single = track_neg.getMomentumVertex();
+	  dimuon.vtx_pos = track_pos.getVertex();
+	  dimuon.vtx_neg = track_neg.getVertex();
+
+	  //Start prepare the vertex fit
+	  init();
+	  addTrack(0, track_pos);
+	  addTrack(1, track_neg);
+	  addHypothesis(0.5*(dimuon.vtx_pos[2] + dimuon.vtx_neg[2]), 50.);
+	  processOnePair();
+
+	  //Retrieve the results
+	  track_pos.setZVertex(getVertexZ0());
+	  track_neg.setZVertex(getVertexZ0());
+	  dimuon.p_pos = track_pos.getMomentumVertex();
+	  dimuon.p_neg = track_neg.getMomentumVertex();
+	  dimuon.chisq_kf = getKFChisq();
+	  dimuon.chisq_vx = getVXChisq();
+	  dimuon.vtx.SetXYZ(_vtxpar_curr._r[0][0], _vtxpar_curr._r[1][0], _vtxpar_curr._r[2][0]);
+	  dimuon.calcVariables();
+
+	  recEvent->insertDimuon(dimuon);
+	}
+    }
+
+  if(recEvent->getNDimuons() > 0) return true;
+  return false; 
+}
+
 void VertexFit::init()
 {
   _trkpar_curr.clear();
@@ -78,13 +141,15 @@ void VertexFit::setStartingVertex(double z_start, double sigz_start)
   _chisq_kalman = 0.;
 }
 
-int VertexFit::processOneEvent()
+int VertexFit::processOnePair()
 {
   double chisq_min = 1E6;
   int index_min = -1; 
   for(unsigned int i = 0; i < z_start.size(); i++)
     {
-      //Log("Testing starting point: " << z_start[i]);
+#ifdef _DEBUG_ON
+      LogInfo("Testing starting point: " << z_start[i]);
+#endif
 
       setStartingVertex(z_start[i], sig_z_start[i]);
       findVertex();
@@ -141,34 +206,14 @@ void VertexFit::addTrack(int index, TrkPar& _trkpar)
   _trkpar_curr.push_back(_trkpar);  
 }
 
-void VertexFit::addTrack(int index, Tracklet& _track)
-{
-  TrkPar _trkpar;
-    
-  _trkpar._z = GeomSvc::instance()->getPlanePosition(_track.hits.front().hit.detectorID);
-  _trkpar._state_kf[0][0] = _track.getCharge()*_track.invP/sqrt(1. + _track.tx*_track.tx + _track.ty*_track.ty);
-  _trkpar._state_kf[1][0] = _track.tx;
-  _trkpar._state_kf[2][0] = _track.ty;
-  _trkpar._state_kf[3][0] = _track.getExpPositionX(_trkpar._z);
-  _trkpar._state_kf[4][0] = _track.getExpPositionY(_trkpar._z);
-
-  _trkpar._covar_kf.Zero();
-  _trkpar._covar_kf[0][0] = _track.err_invP*_track.err_invP;
-  _trkpar._covar_kf[1][1] = _track.err_tx*_track.err_tx;
-  _trkpar._covar_kf[2][2] = _track.err_ty*_track.err_ty;
-  _trkpar._covar_kf[3][3] = _track.getExpPosErrorX(_trkpar._z)*_track.getExpPosErrorX(_trkpar._z);
-  _trkpar._covar_kf[4][4] = _track.getExpPosErrorY(_trkpar._z)*_track.getExpPosErrorY(_trkpar._z);
-
-  _trkpar_curr.push_back(_trkpar);
-}
-
-
 int VertexFit::findVertex()
 {
   int nIter = 0;
   for(; nIter < _max_iteration; nIter++)
     {
-      //Log("Iteration: " << nIter);
+#ifdef _DEBUG_ON
+      LogInfo("Iteration: " << nIter);
+#endif
 
       _chisq_vertex = 0.;
       _chisq_kalman = 0.;
@@ -182,9 +227,10 @@ int VertexFit::findVertex()
 	  _kmfit->setCurrTrkpar(_trkpar_curr[j]);
 	  if(!_kmfit->fit_node(_node_vertex))
 	    {
-	      //Log("Vertex fit for this track failed!");
-	      _chisq_kalman = 1E5;
-	    
+#ifdef _DEBUG_ON
+	      LogInfo("Vertex fit for this track failed!");
+#endif
+	      _chisq_kalman = 1E5;	    
 	      break;
 	    }
 	  else
@@ -196,8 +242,10 @@ int VertexFit::findVertex()
   	}
 
       ///break the iteration if the z0 converges
-      //Log("At this iteration: ");
-      //Log(_vtxpar_curr._r[2][0] << " ===  " << _node_vertex.getZ() << " : " << _chisq_kalman << " === " << _chisq_vertex << " : " << _vtxpar_curr._r[0][0] << " === " << _vtxpar_curr._r[1][0]);
+#ifdef _DEBUG_ON
+      LogInfo("At this iteration: ");
+      LogInfo(_vtxpar_curr._r[2][0] << " ===  " << _node_vertex.getZ() << " : " << _chisq_kalman << " === " << _chisq_vertex << " : " << _vtxpar_curr._r[0][0] << " === " << _vtxpar_curr._r[1][0]);
+#endif
       if(_vtxpar_curr._r[2][0] < -260. || _vtxpar_curr._r[2][0] > 700.)
 	{
 	  _chisq_kalman = 1E5;
