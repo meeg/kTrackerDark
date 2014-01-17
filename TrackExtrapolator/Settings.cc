@@ -29,7 +29,7 @@ Settings::Settings()
   fMagMultiplier = 0.;
 #else
   kMagMultiplier = 1.;
-  fMagMultiplier = 0.975;
+  fMagMultiplier = 0.926;
 #endif
   geometrySchema = "geometry_R997";
   magnetSchema = "geometry_R996_magneticFields";
