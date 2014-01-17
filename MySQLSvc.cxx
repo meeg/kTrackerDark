@@ -442,6 +442,7 @@ void MySQLSvc::bookOutputTables()
 	  "xB          DOUBLE, "
 	  "xT          DOUBLE, "
 	  "trackSeparation DOUBLE,"
+	  "chisq_dimuon    DOUBLE,"
 	  "PRIMARY KEY(runID, dimuonID, eventID))");
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
@@ -505,7 +506,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   //Database output
   sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
 	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
-	  "%f,%f,%f,%f,%f,%f,%f,%f,)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
+	  "%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
 	  z0, px0, py0, pz0, x1, y1, z1, px0, py0, pz0, x3, y3, z3, px3, py3, pz3);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
@@ -544,9 +545,9 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
   double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
-	  "dpy,dpz,mass,xF,xB,xT,trackSeparation) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
+	  "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
 	  dimuonID, runID, spillID, eventIDs.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
-	  x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz);
+	  x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else
