@@ -65,7 +65,7 @@ public:
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
   void writeTrackTable(int trackID, SRecTrack* recTrack);
   void writeTrackHitTable(int trackID, Tracklet* tracklet);
-  void writeDimuonTable(int dimuonID, int idx_positive, int idx_negative);
+  void writeDimuonTable(int dimuonID, SRecDimuon dimuon);
 
   //Set the data schema
   void setWorkingSchema(std::string schema);
@@ -109,9 +109,6 @@ private:
   //Internal counter of tracks and dimuons
   int nTracks;
   int nDimuons;
-
-  std::vector<TLorentzVector> mom_vertex;
-  std::vector<TVector3> pos_vertex;
 };
 
 #endif

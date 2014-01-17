@@ -123,6 +123,10 @@ private:
 class SRecDimuon: public TObject
 {
 public:
+  //Get the total momentum of the virtual photon
+  TLorentzVector getVPhoton() { return p_pos + p_neg; }
+
+  //Calculate the kinematic vairables
   void calcVariables();
 
   //Index of muon track used in host SRecEvent

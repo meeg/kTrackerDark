@@ -41,9 +41,6 @@ MySQLSvc::~MySQLSvc()
   if(server != NULL) delete server;
   if(res != NULL) delete res;
   if(row != NULL) delete row;
-
-  mom_vertex.clear();
-  pos_vertex.clear();
 }
 
 MySQLSvc* MySQLSvc::instance()
@@ -453,8 +450,6 @@ void MySQLSvc::bookOutputTables()
 void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
 {
   //Fill Track table/TrackHit table
-  mom_vertex.clear(); 
-  pos_vertex.clear();
   int nTracks_local = recEvent->getNTracks();
   for(int i = 0; i < nTracks_local; ++i)
     {
@@ -462,19 +457,15 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
       writeTrackTable(trackID, &recEvent->getTrack(i));
       writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
     }
-  
-  //Fill dimuon table
-  std::vector<int> idx_plus = recEvent->getChargedTrackIDs(+1);
-  std::vector<int> idx_minus = recEvent->getChargedTrackIDs(-1);
-  for(unsigned int i = 0; i < idx_plus.size(); ++i)
+
+  int nDimuons_local = recEvent->getNDimuons();
+  for(int i = 0; i < nDimuons_local; ++i)
     {
-      for(unsigned int j = 0; j < idx_minus.size(); ++j)
-	{
-	  writeDimuonTable(nDimuons++, idx_plus[i], idx_minus[j]);
-	}
+      writeDimuonTable(nDimuons+i, recEvent->getDimuon(i));
     }
 
   nTracks += nTracks_local;
+  nDimuons += nDimuons_local;
 }
 
 void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
@@ -508,10 +499,6 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   recTrack->getExpPositionFast(z3, x3, y3);
   recTrack->getExpMomentumFast(z3, px3, py3, pz3);
 
-  //Put the paramters in temporary containers for dimuon combination
-  mom_vertex.push_back(TLorentzVector(px0, py0, pz0, sqrt(px0*px0 + py0*py0 + pz0*pz0 + 0.10566*0.10566)));
-  pos_vertex.push_back(TVector3(x0, y0, z0));
-
   //Database output
   sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
 	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3 VALUE(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
@@ -540,45 +527,23 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
     }
 }
 
-void MySQLSvc::writeDimuonTable(int dimuonID, int idx_positive, int idx_negative)
+void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
 {
-  double mp = 0.938;
-  double ebeam = 120.;
+  double x0 = dimuon.vtx.X();
+  double y0 = dimuon.vtx.Y();
+  double z0 = dimuon.vtx.Z();
 
-  TLorentzVector p_beam(0., 0., sqrt(ebeam*ebeam - mp*mp), ebeam);
-  TLorentzVector p_target(0., 0., 0., mp);
-  TLorentzVector p_cms = p_beam + p_target;
-  TVector3 bv_cms = p_cms.BoostVector();
-  double s = p_cms.M2();
+  TLorentzVector p_sum = dimuon.getVPhoton();
+  double px0 = p_sum.Px();
+  double py0 = p_sum.Py();
+  double pz0 = p_sum.Pz();
 
-  TLorentzVector p_sum = mom_vertex[idx_positive] + mom_vertex[idx_negative];
-  TVector3 v_sum = pos_vertex[idx_positive] + pos_vertex[idx_negative];
-
-  double mass, xF, x1, x2, pT, x0, y0, z0, px0, py0, pz0, dz;
-
-  mass = p_sum.M();
-  pT = p_sum.Perp();
-  px0 = p_sum.Px();
-  py0 = p_sum.Py();
-  pz0 = p_sum.Pz();
-  dz = (pos_vertex[idx_positive] - pos_vertex[idx_negative]).Z();
-
-  p_sum.Boost(-bv_cms);
-  xF = 2*p_sum.Pz()/TMath::Sqrt(s);
-  double tau = p_sum.M2()/s;
-  double y = 0.5*std::log((p_sum.E() + p_sum.Pz())/(p_sum.E() - p_sum.Pz()));
-
-  x1 = TMath::Sqrt(tau)*TMath::Exp(y);
-  x2 = TMath::Sqrt(tau)*TMath::Exp(-y);
-
-  x0 = v_sum.X();
-  y0 = v_sum.Y();
-  z0 = v_sum.Z();
+  double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
 	  "dpy,dpz,mass,xF,xB,xT,trackSeparation) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
-	  dimuonID, runID, spillID, eventIDs.back(), idx_positive+nTracks, idx_negative+nTracks, x0, y0, z0, 
-	  px0, py0, pz0, mass, xF, x1, x2, dz);
+	  dimuonID, runID, spillID, eventIDs.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
+	  x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else

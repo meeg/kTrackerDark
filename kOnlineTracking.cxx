@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->connect();
   p_mysqlSvc->setWorkingSchema(argv[1]);
-  //p_mysqlSvc->bookOutputTables();
+  p_mysqlSvc->bookOutputTables();
 
   //Data output definition
   int nTracklets;
@@ -102,7 +102,6 @@ int main(int argc, char *argv[])
 
 	  iter->getCharge() > 0 ? ++nPos : ++nNeg;
 	}
-      recEvent->reIndex();
       if(nPos > 0 && nNeg > 0) ++nEvents_dimuon;
  
       //Perform dimuon vertex fit 
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
 
       if(nTracklets > 0)
 	{
-	  //p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
+	  p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
   	  saveTree->Fill();
 	}	 
       rawEvent->clear();
