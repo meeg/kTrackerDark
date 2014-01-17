@@ -70,7 +70,7 @@
 
 #define Z_REF 0.
 
-#define RESOLUTION_DC 0.4
+#define RESOLUTION_DC 0.2
 
 //-------------- Useful marcros -----------------
 #define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
