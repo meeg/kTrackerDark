@@ -127,7 +127,7 @@ int SeedFinder::processOneEvent(SRawEvent *event_input)
   setEvent(event_input);
   if(!acceptEvent())
     {
-      //Log("Event quality is not good. Will continue to next event ... ");
+      //LogInfo("Event quality is not good. Will continue to next event ... ");
       return 0;
     }
 
@@ -135,11 +135,11 @@ int SeedFinder::processOneEvent(SRawEvent *event_input)
   initializeSeedCandidates();
   
 #ifdef _DEBUG_ON
-  Log(seed2d_candidates.size() << " candidates in the seed init");
+  LogInfo(seed2d_candidates.size() << " candidates in the seed init");
   for(std::list<Seed1D>::iterator iter = seed2d_candidates.begin(); iter != seed2d_candidates.end(); ++iter)
     {
       iter->print();
-      Log("===================");
+      LogInfo("===================");
     }
 #endif
 
@@ -153,8 +153,8 @@ int SeedFinder::processOneEvent(SRawEvent *event_input)
   seed2d_candidates.unique();
 
 #ifdef _DEBUG_ON
-  Log(seed2d_candidates.size() << " candidates in the seed associate");
-  Log(seed2d_candidates.size() << " 2D candidates at stage 1: ");
+  LogInfo(seed2d_candidates.size() << " candidates in the seed associate");
+  LogInfo(seed2d_candidates.size() << " 2D candidates at stage 1: ");
   for(std::list<Seed1D>::iterator iter = seed2d_candidates.begin(); iter != seed2d_candidates.end(); ++iter)
     {
       iter->print();
@@ -166,7 +166,7 @@ int SeedFinder::processOneEvent(SRawEvent *event_input)
   reduceSeedList(seed2d_candidates, seed2d_final);
  
 #ifdef _DEBUG_ON
-  Log(seed2d_final.size() << " reduced 2D candidates at stage 2: ");
+  LogInfo(seed2d_final.size() << " reduced 2D candidates at stage 2: ");
   for(std::list<Seed1D>::iterator iter = seed2d_final.begin(); iter != seed2d_final.end(); ++iter)
     {
       iter->print();
@@ -197,7 +197,7 @@ bool SeedFinder::acceptEvent()
   //int nHits_x = event->getNHitsInDetectors(detectors_x);
  
 #ifdef _DEBUG_ON
-  Log(nHits_start_x << "  " << nHits_end_x);
+  LogInfo(nHits_start_x << "  " << nHits_end_x);
 #endif
   if(nHits_start_x < 2) return false;
   if(nHits_end_x < 2) return false;
@@ -213,13 +213,13 @@ bool SeedFinder::acceptSeed(Seed1D& _seed)
 {
   if(_seed.xhits.empty())
     { 
-      //Log("No Hits.");
+      //LogInfo("No Hits.");
       return false;
     }
 
   if(_seed.xhits.size() < 4)
     {
-      //Log("Les than 3 Hits.");
+      //LogInfo("Les than 3 Hits.");
       return false;
     }
   if(_seed.xchisq > 40) return false;
@@ -233,13 +233,13 @@ bool SeedFinder::acceptSeed(Seed1D& _seed)
 
   if(!geometrySvc->isInKMAG(x_mag, y_mag))
     {
-      //Log("Track projection is outside of KMAG!");
+      //LogInfo("Track projection is outside of KMAG!");
       return false;
     }
 
   if(!hodoMask(_seed)) 
     {
-      //Log("Hodo check failed");
+      //LogInfo("Hodo check failed");
       return false;
     }
 
@@ -274,7 +274,7 @@ bool SeedFinder::hodoMask(Seed1D& _seedx, Seed1D& _seedy)
 	      nMasks++;
 	      if((i & 1) == 0) 
 		{
-		  //Log("Skpping next plane!");
+		  //LogInfo("Skpping next plane!");
 		  i++;
 		}
 
@@ -401,7 +401,7 @@ void SeedFinder::associateHits(Seed1D& _seed, double window, std::vector<int>& d
   unsigned int nDetectors = detectorIDs.size();
   for(unsigned int i = 0; i < nDetectors; i++)
     {	
-      //LogDebug("Adding hits in detector: " << detectorIDs[i] << " named " << geometrySvc->getDetectorName(detectorIDs[i])); 
+      //LogInfoDebug("Adding hits in detector: " << detectorIDs[i] << " named " << geometrySvc->getDetectorName(detectorIDs[i])); 
       double x_exp = _seed.getExpPositionX(geometrySvc->getPlanePosition(detectorIDs[i]));
   
       std::string detectorType = geometrySvc->getDetectorName(detectorIDs[i]);
@@ -418,7 +418,7 @@ void SeedFinder::associateHits(Seed1D& _seed, double window, std::vector<int>& d
 
       std::list<int> _hitlist = event->getHitsIndexInDetector(detectorIDs[i], x_exp, range*geometrySvc->getPlaneSpacing(detectorIDs[i]));
 	
-      //LogDebug("Found " << _hitlist.size() << " hits in this detector!");
+      //LogInfoDebug("Found " << _hitlist.size() << " hits in this detector!");
       if(_hitlist.size() > 0) addHitsToSeed(_seed, _hitlist);
     }	  
 }
@@ -429,7 +429,7 @@ void SeedFinder::reduceSeedList(std::list<Seed1D>& _trklist_source, std::list<Se
   /*
   for(std::list<Seed1D>::iterator iter = _trklist_source.begin(); iter != _trklist_source.end(); ++iter)
     {
-      Log("The quality of this track is : " << iter->quality << ", nHits = " << iter->nHits << ", chisq = " << iter->chisq);
+      LogInfo("The quality of this track is : " << iter->quality << ", nHits = " << iter->nHits << ", chisq = " << iter->chisq);
       iter->print();
     }
   */
@@ -441,18 +441,18 @@ void SeedFinder::reduceSeedList(std::list<Seed1D>& _trklist_source, std::list<Se
       
       for(std::list<Seed1D>::iterator iter = _trklist_source.begin(); iter != _trklist_source.end(); )
 	{
-	  //Log("Working on this seed");
+	  //LogInfo("Working on this seed");
 	  //iter->print();
 	  if(removeHitsFromSeed(*iter, _trklist_target.back().xhits) <= 2)
 	     {
-	       //Log("Removed!");
+	       //LogInfo("Removed!");
 	       iter = _trklist_source.erase(iter);
 	       continue;
 	     }
 
 	  if(iter->similarity(_trklist_target.back()))
 	    {
-	      //Log("Removed!");
+	      //LogInfo("Removed!");
 	      iter = _trklist_source.erase(iter);
 	      continue;
 	    }
@@ -464,7 +464,7 @@ void SeedFinder::reduceSeedList(std::list<Seed1D>& _trklist_source, std::list<Se
 
 void SeedFinder::addHitsToSeed(Seed1D& _seed, std::list<int>& _hitlist)
 {
-  //LogDebug("");
+  //LogInfoDebug("");
   if(_hitlist.empty()) return;
 
   unsigned int nHits_before = _seed.xhits.size();
@@ -631,7 +631,7 @@ void SeedFinder::printResults(std::string outputFileName)
     {
       pos[nHits] = hitAll[*iter].pos;
       z[nHits] = geometrySvc->getPlanePosition(hitAll[*iter].detectorID);
-      //Log(z[nHits] << "  " << hitAll[*iter].detectorID);
+      //LogInfo(z[nHits] << "  " << hitAll[*iter].detectorID);
 
       err[nHits] = 0.5*geometrySvc->getPlaneSpacing(hitAll[*iter].detectorID);
       dz[nHits] = 0.;

@@ -278,7 +278,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
   if(trackletsInSt[1].empty()) 
     {
 #ifdef _DEBUG_ON
-      Log("Failed in tracklet build at station 2");
+      LogInfo("Failed in tracklet build at station 2");
 #endif
       return false;
     }
@@ -287,7 +287,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
   if(trackletsInSt[2].empty()) 
     {
 #ifdef _DEBUG_ON
-      Log("Failed in tracklet build at station 3");
+      LogInfo("Failed in tracklet build at station 3");
 #endif
       return false;
     }
@@ -302,7 +302,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
   for(int i = 0; i <= 4; i++)
     {
       std::cout << "=======================================================================================" << std::endl;
-      Log("Final tracklets in station: " << i+1 << " is " << trackletsInSt[i].size()); 
+      LogInfo("Final tracklets in station: " << i+1 << " is " << trackletsInSt[i].size()); 
       for(std::list<Tracklet>::iterator tracklet = trackletsInSt[i].begin(); tracklet != trackletsInSt[i].end(); ++tracklet)
 	{
 	  tracklet->print();
@@ -341,7 +341,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
     }
 
 #ifdef _DEBUG_ON
-  Log(tracks.size() << " final tracks:");
+  LogInfo(tracks.size() << " final tracks:");
   for(std::list<KalmanTrack>::iterator kmtrk = tracks.begin(); kmtrk != tracks.end(); ++kmtrk)
     {
       kmtrk->print();
@@ -354,14 +354,14 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
 {
 #ifdef _DEBUG_ON
-  Log("D1: " << rawEvent->getNHitsInD1());
-  Log("D2: " << rawEvent->getNHitsInD2());
-  Log("D3p: " << rawEvent->getNHitsInD3p());
-  Log("D3m: " << rawEvent->getNHitsInD3m());
-  Log("H1: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[0]));
-  Log("H2: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[1]));
-  Log("H3: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[2]));
-  Log("H4: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[3]));
+  LogInfo("D1: " << rawEvent->getNHitsInD1());
+  LogInfo("D2: " << rawEvent->getNHitsInD2());
+  LogInfo("D3p: " << rawEvent->getNHitsInD3p());
+  LogInfo("D3m: " << rawEvent->getNHitsInD3m());
+  LogInfo("H1: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[0]));
+  LogInfo("H2: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[1]));
+  LogInfo("H3: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[2]));
+  LogInfo("H4: " << rawEvent->getNHitsInDetectors(detectorIDs_maskX[3]));
 #endif
 
   if(rawEvent->getNHitsInD1() > 100) return false;
@@ -385,10 +385,10 @@ void KalmanFastTracking::buildBackPartialTracks()
 	{
 	  Tracklet tracklet_23 = (*tracklet2) + (*tracklet3);
 #ifdef _DEBUG_ON
-	  Log("Using following two tracklets:");
+	  LogInfo("Using following two tracklets:");
 	  tracklet2->print();
 	  tracklet3->print();
-	  Log("Yield this combination:");
+	  LogInfo("Yield this combination:");
 	  tracklet_23.print();
 #endif
 	  fitTracklet(tracklet_23);
@@ -396,7 +396,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 	    {
 #ifdef _DEBUG_ON
 	      tracklet_23.print();
-	      Log("Impossible combination!");
+	      LogInfo("Impossible combination!");
 #endif
 	      continue;
 	    }
@@ -410,14 +410,14 @@ void KalmanFastTracking::buildBackPartialTracks()
 
 
 #ifdef _DEBUG_ON
-	  Log("New tracklet: ");
+	  LogInfo("New tracklet: ");
 	  tracklet_23.print(); 
 
-	  Log("Current best:");
+	  LogInfo("Current best:");
 	  tracklet_best.print();
 
-	  Log("Comparison: " << (tracklet_23 < tracklet_best));
-	  Log("Quality: " << acceptTracklet(tracklet_23));
+	  LogInfo("Comparison: " << (tracklet_23 < tracklet_best));
+	  LogInfo("Quality: " << acceptTracklet(tracklet_23));
 #endif
 
 	  //If current tracklet is better than the best tracklet up-to-now
@@ -428,7 +428,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 #ifdef _DEBUG_ON
 	  else
 	    {
-	      Log("Rejected!!");
+	      LogInfo("Rejected!!");
 	    }
 #endif
 	}
@@ -456,9 +456,9 @@ void KalmanFastTracking::buildGlobalTracks()
 	}
 
 #ifdef _DEBUG_ON
-      Log("Using this back partial: ");
+      LogInfo("Using this back partial: ");
       tracklet23->print();
-      for(int i = 0; i < 3; i++) Log("Extrapo: " << pos_exp[i] << "  " << window[i]);
+      for(int i = 0; i < 3; i++) LogInfo("Extrapo: " << pos_exp[i] << "  " << window[i]);
 #endif
 
       trackletsInSt[0].clear();
@@ -468,7 +468,7 @@ void KalmanFastTracking::buildGlobalTracks()
       for(std::list<Tracklet>::iterator tracklet1 = trackletsInSt[0].begin(); tracklet1 != trackletsInSt[0].end(); ++tracklet1)
 	{
 #ifdef _DEBUG_ON
-	  Log("With this station 1 track:");
+	  LogInfo("With this station 1 track:");
 	  tracklet1->print();
 #endif
 
@@ -485,25 +485,25 @@ void KalmanFastTracking::buildGlobalTracks()
 	  removeBadHits(tracklet_global);
 
 #ifdef _DEBUG_ON
-	  Log("New tracklet: ");
+	  LogInfo("New tracklet: ");
 	  tracklet_global.print(); 
 
-	  Log("Current best:");
+	  LogInfo("Current best:");
 	  tracklet_best.print();
 
-	  Log("Comparison: " << (tracklet_global < tracklet_best));
-	  Log("Quality   : " << acceptTracklet(tracklet_global));
+	  LogInfo("Comparison: " << (tracklet_global < tracklet_best));
+	  LogInfo("Quality   : " << acceptTracklet(tracklet_global));
 #endif
 	  if(acceptTracklet(tracklet_global) && tracklet_global < tracklet_best)
 	    {
 #ifdef _DEBUG_ON
-	      Log("Accepted!!!");
+	      LogInfo("Accepted!!!");
 #endif
 	      tracklet_best = tracklet_global;
     	    }
 #ifdef _DEBUG_ON
 	    {
-	      Log("Rejected!!!");
+	      LogInfo("Rejected!!!");
 	    }
 #endif
 	}
@@ -517,7 +517,7 @@ void KalmanFastTracking::buildGlobalTracks()
 void KalmanFastTracking::resolveLeftRight(Tracklet& tracklet, double threshold)
 {
 #ifdef _DEBUG_ON
-  Log("Left right for this track..");
+  LogInfo("Left right for this track..");
   tracklet.print();
 #endif
 
@@ -536,11 +536,11 @@ void KalmanFastTracking::resolveLeftRight(Tracklet& tracklet, double threshold)
   while(true)
     {
 #ifdef _DEBUG_ON
-      Log(hit1->hit.index << "  " << hit2->sign << " === " << hit2->hit.index << "  " << hit2->sign);
+      LogInfo(hit1->hit.index << "  " << hit2->sign << " === " << hit2->hit.index << "  " << hit2->sign);
       int detectorID1 = hit1->hit.detectorID;
       int detectorID2 = hit2->hit.detectorID;
-      Log("Hit1: " << tracklet.getExpPositionX(z_plane[detectorID1])*costheta_plane[detectorID1] + tracklet.getExpPositionY(z_plane[detectorID1])*sintheta_plane[detectorID1] << "  " << hit1->hit.pos + hit1->hit.driftDistance << "  " << hit1->hit.pos - hit1->hit.driftDistance);
-      Log("Hit2: " << tracklet.getExpPositionX(z_plane[detectorID2])*costheta_plane[detectorID2] + tracklet.getExpPositionY(z_plane[detectorID2])*sintheta_plane[detectorID2] << "  " << hit2->hit.pos + hit2->hit.driftDistance << "  " << hit2->hit.pos - hit2->hit.driftDistance);
+      LogInfo("Hit1: " << tracklet.getExpPositionX(z_plane[detectorID1])*costheta_plane[detectorID1] + tracklet.getExpPositionY(z_plane[detectorID1])*sintheta_plane[detectorID1] << "  " << hit1->hit.pos + hit1->hit.driftDistance << "  " << hit1->hit.pos - hit1->hit.driftDistance);
+      LogInfo("Hit2: " << tracklet.getExpPositionX(z_plane[detectorID2])*costheta_plane[detectorID2] + tracklet.getExpPositionY(z_plane[detectorID2])*sintheta_plane[detectorID2] << "  " << hit2->hit.pos + hit2->hit.driftDistance << "  " << hit2->hit.pos - hit2->hit.driftDistance);
 #endif
 
       if(hit1->hit.index > 0 && hit2->hit.index > 0 && hit1->sign*hit2->sign == 0)
@@ -586,15 +586,15 @@ void KalmanFastTracking::resolveLeftRight(Tracklet& tracklet, double threshold)
 		}
 
 #ifdef _DEBUG_ON
-	      Log(hit1->hit.detectorID << ": " << i << "  " << possibility[i][0] << "  " << possibility[i][1]);
-	      Log(tx << "  " << x0 << "  " << ty << "  " << y0);
-	      Log("Slope: " << slope_local << "  " << slope_exp << "  " << err_slope);
-	      Log("Intersection: " << inter_local << "  " << inter_exp << "  " << err_inter);
-	      Log("Current: " << pull << "  " << index_min << "  " << pull_min);
+	      LogInfo(hit1->hit.detectorID << ": " << i << "  " << possibility[i][0] << "  " << possibility[i][1]);
+	      LogInfo(tx << "  " << x0 << "  " << ty << "  " << y0);
+	      LogInfo("Slope: " << slope_local << "  " << slope_exp << "  " << err_slope);
+	      LogInfo("Intersection: " << inter_local << "  " << inter_exp << "  " << err_inter);
+	      LogInfo("Current: " << pull << "  " << index_min << "  " << pull_min);
 #endif
 	    }
 
-	  //Log("Final: " << index_min << "  " << pull_min);
+	  //LogInfo("Final: " << index_min << "  " << pull_min);
 	  if(index_min >= 0 && pull_min < threshold)//((tracklet.stationID == 5 && pull_min < 25.) || (tracklet.stationID == 6 && pull_min < 100.)))
 	    {
 	      hit1->sign = possibility[index_min][0];
@@ -617,7 +617,7 @@ void KalmanFastTracking::resolveLeftRight(Tracklet& tracklet, double threshold)
 void KalmanFastTracking::resolveSingleLeftRight(Tracklet& tracklet)
 {
 #ifdef _DEBUG_ON
-  Log("Single left right for this track..");
+  LogInfo("Single left right for this track..");
   tracklet.print();
 #endif
 
@@ -641,7 +641,7 @@ void KalmanFastTracking::resolveSingleLeftRight(Tracklet& tracklet)
 void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 {
 #ifdef _DEBUG_ON
-  Log("Removing hits for this track..");
+  LogInfo("Removing hits for this track..");
   tracklet.calcChisq();
   tracklet.print();
 #endif
@@ -671,7 +671,7 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
       if(hit_remove != NULL && res_remove > HIT_REJECT*resol_plane[hit_remove->hit.detectorID])
 	{
 #ifdef _DEBUG_ON
-	  Log("Dropping this hit: " << res_remove << "  " << HIT_REJECT*resol_plane[hit_remove->hit.detectorID]);
+	  LogInfo("Dropping this hit: " << res_remove << "  " << HIT_REJECT*resol_plane[hit_remove->hit.detectorID]);
 	  hit_remove->hit.print();
 #endif
 
@@ -719,7 +719,7 @@ void KalmanFastTracking::resolveLeftRight(SRawEvent::hit_pair hpair, int& LR1, i
       double slope_local = (hitAll[hitID1].pos + possibility[i][0]*hitAll[hitID1].driftDistance - hitAll[hitID2].pos - possibility[i][1]*hitAll[hitID2].driftDistance)/(z_plane[hitAll[hitID1].detectorID] - z_plane[hitAll[hitID2].detectorID]);
       double intersection_local = hitAll[hitID1].pos + possibility[i][0]*hitAll[hitID1].driftDistance - slope_local*z_plane[hitAll[hitID1].detectorID];
       
-      //Log(i << "  " << nResolved << "  " << slope_local << "  " << intersection_local);
+      //LogInfo(i << "  " << nResolved << "  " << slope_local << "  " << intersection_local);
       if(fabs(slope_local) < slope_max[hitAll[hitID1].detectorID] && fabs(intersection_local) < intersection_max[hitAll[hitID1].detectorID])
 	{
   	  nResolved++;
@@ -734,13 +734,13 @@ void KalmanFastTracking::resolveLeftRight(SRawEvent::hit_pair hpair, int& LR1, i
       LR2 = 0;
     }
 
-  //Log("Final: " << LR1 << "  " << LR2);
+  //LogInfo("Final: " << LR1 << "  " << LR2);
 }
 
 void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp, double* window)
 {
 #ifdef _DEBUG_ON
-  Log("Building tracklets in station " << stationID);
+  LogInfo("Building tracklets in station " << stationID);
 #endif
 
   //actuall ID of the tracklet lists
@@ -765,16 +765,16 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
     }
 
 #ifdef _DEBUG_ON
-  Log("Hit pairs in this event: ");
-  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_X.begin(); iter != pairs_X.end(); ++iter) Log("X :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
-  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_U.begin(); iter != pairs_U.end(); ++iter) Log("U :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
-  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_V.begin(); iter != pairs_V.end(); ++iter) Log("V :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
+  LogInfo("Hit pairs in this event: ");
+  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_X.begin(); iter != pairs_X.end(); ++iter) LogInfo("X :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
+  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_U.begin(); iter != pairs_U.end(); ++iter) LogInfo("U :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
+  for(std::list<SRawEvent::hit_pair>::iterator iter = pairs_V.begin(); iter != pairs_V.end(); ++iter) LogInfo("V :" << iter->first << "  " << iter->second << "  " << hitAll[iter->first].index << " " << (iter->second < 0 ? -1 : hitAll[iter->second].index));
 #endif
 
   if(pairs_X.empty() || pairs_U.empty() || pairs_V.empty())
     {
 #ifdef _DEBUG_ON
-      Log("Not all view has hits in station " << stationID);
+      LogInfo("Not all view has hits in station " << stationID);
 #endif
       return;
     }
@@ -788,14 +788,14 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
       double u_max = u_min + 2.*u_win[sID];
 
 #ifdef _DEBUG_ON
-      Log("Trying X hits " << xiter->first << "  " << xiter->second << "  " << hitAll[xiter->first].elementID << " at " << x_pos);
-      Log("U plane window:" << u_min << "  " << u_max);
+      LogInfo("Trying X hits " << xiter->first << "  " << xiter->second << "  " << hitAll[xiter->first].elementID << " at " << x_pos);
+      LogInfo("U plane window:" << u_min << "  " << u_max);
 #endif
       for(std::list<SRawEvent::hit_pair>::iterator uiter = pairs_U.begin(); uiter != pairs_U.end(); ++uiter)
 	{
 	  double u_pos = uiter->second >= 0 ? 0.5*(hitAll[uiter->first].pos + hitAll[uiter->second].pos) : hitAll[uiter->first].pos;
 #ifdef _DEBUG_ON
-	  Log("Trying U hits " << uiter->first << "  " << uiter->second << "  " << hitAll[uiter->first].elementID << " at " << u_pos);
+	  LogInfo("Trying U hits " << uiter->first << "  " << uiter->second << "  " << hitAll[uiter->first].elementID << " at " << u_pos);
 #endif
 	  if(u_pos < u_min || u_pos > u_max) continue;
 
@@ -811,13 +811,13 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
 	  double v_max = v_min + 2.*v_win;
 
 #ifdef _DEBUG_ON	  
-      	  Log("V plane window:" << v_min << "  " << v_max);
+      	  LogInfo("V plane window:" << v_min << "  " << v_max);
 #endif
 	  for(std::list<SRawEvent::hit_pair>::iterator viter = pairs_V.begin(); viter != pairs_V.end(); ++viter)
 	    {
 	      double v_pos = viter->second >= 0 ? 0.5*(hitAll[viter->first].pos + hitAll[viter->second].pos) : hitAll[viter->first].pos;
 #ifdef _DEBUG_ON
-    	      Log("Trying V hits " << viter->first << "  " << viter->second << "  " << hitAll[viter->first].elementID << " at " << v_pos);
+    	      LogInfo("Trying V hits " << viter->first << "  " << viter->second << "  " << hitAll[viter->first].elementID << " at " << v_pos);
 #endif
 	      if(v_pos < v_min || v_pos > v_max) continue;
 
@@ -859,7 +859,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
 #ifdef _DEBUG_ON
 	      else
 		{
-		  Log("Rejected!!!");
+		  LogInfo("Rejected!!!");
 		}
 #endif
 	    }
@@ -880,14 +880,14 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
   if(!tracklet.isValid()) 
     {
 #ifdef _DEBUG_ON
-      Log("Failed in quality check!");
+      LogInfo("Failed in quality check!");
 #endif
       return false;
     }
 
   int nMinimum = stationIDs_mask[tracklet.stationID-1].size();
  
-  //Log(tracklet.stationID);
+  //LogInfo(tracklet.stationID);
   int nHodoHits = 0;
   for(std::vector<int>::iterator stationID = stationIDs_mask[tracklet.stationID-1].begin(); stationID != stationIDs_mask[tracklet.stationID-1].end(); ++stationID)
     {
@@ -910,9 +910,9 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 	  double y_max = y_mask_max[idx1][idx2] + err_y;
 
 #ifdef _DEBUG_ON
-	  Log(*iter);
+	  LogInfo(*iter);
 	  hitAll[*iter].print();
-	  Log(nHodoHits << "/" << nMinimum << ":  " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
+	  LogInfo(nHodoHits << "/" << nMinimum << ":  " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
 #endif
 	  if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
     	    {
@@ -922,7 +922,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
     }
 
 #ifdef _DEBUG_ON
-  Log(tracklet.stationID << "  " << nHodoHits);
+  LogInfo(tracklet.stationID << "  " << nHodoHits);
 #endif
   if(nHodoHits < nMinimum) return false;
 
@@ -988,7 +988,7 @@ int KalmanFastTracking::reduceTrackletList(std::list<Tracklet>& tracklets)
       tracklets.pop_front();
 
 #ifdef _DEBUG_ON_LEVEL_2
-      Log("Current best tracklet in reduce");
+      LogInfo("Current best tracklet in reduce");
       targetList.back().print();
 #endif
 
@@ -997,7 +997,7 @@ int KalmanFastTracking::reduceTrackletList(std::list<Tracklet>& tracklets)
 	  if(iter->similarity(targetList.back()))
 	    {
 #ifdef _DEBUG_ON_LEVEL_2
-	      Log("Removing this tracklet: ");
+	      LogInfo("Removing this tracklet: ");
 	      iter->print();
 #endif
 	      iter = tracklets.erase(iter);

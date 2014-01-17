@@ -32,12 +32,12 @@
 int main(int argc, char *argv[])
 {
   //Initialize geometry service
-  Log("Initializing geometry service ... ");
+  LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init(GEOMETRY_VERSION);
 
   //Retrieve the raw event
-  Log("Retrieving the event stored in ROOT file ... ");
+  LogInfo("Retrieving the event stored in ROOT file ... ");
 #ifndef MC_MODE
   SRawEvent* rawEvent = new SRawEvent();
 #else
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 #endif
 
   //Initialize track finder
-  Log("Initializing the millepede ... ");
+  LogInfo("Initializing the millepede ... ");
   SMillepede* mille = new SMillepede();
   mille->init("mille.conf");
   if(argc > 4)

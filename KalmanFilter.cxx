@@ -55,13 +55,13 @@ bool KalmanFilter::predict(Node& _node)
 {
   if(_node.isPredictionDone())
     {
-      Log("In prediction: Prediction already done for this node!");
+      LogInfo("In prediction: Prediction already done for this node!");
       return false;
     }
 
   if(fabs(_trkpar_curr._state_kf[0][0]) < 1E-5 || fabs(_trkpar_curr._state_kf[0][0]) > 1. || _trkpar_curr._state_kf[0][0] != _trkpar_curr._state_kf[0][0])
     {
-      Log("Current track parameter is undefined! ");
+      LogInfo("Current track parameter is undefined! ");
       //_node.getHit().print();
       //_node.print(true);
       return false;
@@ -97,13 +97,13 @@ bool KalmanFilter::filter(Node& _node)
 {
   if(_node.isFilterDone())
     {
-      Log("In filtering: Filter already done for this node!");
+      LogInfo("In filtering: Filter already done for this node!");
       return false;
     }
 
   if(!_node.isPredictionDone())
     {
-      Log("In filtering: Prediction not done for this node!");
+      LogInfo("In filtering: Prediction not done for this node!");
       return false;
     }
 
@@ -156,7 +156,7 @@ bool KalmanFilter::filter(Node& _node)
   /*
   if(_node.getFiltered().get_charge()*_node.getPredicted().get_charge() < 1)
     {
-      Log("ERROR!! Filter Wrong!");
+      LogInfo("ERROR!! Filter Wrong!");
       SMatrix::printMatrix(p_pred, "p_pred");
       SMatrix::printMatrix(p_filter, "p_filter");
       SMatrix::printMatrix(k, "k matrix");
@@ -171,19 +171,19 @@ bool KalmanFilter::smooth(Node& _node, Node& _node_prev)
 {
   if(!_node.isFilterDone())
     {
-      Log("In smoother: Filter not done!");
+      LogInfo("In smoother: Filter not done!");
       return false;
     }
 
   if(_node.isSmoothDone())
     {
-      Log("In smoother: Smooth already done!");
+      LogInfo("In smoother: Smooth already done!");
       return false;
     }
 
   if(!_node_prev.isSmoothDone())
     {
-      Log("In smoother: Smooth not done for the last node");
+      LogInfo("In smoother: Smooth not done for the last node");
     }
 
   ///Retrieve related info

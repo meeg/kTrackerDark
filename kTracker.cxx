@@ -27,12 +27,12 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //Initialize geometry service
-  Log("Initializing geometry service ... ");
+  LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init(GEOMETRY_VERSION);
 
   //Retrieve the raw event
-  Log("Retrieving the event stored in ROOT file ... ");
+  LogInfo("Retrieving the event stored in ROOT file ... ");
 #ifdef MC_MODE
   SRawMCEvent* rawEvent = new SRawMCEvent();
 #else
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
   saveTree->Branch("chisq_vertex", chisq_vertex, "chisq_vertex[nTracks]/D");
 
   //Initialize track finder
-  Log("Initializing the track finder and kalman filter ... ");
+  LogInfo("Initializing the track finder and kalman filter ... ");
   KalmanFilter *filter = new KalmanFilter();
   KalmanFinder *finder = new KalmanFinder();
   KalmanFitter *fitter = new KalmanFitter();
@@ -108,11 +108,11 @@ int main(int argc, char *argv[])
   int offset = argc > 3 ? atoi(argv[3]) : 0;
   int nEvtMax = argc > 4 ? atoi(argv[4]) + offset : dataTree->GetEntries();
   if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-  Log("Running from event " << offset << " through to event " << nEvtMax);
+  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
   for(int i = offset; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
-      Log("Processing event " << i << " with eventID = " << rawEvent->getEventID());
+      LogInfo("Processing event " << i << " with eventID = " << rawEvent->getEventID());
 
       if((rawEvent->getRunID() != 2166) && (nSeeds < 2 || nSeedsX < 2)) continue;
       if(nSeeds > 50) continue;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
       _tracks.clear();
       for(std::list<Seed>::iterator iter = _seeds.begin(); iter != _seeds.end(); ++iter)
 	{
-	  Log("Working on this seed ... ");
+	  LogInfo("Working on this seed ... ");
 	  finder->processOneSeed(*iter);
 	  KalmanTrack _track = finder->getBestCandidate();
 
@@ -154,12 +154,12 @@ int main(int argc, char *argv[])
 
       time_single = clock() - time_single;
       time = double(time_single)/CLOCKS_PER_SEC;
-      Log("It takes " << time << " seconds for this event.");
+      LogInfo("It takes " << time << " seconds for this event.");
      
       std::list<KalmanTrack> _tracks_final;// = _tracks;
       finder->reduceTrackList(_tracks, _tracks_final);
 
-      Log("Found " << _tracks_final.size() << " tracks!");
+      LogInfo("Found " << _tracks_final.size() << " tracks!");
       if(_tracks_final.empty()) continue;
 
       //finder->printResults("test", _tracks_final);

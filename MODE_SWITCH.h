@@ -73,7 +73,7 @@
 #define RESOLUTION_DC 0.4
 
 //-------------- Useful marcros -----------------
-#define Log(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
+#define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
 #define varName(x) #x
 
 #endif

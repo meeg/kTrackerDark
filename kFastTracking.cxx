@@ -27,12 +27,12 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   //Initialize geometry service
-  Log("Initializing geometry service ... ");
+  LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init(GEOMETRY_VERSION);
 
   //Retrieve the raw event
-  Log("Retrieving the event stored in ROOT file ... ");
+  LogInfo("Retrieving the event stored in ROOT file ... ");
 #ifdef MC_MODE
   SRawMCEvent* rawEvent = new SRawMCEvent();
 #else
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   //tracklets_back->BypassStreamer();
 
   //Initialize track finder
-  Log("Initializing the track finder and kalman filter ... ");
+  LogInfo("Initializing the track finder and kalman filter ... ");
 #ifdef _ENABLE_KF
   KalmanFilter* filter = new KalmanFilter();
   KalmanFastTracking* fastfinder = new KalmanFastTracking();
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   int offset = argc > 3 ? atoi(argv[3]) : 0;
   int nEvtMax = argc > 4 ? atoi(argv[4]) + offset : dataTree->GetEntries();
   if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-  Log("Running from event " << offset << " through to event " << nEvtMax);
+  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
   for(int i = offset; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);

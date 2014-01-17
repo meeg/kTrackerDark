@@ -41,7 +41,7 @@ void KalmanFitter::init()
 
 int KalmanFitter::processOneTrack(KalmanTrack& _track)
 {
-  //Log("Start processing this track..");
+  //LogInfo("Start processing this track..");
   int iIter = 0;
 
   ///Initialize the nodes from the input track
@@ -55,12 +55,12 @@ int KalmanFitter::processOneTrack(KalmanTrack& _track)
   double _chisq_curr = 1E6;
   for(; iIter < _max_iteration; iIter++)
     {
-      //Log("Iteration " << iIter << " starts: ");
+      //LogInfo("Iteration " << iIter << " starts: ");
       init();
 
       for(std::list<Node>::reverse_iterator node = _nodes.rbegin(); node != _nodes.rend(); ++node)
 	{
-	  //Log(node->getZ());
+	  //LogInfo(node->getZ());
 	  if(_kmfit->fit_node(*node))
 	    {
 	      _kmfit->setCurrTrkpar(node->getFiltered());
@@ -68,7 +68,7 @@ int KalmanFitter::processOneTrack(KalmanTrack& _track)
 	    }
 	  else
 	    {
-	      Log("Failed in prediction and filtering. ");
+	      LogInfo("Failed in prediction and filtering. ");
 	      return 0;
 	    }
 	}
@@ -81,7 +81,7 @@ int KalmanFitter::processOneTrack(KalmanTrack& _track)
 	{
 	  if(!_kmfit->smooth(*node, *last_smoothed))
 	    {
-	      Log("Failed in smoothing.");
+	      LogInfo("Failed in smoothing.");
 	      return 0;
 	    }
 	  last_smoothed = node;
@@ -95,7 +95,7 @@ int KalmanFitter::processOneTrack(KalmanTrack& _track)
       */
 
       //update the chisq to see if it converges
-      //Log("For this iteration, chisq = " << _chisq << ", chisq_curr = " << _chisq_curr);
+      //LogInfo("For this iteration, chisq = " << _chisq << ", chisq_curr = " << _chisq_curr);
   
       if(_chisq_curr < 0.) return -1;
       if(fabs(_chisq_curr - _chisq) < _tolerance) break;
@@ -196,13 +196,13 @@ bool KalmanFitter::initSmoother(Node& _node)
 {
   if(!_node.isFilterDone())
     {
-      Log("In smoother init: Filter not done!");
+      LogInfo("In smoother init: Filter not done!");
       return false;
     }
 
   if(_node.isSmoothDone())
     {
-      Log("In smoother init: Smooth already done!");
+      LogInfo("In smoother init: Smooth already done!");
       return false;
     }
 

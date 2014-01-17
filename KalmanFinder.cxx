@@ -186,18 +186,18 @@ int KalmanFinder::processOneSeed(Seed _seed)
 void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack>& _tracklist)
 { 
 #ifdef _DEBUG_ON  
-  Log("Looking for hits on " << 2*detectorID << " and " << 2*detectorID-1);   
-  Log("Currently we have " << _tracklist.size() << " candidates");
+  LogInfo("Looking for hits on " << 2*detectorID << " and " << 2*detectorID-1);   
+  LogInfo("Currently we have " << _tracklist.size() << " candidates");
 #endif
 
   ///Retrieve the paired hit list on specific detector super plane
   std::list<SRawEvent::hit_pair> _pairlist_all = event->getHitPairsInSuperDetector(detectorID);
   
 #ifdef _DEBUG_ON
-  Log("Totally " << _pairlist_all.size() << " hit pairs in this Detector");
+  LogInfo("Totally " << _pairlist_all.size() << " hit pairs in this Detector");
   for(std::list<SRawEvent::hit_pair>::iterator iter = _pairlist_all.begin(); iter != _pairlist_all.end(); ++iter)
     {
-      Log("======================");
+      LogInfo("======================");
       _hits[iter->first].print();
       _hits[iter->second].print();
     }
@@ -210,7 +210,7 @@ void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack
   for(std::list<KalmanTrack>::iterator kmtrk = _tracklist.begin(); kmtrk != _tracklist.end(); )
     {
 #ifdef _DEBUG_ON
-      Log("Start working for a new candidate ... ");
+      LogInfo("Start working for a new candidate ... ");
       kmtrk->print();
 #endif
 
@@ -228,8 +228,8 @@ void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack
       std::list<SRawEvent::hit_pair> _pairlist = event->getHitPairsInSuperDetector(detectorID, pos_exp, window);
 
 #ifdef _DEBUG_ON
-      Log("Expected position is " << pos_exp << " +/- " << window);
-      Log("Found " << _pairlist.size() << " paired hits!");
+      LogInfo("Expected position is " << pos_exp << " +/- " << window);
+      LogInfo("Found " << _pairlist.size() << " paired hits!");
 #endif
 
       if(_pairlist.empty())
@@ -299,8 +299,8 @@ void KalmanFinder::findHitsOnSuperDetector(int detectorID, std::list<KalmanTrack
   _tracklist.sort();
  
 #ifdef _DEBUG_ON
-  Log(_track_new.size() << " new candidates are added. ");
-  Log("Candidates after super detector " << detectorID);
+  LogInfo(_track_new.size() << " new candidates are added. ");
+  LogInfo("Candidates after super detector " << detectorID);
   for(std::list<KalmanTrack>::iterator kmtrk = _tracklist.begin(); kmtrk != _tracklist.end(); ++kmtrk)
     {
       kmtrk->print();
@@ -367,8 +367,8 @@ bool KalmanFinder::addHitPairToTrack(SRawEvent::hit_pair _hitpair, int sign1, in
   double slop_local = (hit1.pos + hit1.driftDistance - hit2.pos - hit2.driftDistance)/(p_geomSvc->getPlanePosition(hit1.detectorID) - p_geomSvc->getPlanePosition(hit2.detectorID));
 
 #ifdef _DEBUG_ON
-  Log("Testing possibility: " << sign1 << " == " << sign2);
-  Log("Slop_exp: " << slop_exp << ", slop_err: " << slop_err << ", slop_local: " << slop_local);
+  LogInfo("Testing possibility: " << sign1 << " == " << sign2);
+  LogInfo("Slop_exp: " << slop_exp << ", slop_err: " << slop_err << ", slop_local: " << slop_local);
 #endif
 
   if(detectorID > 6 && fabs(slop_local - slop_exp) > 4*slop_err) return false;
@@ -380,7 +380,7 @@ bool KalmanFinder::addHitPairToTrack(SRawEvent::hit_pair _hitpair, int sign1, in
   if(!_track.addHit(hit2)) return false;
 
 #ifdef _DEBUG_ON
-  Log("Added!");
+  LogInfo("Added!");
 #endif
 
   return true;
@@ -417,26 +417,26 @@ void KalmanFinder::reduceTrackList(int detectorID, std::list<KalmanTrack>& _trac
   unsigned int max_size = 30/factor;
 
 #ifdef _DEBUG_ON
-  Log("Before: " << _tracklist.size()); 
+  LogInfo("Before: " << _tracklist.size()); 
 #endif  
   
   for(std::list<KalmanTrack>::iterator iter = _tracklist.begin(); iter != _tracklist.end(); )
     {
       if(!acceptTrack(detectorID, *iter))
 	{
-	  //Log("Removed!");
+	  //LogInfo("Removed!");
 	  iter = _tracklist.erase(iter);
 	  continue;
 	}
       else
 	{
-	  //Log("Kept!");
+	  //LogInfo("Kept!");
 	  ++iter;
 	}
     }
 
 #ifdef _DEBUG_ON
-  Log("After : " << _tracklist.size()); 
+  LogInfo("After : " << _tracklist.size()); 
 #endif
 
   _tracklist.sort();
@@ -449,7 +449,7 @@ void KalmanFinder::reduceTrackList(int detectorID, std::list<KalmanTrack>& _trac
 bool KalmanFinder::acceptTrack(int detectorID, KalmanTrack& _track)
 {
 #ifdef _DEBUG_ON
-  Log(detectorID);
+  LogInfo(detectorID);
   _track.print();
 #endif
 
@@ -472,7 +472,7 @@ bool KalmanFinder::acceptTrack(int detectorID, KalmanTrack& _track)
       if(charge_front*charge_back < 0)
         {
 #ifdef _DEBUG_ON
-          Log(detectorID << ": Sign is flipped during the track finding!");
+          LogInfo(detectorID << ": Sign is flipped during the track finding!");
 #endif
 	  //_track.getNodeList().front().getFiltered().flip_charge();
 	  return false;

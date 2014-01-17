@@ -65,7 +65,7 @@ bool MySQLSvc::connect(std::string sqlServer)
   
   if(server == NULL)
     {
-      Log("Connection to database " << sqlServer.c_str() << " failed!");
+      LogInfo("Connection to database " << sqlServer.c_str() << " failed!");
       return false;
     }
   return true;
