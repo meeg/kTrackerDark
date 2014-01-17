@@ -362,7 +362,7 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
 void MySQLSvc::bookOutputTables()
 {
   //Clear all the tables if exist
-  std::string tableNames[3] = {"kTrack", "kHit", "kDimuon"};
+  std::string tableNames[3] = {"kTrack", "kTrackHit", "kDimuon"};
   for(int i = 0; i < 3; ++i)
     {
       sprintf(query, "DROP TABLE IF EXISTS %s", tableNames[i].c_str());
