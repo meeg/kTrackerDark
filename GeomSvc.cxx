@@ -474,7 +474,6 @@ double GeomSvc::getDriftDistance(int planeID, double tdcTime)
 void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string alignmentFile_hodo, std::string alignmentFile_prop)
 {
   using namespace std;
-  cout << "Trying to read alignment parameters from " << alignmentFile_chamber << ", " << alignmentFile_hodo << " and " << alignmentFile_prop << endl;
 
   //load alignment numbers for chambers
   char filename[300];
@@ -492,12 +491,8 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 
 	  stringBuf >> offset_pos[i] >> resolution[i];
           if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
-	}	  
-    }
-  else
-    {
-      cout << "Alignment file for chamber is not found! " << endl;
-      cout << "Will use survey numbers instead! " << endl;
+	}	 
+      cout << "Loaded chamber alignment parameters from " << alignmentFile_chamber << endl; 
     }
   _align_chamber.close();
 
@@ -522,11 +517,7 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 
 	  stringBuf >> offset_pos[i];
 	}	  
-    }
-  else
-    {
-      cout << "Alignment file for hodo is not found! " << endl;
-      cout << "Will use ideal numbers instead! " << endl;
+      cout << "Loaded hodoscope alignment parameters from " << alignmentFile_hodo << endl; 
     }
   _align_hodo.close();
 
@@ -547,23 +538,18 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 	      stringBuf >> offset_pos_prop[i][j];
 	    }
 	}
-
+      cout << "Loaded prop. tube alignment parameters from " << alignmentFile_prop << endl; 
+      
       for(int i = 41; i <= 48; i++)
 	{
 	  spacing[i] = 5.08;
 	}
-    }
-  else
-    {
-      cout << "Alignment file for prop. tubes is not found! " << endl;
-      cout << "Will use survey numbers instead! " << endl;
     }
 }
 
 void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
 {
   using namespace std;
-  cout << "Trying to read millepede-alignment parameters from " << alignmentFile_mille << endl;
   
   //load alignment numbers for chambers
   char filename[300];
@@ -589,11 +575,7 @@ void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
 	  //if(resolution[i] < spacing[i]/sqrt(12.)/10.) resolution[i] = spacing[i]/sqrt(12.)/10.;
 	  if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
 	}	  
-    }
-  else
-    {
-      cout << "Mille alignment file for chamber is not found! " << endl;
-      cout << "Will use old numbers instead! " << endl;
+      cout << "Loaded millepede-based alignment parameters from " << alignmentFile_mille << endl; 
     }
   _align_mille.close();
 
@@ -639,6 +621,7 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
 	  if(rtprofile[detectorID-1] != NULL) delete rtprofile[detectorID-1];
 	  rtprofile[detectorID-1] = new TSpline3(getDetectorName(detectorID).c_str(), T, R, nBin, "b1e1");
 	}
+      cout << "Loaded calibration parameters from " << calibrationFile << endl; 
     }
   _cali_file.close();
 }
