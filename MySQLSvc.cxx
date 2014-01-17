@@ -30,6 +30,9 @@ MySQLSvc::MySQLSvc()
   dataSchema = "run_002173_R003";
   logSchema = "log";
 
+  user = "seaguest";
+  passwd = "qqbar2mu+mu-";
+
   nTracks = 0;
   nDimuons = 0;
 
@@ -58,7 +61,7 @@ bool MySQLSvc::connect(std::string sqlServer)
   char address[300];
   sprintf(address, "mysql://%s", sqlServer.c_str());
 
-  server = TSQLServer::Connect(address, "seaguest", "qqbar2mu+mu-");
+  server = TSQLServer::Connect(address, user.c_str(), passwd.c_str());
   
   if(server == NULL)
     {
@@ -406,7 +409,7 @@ void MySQLSvc::bookOutputTables()
 #endif
 
   //Book kHit table
-  sprintf(query, "CREATE TABLE kHit ("
+  sprintf(query, "CREATE TABLE kTrackHit ("
 	  "runID       SMALLINT,"
 	  "eventID     INTEGER, "
 	  "trackID     INTEGER, "
@@ -501,7 +504,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
 
   //Database output
   sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
-	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3 VALUE(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
+	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
 	  "%f,%f,%f,%f,%f,%f,%f,%f,)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
 	  z0, px0, py0, pz0, x1, y1, z1, px0, py0, pz0, x3, y3, z3, px3, py3, pz3);
 #ifndef OUT_TO_SCREEN

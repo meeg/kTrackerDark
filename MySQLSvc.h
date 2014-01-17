@@ -39,6 +39,9 @@ public:
   //Connect to the server
   bool connect(std::string sqlServer = MYSQL_SERVER);
 
+  //Set username/password
+  void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }
+
   //check if the run is stopped
   bool isRunStopped();
 
@@ -81,6 +84,10 @@ public:
 private:
   //pointer to the only instance
   static MySQLSvc* p_mysqlSvc;
+
+  //Username and password
+  std::string user;
+  std::string passwd;
 
   //pointer to the geometry service
   GeomSvc* p_geomSvc;
