@@ -13,49 +13,23 @@ def prepareConf(log_prev, conf):
     print 'Generating configuration file for millepede according to '+log_prev
 
     # read previous log and decide whether to turn on/off a detector alignment
-    controls = []
+    sigma = [[0.1, 0.005, 0.05] for i in range(24)]
     if os.path.isfile(log_prev):
         fin = open(log_prev, 'r')
-        for line in fin.readlines():
+        lines = fin.readlines()
+        for index, line in enumerate(lines):
             delta = float(line.strip().split()[3])
 
-            if abs(delta) < 0.002:
-                controls.append(0)
-            else:
-                controls.append(1)
-    else:
-        for detectorID in xrange(1, 25):
-            controls.append(1)
-
-    # adjust the controls for D1 and D2
-    for index in xrange(0, 12, 2):
-        if controls[index] == 1 or controls[index+1] == 1:
-            controls[index] = 1
-            controls[index+1] = 1
-
-    # adjust the controls for D3p and D3m
-    for index in xrange(12, 18):
-        if controls[index] == 1:
-            for detectorID in xrange(12, 18):
-                controls[detectorID] = 1
-            break
-
-    for index in xrange(18, 24):
-        if controls[index] == 1:
-            for detectorID in xrange(18, 24):
-                controls[detectorID] = 1
-            break   
+            if abs(delta) < sigma[index-1][2]:
+            	factor = abs(delta)/sigma[index-1][2]
+            	for i in range(3):
+            		sigma[index-1][i] = sigma[index-1][i]*factor
     
     # save the results
-    nActivated = 0
     fout = open(conf, 'w')
-    for index, onoff in enumerate(controls):
-        fout.write(str(index+1)+'  '+str(onoff)+'\n')
-        if onoff == 1:
-            nActivated += 1
+    for index, oneline in enumerate(sigma):
+        fout.write('%d      %f       %f         %f\n' % (index, oneline[0], oneline[1], oneline[2]))
     fout.close()
-
-    return nActivated
 
 ## command line control
 runID = sys.argv[1]
@@ -103,12 +77,7 @@ for i in range(offset, nCycle+1):
     runCmd('rm '+alignFile)
 
     # chamber alignment based on millepede
-    nActivated = prepareConf('increament.log_'+str(i-1), 'mille.conf')
-    if nActivated != 0:
-        print nActivated, 'detectors are still on ...'
-    else:
-        print 'Convergence achieved!! Will exit ...'
-        break
+    prepareConf('increament.log_'+str(i-1), 'mille.conf')
     runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
     runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
     runCmd('cp align_mille_'+str(i)+'.txt align_mille.txt')

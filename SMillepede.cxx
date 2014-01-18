@@ -296,20 +296,16 @@ void SMillepede::initMillepede(std::string configFileName)
   if(conf)
     {
       int detectorID;
-      int onoff;
+      double err1, err2, err3;
       char buf[200];
       while(conf.getline(buf, 200))
 	{
 	  std::istringstream stringBuf(buf);
-	  stringBuf >> detectorID >> onoff;
+	  stringBuf >> detectorID >> err1 >> err2 >> err3;
 
-	  if(onoff == 0) 
-	    {
-	      LogInfo("Turning off detectorID = " << detectorID);
-	      err_z[detectorID-1] = err_z[detectorID-1]/100.;
-	      err_phi[detectorID-1] = err_phi[detectorID-1]/100.;
-	      err_w[detectorID-1] = err_w[detectorID-1]/100.;
-	    }
+    	  err_z[detectorID-1] = err1;
+	  err_phi[detectorID-1] = err2;
+	  err_w[detectorID-1] = err3;
 	}
     }
   conf.close();
