@@ -20,15 +20,15 @@ def prepareConf(log_prev, conf):
         for index, line in enumerate(lines):
             delta = float(line.strip().split()[3])
 
-            if abs(delta) < sigma[index-1][2]:
-            	factor = abs(delta)/sigma[index-1][2]
+            if abs(delta) < sigma[index][2]:
+            	factor = abs(delta)/sigma[index][2]
             	for i in range(3):
-            		sigma[index-1][i] = sigma[index-1][i]*factor
+            		sigma[index][i] = sigma[index][i]*factor
     
     # save the results
     fout = open(conf, 'w')
     for index, oneline in enumerate(sigma):
-        fout.write('%d      %f       %f         %f\n' % (index, oneline[0], oneline[1], oneline[2]))
+        fout.write('%d      %f       %f         %f\n' % (index+1, oneline[0], oneline[1], oneline[2]))
     fout.close()
 
 ## command line control
