@@ -362,8 +362,8 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
 void MySQLSvc::bookOutputTables()
 {
   //Clear all the tables if exist
-  std::string tableNames[3] = {"kTrack", "kTrackHit", "kDimuon"};
-  for(int i = 0; i < 3; ++i)
+  std::string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kInfo"};
+  for(int i = 0; i < 4; ++i)
     {
       sprintf(query, "DROP TABLE IF EXISTS %s", tableNames[i].c_str());
 #ifndef OUT_TO_SCREEN
@@ -444,6 +444,25 @@ void MySQLSvc::bookOutputTables()
 	  "trackSeparation DOUBLE,"
 	  "chisq_dimuon    DOUBLE,"
 	  "PRIMARY KEY(runID, dimuonID, eventID))");
+#ifndef OUT_TO_SCREEN
+  server->Exec(query);
+#else
+  std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
+  //Book and fill kInfo table
+  sprintf(query, "CREATE TABLE kInfo ("
+	  "infoKey     VARCHAR(100),"
+	  "infoValue   TEXT,"
+	  "PRIMARY KEY(infoKey))");
+#ifndef OUT_TO_SCREEN
+  server->Exec(query);
+#else
+  std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
+  sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
+	  "VALUES(%s, %s)", "sourceProduction", dataSchema.c_str());
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else

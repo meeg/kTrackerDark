@@ -492,7 +492,7 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 	  stringBuf >> offset_pos[i] >> resolution[i];
           if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
 	}	 
-      cout << "Loaded chamber alignment parameters from " << alignmentFile_chamber << endl; 
+      cout << "GeomSvc: loaded chamber alignment parameters from " << filename << endl; 
     }
   _align_chamber.close();
 
@@ -517,7 +517,7 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 
 	  stringBuf >> offset_pos[i];
 	}	  
-      cout << "Loaded hodoscope alignment parameters from " << alignmentFile_hodo << endl; 
+      cout << "GeomSvc: loaded hodoscope alignment parameters from " << filename << endl; 
     }
   _align_hodo.close();
 
@@ -538,7 +538,7 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 	      stringBuf >> offset_pos_prop[i][j];
 	    }
 	}
-      cout << "Loaded prop. tube alignment parameters from " << alignmentFile_prop << endl; 
+      cout << "GeomSvc: loaded prop. tube alignment parameters from " << filename << endl; 
       
       for(int i = 41; i <= 48; i++)
 	{
@@ -575,7 +575,7 @@ void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
 	  //if(resolution[i] < spacing[i]/sqrt(12.)/10.) resolution[i] = spacing[i]/sqrt(12.)/10.;
 	  if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
 	}	  
-      cout << "Loaded millepede-based alignment parameters from " << alignmentFile_mille << endl; 
+      cout << "GeomSvc: loaded millepede-based alignment parameters from " << filename << endl; 
     }
   _align_mille.close();
 
@@ -621,7 +621,7 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
 	  if(rtprofile[detectorID-1] != NULL) delete rtprofile[detectorID-1];
 	  rtprofile[detectorID-1] = new TSpline3(getDetectorName(detectorID).c_str(), T, R, nBin, "b1e1");
 	}
-      cout << "Loaded calibration parameters from " << calibrationFile << endl; 
+      cout << "GeomSvc: loaded calibration parameters from " << filename << endl; 
     }
   _cali_file.close();
 }
