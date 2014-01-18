@@ -462,7 +462,7 @@ void MySQLSvc::bookOutputTables()
 #endif
 
   sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-	  "VALUES(%s, %s)", "sourceProduction", dataSchema.c_str());
+	  "VALUES('%s','%s')", "sourceProduction", dataSchema.c_str());
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else
