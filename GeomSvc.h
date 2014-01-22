@@ -98,6 +98,7 @@ public:
 
   ///See if a point is in a plane
   bool isInPlane(int planeID, double x, double y);
+  bool isInElement(int planeID, int elementID, double x, double y, double tolr = 0.);
   bool isInKMAG(double x, double y);
 
   ///Debugging print of the content

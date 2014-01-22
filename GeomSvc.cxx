@@ -350,6 +350,19 @@ bool GeomSvc::isInPlane(int detectorID, double x, double y)
   return true;
 }
 
+bool GeomSvc::isInElement(int detectorID, int elementID, double x, double y, double tolr)
+{
+  double x_min, x_max, y_min, y_max;
+  get2DBoxSize(detectorID, elementID, x_min, x_max, y_min, y_max);
+
+  x_min -= (tolr*(x_max - x_min));
+  x_max += (tolr*(x_max - x_min));
+  y_min -= (tolr*(y_max - y_min));
+  y_max += (tolr*(y_max - y_min));
+
+  return x > x_min && x < x_max && y > y_min && y < y_max;
+}
+
 bool GeomSvc::isInKMAG(double x, double y)
 {
   if(x < xmin_kmag || x > xmax_kmag) return false;
@@ -375,7 +388,7 @@ int GeomSvc::getExpElementID(int detectorID, double pos_exp)
   for(int i = 1; i < nElements[detectorID]; i++)
     {
       double pos = map_wirePosition[std::make_pair(detectorID, i)];
-      if(fabs(pos - pos_exp) < 0.5*spacing[detectorID])
+      if(fabs(pos - pos_exp) < 0.5*cellWidth[detectorID])
 	{
 	  elementID = i;
 	  break;
@@ -391,7 +404,7 @@ void GeomSvc::get2DBoxSize(int detectorID, int elementID, double& x_min, double&
   if(detectorName.find("T") != std::string::npos || detectorName.find("B") != std::string::npos || detectorName.find("X") != std::string::npos)
     {
       double x_center = map_wirePosition[std::make_pair(detectorID, elementID)];
-      double x_width = 0.5*(spacing[detectorID] + overlap[detectorID]);
+      double x_width = 0.5*cellWidth[detectorID];
       x_min = x_center - x_width;
       x_max = x_center + x_width;
 
@@ -401,7 +414,7 @@ void GeomSvc::get2DBoxSize(int detectorID, int elementID, double& x_min, double&
   else
     {
       double y_center = map_wirePosition[std::make_pair(detectorID, elementID)];
-      double y_width = 0.5*(spacing[detectorID] + overlap[detectorID]);
+      double y_width = 0.5*cellWidth[detectorID];
       y_min = y_center - y_width;
       y_max = y_center + y_width;
 
