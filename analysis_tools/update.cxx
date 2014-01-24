@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 
       event->setEventInfo(event_old);
       std::vector<Hit> hits_old = event_old->getAllHits();
+      std::vector<Hit> thits_old = event_old->getTriggerHits();
 
       for(unsigned int j = 0; j < hits_old.size(); j++)
 	{
@@ -68,6 +69,11 @@ int main(int argc, char *argv[])
 	    }
 
 	  event->insertHit(h);
+	}
+
+      for(unsigned int j = 0; j < thits_old.size(); ++j)
+	{
+	  event->insertTriggerHit(thits_old[j]);
 	}
 
       saveTree->Fill();

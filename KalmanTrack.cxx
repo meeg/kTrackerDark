@@ -287,7 +287,7 @@ void KalmanTrack::updateMomentum()
       return;
     }
     
-  //Log("Momentum updated from " << 1./fabs(_trkpar_curr._state_kf[0][0]) << " to " << p);
+  //LogInfo("Momentum updated from " << 1./fabs(_trkpar_curr._state_kf[0][0]) << " to " << p);
   _trkpar_curr._state_kf[0][0] = charge/p;
   for(std::list<Node>::iterator iter = _nodes.begin(); iter != _nodes.end(); ++iter)
     {
@@ -381,8 +381,8 @@ double KalmanTrack::getExpPosition()
   const TMatrixD& state = _node_next.getPredicted()._state_kf;
 
 #ifdef _DEBUG_ON
-  Log("Expected X: " << _node_next.getPredicted()._state_kf[3][0]);
-  Log("Expected Y: " << _node_next.getPredicted()._state_kf[4][0]);
+  LogInfo("Expected X: " << _node_next.getPredicted()._state_kf[3][0]);
+  LogInfo("Expected Y: " << _node_next.getPredicted()._state_kf[4][0]);
 #endif
 
   return (proj*state)[0][0];
@@ -401,7 +401,7 @@ double KalmanTrack::getExpPosError()
   double track_err_sq = SMatrix::getABCt(proj, covar, proj)[0][0];
   double wire_spacing = GeomSvc::instance()->getPlaneSpacing(_node_next.getHit().detectorID);
 
-  //Log("measurement error: " << sqrt(cov_m[0][0]) << ", tracking error: " << track_err);
+  //LogInfo("measurement error: " << sqrt(cov_m[0][0]) << ", tracking error: " << track_err);
   return sqrt(wire_spacing*wire_spacing + track_err_sq);
 }
 

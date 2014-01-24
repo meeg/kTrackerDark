@@ -225,7 +225,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Int_
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[13] = {0., 0.38, 0.38, 0.38, 1.22, 1.22, 1.22, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
+  double spacing[13] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
 
   int index1 = -1;
   int index2 = -1;
@@ -271,7 +271,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Int_
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[13] = {0., 0.38, 0.38, 0.38, 1.22, 1.22, 1.22, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
+  double spacing[13] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
 
   int index1 = -1;
   int index2 = -1;
@@ -459,6 +459,7 @@ void SRawEvent::reIndex(std::string option)
   bool _hodomask = false;
   bool _outoftime = false;
   bool _nonchamber = false;
+  bool _decluster = false;
 
   TString option_lower(option.c_str());
   option_lower.ToLower();
@@ -466,6 +467,7 @@ void SRawEvent::reIndex(std::string option)
   if(option_lower.Contains("h")) _hodomask = true;
   if(option_lower.Contains("o")) _outoftime = true;
   if(option_lower.Contains("n")) _nonchamber = true;
+  if(option_lower.Contains("c")) _decluster = true;
 
   ///Dump the vector into a list and do the reduction
   std::list<Hit> hitlist_temp;
@@ -485,7 +487,12 @@ void SRawEvent::reIndex(std::string option)
     {
       hitlist_temp.unique(Hit::sameChannel);
     }
-  
+ 
+  if(_decluster)
+    {
+      deClusterize(hitlist_temp);
+    }
+
   fAllHits.clear();
   fAllHits.assign(hitlist_temp.begin(), hitlist_temp.end());
 
@@ -497,10 +504,15 @@ void SRawEvent::reIndex(std::string option)
 
   for(UInt_t i = 0; i < fAllHits.size(); i++)
     {
-      fNHits[fAllHits[i].detectorID]++;
+      ++fNHits[fAllHits[i].detectorID];
     }
 
   fNHits[0] = fAllHits.size();
+}
+
+void SRawEvent::deClusterize(std::list<Hit>& hits)
+{
+
 }
 
 void SRawEvent::mixEvent(SRawEvent *event, int nBkgHits)

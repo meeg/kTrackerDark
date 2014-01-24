@@ -106,8 +106,9 @@ public:
   ///Find a hit
   Int_t findHit(Int_t detectorID, Int_t elementID);
 
-  ///Manipulation of hit list
+  ///Manipulation/reduction of hit list
   void reIndex(std::string option = "");
+  void deClusterize(std::list<Hit>& hits);
 
   ///Type of pair with two adjacent wiree
   typedef std::pair<Int_t, Int_t> hit_pair;
