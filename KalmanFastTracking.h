@@ -138,6 +138,9 @@ private:
   //Resolutions of all planes
   double resol_plane[25];
 
+  //Cell width of all planes
+  double spacing_plane[25];
+
   //Sagitta ratio in station 1 U/X/V
   double s_ratio[3];
   double s_sigma[3];

@@ -214,6 +214,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 #else 
       resol_plane[i] = p_geomSvc->getPlaneResolution(i);
 #endif
+
+      spacing_plane[i] = p_geomSvc->getPlaneSpacing(i);
     }
 
 #ifdef _DEBUG_ON
@@ -803,10 +805,10 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
           double z_x = xiter->second >= 0 ? z_plane_x[sID] : z_plane[hitAll[xiter->first].detectorID];
           double z_u = uiter->second >= 0 ? z_plane_u[sID] : z_plane[hitAll[uiter->first].detectorID];
           double z_v = z_plane_v[sID];
-	  double v_win1 = p_geomSvc->getPlaneSpacing(hitAll[uiter->first].detectorID)*2.*u_costheta[sID];
+	  double v_win1 = spacing_plane[hitAll[uiter->first].detectorID]*2.*u_costheta[sID];
 	  double v_win2 = fabs((z_u + z_v - 2.*z_x)*u_costheta[sID]*TX_MAX);
 	  double v_win3 = fabs((z_v - z_u)*u_sintheta[sID]*TY_MAX);
-	  double v_win = v_win1 + v_win2 + v_win3 + 2.*p_geomSvc->getPlaneSpacing(hitAll[uiter->first].detectorID);
+	  double v_win = v_win1 + v_win2 + v_win3 + 2.*spacing_plane[hitAll[uiter->first].detectorID];
 	  double v_min = 2*x_pos*u_costheta[sID] - u_pos - v_win;
 	  double v_max = v_min + 2.*v_win;
 
