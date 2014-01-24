@@ -512,7 +512,61 @@ void SRawEvent::reIndex(std::string option)
 
 void SRawEvent::deClusterize(std::list<Hit>& hits)
 {
+  std::vector<std::list<Hit>::iterator> cluster;
+  cluster.clear();
+  for(std::list<Hit>::iterator hit = hits.begin(); hit != hits.end(); ++hit)
+    {
+      //if we already reached the hodo part, stop
+      if(hit->detectorID > 24) break;
 
+      if(cluster.size() == 0)
+	{
+	  cluster.push_back(hit);
+	}
+      else
+	{
+	  if(hit->detectorID != cluster.back()->detectorID)
+	    {
+	      processCluster(hits, cluster);
+	      cluster.push_back(hit);
+	    }
+	  else if(hit->elementID - cluster.back()->elementID > 1)
+	    {
+	      processCluster(hits, cluster);
+	      cluster.push_back(hit);      
+	    }
+	  else
+	    {
+	      cluster.push_back(hit);
+	    }
+	}
+    }
+}
+
+void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>::iterator>& cluster)
+{
+  //size-2 clusters, retain the hit with smaller driftDistance
+  if(cluster.size() == 2)
+    {
+      double w_max = 0.9*0.5*(cluster.back()->pos - cluster.front()->pos);
+      if(cluster.front()->driftDistance > w_max || cluster.back()->driftDistance > w_max)
+	{
+	  cluster.front()->driftDistance > cluster.front()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
+	}
+    }
+
+  //size-larger-than-5, discard entirely
+  if(cluster.size() >= 5)
+    {
+      for(int i = 0; i < int((cluster.size() - 1)/2); ++i)
+	{
+	  hits.erase(cluster[i]);
+	  hits.erase(cluster[cluster.size()-i-1]);
+	}
+    }
+
+  cluster.clear();
+  return;
 }
 
 void SRawEvent::mixEvent(SRawEvent *event, int nBkgHits)
