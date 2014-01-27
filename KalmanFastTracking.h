@@ -107,6 +107,7 @@ private:
   std::vector<int> stationIDs_mask[6];
 
   //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
+  double z_mask[24];
   double x_mask_min[24][72];
   double x_mask_max[24][72];
   double y_mask_min[24][72];

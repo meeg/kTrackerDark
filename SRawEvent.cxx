@@ -549,19 +549,38 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
   if(cluster.size() == 2)
     {
       double w_max = 0.9*0.5*(cluster.back()->pos - cluster.front()->pos);
-      if(cluster.front()->driftDistance > w_max || cluster.back()->driftDistance > w_max)
+      double w_min = 0.4*0.5*(cluster.back()->pos - cluster.front()->pos);
+      if((cluster.front()->driftDistance > w_max && cluster.back()->driftDistance > w_min) || (cluster.front()->driftDistance > w_min || cluster.back()->driftDistance > w_max))
 	{
 	  cluster.front()->driftDistance > cluster.front()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
 	}
     }
 
-  //size-larger-than-5, discard entirely
-  if(cluster.size() >= 5)
+  //size-larger-than-3, discard entirely
+  if(cluster.size() >= 3)
     {
-      for(int i = 0; i < int((cluster.size() - 1)/2); ++i)
+      double dt_mean = 0.;
+      for(unsigned int i = 1; i < cluster.size(); ++i)
 	{
-	  hits.erase(cluster[i]);
-	  hits.erase(cluster[cluster.size()-i-1]);
+	  dt_mean += fabs(cluster[i+1]->tdcTime - cluster[i]->tdcTime);
+	}
+      dt_mean = dt_mean/(cluster.size());
+
+      if(dt_mean < 10.)
+	{
+	  //electric noise, discard them all
+	  for(unsigned int i = 1; i < cluster.size(); ++i)
+	    {
+	      hits.erase(cluster[i]);
+	    }
+	}
+      else
+	{
+	  //delta ray, keep the first and last
+	  for(unsigned int i = 1; i < cluster.size() - 1; ++i)
+	    {
+	      hits.erase(cluster[i]);
+	    }
 	}
     }
 

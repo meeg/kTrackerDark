@@ -111,6 +111,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   //Initialize masking window sizes, with 10% contingency
   for(int i = 25; i <= 48; i++)
     {
+      z_mask[i-25] = p_geomSvc->getPlanePosition(i);
       for(int j = 1; j <= p_geomSvc->getPlaneNElements(i); j++)
 	{
 	  double x_min, x_max, y_min, y_max;
@@ -897,15 +898,16 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
        	{
 	  int detectorID = hitAll[*iter].detectorID;
 	  int elementID = hitAll[*iter].elementID;
-	  
-	  double z_hodo = p_geomSvc->getPlanePosition(detectorID);
+		  
+	  int idx1 = detectorID - 25;
+	  int idx2 = elementID - 1;
+  
+	  double z_hodo = z_mask[idx1];
     	  double x_hodo = tracklet.getExpPositionX(z_hodo);
 	  double y_hodo = tracklet.getExpPositionY(z_hodo);
     	  double err_x = 3.*tracklet.getExpPosErrorX(z_hodo);
 	  double err_y = 3.*tracklet.getExpPosErrorY(z_hodo);
 
-	  int idx1 = detectorID - 25;
-	  int idx2 = elementID - 1;
 	  double x_min = x_mask_min[idx1][idx2] - err_x;
 	  double x_max = x_mask_max[idx1][idx2] + err_x;
 	  double y_min = y_mask_min[idx1][idx2] - err_y;
