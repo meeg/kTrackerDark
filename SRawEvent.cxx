@@ -562,7 +562,7 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
       double dt_mean = 0.;
       for(unsigned int i = 1; i < cluster.size(); ++i)
 	{
-	  dt_mean += fabs(cluster[i+1]->tdcTime - cluster[i]->tdcTime);
+	  dt_mean += fabs(cluster[i]->tdcTime - cluster[i-1]->tdcTime);
 	}
       dt_mean = dt_mean/(cluster.size());
 
