@@ -400,7 +400,7 @@ void MySQLSvc::bookOutputTables()
 	  "px3         DOUBLE, "
 	  "py3         DOUBLE, "
 	  "pz3         DOUBLE, "
-          "PRIMARY KEY(runID, spillID, eventID), "
+          "PRIMARY KEY(runID, trackID, eventID), "
 	  "INDEX(eventID), INDEX(charge))");
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
