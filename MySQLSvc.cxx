@@ -526,7 +526,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
 	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
 	  "%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
-	  z0, px0, py0, pz0, x1, y1, z1, px0, py0, pz0, x3, y3, z3, px3, py3, pz3);
+	  z0, px0, py0, pz0, x1, y1, z1, px1, py1, pz1, x3, y3, z3, px3, py3, pz3);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);
 #else

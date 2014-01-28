@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
       cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
       cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
 
-      rawEvent->reIndex("oa");
+      rawEvent->reIndex("oac");
       if(!fastfinder->setRawEvent(rawEvent)) continue;
       ++nEvents_tracked;
 
