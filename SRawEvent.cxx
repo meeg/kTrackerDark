@@ -550,7 +550,7 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
     {
       double w_max = 0.9*0.5*(cluster.back()->pos - cluster.front()->pos);
       double w_min = 0.4*0.5*(cluster.back()->pos - cluster.front()->pos);
-      if((cluster.front()->driftDistance > w_max && cluster.back()->driftDistance > w_min) || (cluster.front()->driftDistance > w_min || cluster.back()->driftDistance > w_max))
+      if((cluster.front()->driftDistance > w_max && cluster.back()->driftDistance > w_min) || (cluster.front()->driftDistance > w_min && cluster.back()->driftDistance > w_max))
 	{
 	  cluster.front()->driftDistance > cluster.front()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
 	}
@@ -564,12 +564,12 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
 	{
 	  dt_mean += fabs(cluster[i]->tdcTime - cluster[i-1]->tdcTime);
 	}
-      dt_mean = dt_mean/(cluster.size());
+      dt_mean = dt_mean/(cluster.size() - 1);
 
       if(dt_mean < 10.)
 	{
 	  //electric noise, discard them all
-	  for(unsigned int i = 1; i < cluster.size(); ++i)
+	  for(unsigned int i = 0; i < cluster.size(); ++i)
 	    {
 	      hits.erase(cluster[i]);
 	    }
@@ -585,7 +585,6 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
     }
 
   cluster.clear();
-  return;
 }
 
 void SRawEvent::mixEvent(SRawEvent *event, int nBkgHits)
