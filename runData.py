@@ -7,12 +7,12 @@ import time
 ## Run one job on a given schema
 def runCmd(cmd):
     print cmd
-    os.system(cmd)
+    #os.system(cmd)
 
 ## command line parser
 exe = sys.argv[1]
-suffix1 = sys.argv[2]
-suffix2 = sys.argv[3]
+pattern1 = sys.argv[2]
+pattern2 = sys.argv[3]
 runlist = 'runlist.txt'
 if len(sys.argv) > 4:
     runlist = sys.argv[4]
@@ -42,18 +42,18 @@ while nSubmitted < len(schemas):
     nRunning = int(os.popen('pgrep -u %s %s | wc -l' % (username, exe)).read().strip())
     print(exe+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
     for i in range(nRunning, nJobsMax):
-    	## check if all the jobs are submitted
+        ## check if all jobs are submitted
     	if nSubmitted >= len(schemas): break
 
         ## make the actual command
-        inputFile = 'run_%s_%s.root' % (schemas[nSubmitted], suffix1)
-        outputFile = 'run_%s_%s.root' % (schemas[nSubmitted], suffix2)
-        logFile = 'log_%s_%s' % (schemas[nSubmitted], suffix2)
+        inputFile = pattern1.replace('?', schemas[nSubmitted])
+        outputFile = pattern2.replace('?', schemas[nSubmitted])
+        logFile = 'log_%s_%s' % (exe, schemas[nSubmitted])
         cmd = './%s %s %s > %s &' % (exe, inputFile, outputFile, logFile)
 
         runCmd(cmd)
         nSubmitted = nSubmitted + 1
-            
+        
     time.sleep(60)
     nMinutes = nMinutes + 1.
 
