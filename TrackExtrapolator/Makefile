@@ -8,6 +8,10 @@ G4CONFIG     := geant4-config
 G4CFLAGS     := $(shell $(G4CONFIG) --cflags) 
 G4LDFLAGS    := $(shell $(G4CONFIG) --libs)
 
+MYSQLCONIG   := mysql_config
+MYSQLCFLAGS  := $(shell $(MYSQLCONIG) --include)
+MYSQLLDFLAGS := $(shell $(MYSQLCONIG) --libs)
+
 CXX           = g++ -g
 CXXFLAGS      = -O3 -Wall -fPIC
 LD            = g++ -g
@@ -23,8 +27,8 @@ LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS)
 CXXFLAGS     += $(G4CFLAGS)
 LDFLAGS      += $(G4LDFLAGS)
 
-CXXFLAGS     += -I$(MYSQL_INCLUDE)
-LDFLAGS      += -lz -L$(MYSQL_LIB) -lmysqlclient
+CXXFLAGS     += $(MYSQLCFLAGS)
+LDFLAGS      += $(MYSQLLDFLAGS)
 
 TRKEXTO       = TrackExtrapolator.o DetectorConstruction.o Field.o TabulatedField3D.o Settings.o GenericSD.o MCHit.o TPhysicsList.o 
 TRKEXTSO      = libTrkExt.so
