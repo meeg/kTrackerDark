@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstdlib>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -15,7 +16,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
   GeomSvc *geomSvc = GeomSvc::instance();
-  geomSvc->init(GEOMETRY_VERSION);
+  geomSvc->init( );
 
 #ifdef MC_MODE
   SRawMCEvent* rawEvent = new SRawMCEvent();

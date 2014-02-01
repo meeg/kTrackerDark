@@ -99,7 +99,7 @@ bool JobOptsSvc::init( const char* configfile )
   stringOpts["fMagFile"] = &m_fMagFile;
   stringOpts["kMagFile"] = &m_kMagFile;
 
-  stringOpts["MySQL_Server"] = &m_myqlServer;
+  stringOpts["MySQL_Server"] = &m_mySQLServer;
   stringOpts["Geometry_Version"] = &m_geomVersion;
 
 

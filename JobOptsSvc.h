@@ -46,7 +46,7 @@ class JobOptsSvc
     std::string m_kMagFile; ///< Name of kMag ascii file
 
     std::string m_geomVersion; ///< Name of geometry version
-    std::string m_myqlServer;  ///< Name of mysql database
+    std::string m_mySQLServer;  ///< Name of mysql database
 
   private:
     static JobOptsSvc* p_jobOptsSvc;

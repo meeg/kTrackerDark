@@ -13,6 +13,7 @@ Created: 10-19-2011
 #include <cmath>
 #include <algorithm>
 #include <iomanip>
+#include <algorithm>
 
 #include <TROOT.h>
 #include <TTree.h>
@@ -22,6 +23,9 @@ Created: 10-19-2011
 #include <TMath.h>
 #include <TString.h>
 #include <TPRegexp.h>
+#include <TSpline.h>
+
+#include "JobOptsSvc.h"
 
 #include "GeomSvc.h"
 
@@ -30,9 +34,9 @@ GeomSvc* GeomSvc::p_geometrySvc = NULL;
 GeomSvc* GeomSvc::instance()
 {
   if(p_geometrySvc == NULL)
-    {
-      p_geometrySvc = new GeomSvc;
-    }
+  {
+    p_geometrySvc = new GeomSvc;
+  }
 
   return p_geometrySvc;
 }
@@ -40,23 +44,29 @@ GeomSvc* GeomSvc::instance()
 void GeomSvc::close()
 {
   if(!p_geometrySvc)
+  {
+    for(int i = 0; i < 24; i++)
     {
-      for(int i = 0; i < 24; i++)
-	{
-	  delete rtprofile[i];
-	}
+      delete rtprofile[i];
+    }
 
-      delete p_geometrySvc;
-    }
+    delete p_geometrySvc;
+  }
   else
-    {
-      std::cout << "Error: no instance of geometry service found! " << std::endl;
-    }
+  {
+    std::cout << "Error: no instance of geometry service found! " << std::endl;
+  }
 }
 
-void GeomSvc::init(std::string geometrySchema)
+
+void GeomSvc::init( )
 {
   using namespace std;
+
+  jobOptsSvc = JobOptsSvc::instance();
+  jobOptsSvc->init();
+
+  const std::string geometrySchema = jobOptsSvc->m_geomVersion;
 
   //Initialize the detectorID --- detectorName convention
   typedef std::map<std::string, int>::value_type nameToID;
@@ -85,7 +95,7 @@ void GeomSvc::init(std::string geometrySchema)
   map_detectorID.insert(nameToID("D3mX", 22));
   map_detectorID.insert(nameToID("D3mUp", 23));
   map_detectorID.insert(nameToID("D3mU", 24));
-  
+
   map_detectorID.insert(nameToID("H1B", 25));
   map_detectorID.insert(nameToID("H1T", 26));
   map_detectorID.insert(nameToID("H1L", 27));
@@ -114,29 +124,29 @@ void GeomSvc::init(std::string geometrySchema)
 
   typedef std::map<int, std::string>::value_type idToName;
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
-    {
-      map_detectorName.insert(idToName(iter->second, iter->first));
-    }
+  {
+    map_detectorName.insert(idToName(iter->second, iter->first));
+  }
 
   //Initialize the geometrical variables which should be from MySQL database
   for(int i = 1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
-    {
-      nElements[i] = 0;
-      x0[i] = 0.;
-      y0[i] = 0.;
-      z0[i] = 0.;
+  {
+    nElements[i] = 0;
+    x0[i] = 0.;
+    y0[i] = 0.;
+    z0[i] = 0.;
 
-      x1[i] = 1E6;
-      y1[i] = 1E6;
-      x2[i] = -1E6;
-      y2[i] = -1E6;
-    }
+    x1[i] = 1E6;
+    y1[i] = 1E6;
+    x2[i] = -1E6;
+    y2[i] = -1E6;
+  }
 
   //Connect server
   char serverName[200];
-  sprintf(serverName, "mysql://%s", MYSQL_SERVER);
+  sprintf(serverName, "mysql://%s", jobOptsSvc->m_mySQLServer.c_str());
   TSQLServer* con = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
-  
+
   //Make query to Planes table
   char query[300];
   const char* buf_planes = "SELECT detectorName,spacing,cellWidth,overlap,numElements,angleFromVert,"
@@ -149,88 +159,88 @@ void GeomSvc::init(std::string geometrySchema)
   unsigned int nRows = res->GetRowCount();
   int dummy = 0;
   for(unsigned int i = 0; i < nRows; i++)
-    {
-      TSQLRow *row = res->Next();
-      string detectorName(row->GetField(0));
-      toLocalDetectorName(detectorName, dummy);   
-       
-      int detectorID = map_detectorID[detectorName];
-      spacing[detectorID] = atof(row->GetField(1));
-      cellWidth[detectorID] = atof(row->GetField(2));
-      overlap[detectorID] = atof(row->GetField(3));
-      angleFromVert[detectorID] = atof(row->GetField(5));
-      xoffset[detectorID] = atof(row->GetField(6));
-      theta_x[detectorID] = atof(row->GetField(12));
-      theta_y[detectorID] = atof(row->GetField(13));
-      theta_z[detectorID] = atof(row->GetField(14));
+  {
+    TSQLRow *row = res->Next();
+    string detectorName(row->GetField(0));
+    toLocalDetectorName(detectorName, dummy);   
 
-      //Following items need to be sumed or averaged over all modules
-      nElements[detectorID] += atoi(row->GetField(4));
-      double x0_i = atof(row->GetField(7));
-      double y0_i = atof(row->GetField(8));
-      double z0_i = atof(row->GetField(9));
-      double width_i = atof(row->GetField(10));
-      double height_i = atof(row->GetField(11));
+    int detectorID = map_detectorID[detectorName];
+    spacing[detectorID] = atof(row->GetField(1));
+    cellWidth[detectorID] = atof(row->GetField(2));
+    overlap[detectorID] = atof(row->GetField(3));
+    angleFromVert[detectorID] = atof(row->GetField(5));
+    xoffset[detectorID] = atof(row->GetField(6));
+    theta_x[detectorID] = atof(row->GetField(12));
+    theta_y[detectorID] = atof(row->GetField(13));
+    theta_z[detectorID] = atof(row->GetField(14));
 
-      double x1_i = x0_i - 0.5*width_i;
-      double x2_i = x0_i + 0.5*width_i;
-      double y1_i = y0_i - 0.5*height_i;
-      double y2_i = y0_i + 0.5*height_i;
+    //Following items need to be sumed or averaged over all modules
+    nElements[detectorID] += atoi(row->GetField(4));
+    double x0_i = atof(row->GetField(7));
+    double y0_i = atof(row->GetField(8));
+    double z0_i = atof(row->GetField(9));
+    double width_i = atof(row->GetField(10));
+    double height_i = atof(row->GetField(11));
 
-      x0[detectorID] += x0_i;
-      y0[detectorID] += y0_i;
-      z0[detectorID] += z0_i;
-      if(x1[detectorID] > x1_i) x1[detectorID] = x1_i;
-      if(x2[detectorID] < x2_i) x2[detectorID] = x2_i;
-      if(y1[detectorID] > y1_i) y1[detectorID] = y1_i;
-      if(y2[detectorID] < y2_i) y2[detectorID] = y2_i;
+    double x1_i = x0_i - 0.5*width_i;
+    double x2_i = x0_i + 0.5*width_i;
+    double y1_i = y0_i - 0.5*height_i;
+    double y2_i = y0_i + 0.5*height_i;
 
-      //Calculated value
-      resolution[detectorID] = cellWidth[detectorID]/sqrt(12.);
-      sintheta[detectorID] = sin(angleFromVert[detectorID] + theta_z[detectorID]);
-      costheta[detectorID] = cos(angleFromVert[detectorID] + theta_z[detectorID]);
-      tantheta[detectorID] = tan(angleFromVert[detectorID] + theta_z[detectorID]);
+    x0[detectorID] += x0_i;
+    y0[detectorID] += y0_i;
+    z0[detectorID] += z0_i;
+    if(x1[detectorID] > x1_i) x1[detectorID] = x1_i;
+    if(x2[detectorID] < x2_i) x2[detectorID] = x2_i;
+    if(y1[detectorID] > y1_i) y1[detectorID] = y1_i;
+    if(y2[detectorID] < y2_i) y2[detectorID] = y2_i;
 
-      delete row;      
-    }
+    //Calculated value
+    resolution[detectorID] = cellWidth[detectorID]/sqrt(12.);
+    sintheta[detectorID] = sin(angleFromVert[detectorID] + theta_z[detectorID]);
+    costheta[detectorID] = cos(angleFromVert[detectorID] + theta_z[detectorID]);
+    tantheta[detectorID] = tan(angleFromVert[detectorID] + theta_z[detectorID]);
+
+    delete row;      
+  }
   delete res;
-  
+
   for(int i = 41; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
-    {
-      x0[i] = x0[i]/9.;
-      y0[i] = y0[i]/9.;
-      z0[i] = z0[i]/9.;
-    }
+  {
+    x0[i] = x0[i]/9.;
+    y0[i] = y0[i]/9.;
+    z0[i] = z0[i]/9.;
+  }
 
   ///Initialize the alignment parameters
   for(int i = 1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
-    {
-      offset_pos[i] = 0.;
-      offset_z0[i] = 0.;
-      offset_phi[i] = 0.;
-    
-      if(i <= nChamberPlanes) rtprofile[i-1] = NULL;
-    }
+  {
+    offset_pos[i] = 0.;
+    offset_z0[i] = 0.;
+    offset_phi[i] = 0.;
+
+    if(i <= nChamberPlanes) rtprofile[i-1] = NULL;
+  }
 
   for(int i = 0; i < 4; i++)
+  {
+    for(int j = 0; j < 9; j++)
     {
-      for(int j = 0; j < 9; j++)
-	{
-	  offset_pos_prop[i][j] = 0.;
-	}
+      offset_pos_prop[i][j] = 0.;
     }
+  }
 
-#ifndef ALIGNMENT_MODE
-  /*
-  //load the initial value in the planeOffsets table
-  cout << "Trying to read the alignment parameter from database ..." << endl;
-  const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
-    " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
-  sprintf(query, buf_offsets, geometrySchema.c_str());
-  res = con->Query(query);
+  if( jobOptsSvc->m_alignmentMode )
+  {
+    //load the initial value in the planeOffsets table
+    cout << "Trying to read the alignment parameter from database ..." << endl;
+    const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
+      " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
+    sprintf(query, buf_offsets, geometrySchema.c_str());
+    res = con->Query(query);
 
-  nRows = res->GetRowCount();
-  for(unsigned int i = 0; i < nRows; ++i)
+    nRows = res->GetRowCount();
+    for(unsigned int i = 0; i < nRows; ++i)
     {
       TSQLRow* row = res->Next();
       string detectorName(row->GetField(0));
@@ -246,59 +256,59 @@ void GeomSvc::init(std::string geometrySchema)
 
       offset_z0[detectorID] = deltaZ;
       offset_phi[detectorID] = rotateAboutZ;
-      
+
       sintheta[detectorID] = sin(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
       costheta[detectorID] = cos(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
       tantheta[detectorID] = tan(angleFromVert[detectorID] + theta_z[detectorID] + offset_phi[detectorID]);
-      
+
       offset_pos[detectorID] = deltaX*costheta[detectorID] + deltaY*sintheta[detectorID];
       if(detectorID <= 24) resolution[detectorID] = RESOLUTION_DC; 
-      
+
       delete row;
     }
 
-  delete res;
-  */
-#endif
+    delete res;
+  } //end of anlignment mode
+
   delete con;
 
   /////Here starts the user-defined part
   //load alignment parameters
-  loadAlignment("alignment.txt", "alignment_hodo.txt", "alignment_prop.txt");
-  loadMilleAlignment("align_mille.txt");
+  loadAlignment(jobOptsSvc->m_alignmentFileChamber, jobOptsSvc->m_alignmentFileHodo, jobOptsSvc->m_alignmentFileProp );
+  loadMilleAlignment(jobOptsSvc->m_alignmentFileMille);
   calibration_loaded = false;
 
   ///Initialize the position look up table for all wires, hodos, and tubes
   typedef std::map<std::pair<int, int>, double>::value_type posType;
   for(int i = 1; i <= nChamberPlanes; i++)
+  {
+    for(int j = 1; j <= nElements[i]; j++)
     {
-      for(int j = 1; j <= nElements[i]; j++)
-	{
-	  double pos = (j - (nElements[i]+1.)/2.)*spacing[i] + xoffset[i] + x0[i]*costheta[i] + y0[i]*sintheta[i] + offset_pos[i];
-	  map_wirePosition.insert(posType(make_pair(i, j), pos));
-	}
+      double pos = (j - (nElements[i]+1.)/2.)*spacing[i] + xoffset[i] + x0[i]*costheta[i] + y0[i]*sintheta[i] + offset_pos[i];
+      map_wirePosition.insert(posType(make_pair(i, j), pos));
     }
-  
+  }
+
 
   // 2. for hodoscopes and prop. tubes
   for(int i = nChamberPlanes + 1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
+  {
+    for(int j = 1; j <= nElements[i]; j++)
     {
-      for(int j = 1; j <= nElements[i]; j++)
-	{
-	  double pos;
-	  if(i <= nChamberPlanes+nHodoPlanes)
-	    {
-	      pos = x0[i]*costheta[i] + y0[i]*sintheta[i] + xoffset[i] + (j - (nElements[i]+1)/2.)*spacing[i] + offset_pos[i];
-	    }
-	  else
-	    {
-	      int splaneID = int((i - nChamberPlanes - nHodoPlanes - 1)/2);
-	      int moduleID = int((j - 1)/8);        //Need to re-define moduleID for run2, note it's reversed compared to elementID
-	      pos = x0[i]*costheta[i] + y0[i]*sintheta[i] + xoffset[i] + (j - (nElements[i]+1)/2.)*spacing[i] + offset_pos_prop[splaneID][moduleID];
-	    }
-	  map_wirePosition.insert(posType(make_pair(i, j), pos));
-	}
-    } 
+      double pos;
+      if(i <= nChamberPlanes+nHodoPlanes)
+      {
+        pos = x0[i]*costheta[i] + y0[i]*sintheta[i] + xoffset[i] + (j - (nElements[i]+1)/2.)*spacing[i] + offset_pos[i];
+      }
+      else
+      {
+        int splaneID = int((i - nChamberPlanes - nHodoPlanes - 1)/2);
+        int moduleID = int((j - 1)/8);        //Need to re-define moduleID for run2, note it's reversed compared to elementID
+        pos = x0[i]*costheta[i] + y0[i]*sintheta[i] + xoffset[i] + (j - (nElements[i]+1)/2.)*spacing[i] + offset_pos_prop[splaneID][moduleID];
+      }
+      map_wirePosition.insert(posType(make_pair(i, j), pos));
+    }
+  } 
 
   ///Initialize channel mapping  --- not needed at the moment
   //xmin_kmag = -304.8;
@@ -314,7 +324,7 @@ void GeomSvc::init(std::string geometrySchema)
   zmax_kmag = 1064.26 + 120.*2.54;
 }
 
-std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
+std::vector<int> GeomSvc::getDetectorIDs(const std::string& pattern)
 {
   TPRegexp pattern_re(pattern.c_str());
 
@@ -322,19 +332,19 @@ std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
   detectorIDs.clear();
 
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
+  {
+    TString detectorName((*iter).first.c_str());
+    if(detectorName(pattern_re) != "")
     {
-      TString detectorName((*iter).first.c_str());
-      if(detectorName(pattern_re) != "")
-	{
-	  detectorIDs.push_back((*iter).second);
-	}
+      detectorIDs.push_back((*iter).second);
     }
+  }
   std::sort(detectorIDs.begin(), detectorIDs.end());
 
   return detectorIDs;
 }
 
-bool GeomSvc::findPatternInDetector(int detectorID, std::string pattern)
+bool GeomSvc::findPatternInDetector(int detectorID, const std::string& pattern)
 {
   TPRegexp pattern_re(pattern.c_str());
   TString detectorName(map_detectorName[detectorID]);
@@ -386,14 +396,14 @@ int GeomSvc::getExpElementID(int detectorID, double pos_exp)
 {
   int elementID = -1;
   for(int i = 1; i < nElements[detectorID]; i++)
+  {
+    double pos = map_wirePosition[std::make_pair(detectorID, i)];
+    if(fabs(pos - pos_exp) < 0.5*cellWidth[detectorID])
     {
-      double pos = map_wirePosition[std::make_pair(detectorID, i)];
-      if(fabs(pos - pos_exp) < 0.5*cellWidth[detectorID])
-	{
-	  elementID = i;
-	  break;
-	}
+      elementID = i;
+      break;
     }
+  }
 
   return elementID;
 }
@@ -402,25 +412,25 @@ void GeomSvc::get2DBoxSize(int detectorID, int elementID, double& x_min, double&
 {
   std::string detectorName = getDetectorName(detectorID);
   if(detectorName.find("T") != std::string::npos || detectorName.find("B") != std::string::npos || detectorName.find("X") != std::string::npos)
-    {
-      double x_center = map_wirePosition[std::make_pair(detectorID, elementID)];
-      double x_width = 0.5*cellWidth[detectorID];
-      x_min = x_center - x_width;
-      x_max = x_center + x_width;
+  {
+    double x_center = map_wirePosition[std::make_pair(detectorID, elementID)];
+    double x_width = 0.5*cellWidth[detectorID];
+    x_min = x_center - x_width;
+    x_max = x_center + x_width;
 
-      y_min = y1[detectorID];
-      y_max = y2[detectorID];
-    }
+    y_min = y1[detectorID];
+    y_max = y2[detectorID];
+  }
   else
-    {
-      double y_center = map_wirePosition[std::make_pair(detectorID, elementID)];
-      double y_width = 0.5*cellWidth[detectorID];
-      y_min = y_center - y_width;
-      y_max = y_center + y_width;
+  {
+    double y_center = map_wirePosition[std::make_pair(detectorID, elementID)];
+    double y_width = 0.5*cellWidth[detectorID];
+    y_min = y_center - y_width;
+    y_max = y_center + y_width;
 
-      x_min = x1[detectorID];
-      x_max = x2[detectorID];
-    }
+    x_min = x1[detectorID];
+    x_max = x2[detectorID];
+  }
 }
 
 int GeomSvc::getPlaneType(int planeID)
@@ -438,204 +448,201 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
   using namespace std;
 
   if(detectorName.find("P") != string::npos)
+  {
+    string XY = detectorName[2] == 'H' ? "Y" : "X";
+    string FB = (detectorName[3] == 'f' || detectorName[4] == 'f') ? "1" : "2"; //temporary solution
+    int moduleID = std::isdigit(detectorName[3]) == 1 ? atoi(&detectorName[3]) : atoi(&detectorName[4]); 
+
+    detectorName.replace(2, detectorName.length(), "");
+    detectorName += XY;
+    detectorName += FB;
+
+    if(eID <= 8) //Means either it's at lowest module or elementID is only from 1 to 8, repeatedly
     {
-      string XY = detectorName[2] == 'H' ? "Y" : "X";
-      string FB = (detectorName[3] == 'f' || detectorName[4] == 'f') ? "1" : "2"; //temporary solution
-      int moduleID = std::isdigit(detectorName[3]) == 1 ? atoi(&detectorName[3]) : atoi(&detectorName[4]); 
-      
-      detectorName.replace(2, detectorName.length(), "");
-      detectorName += XY;
-      detectorName += FB;
-     
-      if(eID <= 8) //Means either it's at lowest module or elementID is only from 1 to 8, repeatedly
-	{
-	  eID = (9 - moduleID)*8 + eID;
-	}	  
-    }
+      eID = (9 - moduleID)*8 + eID;
+    }	  
+  }
   else if(detectorName.find("H4") != string::npos)
+  {
+    if(detectorName.find("T") != string::npos || detectorName.find("B") != string::npos)
     {
-      if(detectorName.find("T") != string::npos || detectorName.find("B") != string::npos)
-	{
-	  detectorName.replace(3, detectorName.length(), "");
-	}
-      else
-	{
-	  detectorName.replace(5, detectorName.length(), "");
-	}
+      detectorName.replace(3, detectorName.length(), "");
     }
+    else
+    {
+      detectorName.replace(5, detectorName.length(), "");
+    }
+  }
 }
 
 double GeomSvc::getDriftDistance(int planeID, double tdcTime)
 {
   if(!calibration_loaded) return 0.;
   if(planeID <= 24)
+  {
+    if(tdcTime < tmin[planeID-1]) 
     {
-      if(tdcTime < tmin[planeID-1]) 
-	{
-	  return 0.5*cellWidth[planeID];
-	}
-      else if(tdcTime > tmax[planeID-1])
-	{
-  	  return 0.;
-	}
-      return rtprofile[planeID-1]->Eval(tdcTime);
+      return 0.5*cellWidth[planeID];
     }
-  
+    else if(tdcTime > tmax[planeID-1])
+    {
+      return 0.;
+    }
+    return rtprofile[planeID-1]->Eval(tdcTime);
+  }
+
   return 0.;
 }
 
-void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string alignmentFile_hodo, std::string alignmentFile_prop)
+void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std::string& alignmentFile_hodo, const std::string& alignmentFile_prop)
 {
   using namespace std;
 
   //load alignment numbers for chambers
-  char filename[300];
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_chamber.c_str());
   fstream _align_chamber;
-  _align_chamber.open(filename, ios::in);
-  
+  _align_chamber.open(alignmentFile_chamber.c_str(), ios::in);
+
   char buf[300];
   if(_align_chamber)
+  {
+    for(int i = 1; i <= nChamberPlanes; i++)
     {
-      for(int i = 1; i <= nChamberPlanes; i++)
-	{
-	  _align_chamber.getline(buf, 100);
-	  istringstream stringBuf(buf);
+      _align_chamber.getline(buf, 100);
+      istringstream stringBuf(buf);
 
-	  stringBuf >> offset_pos[i] >> resolution[i];
-          if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
-	}	 
-      cout << "GeomSvc: loaded chamber alignment parameters from " << filename << endl; 
-    }
+      stringBuf >> offset_pos[i] >> resolution[i];
+      if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
+    }	 
+    cout << "GeomSvc: loaded chamber alignment parameters from " << alignmentFile_chamber << endl; 
+  }
   _align_chamber.close();
 
   for(int i = 1; i <= nChamberPlanes; i += 2)
-    {
-      double resol = resolution[i] > resolution[i+1] ? resolution[i] : resolution[i+1];
-      resolution[i] = resol;
-      resolution[i+1] = resol;
-    }
+  {
+    double resol = resolution[i] > resolution[i+1] ? resolution[i] : resolution[i+1];
+    resolution[i] = resol;
+    resolution[i+1] = resol;
+  }
 
   //load alignment numbers for hodos
   fstream _align_hodo;
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_hodo.c_str());
-  _align_hodo.open(filename, ios::in);
-  
-  if(_align_hodo)
-    {
-      for(int i = nChamberPlanes+1; i <= 40; i++)
-	{
-	  _align_hodo.getline(buf, 100);
-	  istringstream stringBuf(buf);
+  _align_hodo.open(alignmentFile_hodo.c_str(), ios::in);
 
-	  stringBuf >> offset_pos[i];
-	}	  
-      cout << "GeomSvc: loaded hodoscope alignment parameters from " << filename << endl; 
-    }
+  if(_align_hodo)
+  {
+    for(int i = nChamberPlanes+1; i <= 40; i++)
+    {
+      _align_hodo.getline(buf, 100);
+      istringstream stringBuf(buf);
+
+      stringBuf >> offset_pos[i];
+    }	  
+    cout << "GeomSvc: loaded hodoscope alignment parameters from " << alignmentFile_hodo << endl; 
+  }
   _align_hodo.close();
 
   //load alignment numbers for prop. tubes
   fstream _align_prop;
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_prop.c_str());
-  _align_prop.open(filename, ios::in);
+  _align_prop.open(alignmentFile_prop.c_str(), ios::in);
 
   if(_align_prop)
+  {
+    for(int i = 0; i < 4; i++)
     {
-      for(int i = 0; i < 4; i++)
-	{
-	  for(int j = 0; j < 9; j++)
-	    {
-	      _align_prop.getline(buf, 100);
-	      istringstream stringBuf(buf);
+      for(int j = 0; j < 9; j++)
+      {
+        _align_prop.getline(buf, 100);
+        istringstream stringBuf(buf);
 
-	      stringBuf >> offset_pos_prop[i][j];
-	    }
-	}
-      cout << "GeomSvc: loaded prop. tube alignment parameters from " << filename << endl; 
-      
-      for(int i = 41; i <= 48; i++)
-	{
-	  spacing[i] = 5.08;
-	}
+        stringBuf >> offset_pos_prop[i][j];
+      }
     }
+    cout << "GeomSvc: loaded prop. tube alignment parameters from " << alignmentFile_prop << endl; 
+
+    for(int i = 41; i <= 48; i++)
+    {
+      spacing[i] = 5.08;
+    }
+  }
 }
 
-void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
+void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
 {
   using namespace std;
-  
+
   //load alignment numbers for chambers
-  char filename[300];
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_mille.c_str());
   fstream _align_mille;
-  _align_mille.open(filename, ios::in);
-  
+  _align_mille.open(alignmentFile_mille.c_str(), ios::in);
+
   char buf[300];
   if(_align_mille)
+  {
+    for(int i = 1; i <= nChamberPlanes; i++)
     {
-      for(int i = 1; i <= nChamberPlanes; i++)
-	{
-	  _align_mille.getline(buf, 100);
-	  istringstream stringBuf(buf);
+      _align_mille.getline(buf, 100);
+      istringstream stringBuf(buf);
 
-	  stringBuf >> offset_z0[i] >> offset_phi[i] >> offset_pos[i] >> resolution[i];
+      stringBuf >> offset_z0[i] >> offset_phi[i] >> offset_pos[i] >> resolution[i];
 
-	  z0[i] += offset_z0[i];
-	  sintheta[i] = sin(angleFromVert[i] + theta_z[i] + offset_phi[i]);
-	  costheta[i] = cos(angleFromVert[i] + theta_z[i] + offset_phi[i]);
-	  tantheta[i] = tan(angleFromVert[i] + theta_z[i] + offset_phi[i]);
+      z0[i] += offset_z0[i];
+      sintheta[i] = sin(angleFromVert[i] + theta_z[i] + offset_phi[i]);
+      costheta[i] = cos(angleFromVert[i] + theta_z[i] + offset_phi[i]);
+      tantheta[i] = tan(angleFromVert[i] + theta_z[i] + offset_phi[i]);
 
-	  //if(resolution[i] < spacing[i]/sqrt(12.)/10.) resolution[i] = spacing[i]/sqrt(12.)/10.;
-	  if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
-	}	  
-      cout << "GeomSvc: loaded millepede-based alignment parameters from " << filename << endl; 
-    }
+      //if(resolution[i] < spacing[i]/sqrt(12.)/10.) resolution[i] = spacing[i]/sqrt(12.)/10.;
+      if(resolution[i] < RESOLUTION_DC) resolution[i] = RESOLUTION_DC;
+    }	  
+    cout << "GeomSvc: loaded millepede-based alignment parameters from " << alignmentFile_mille << endl; 
+  }
   _align_mille.close();
 
   for(int i = 1; i <= nChamberPlanes; i+=2)
-    {
-      resolution[i] = 0.5*(resolution[i] + resolution[i+1]);
-      resolution[i+1] = resolution[i];
-    }
+  {
+    resolution[i] = 0.5*(resolution[i] + resolution[i+1]);
+    resolution[i+1] = resolution[i];
+  }
 }
 
-void GeomSvc::loadCalibration(std::string calibrationFile)
+void GeomSvc::loadCalibration(const std::string& calibrationFile)
 {
+  std::cout << "WARNING: GeomSvc::loadCalibration does not appear to be used.  It may not work. e-mail tice.physics@gmail.com if you see this message" << std::endl;
+  throw 1;
+
+
+
   using namespace std;
- 
-  char filename[300];
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, calibrationFile.c_str()); 
+
   fstream _cali_file;
-  _cali_file.open(filename, ios::in);
- 
+  _cali_file.open(calibrationFile.c_str(), ios::in);
+
   char buf[300];
   int iBin, nBin, detectorID;
   double tmin_temp, tmax_temp;
   double R[500], T[500];
   if(_cali_file)
+  {
+    calibration_loaded = true;
+
+    while(_cali_file.getline(buf, 100))
     {
-      calibration_loaded = true;
+      istringstream detector_info(buf);
+      detector_info >> detectorID >> nBin >> tmin_temp >> tmax_temp;
+      tmax[detectorID-1] = tmax_temp;
+      tmin[detectorID-1] = tmin_temp;
 
-      while(_cali_file.getline(buf, 100))
-	{
-	  istringstream detector_info(buf);
-	  detector_info >> detectorID >> nBin >> tmin_temp >> tmax_temp;
-	  tmax[detectorID-1] = tmax_temp;
-	  tmin[detectorID-1] = tmin_temp;
+      for(int i = 0; i < nBin; i++)
+      {
+        _cali_file.getline(buf, 100);
+        istringstream cali_line(buf);
 
-	  for(int i = 0; i < nBin; i++)
-	    {
-	      _cali_file.getline(buf, 100);
-	      istringstream cali_line(buf);
+        cali_line >> iBin >> T[i] >> R[i];
+      }
 
-	      cali_line >> iBin >> T[i] >> R[i];
-	    }
-
-	  if(rtprofile[detectorID-1] != NULL) delete rtprofile[detectorID-1];
-	  rtprofile[detectorID-1] = new TSpline3(getDetectorName(detectorID).c_str(), T, R, nBin, "b1e1");
-	}
-      cout << "GeomSvc: loaded calibration parameters from " << filename << endl; 
+      if(rtprofile[detectorID-1] != NULL) delete rtprofile[detectorID-1];
+      rtprofile[detectorID-1] = new TSpline3(getDetectorName(detectorID).c_str(), T, R, nBin, "b1e1");
     }
+    cout << "GeomSvc: loaded calibration parameters from " << calibrationFile << endl; 
+  }
   _cali_file.close();
 }
 
@@ -657,68 +664,74 @@ void GeomSvc::print()
 {
   std::cout << "Detector Name ----- Detector ID mapping" << std::endl;
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
-    {
-      std::cout << (*iter).first << " <-------> " << (*iter).second << std::endl;
-      std::cout << "Spacing:       " << spacing[(*iter).second] << std::endl;
-      std::cout << "CellWidth:     " << cellWidth[(*iter).second] << std::endl;
-      std::cout << "overlap:       " << overlap[(*iter).second] << std::endl;
-      std::cout << "Xoffset:       " << xoffset[(*iter).second] << std::endl;
-      std::cout << "width:         " << getPlaneScaleX((*iter).second) << std::endl;
-      std::cout << "height:        " << getPlaneScaleY((*iter).second) << std::endl;
-      std::cout << "ScaleX:        " << x1[(*iter).second] << " === " << x2[(*iter).second] << std::endl;
-      std::cout << "ScaleY:        " << y1[(*iter).second] << " === " << y2[(*iter).second] << std::endl;
-      std::cout << "nElements:     " << nElements[(*iter).second] << std::endl;
-      std::cout << "angleFromVert: " << angleFromVert[(*iter).second] << std::endl;
-      std::cout << "Z position:    " << z0[(*iter).second] << std::endl;
-      std::cout << "X position:    " << x0[(*iter).second] << std::endl;
-      std::cout << "Y position:    " << y0[(*iter).second] << std::endl;
-    }
+  {
+    std::cout << (*iter).first << " <-------> " << (*iter).second << std::endl;
+    std::cout << "Spacing:       " << spacing[(*iter).second] << std::endl;
+    std::cout << "CellWidth:     " << cellWidth[(*iter).second] << std::endl;
+    std::cout << "overlap:       " << overlap[(*iter).second] << std::endl;
+    std::cout << "Xoffset:       " << xoffset[(*iter).second] << std::endl;
+    std::cout << "width:         " << getPlaneScaleX((*iter).second) << std::endl;
+    std::cout << "height:        " << getPlaneScaleY((*iter).second) << std::endl;
+    std::cout << "ScaleX:        " << x1[(*iter).second] << " === " << x2[(*iter).second] << std::endl;
+    std::cout << "ScaleY:        " << y1[(*iter).second] << " === " << y2[(*iter).second] << std::endl;
+    std::cout << "nElements:     " << nElements[(*iter).second] << std::endl;
+    std::cout << "angleFromVert: " << angleFromVert[(*iter).second] << std::endl;
+    std::cout << "Z position:    " << z0[(*iter).second] << std::endl;
+    std::cout << "X position:    " << x0[(*iter).second] << std::endl;
+    std::cout << "Y position:    " << y0[(*iter).second] << std::endl;
+  }
 }
 
 void GeomSvc::printWirePosition()
 {
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
+  {
+    int detectorID = (*iter).second;
+    std::cout << " ====================== " << (*iter).first << " ==================== " << std::endl;
+    for(int i = 1; i <= nElements[detectorID]; ++i)
     {
-      int detectorID = (*iter).second;
-      std::cout << " ====================== " << (*iter).first << " ==================== " << std::endl;
-      for(int i = 1; i <= nElements[detectorID]; ++i)
-	{
-	  std::cout << std::setw(6) << std::setiosflags(std::ios::right) << detectorID;
-	  std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).first;
-	  std::cout << std::setw(6) << std::setiosflags(std::ios::right) << i;
-	  std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)];
-	  std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)] - 0.5*cellWidth[detectorID];
-	  std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)] + 0.5*cellWidth[detectorID];
-	  std::cout << std::endl;
-	}
+      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << detectorID;
+      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).first;
+      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << i;
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)] - 0.5*cellWidth[detectorID];
+      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << map_wirePosition[std::make_pair(detectorID, i)] + 0.5*cellWidth[detectorID];
+      std::cout << std::endl;
     }
+  }
 }
 
 void GeomSvc::printAlignPar()
 {
   std::cout << "detectorID         DetectorName            offset_pos             offset_z             offset_phi" << std::endl;
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
-    {
-      std::cout << iter->second << "     " << iter->first << "    " << offset_pos[iter->second] << "     " << offset_z0[iter->second] << "      " << offset_phi[iter->second] << std::endl;
-    }
+  {
+    std::cout << iter->second << "     " << iter->first << "    " << offset_pos[iter->second] << "     " << offset_z0[iter->second] << "      " << offset_phi[iter->second] << std::endl;
+  }
 }
 
 void GeomSvc::printTable()
 {
   std::cout << "detectorName    detectorID      Spacing     Xoffset     overlap     width       height       nElement       angleFromVertical       Z" << std::endl;
   for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
-    {
-      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).first;
-      std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).second;
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << spacing[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << xoffset[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << overlap[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << getPlaneScaleX((*iter).second);
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << getPlaneScaleY((*iter).second);
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << nElements[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << angleFromVert[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << z0[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << x0[(*iter).second];
-      std::cout << std::setw(10) << std::setiosflags(std::ios::right) << y0[(*iter).second] << std::endl;
-    }
+  {
+    std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).first;
+    std::cout << std::setw(6) << std::setiosflags(std::ios::right) << (*iter).second;
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << spacing[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << xoffset[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << overlap[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << getPlaneScaleX((*iter).second);
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << getPlaneScaleY((*iter).second);
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << nElements[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << angleFromVert[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << z0[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << x0[(*iter).second];
+    std::cout << std::setw(10) << std::setiosflags(std::ios::right) << y0[(*iter).second] << std::endl;
+  }
+} 
+
+
+TSpline3* GeomSvc::getRTCurve(int planeID)
+{
+  return rtprofile[planeID-1];
 }
