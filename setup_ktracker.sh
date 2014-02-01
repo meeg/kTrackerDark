@@ -1,1 +1,1 @@
-export KTRACKER_ROOT=/home/tice/seaquest/software_releases/r1p1/seaquest/kTracker
+export KTRACKER_ROOT=$SEAQUEST_INSTALL_ROOT/seaquest/kTracker
