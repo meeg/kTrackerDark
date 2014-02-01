@@ -22,3 +22,10 @@ else:
     os.system('make clean')
   elif sys.argv[1] == 'k':
     os.system('make clean')
+  elif sys.argv[1] == "m":   #make all
+    os.chdir("kTrackerServices")
+    os.system("make")
+    os.chdir('../TrackExtrapolator')
+    os.system('make')
+    os.chdir('..')
+    os.system('make')
