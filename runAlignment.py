@@ -32,6 +32,8 @@ def prepareConf(log_prev, conf):
     fout.close()
 
 ## command line control
+if( len(sys.argv) < 2 ):
+  sys.exit("You need more args.  Script needs a help menu to say what they are.")
 runID = sys.argv[1]
 nCycle = int(sys.argv[2])
 if len(sys.argv) == 4:

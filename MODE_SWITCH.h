@@ -1,43 +1,8 @@
 #ifndef _MODE_SWITCH_H
 #define _MODE_SWITCH_H
 
-//-------------- kTracker ROOT -------------------
-#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
-
-//--------------- Mode controls ------------------
-//=== Enable this when running over MC events
-//#define MC_MODE
-
-//=== Enable alignment mode
-//#define ALIGNMENT_MODE
-
-//=== Enable multiple minimizer feature, disabled by default
-//#define _ENABLE_MULTI_MINI
-
-//=== Coarse mode, no driftTime info is used, disabled by default
-//#define COARSE_MODE
-
-//=== Enable hodo masking with trigger road info
-//#define _ENABLE_TRIGGER_MASK
-
-//=== Enable Kalman fitting in fast tracking and alignment, enabled by default
-//#define _ENABLE_KF
-
-//--------------- Geometry version ---------------
-#define GEOMETRY_VERSION "geometry_R1086_run2"
-
-//-------------- SQL database --------------------
-#define MYSQL_SERVER "localhost"
-//#define MYSQL_SERVER "seaquel.physics.illinois.edu"
-//#define MYSQL_SERVER "e906-db1.fnal.gov"
-
-//==== Enable/disable dimuon mode
-#define DIMUON_MODE 0
-
-//==== Turn on/off KMag
-#define KMAG_ON 1
-
 //==== Enable massive debugging output, disabled by default
+//todo a simple msg service
 //#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
 

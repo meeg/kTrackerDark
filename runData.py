@@ -10,6 +10,9 @@ def runCmd(cmd):
     #os.system(cmd)
 
 ## command line parser
+if( len(sys.argv) < 2 ):
+  sys.exit("You need more args.  Script needs a help menu to say what they are.")
+
 exe = sys.argv[1]
 pattern1 = sys.argv[2]
 pattern2 = sys.argv[3]
