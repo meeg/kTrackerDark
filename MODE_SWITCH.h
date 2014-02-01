@@ -67,10 +67,16 @@
 #define ELOSS_ABSORBER 1.81
 #define Z_ST2 1347.36
 #define Z_ABSORBER 2028.19
-
 #define Z_REF 0.
-
 #define RESOLUTION_DC 0.2
+
+//-------------- Coarse swim setup --------------
+#define FMAG_HOLE 27.94
+#define FMAG_LENGTH 502.92
+#define NSLICES_FMAG 100
+#define NSTEPS_TARGET 100
+#define ELOSS_FMAG 7.4739
+#define Z_UPSTREAM -250.
 
 //-------------- Useful marcros -----------------
 #define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl

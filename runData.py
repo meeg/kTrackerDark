@@ -7,7 +7,7 @@ import time
 ## Run one job on a given schema
 def runCmd(cmd):
     print cmd
-    #os.system(cmd)
+    os.system(cmd)
 
 ## command line parser
 exe = sys.argv[1]

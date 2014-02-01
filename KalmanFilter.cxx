@@ -36,7 +36,7 @@ void KalmanFilter::close()
 
 KalmanFilter::KalmanFilter(bool limitedStep)
 {
-  _extrapolator.init(GEOMETRY_VERSION, limitedStep);
+  _extrapolator.init(GEOMETRY_VERSION);
 }
 
 bool KalmanFilter::fit_node(Node& _node)

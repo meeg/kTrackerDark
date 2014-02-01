@@ -16,6 +16,7 @@ Created: 06-09-2013
 #include <vector>
 
 #include <TObject.h>
+#include <TVector3.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -67,6 +68,10 @@ public:
   double getExpPosErrorY(double z) const;
   double getExpPositionW(int detectorID);
 
+  //Get momentum upstream/downstream
+  TVector3 getMomentumSt1();
+  TVector3 getMomentumSt3();
+
   //Get the i-th signed hit
   SignedHit getSignedHit(int index);
 
@@ -104,6 +109,9 @@ public:
 
   //Convert to a SRecTrack
   SRecTrack getSRecTrack();
+
+  //Fast swim to vertex via simple multi-bend plane method
+  TVector3 swimToVertex();
 
   //Station ID
   int stationID;

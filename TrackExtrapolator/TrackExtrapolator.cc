@@ -37,7 +37,7 @@ TrackExtrapolator::~TrackExtrapolator()
   g4eMgr->CloseGeometry();
 }
 
-bool TrackExtrapolator::init(std::string geometrySchema, bool limitedStep)
+bool TrackExtrapolator::init(std::string geometrySchema)
 {
   //Initialize propagate manager and related stuff
   //G4VSteppingVerbose::SetInstance(new G4SteppingVerbose);
@@ -52,11 +52,6 @@ bool TrackExtrapolator::init(std::string geometrySchema, bool limitedStep)
       mySettings->geometrySchema = geometrySchema.c_str();
 
       g4eMgr->SetUserInitialization(new DetectorConstruction(mySettings));
-      //if(!limitedStep)
-//      	{
-//	  LogDebug("Unlimited Step!");
-//	  g4eMgr->SetUserInitialization(new TPhysicsList);
-//	}	 
       g4eMgr->InitGeant4e();
 
       fullInit = true;
