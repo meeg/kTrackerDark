@@ -17,9 +17,11 @@ Created: 06-09-2013
 
 #include <TObject.h>
 
-#include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
+
+class JobOptsSvc;
+class GeomSvc;
 
 class SignedHit : public TObject
 {

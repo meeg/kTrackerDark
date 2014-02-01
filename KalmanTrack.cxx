@@ -912,7 +912,7 @@ void KalmanTrack::getSagittaInSuperDetector(int detectorID, double& pos_exp, dou
   double ratio[3] = {1.9, 1.80, 1.7};
   double sigma[3] = {0.2, 0.2, 0.2};
 
-  double x_st3, y_st3, z_st3;
+  double x_st3=-999.999, y_st3=-999.999, z_st3=-999.999;
   z_st3 = _nodes.back().getZ();
   if(_nodes.back().isSmoothDone())
     {

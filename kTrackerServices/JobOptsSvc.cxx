@@ -36,6 +36,8 @@ JobOptsSvc* JobOptsSvc::instance()
       cout << " creating new JobOptsSvc object" << endl;
   }
 
+  p_jobOptsSvc->init();
+
   return p_jobOptsSvc;
 }
 
@@ -108,6 +110,7 @@ bool JobOptsSvc::init( const char* configfile )
   boolOpts["AlignmentMode_enable"] = &m_alignmentMode;
   boolOpts["MultiMiniMode_enable"] = &m_multiMini;
   boolOpts["CoarseMode_enable"] = &m_coarseMode;
+  boolOpts["DiMuonMode_enable"] = &m_diMuonMode;
   boolOpts["KF_enable"] = &m_enableKF;
   boolOpts["TriggerMask_enable"] = &m_enableTriggerMask;
   boolOpts["kMag_enable"] = &m_enableKMag;

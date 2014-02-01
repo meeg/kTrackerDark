@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 {
   TrackExtrapolator j;
 
-  j.init("geometry_R997", true);
+  j.init(true);
 
   TMatrixD state_i(5, 1), state_f(5, 1);
   //state_i[0][0] = 0.0197863;

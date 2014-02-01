@@ -34,16 +34,14 @@
 // $Id: PurgMagTabulatedField3D.hh,v 1.3 2006/06/29 16:06:05 gunter Exp $
 // GEANT4 tag $Name: geant4-09-01-patch-02 $
 
-#include "globals.hh"
-#include "G4MagneticField.hh"
-#include "G4ios.hh"
-#include "Settings.hh"
-#include <fstream>
-#include <vector>
-#include <cmath>
-#include <mysql.h>
 
-using namespace std;
+#include "G4MagneticField.hh"
+#include <vector>
+
+class Settings;
+class st_mysql;
+
+using std::vector;
 
 class TabulatedField3D: public G4MagneticField
 
@@ -64,7 +62,7 @@ class TabulatedField3D: public G4MagneticField
   double fZoffset;
   bool fmag;
 
-  MYSQL* con;
+  st_mysql* con;
 
 public:
   TabulatedField3D(double, int, int, int, bool, Settings*);

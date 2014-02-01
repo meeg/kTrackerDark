@@ -30,12 +30,15 @@ LDFLAGS      += $(G4LDFLAGS)
 CXXFLAGS     += $(MYSQLCFLAGS)
 LDFLAGS      += $(MYSQLLDFLAGS)
 
+LDFLAGS      += -L$(KTRACKER_LIB)/ -lkTrackerSvc
+
 TRKEXTO       = TrackExtrapolator.o DetectorConstruction.o Field.o TabulatedField3D.o Settings.o GenericSD.o MCHit.o TPhysicsList.o 
-TRKEXTSO      = libTrkExt.so
+TRKEXTSO      = $(KTRACKER_LIB)/libTrkExt.so
 
 TESTO         = TrkExt.o
 TRKEXT        = TrkExt
 
+SLIBS         = $(TRKEXTSO)
 OBJS          = $(TRKEXTO) $(TESTO)
 PROGRAMS      = $(TRKEXT)
 
@@ -59,4 +62,4 @@ $(TRKEXT):      $(TRKEXTSO) $(TESTO)
 
 clean:
 	@echo "Cleanning everything ... "
-	@rm $(PROGRAMS) $(OBJS) *.so 
+	@rm $(PROGRAMS) $(OBJS) $(SLIBS)

@@ -22,9 +22,10 @@ Created: 2013.9.29
 #include <TVector3.h>
 #include <TLorentzVector.h>
 
-#include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "FastTracklet.h"
+
+class GeomSvc;
 
 //#define OUT_TO_SCREEN
 //#define USE_M_TABLES
@@ -37,7 +38,7 @@ public:
   static MySQLSvc* instance();
   
   //Connect to the server
-  bool connect(std::string sqlServer = MYSQL_SERVER);
+  bool connect(const std::string& sqlServer = "");
 
   //Set username/password
   void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }
@@ -89,9 +90,6 @@ private:
   std::string user;
   std::string passwd;
 
-  //pointer to the geometry service
-  GeomSvc* p_geomSvc;
-
   //SQL server
   TSQLServer* server;
   TSQLResult* res;
@@ -116,6 +114,9 @@ private:
   //Internal counter of tracks and dimuons
   int nTracks;
   int nDimuons;
+
+  //serivces
+  GeomSvc* geomSvc;
 };
 
 #endif

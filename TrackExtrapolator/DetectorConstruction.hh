@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string>
 #include <mysql.h>
+#include <vector>
 #include "GenericSD.hh"
 #include "Field.hh"
 #include "globals.hh"
@@ -50,11 +51,14 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Material;
 
+using std::vector;
+
+
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
 
-    DetectorConstruction(Settings*);
+    explicit DetectorConstruction(Settings*);
     ~DetectorConstruction();
 
     G4VPhysicalVolume* Construct();

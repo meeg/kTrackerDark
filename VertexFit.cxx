@@ -37,7 +37,7 @@ VertexFit::VertexFit()
   _tolerance = 1E-3;
 
   _kmfit = KalmanFilter::instance();
-  _extrapolator.init(GEOMETRY_VERSION, true);
+  _extrapolator.init( true);
   
   ///Single track finding doesn't require a propagation matrix
   _extrapolator.setPropCalc(false);

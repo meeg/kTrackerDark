@@ -24,6 +24,8 @@
 #include "VertexFit.h"
 #include "SRecEvent.h"
 
+using namespace std;
+
 TLorentzVector getMom(double px, double py, double pz)
 {
   double mass_mu = 0.10566;
@@ -75,7 +77,7 @@ int main(int argc, char *argv[])
   //Initialize geometry service
   LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init(GEOMETRY_VERSION);
+  geometrySvc->init();
 
   //Retrieve the raw event
   LogInfo("Retrieving the event stored in ROOT file ... ");

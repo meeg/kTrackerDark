@@ -25,8 +25,7 @@ Created: 10-19-2011
 #include <TPRegexp.h>
 #include <TSpline.h>
 
-#include "JobOptsSvc.h"
-
+#include "kTrackerServices/JobOptsSvc.h"
 #include "GeomSvc.h"
 
 GeomSvc* GeomSvc::p_geometrySvc = NULL;

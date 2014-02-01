@@ -15,9 +15,12 @@ Created: 10-13-2011
 #include <TMatrixDSym.h>
 
 #include "../MODE_SWITCH.h"
+#include "../kTrackerServices/JobOptsSvc.h"
 #include "Settings.hh"
 #include "TrackExtrapolator.hh"
 #include "TPhysicsList.hh"
+
+using namespace std;
 
 bool TrackExtrapolator::fullInit = false;
 
@@ -37,7 +40,7 @@ TrackExtrapolator::~TrackExtrapolator()
   g4eMgr->CloseGeometry();
 }
 
-bool TrackExtrapolator::init(std::string geometrySchema, bool limitedStep)
+bool TrackExtrapolator::init(bool limitedStep)
 {
   //Initialize propagate manager and related stuff
   //G4VSteppingVerbose::SetInstance(new G4SteppingVerbose);
@@ -47,9 +50,10 @@ bool TrackExtrapolator::init(std::string geometrySchema, bool limitedStep)
   calcProp = true;
   if(!fullInit)
     {
+      JobOptsSvc *jobOpts = JobOptsSvc::instance();
+      jobOpts->init();
       //Specify the geometry schema for the MySQL
       Settings *mySettings = new Settings();    
-      mySettings->geometrySchema = geometrySchema.c_str();
 
       g4eMgr->SetUserInitialization(new DetectorConstruction(mySettings));
       //if(!limitedStep)

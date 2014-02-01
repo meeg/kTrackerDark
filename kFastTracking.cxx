@@ -13,7 +13,7 @@
 #include <TClonesArray.h>
 
 #include "GeomSvc.h"
-#include "JobOptsSvc.h"
+#include "kTrackerServices/JobOptsSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   //Initialize geometry service
   LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init(GEOMETRY_VERSION);
+  geometrySvc->init();
 
   //Retrieve the raw event
   LogInfo("Retrieving the event stored in ROOT file ... ");

@@ -17,9 +17,6 @@ Settings::Settings()
   login = "seaguest";
   outputFileName = "test_default";
   password = "qqbar2mu+mu-";
-  fMagName = "tab.Fmag";
-  kMagName = "tab.Kmag";
-  sqlServer = MYSQL_SERVER;
   dimuonRepeat = 1;
   ironOn = true;
   trackingZCut = 400*cm;

@@ -34,10 +34,23 @@
 // $Id: PurgMagTabulatedField3D.cc,v 1.4 2006/06/29 16:06:25 gunter Exp $
 // GEANT4 tag $Name: geant4-09-01-patch-02 $
 
+#include "Settings.hh"
 #include "TabulatedField3D.hh"
+
+#include "globals.hh"
+#include "G4MagneticField.hh"
+#include "G4ios.hh"
+#include "../kTrackerServices/JobOptsSvc.h"
+#include <fstream>
+#include <vector>
+#include <cmath>
+#include <mysql.h>
+
+using namespace std;
 
 TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool fMagnet, Settings* settings) 
 {
+  JobOptsSvc *jobOpts = JobOptsSvc::instance();
   mySettings = settings;
   if (mySettings->asciiFieldMap)
   {
@@ -50,16 +63,17 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
     G4String filename;
 
+
     if (fmag)
-      filename = settings->fMagName;
+      filename = jobOpts->m_fMagFile.c_str();
     else
-      filename = settings->kMagName;
+      filename = jobOpts->m_kMagFile.c_str();
 
     double fieldUnit= tesla; 
     G4cout << "\n-----------------------------------------------------------"
-	   << "\n      Magnetic field"
-	   << "\n-----------------------------------------------------------"
-	   << "\n ---> " "Reading the field grid from " << filename << " ... " << endl; 
+      << "\n      Magnetic field"
+      << "\n-----------------------------------------------------------"
+      << "\n ---> " "Reading the field grid from " << filename << " ... " << endl; 
     ifstream file( filename );
     if (!file.good())
       cout << "Field map input file error." << endl;
@@ -68,8 +82,8 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     file.getline(buffer,256);
 
     G4cout << "  [ Number of values x,y,z: " 
-	   << nx << " " << ny << " " << nz << " ] "
-	   << endl;
+      << nx << " " << ny << " " << nz << " ] "
+      << endl;
 
     // Set up storage space for table
     xField.resize( nx );
@@ -91,7 +105,6 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
     // Read in the data
     double xval,yval,zval,bx,by,bz;
-    double temp;
 
     minx = miny = minz = maxx = maxy = maxz = 0;
 
@@ -101,7 +114,7 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
       {
         for (iz=0; iz<nz; iz++)
         {
-	  //  The field map has 1 column we don't use
+          //  The field map has 1 column we don't use
           file >> xval >> yval >> zval >> bx >> by >> bz;
           if (xval*cm < minx)
             minx = xval * cm;
@@ -137,23 +150,23 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     MYSQL_ROW row;
 
     con = mysql_init(NULL);
-    mysql_real_connect(con, mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->magnetSchema, 
-		       0, NULL, 0);
+    mysql_real_connect(con, jobOpts->m_mySQLServer.c_str(), mySettings->login, mySettings->password, mySettings->magnetSchema, 
+        0, NULL, 0);
 
     cout << mysql_error(con) << endl;
     cout << mySettings->magnetSchema << endl;
-  
+
     fmag = fMagnet;
 
     double fieldUnit= tesla; 
 
     G4cout << "\n-----------------------------------------------------------"
-	   << "\n      Magnetic field"
-	   << "\n-----------------------------------------------------------\n";
+      << "\n      Magnetic field"
+      << "\n-----------------------------------------------------------\n";
 
     G4cout << "  [ Number of values x,y,z: " 
-	   << nx << " " << ny << " " << nz << " ] "
-	   << endl;
+      << nx << " " << ny << " " << nz << " ] "
+      << endl;
 
     // Set up storage space for table
     xField.resize( nx );
@@ -240,18 +253,18 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
   // This code is run whether it is loaded from ascii or MySQL
 
   G4cout << "\n ---> Min values x,y,z: " 
-	 << minx/cm << " " << miny/cm << " " << minz/cm << " cm "
-	 << "\n ---> Max values x,y,z: " 
-	 << maxx/cm << " " << maxy/cm << " " << maxz/cm << " cm "
-	 << "\n ---> The field will be offset by " << zOffset/cm << " cm " << endl;
+    << minx/cm << " " << miny/cm << " " << minz/cm << " cm "
+    << "\n ---> Max values x,y,z: " 
+    << maxx/cm << " " << maxy/cm << " " << maxz/cm << " cm "
+    << "\n ---> The field will be offset by " << zOffset/cm << " cm " << endl;
 
   dx = maxx - minx;
   dy = maxy - miny;
   dz = maxz - minz;
 
   G4cout << "\n ---> Dif values x,y,z (range): " 
-	 << dx/cm << " " << dy/cm << " " << dz/cm << " cm in z "
-	 << "\n-----------------------------------------------------------" << endl;
+    << dx/cm << " " << dy/cm << " " << dz/cm << " cm in z "
+       << "\n-----------------------------------------------------------" << endl;
 }
 
 void TabulatedField3D::GetFieldValue(const double point[3], double *Bfield ) const
@@ -268,8 +281,8 @@ void TabulatedField3D::GetFieldValue(const double point[3], double *Bfield ) con
 
   // Check that the point is within the defined region 
   if ( x>=minx && x<=maxx &&
-       y>=miny && y<=maxy && 
-       z>=minz && z<=maxz )
+      y>=miny && y<=maxy && 
+      z>=minz && z<=maxz )
   {    
     // Position of given point within region, normalized to the range
     // [0,1]
@@ -280,19 +293,19 @@ void TabulatedField3D::GetFieldValue(const double point[3], double *Bfield ) con
     // Need addresses of these to pass to modf below.
     // modf uses its second argument as an OUTPUT argument.
     double xdIndex, ydIndex, zdIndex;
-    
+
     // Position of the point within the cuboid defined by the
     // nearest surrounding tabulated points
     double xlocal = ( std::modf(xfraction*(nx-1), &xdIndex));
     double ylocal = ( std::modf(yfraction*(ny-1), &ydIndex));
     double zlocal = ( std::modf(zfraction*(nz-1), &zdIndex));
-    
+
     // The indices of the nearest tabulated point whose coordinates
     // are all less than those of the given point
     int xindex = static_cast<int>(xdIndex);
     int yindex = static_cast<int>(ydIndex);
     int zindex = static_cast<int>(zdIndex);
-    
+
     // Full 3-dimensional version
     Bfield[0] =
       xField[xindex  ][yindex  ][zindex  ] * (1-xlocal) * (1-ylocal) * (1-zlocal) +

@@ -41,6 +41,7 @@ MySQL_Server seaquel.physics.illinois.edu
 
 #Boolean switches
 MCMode_enable 0
+DiMuonMode_enable 0
 AlignmentMode_enable 0
 MultiMiniMode_enable 0
 CoarseMode_enable 0

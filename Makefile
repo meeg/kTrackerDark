@@ -19,6 +19,8 @@ LD            = g++
 LDFLAGS       = -O3
 SOFLAGS       = -shared
 
+LDFLAGS      += -L$(KTRACKER_LIB)/ -lkTrackerSvc
+
 ifeq ($(ARCH),macosx64)
 FORTRAN       = gfortran
 else
@@ -40,9 +42,6 @@ LDFLAGS      += $(MYSQLLDFLAGS)
 
 SRAWEVENTO    = SRawEvent.o SRawEventDict.o
 SRECEVENTO    = SRecEvent.o SRecEventDict.o
-GEOMSVCO      = GeomSvc.o
-JOBOPTSSVCO   = JobOptsSvc.o
-MYSQLSVCO     = MySQLSvc.o
 SEEDFINDERO   = SeedFinder.o
 KALMANUTILO   = KalmanUtil.o
 KALMANFILTERO = KalmanFilter.o
@@ -82,13 +81,16 @@ KVERTEXM      = kVertex_mix
 MILLEALIGNO   = milleAlign.o
 MILLEALIGN    = milleAlign
 
-KTRACKERSO    = libkTracker.so
-SRAWEVENTSO   = libSRawEvent.so
+KTRACKERSO    = $(KTRACKER_LIB)/libkTracker.so
+SRAWEVENTSO   = $(KTRACKER_LIB)/libSRawEvent.so
+GEOMSVCO      = GeomSvc.o
+MYSQLSVCO     = MySQLSvc.o
+
 
 TRKEXTOBJS    = TrackExtrapolator/TrackExtrapolator.o TrackExtrapolator/DetectorConstruction.o TrackExtrapolator/Field.o TrackExtrapolator/TabulatedField3D.o \
 		TrackExtrapolator/Settings.o TrackExtrapolator/GenericSD.o TrackExtrapolator/MCHit.o TrackExtrapolator/TPhysicsList.o 
-CLASSOBJS     = $(GEOMSVCO) $(JOBOPTSSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(SEEDFINDERO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFINDERO) $(KALMANFITTERO) $(VERTEXFITO) \
-		$(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO) $(TRIGGERROADO) $(TRIGGERANALYZERO)
+CLASSOBJS     = $(GEOMSVCO) $(MYSQLSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(SEEDFINDERO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFINDERO) $(KALMANFITTERO) $(VERTEXFITO) \
+		$(KALMANFASTO) $(FASTTRACKLETO) $(TRIGGERROADO) $(TRIGGERANALYZERO)
 ALIGNOBJS     = $(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO)
 OBJS          = $(CLASSOBJS) $(ALIGNOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
 SLIBS         = $(KTRACKERSO) $(SRAWEVENTSO)

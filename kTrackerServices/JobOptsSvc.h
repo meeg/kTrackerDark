@@ -34,6 +34,7 @@ class JobOptsSvc
     bool m_enableKF;         ///< Enable Kalman fitting in fast tracking and alignment
     bool m_enableTriggerMask;///< Enable hodo masking with trigger road info
     bool m_enableKMag;       ///< Turn kMag on
+    bool m_diMuonMode;       ///< Turn on di-muon mode
  
     std::string m_alignmentFileHodo; ///< Name of hodoscope alignment file
     std::string m_alignmentFileChamber; ///< Name of chamber alignment file

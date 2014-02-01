@@ -3,14 +3,20 @@
 import os
 import sys
 
+print "What are the options?"
+
 if len(sys.argv) == 1:
-  os.chdir('TrackExtrapolator')
+  os.chdir("kTrackerServices")
+  os.system('make clean;make')
+  os.chdir('../TrackExtrapolator')
   os.system('make clean;make')
   os.chdir('..')
   os.system('make clean;make')
 else:
   if sys.argv[1] == 'c':
-    os.chdir('TrackExtrapolator')
+    os.chdir("kTrackerServices")
+    os.system("make clean")
+    os.chdir('../TrackExtrapolator')
     os.system('make clean')
     os.chdir('..')
     os.system('make clean')

@@ -15,20 +15,27 @@ Created: 05-24-2013
 #include <list>
 #include <vector>
 
-#include <Math/Factory.h>
-#include <Math/Minimizer.h>
 #include <Math/Functor.h>
 
-#include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "KalmanTrack.h"
 #include "KalmanFitter.h"
 #include "FastTracklet.h"
 
+class JobOptsSvc;
+class GeomSvc;
+namespace ROOT
+{
+  namespace Math
+  {
+  class Minimizer;
+  }
+}
+
 class KalmanFastTracking
 {
 public:
-  KalmanFastTracking(bool flag = true);
+  explicit KalmanFastTracking(bool flag = true);
   ~KalmanFastTracking();
 
   //Set the input event
@@ -159,6 +166,9 @@ private:
 
   //Geometry service
   GeomSvc* p_geomSvc;
+
+  //JobOptsSvc
+  JobOptsSvc* jobOpts;
 
   //Flag for enable Kalman fitting
   bool enable_KF;

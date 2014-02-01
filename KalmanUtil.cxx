@@ -13,6 +13,7 @@ Created: 11-20-2011
 
 #include "SRawEvent.h"
 #include "KalmanUtil.h"
+#include "GeomSvc.h"
 
 void SMatrix::printMatrix(const TMatrixD& m)
 {
