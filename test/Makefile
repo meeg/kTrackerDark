@@ -2,12 +2,8 @@ CXX = g++
 CXXFLAGS = -g -Wall -fPIC
 ROOTFLAGS = `root-config --cflags --glibs`
 
-SERVICES = $(KTRACKER_ROOT)/kTrackerServices
-
 INCLUDE += -I$(KTRACKER_ROOT)/ 
-
-LDLIBS += -L$(KTRACKER_ROOT) -lkTracker
-LDLIBS += -L$(SERVICES) -lkTrackerSvc
+LDLIBS += -L$(KTRACKER_LIB) -lkTracker -lkTrackerSvc
 
 
 BINARIES = TestJobOpts.o
@@ -18,7 +14,7 @@ all : $(TARGETS)
 
 #--- if making individual targets ---#
 
-TestJobOpts.o : TestJobOpts.cxx $(SERVICES)/JobOptsSvc.o
+TestJobOpts.o : TestJobOpts.cxx
 	$(CXX) $(INCLUDE) $(CXXFLAGS) $(ROOTFLAGS) -o $*.o $(LDLIBS) -c $*.cxx #compile
 	$(CXX) $(INCLUDE) $(CXXFLAGS) $(ROOTFLAGS) $(LDLIBS) -o $* $*.o        #link
 
