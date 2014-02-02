@@ -618,9 +618,11 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
   mom_vtx = mom[iStep];
   pos_vtx = pos[iStep];
 
+#ifdef _DEBUG_ON_LEVEL_2
   std::cout << "The one with minimum DCA is: " << iStep << ": " << std::endl;
   std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
   std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
+#endif
 }
 
 void Tracklet::print()
