@@ -567,7 +567,7 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
       //Make pT kick at the center of slice, add energy loss at both first and last half-slice
       //Note that ty is the global class data member, which does not change during the entire swimming
       double tx_i = mom[iStep-1].Px()/mom[iStep-1].Pz();
-      double tx_f = tx_i + charge*ptkick_unit/sqrt(mom[iStep-1].Px()*mom[iStep-1].Px() + mom[iStep-1].Py()*mom[iStep-1].Py());
+      double tx_f = tx_i + 2.*charge*ptkick_unit*step_fmag/sqrt(mom[iStep-1].Px()*mom[iStep-1].Px() + mom[iStep-1].Pz()*mom[iStep-1].Pz());
 
       TVector3 trajVec1(tx_i*step_fmag, ty*step_fmag, step_fmag);
       double p_tot_b = mom[iStep-1].Mag() + eloss_unit*trajVec1.Mag();
@@ -582,6 +582,8 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
 
 #ifdef _DEBUG_ON_LEVEL_2 
       std::cout << "FMAG: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
+      std::cout << mom[iStep-1][0]/mom[iStep-1][2] << "     " << mom[iStep-1][1]/mom[iStep-1][2] << "     " << mom[iStep-1][2] << "     ";
+      std::cout << pos[iStep-1][0] << "  " << pos[iStep-1][1] << "   " << pos[iStep-1][2] << std::endl << std::endl;
       std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
       std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
 #endif
@@ -598,6 +600,8 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
 
 #ifdef _DEBUG_ON_LEVEL_2
       std::cout << "TARGET: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
+      std::cout << mom[iStep-1][0]/mom[iStep-1][2] << "     " << mom[iStep-1][1]/mom[iStep-1][2] << "     " << mom[iStep-1][2] << "     ";
+      std::cout << pos[iStep-1][0] << "  " << pos[iStep-1][1] << "   " << pos[iStep-1][2] << std::endl << std::endl;
       std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
       std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
 #endif

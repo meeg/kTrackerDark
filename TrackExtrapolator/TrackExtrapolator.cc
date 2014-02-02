@@ -569,8 +569,6 @@ double TrackExtrapolator::extrapolateToIP(double z_target, double stepSize)
   double dca_pre, dca_post;
   while(fabs(pos_i[2] + stepSize - z_target) > fabs(1.1*stepSize))
     {
-      if(pos_i[2] > 500*cm) pos_i[2] = 500*cm;
-
       if(!extrapolateTo((pos_i[2] + stepSize)*mm/cm))
 	{
 	  break;
@@ -579,12 +577,14 @@ double TrackExtrapolator::extrapolateToIP(double z_target, double stepSize)
       dca_pre = sqrt(pos_i[0]*pos_i[0] + pos_i[1]*pos_i[1]);
       dca_post = sqrt(pos_f[0]*pos_f[0] + pos_f[1]*pos_f[1]);
 
-      //Log(pos_i[2] << " -> " << pos_f[2] << ": " << pos_i[0] << "  " << pos_f[0] << " | " << pos_i[1] << "  " << pos_f[1] << " | " << dca_pre << "  " << dca_post);
+      //LogInfo(pos_i[2] << " -> " << pos_f[2] << ": " << pos_i[0] << "  " << pos_f[0] << " | " << pos_i[1] << "  " << pos_f[1] << " | " << dca_pre << "  " << dca_post);
+      //LogInfo(pos_i[2] << " -> " << pos_f[2] << ": " << mom_i[0] << "  " << mom_f[0] << " | " << mom_i[1] << "  " << mom_f[1] << " | " << mom_i[2] << "  " << mom_f[2]);
     
       if(fabs(pos_f[2] - pos_i[2]) < 1E-3) break;
        
       if(dca_post > dca_pre)// && fabs(pos_f[0]) < 100.0 && fabs(pos_f[0]) < 100.0)
 	{
+	  //LogInfo("Should have stopped here!");
 	  break;   
 	}
 	      
