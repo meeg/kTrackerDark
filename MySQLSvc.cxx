@@ -306,7 +306,7 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
 {
   eventIDs.push_back(eventID);
   
-  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
+  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID FROM mDimuon WHERE acceptAllHodo=1 AND acceptAllDrift=1 AND eventID=%d", eventID);
   if(makeQuery() != 1) return false;
   nextEntry();
 
@@ -334,9 +334,16 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
       
       nextEntry();
       mcEvent->p_vertex[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
-    
+   
+      //Number of chamber hits in one track
+      sprintf(query, "SELECT COUNT(*) FROM mHit WHERE detectorName LIKE 'D%%' AND mTrackID=%d", trackID[i]);
+      if(makeQuery() != 1) return false;
+
+      nextEntry();
+      mcEvent->nHits[i] = getInt(0);
+       
       //At station 1,2,3,4
-      sprintf(query, "SELECT hpx,hpy,hpz,hx,hy,hz FROM mGeantHit WHERE geantName RLIKE 'O[1-4]' AND mTrackID=%d", trackID[i]);
+      sprintf(query, "SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName RLIKE '^H[1-4][TB]$' AND mTrackID=%d", trackID[i]);
       if(makeQuery() != 4) return false;
 
       nextEntry();

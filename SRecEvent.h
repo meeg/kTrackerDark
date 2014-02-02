@@ -85,6 +85,9 @@ public:
   bool isVertexValid();
   void setZVertex(Double_t z);
 
+  ///Plain setting, no KF-related stuff
+  void setVertexFast(TVector3 mom, TVector3 pos);
+
   TLorentzVector getMomentumVertex();
   Double_t getMomentumVertex(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fStateVertex, px, py, pz); }
   Double_t getZVertex() { return fVtxPar[2]; }

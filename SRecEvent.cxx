@@ -93,6 +93,21 @@ void SRecTrack::setZVertex(Double_t z)
   fCovarVertex = _node_vertex.getFiltered()._covar_kf;
 }
 
+void SRecTrack::setVertexFast(TVector3 mom, TVector3 pos)
+{
+  fVtxPar[0] = pos[0];
+  fVtxPar[1] = pos[1];
+  fVtxPar[2] = pos[2];
+
+  fStateVertex[0][0] = getCharge()/mom.Mag();
+  fStateVertex[1][0] = mom[0]/mom[2];
+  fStateVertex[2][0] = mom[1]/mom[2];
+  fStateVertex[3][0] = pos[0];
+  fStateVertex[4][0] = pos[1];
+
+  fCovarVertex.UnitMatrix();
+}
+
 bool SRecTrack::isVertexValid()
 {
   if(fVtxPar[2] > 480. || fVtxPar[2] < -240.) return false;

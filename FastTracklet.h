@@ -111,7 +111,7 @@ public:
   SRecTrack getSRecTrack();
 
   //Fast swim to vertex via simple multi-bend plane method
-  TVector3 swimToVertex();
+  void swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx);
 
   //Station ID
   int stationID;

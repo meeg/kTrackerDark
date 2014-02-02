@@ -516,6 +516,10 @@ SRecTrack Tracklet::getSRecTrack()
       strack.insertZ(z);
     }
 
+  TVector3 mom_vtx, pos_vtx;
+  swimToVertex(mom_vtx, pos_vtx);
+  strack.setVertexFast(mom_vtx, pos_vtx);
+
   strack.setHodoHits();
   return strack;
 }
@@ -535,7 +539,7 @@ TVector3 Tracklet::getMomentumSt3()
   return TVector3(pz*tx, pz*ty, pz);
 }
 
-TVector3 Tracklet::swimToVertex()
+void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
 {
   //Store the steps on each point (center of the interval)
   TVector3 mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
@@ -546,7 +550,7 @@ TVector3 Tracklet::swimToVertex()
   double ptkick_unit = PT_KICK_FMAG/FMAG_LENGTH;
 
   //Step size in FMAG/target area
-  double step_fmag = FMAG_LENGTH/NSLICES_FMAG;
+  double step_fmag = FMAG_LENGTH/NSLICES_FMAG/2.;   //note that in FMag, each step is devided into two slices
   double step_target = abs(Z_UPSTREAM)/NSTEPS_TARGET;
 
   //Initial position should be on the downstream face of beam dump
@@ -575,10 +579,12 @@ TVector3 Tracklet::swimToVertex()
       double pz_f = p_tot_f/sqrt(1. + tx_f*tx_f + ty*ty);
       mom[iStep].SetXYZ(pz_f*tx_f, pz_f*ty, pz_f);
       pos[iStep] = pos[iStep-1] - trajVec1 - trajVec2;
-   
-      std::cout << iStep << " ================== " << std::endl;
-      std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
-      std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl;
+
+#ifdef _DEBUG_ON_LEVEL_2 
+      std::cout << "FMAG: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
+      std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
+      std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
+#endif
     }
 
   for(; iStep < NSLICES_FMAG+NSTEPS_TARGET+1; ++iStep)
@@ -590,8 +596,11 @@ TVector3 Tracklet::swimToVertex()
       mom[iStep] = mom[iStep-1];
       pos[iStep] = pos[iStep-1] - trajVec;
 
-      std::cout << iStep << " ================== " << std::endl;
-      std::cout << mom[iStep][0]/mom[iSte] << "     " << pos[iStep] << std::endl;
+#ifdef _DEBUG_ON_LEVEL_2
+      std::cout << "TARGET: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
+      std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
+      std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
+#endif
     }
 
   //Now the swimming is done, find the point with closest distance of approach, let iStep store the index of that step
@@ -606,7 +615,12 @@ TVector3 Tracklet::swimToVertex()
 	}
     }
 
-  return pos[iStep];
+  mom_vtx = mom[iStep];
+  pos_vtx = pos[iStep];
+
+  std::cout << "The one with minimum DCA is: " << iStep << ": " << std::endl;
+  std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
+  std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
 }
 
 void Tracklet::print()
@@ -631,15 +645,7 @@ void Tracklet::print()
 
   cout << "X-Z: (" << tx << " +/- " << err_tx << ")*z + (" << x0 << " +/- " << err_x0 << ")" << endl;
   cout << "Y-Z: (" << ty << " +/- " << err_ty << ")*z + (" << y0 << " +/- " << err_y0 << ")" << endl;
-
-  /*
-  cout << "X_X: " << getExpPositionX(584.873) << " +/- " << getExpPosErrorX(584.873) << endl;
-  cout << "X_Y: " << getExpPositionY(584.873) << " +/- " << getExpPosErrorY(584.873) << endl;
-
-  cout << "U_X: " << getExpPositionX(559.168) << " +/- " << getExpPosErrorX(559.168) << endl;
-  cout << "U_Y: " << getExpPositionY(559.168) << " +/- " << getExpPosErrorY(559.168) << endl;
-
-  cout << "V_X: " << getExpPositionX(608.769) << " +/- " << getExpPosErrorX(608.769) << endl;
-  cout << "V_Y: " << getExpPositionY(608.769) << " +/- " << getExpPosErrorY(608.769) << endl;
-  */
+  
+  cout << "KMAG projection: X =  " << getExpPositionX(Z_KMAG_BEND) << " +/- " << getExpPosErrorX(Z_KMAG_BEND) << endl;  
+  cout << "KMAG projection: Y =  " << getExpPositionY(Z_KMAG_BEND) << " +/- " << getExpPosErrorY(Z_KMAG_BEND) << endl;  
 }
