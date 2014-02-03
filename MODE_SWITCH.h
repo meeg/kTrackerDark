@@ -71,11 +71,13 @@
 #define RESOLUTION_DC 0.2
 
 //-------------- Coarse swim setup --------------
-#define FMAG_HOLE 27.94
+#define FMAG_HOLE_LENGTH 27.94
+#define FMAG_HOLE_RADIUS 1.27
 #define FMAG_LENGTH 502.92
 #define NSLICES_FMAG 100
 #define NSTEPS_TARGET 100
 #define ELOSS_FMAG 7.4739
+#define ELOSS_FMAG_RAD 0.009133
 #define Z_UPSTREAM -250.
 
 //-------------- Useful marcros -----------------

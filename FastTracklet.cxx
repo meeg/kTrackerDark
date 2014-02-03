@@ -546,7 +546,8 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
   TVector3 pos[NSLICES_FMAG + NSTEPS_TARGET + 1];
 
   //E-loss and pT-kick per length, note the eloss is done in half-slices
-  double eloss_unit = ELOSS_FMAG/FMAG_LENGTH;
+  double eloss_unit_0 = ELOSS_FMAG/FMAG_LENGTH;
+  double eloss_unit_1 = ELOSS_FMAG_RAD/FMAG_LENGTH;
   double ptkick_unit = PT_KICK_FMAG/FMAG_LENGTH;
 
   //Step size in FMAG/target area
@@ -570,10 +571,31 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
       double tx_f = tx_i + 2.*charge*ptkick_unit*step_fmag/sqrt(mom[iStep-1].Px()*mom[iStep-1].Px() + mom[iStep-1].Pz()*mom[iStep-1].Pz());
 
       TVector3 trajVec1(tx_i*step_fmag, ty*step_fmag, step_fmag);
-      double p_tot_b = mom[iStep-1].Mag() + eloss_unit*trajVec1.Mag();
+      TVector3 pos_b = pos[iStep-1] - trajVec1;
+
+      double p_tot_i = mom[iStep-1].Mag();
+      double p_tot_b;
+      if(pos_b[2] > FMAG_HOLE_LENGTH || pos_b.Perp() > FMAG_HOLE_RADIUS)
+	{
+  	  p_tot_b = p_tot_i + (eloss_unit_0 + p_tot_i*eloss_unit_1)*trajVec1.Mag();
+	}
+      else
+	{
+	  p_tot_b = p_tot_i;
+	}
 
       TVector3 trajVec2(tx_f*step_fmag, ty*step_fmag, step_fmag);
-      double p_tot_f = p_tot_b + eloss_unit*trajVec2.Mag();
+      pos[iStep] = pos_b - trajVec2;
+
+      double p_tot_f;
+      if(pos[iStep][2] > FMAG_HOLE_LENGTH || pos[iStep].Perp() > FMAG_HOLE_RADIUS)
+	{
+  	  p_tot_f = p_tot_b + (eloss_unit_0 + p_tot_b*eloss_unit_1)*trajVec2.Mag();
+	}
+      else
+	{
+	  p_tot_f = p_tot_b;
+	}
 
       //Now the final position and momentum in this step
       double pz_f = p_tot_f/sqrt(1. + tx_f*tx_f + ty*ty);
