@@ -56,7 +56,8 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
       SRecTrack& recTrack = recEvent->getTrack(i);
       if(recTrack.getChisqVertex() < 0.)
 	{
-	  recTrack.setZVertex(findSingleMuonVertex(recTrack));
+	  //recTrack.setZVertex(findSingleMuonVertex(recTrack));
+	  recTrack.setZVertex(recTrack.getZVertex());
 	}
     }
 
@@ -325,7 +326,7 @@ double VertexFit::findSingleMuonVertex(Node& _node_start)
 double VertexFit::findSingleMuonVertex(TrkPar& _trkpar_start)
 {
   _extrapolator.setInitialStateWithCov(_trkpar_start._z, _trkpar_start._state_kf, _trkpar_start._covar_kf);
-  double z_vertex = _extrapolator.extrapolateToIP(-250., 5.);
+  double z_vertex = _extrapolator.extrapolateToIP();
   
   return z_vertex;
 }

@@ -833,7 +833,7 @@ int KalmanTrack::getMomentums(int level, double *px, double *py, double *pz)
 	{
 	  iter->getFiltered().get_mom(m_px, m_py, m_pz);
 	}
-      else if(level == 1)
+      else 
 	{
 	  iter->getPredicted().get_mom(m_px, m_py, m_pz);
 	}
@@ -923,6 +923,11 @@ void KalmanTrack::getSagittaInSuperDetector(int detectorID, double& pos_exp, dou
     {
       x_st3 = _nodes.back().getFiltered().get_x();
       y_st3 = _nodes.back().getFiltered().get_y();
+    }
+  else
+    {
+      x_st3 = _nodes.back().getPredicted().get_x();
+      y_st3 = _nodes.back().getPredicted().get_y();
     }
   double pos_st3 = x_st3*p_geomSvc->getCostheta(_nodes.back().getHit().detectorID) + y_st3*p_geomSvc->getSintheta(_nodes.back().getHit().detectorID);
 

@@ -556,44 +556,58 @@ void TrackExtrapolator::TRSCSD(int charge, G4ThreeVector mom_input, G4ThreeVecto
    }
 }
 
-double TrackExtrapolator::extrapolateToIP(double z_target, double stepSize)
+double TrackExtrapolator::extrapolateToIP()
 {
-  ///Convert the unit of step size
-  z_target = z_target*cm;
-  stepSize = stepSize*cm;
-  if(z_target < pos_i[2])
+  //Store the steps on each point
+  G4ThreeVector mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
+  G4ThreeVector pos[NSLICES_FMAG + NSTEPS_TARGET + 1];
+
+  //Step size in FMAG/target area, unit is cm.
+  double step_fmag = FMAG_LENGTH/NSLICES_FMAG;
+  double step_target = fabs(Z_UPSTREAM)/NSTEPS_TARGET;
+
+  //Start from FMAG face downstream
+  extrapolateTo(FMAG_LENGTH);
+  pos[0] = pos_f;
+  mom[0] = mom_f;
+
+  //Now make the real swimming
+  int iStep = 1;
+  for(; iStep <= NSLICES_FMAG+1; ++iStep)
     {
-      stepSize = -stepSize;
+      pos_i = pos[iStep-1];
+      mom_i = mom[iStep-1];
+
+      extrapolateTo((pos_i[2] - step_fmag)*mm/cm);
+
+      pos[iStep] = pos_f;
+      mom[iStep] = mom_f;
     }
 
-  double dca_pre, dca_post;
-  while(fabs(pos_i[2] + stepSize - z_target) > fabs(1.1*stepSize))
+  for(; iStep < NSLICES_FMAG+NSTEPS_TARGET+1; ++iStep)
     {
-      if(!extrapolateTo((pos_i[2] + stepSize)*mm/cm))
+      pos_i = pos[iStep-1];
+      mom_i = mom[iStep-1];
+
+      extrapolateTo((pos_i[2] - step_target)*mm/cm);
+
+      pos[iStep] = pos_f;
+      mom[iStep] = mom_f;
+    }
+
+  //Find the one step with minimum DCA
+  double dca_min = 1E6;
+  for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
+    {
+      double dca = sqrt(pos[i][0]*pos[i][0] + pos[i][1]*pos[i][1]);
+      if(dca < dca_min)
 	{
-	  break;
+	  dca_min = dca;
+	  iStep = i;
 	}
+    }
 
-      dca_pre = sqrt(pos_i[0]*pos_i[0] + pos_i[1]*pos_i[1]);
-      dca_post = sqrt(pos_f[0]*pos_f[0] + pos_f[1]*pos_f[1]);
-
-      //LogInfo(pos_i[2] << " -> " << pos_f[2] << ": " << pos_i[0] << "  " << pos_f[0] << " | " << pos_i[1] << "  " << pos_f[1] << " | " << dca_pre << "  " << dca_post);
-      //LogInfo(pos_i[2] << " -> " << pos_f[2] << ": " << mom_i[0] << "  " << mom_f[0] << " | " << mom_i[1] << "  " << mom_f[1] << " | " << mom_i[2] << "  " << mom_f[2]);
-    
-      if(fabs(pos_f[2] - pos_i[2]) < 1E-3) break;
-       
-      if(dca_post > dca_pre)// && fabs(pos_f[0]) < 100.0 && fabs(pos_f[0]) < 100.0)
-	{
-	  //LogInfo("Should have stopped here!");
-	  break;   
-	}
-	      
-      ///update the current position, momentum and covariance
-      pos_i = pos_f;	    
-      mom_i = mom_f;
-    } 
-
-  return pos_f[2]*mm/cm;
+  return pos[iStep][2]*mm/cm;
 }
 
 void TrackExtrapolator::print()

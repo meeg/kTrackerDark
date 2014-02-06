@@ -110,9 +110,7 @@ void SRecTrack::setVertexFast(TVector3 mom, TVector3 pos)
 
 bool SRecTrack::isVertexValid()
 {
-  if(fVtxPar[2] > 480. || fVtxPar[2] < -240.) return false;
-  if(fChisqVertex > 15.) return false;
-  if(getRVertex() > 10.) return false;
+  if(fChisqVertex > 50.) return false;
 
   return true;
 }

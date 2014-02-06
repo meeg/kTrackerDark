@@ -552,7 +552,7 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
 
   //Step size in FMAG/target area
   double step_fmag = FMAG_LENGTH/NSLICES_FMAG/2.;   //note that in FMag, each step is devided into two slices
-  double step_target = abs(Z_UPSTREAM)/NSTEPS_TARGET;
+  double step_target = fabs(Z_UPSTREAM)/NSTEPS_TARGET;
 
   //Initial position should be on the downstream face of beam dump
   pos[0].SetXYZ(getExpPositionX(FMAG_LENGTH), getExpPositionY(FMAG_LENGTH), FMAG_LENGTH);

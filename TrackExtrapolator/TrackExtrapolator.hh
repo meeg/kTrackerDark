@@ -64,7 +64,7 @@ public:
   int propagate();
 
   ///Extrapolate to the primary vertex
-  double extrapolateToIP(double target, double stepSize);
+  double extrapolateToIP();
 
   ///Transformation between the state vector and the mom/pos
   void convertSVtoMP(double z, TMatrixD& state, G4ThreeVector& mom, G4ThreeVector& pos);
