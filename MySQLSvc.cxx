@@ -218,13 +218,15 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 	    {
 	      h.inTime = p_geomSvc->isInTime(h.detectorID, h.tdcTime) ? 1 : 0;
 	      if(h.inTime > 0) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
-	    }
-	  else if(h.detectorID > 40)
-	    {
-	      h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
-	    }
+	    }	  
 	}
-       
+      
+      //Temporary ugly solution -- to correct prop. tube inTime flag 
+      if(h.detectorID > 40)
+	{
+	  h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
+	}
+
       rawEvent->insertHit(h);
     }
   rawEvent->reIndex();
@@ -265,11 +267,15 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 
   //Get target position
   sprintf(query, "SELECT targetPos FROM Spill WHERE spillID=%d", spillID);
-  if(makeQuery() != 1) return false;
-
-  nextEntry();
-  rawEvent->setTargetPos(getInt(0));
-
+  if(makeQuery() == 1)
+    {
+      nextEntry();
+      rawEvent->setTargetPos(getInt(0));
+    }
+  else
+    {
+      rawEvent->setTargetPos(99);
+    }
 
   //Get trigger hits
   sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' AND eventID=%d", eventID);
