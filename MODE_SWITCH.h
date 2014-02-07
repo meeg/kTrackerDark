@@ -68,7 +68,7 @@
 #define Z_ST2 1347.36
 #define Z_ABSORBER 2028.19
 #define Z_REF 0.
-#define RESOLUTION_DC 0.2
+#define RESOLUTION_DC 0.1
 
 //-------------- Coarse swim setup --------------
 #define FMAG_HOLE_LENGTH 27.94

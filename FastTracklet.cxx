@@ -422,8 +422,8 @@ double Tracklet::calcChisq()
 #ifdef COARSE_MODE
       if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
 #else
-      if(iter->sign == 0) sigma = fabs(iter->hit.driftDistance);
-      //if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
+      //if(iter->sign == 0) sigma = fabs(iter->hit.driftDistance);
+      if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
 #endif
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
