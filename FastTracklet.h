@@ -61,6 +61,9 @@ public:
   //Get the probabilities
   double getProb() const;
 
+  //Get the chi square 
+  double getChisq() const { return chisq; }
+
   //Get x and y positions at a given z
   double getExpPositionX(double z) const;
   double getExpPosErrorX(double z) const;

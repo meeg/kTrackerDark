@@ -27,6 +27,7 @@ int main(int argc, char **argv)
   ///Initialize the geometry service and output file 
   GeomSvc* p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
+  p_geomSvc->loadCalibration("calibration.txt");
 
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   if(argc > 3)
@@ -35,7 +36,7 @@ int main(int argc, char **argv)
     }
   else
     {
-      p_mysqlSvc->connect("seaquel.physics.illinois.edu");
+      p_mysqlSvc->connect();
     }
   p_mysqlSvc->setWorkingSchema(argv[1]);
 

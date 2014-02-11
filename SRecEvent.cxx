@@ -237,7 +237,7 @@ bool SRecTrack::isValid()
   if(getNHits() < 12) return false;
 
   //Total chisq, may change to cut on prob
-  if(getChisq() > 5.) return false;
+  if(getChisq() > 20.) return false;
 
   //hodo and prop. tube masking
   if(!isHodoMasked()) return false;
