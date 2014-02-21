@@ -223,13 +223,13 @@ void GeomSvc::init(std::string geometrySchema)
 #ifndef ALIGNMENT_MODE
   /*
   //load the initial value in the planeOffsets table
-  cout << "Trying to read the alignment parameter from database ..." << endl;
   const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
     " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
   sprintf(query, buf_offsets, geometrySchema.c_str());
   res = con->Query(query);
 
   nRows = res->GetRowCount();
+  if(nRows >= 24) cout << "GeomSvc: loaded chamber alignment parameters from " << filename << endl; 
   for(unsigned int i = 0; i < nRows; ++i)
     {
       TSQLRow* row = res->Next();

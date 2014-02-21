@@ -176,7 +176,7 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
   int step = 1;
   if(z_out < 5000.)
     {
-      step = 100;
+      step = 25;
     }
   else if(fabs(z_out - pos_i[2]) > 1000.)
     {
