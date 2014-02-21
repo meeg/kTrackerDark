@@ -229,7 +229,7 @@ void GeomSvc::init(std::string geometrySchema)
   res = con->Query(query);
 
   nRows = res->GetRowCount();
-  if(nRows >= 24) cout << "GeomSvc: loaded chamber alignment parameters from " << filename << endl; 
+  if(nRows >= 24) cout << "GeomSvc: loaded chamber alignment parameters from database: " << geometrySchema.c_str() << endl; 
   for(unsigned int i = 0; i < nRows; ++i)
     {
       TSQLRow* row = res->Next();

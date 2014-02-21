@@ -34,7 +34,7 @@ VertexFit::VertexFit()
   _node_vertex.getMeasurementCov()[1][1] = 1.;
 
   _max_iteration = 100;
-  _tolerance = 1E-3;
+  _tolerance = 1.;
 
   _kmfit = KalmanFilter::instance();
   _extrapolator.init(GEOMETRY_VERSION);
