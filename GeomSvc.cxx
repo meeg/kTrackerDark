@@ -69,19 +69,17 @@ void Plane::update()
   TRotation rot;
   rot.RotateX(-thetaX);
   rot.RotateY(-thetaY);
-  rot.RotateZ(-(thetaZ + rotZ));
+  //rot.RotateZ(-(thetaZ + rotZ));
 
   uVec *= rot;
   vVec *= rot;
 }
 
-double Plane::intercept(double tx, double ty, double x0, double y0)
+double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
 {
   //See ref. http://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
   double m[3][3];
   double v[3];
-  //TVector3 la(x0, y0, 0.);
-  //TVector3 lb(x0 + tx, y0 + ty, 1.);
 
   m[0][0] = -tx;
   m[1][0] = -ty;
@@ -93,8 +91,8 @@ double Plane::intercept(double tx, double ty, double x0, double y0)
   m[1][2] = vVec[1];
   m[2][2] = vVec[2];
 
-  v[0] = x0 - nVec[0];
-  v[1] = y0 - nVec[1];
+  v[0] = x0_track - nVec[0];
+  v[1] = y0_track - nVec[1];
   v[2] = -nVec[2];
 
   double det = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]);
@@ -103,8 +101,9 @@ double Plane::intercept(double tx, double ty, double x0, double y0)
 
   double xp = v[0]*(m[1][2]*m[2][0] - m[1][0]*m[2][2]) + v[1]*(m[0][0]*m[2][2] - m[0][2]*m[2][0]) + v[2]*(m[0][2]*m[1][0] - m[0][0]*m[1][2]);
   double yp = v[0]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]) + v[1]*(m[0][1]*m[2][0] - m[0][0]*m[2][1]) + v[2]*(m[0][0]*m[1][1] - m[0][1]*m[1][0]);
-
-  return getW(xp/det, yp/det);
+  
+  //LogInfo("Geom: " << detectorID << "  " << xp/det+x0 << "   " << yp/det+y0 << "   " << getW(xp/det+x0, yp/det+y0) + deltaW);
+  return getW(xp/det + x0, yp/det + y0) + deltaW;
 }
 
 std::ostream& operator << (std::ostream& os, const Plane& plane)

@@ -37,7 +37,7 @@ public:
   Plane();
 
   //Get interception with track
-  double intercept(double tx, double ty, double x0, double y0);
+  double intercept(double tx, double ty, double x0_track, double y0_track);
 
   //X, Y, U, V conversion
   double getX(double w, double y) { return w/costheta - y*tantheta; } 
