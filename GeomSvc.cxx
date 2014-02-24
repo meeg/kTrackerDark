@@ -59,8 +59,8 @@ Plane::Plane()
 void Plane::update()
 {
   sintheta = sin(angleFromVert + thetaZ + rotZ);
-  costheta = sin(angleFromVert + thetaZ + rotZ);
-  tantheta = sin(angleFromVert + thetaZ + rotZ);
+  costheta = cos(angleFromVert + thetaZ + rotZ);
+  tantheta = tan(angleFromVert + thetaZ + rotZ);
 
   nVec.SetXYZ(x0 + deltaX, y0 + deltaY, z0 + deltaZ);
   uVec.SetXYZ(1., 0., 0.);
@@ -78,9 +78,8 @@ void Plane::update()
 double Plane::intercept(double tx, double ty, double x0, double y0)
 {
   //See ref. http://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
-  TMatrixD m(3, 3);
-  TMatrixD v(3, 1);
-
+  double m[3][3];
+  double v[3];
   //TVector3 la(x0, y0, 0.);
   //TVector3 lb(x0 + tx, y0 + ty, 1.);
 
@@ -94,15 +93,18 @@ double Plane::intercept(double tx, double ty, double x0, double y0)
   m[1][2] = vVec[1];
   m[2][2] = vVec[2];
 
-  v[0][0] = x0 - nVec[0];
-  v[1][0] = y0 - nVec[1];
-  v[2][0] = -nVec[2];
+  v[0] = x0 - nVec[0];
+  v[1] = y0 - nVec[1];
+  v[2] = -nVec[2];
 
-  m.InvertFast();
+  double det = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]);
+  det -= m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]);
+  det += m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
 
-  TMatrixD out = m*v;
+  double xp = v[0]*(m[1][2]*m[2][0] - m[1][0]*m[2][2]) + v[1]*(m[0][0]*m[2][2] - m[0][2]*m[2][0]) + v[2]*(m[0][2]*m[1][0] - m[0][0]*m[1][2]);
+  double yp = v[0]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]) + v[1]*(m[0][1]*m[2][0] - m[0][0]*m[2][1]) + v[2]*(m[0][0]*m[1][1] - m[0][1]*m[1][0]);
 
-  return getW(out[1][0], out[2][0]);
+  return getW(xp/det, yp/det);
 }
 
 std::ostream& operator << (std::ostream& os, const Plane& plane)
@@ -308,7 +310,6 @@ void GeomSvc::init(std::string geometrySchema)
     }
 
 #ifndef ALIGNMENT_MODE
-  /*
   //load the initial value in the planeOffsets table
   const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
     " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
@@ -334,16 +335,15 @@ void GeomSvc::init(std::string geometrySchema)
       planes[detectorID].deltaY = atof(row->GetField(2));
       planes[detectorID].deltaZ = atof(row->GetField(3));
       planes[detectorID].rotZ = atof(row->GetField(4));
-      
+     
       planes[detectorID].update();
-      planes[detectorID].deltaW = planes[detectorID].deltaX*planes[detectorID].sintheta + planes[detectorID].deltaY*planes[detectorID].sintheta;
+      planes[detectorID].deltaW = planes[detectorID].getW(planes[detectorID].deltaX, planes[detectorID].deltaY);
       if(detectorID <= 24) planes[detectorID].resolution = RESOLUTION_DC; 
 
       delete row;
     }
 
   delete res;
-  */
 #endif
   delete con;
 
@@ -656,9 +656,7 @@ void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
 
 	  stringBuf >> planes[i].deltaZ >> planes[i].rotZ >> planes[i].deltaW >> planes[i].resolution;
 
-	  planes[i].z0 += planes[i].deltaZ;
           planes[i].update();
-
 	  if(planes[i].resolution < RESOLUTION_DC) planes[i].resolution = RESOLUTION_DC;
 	}	  
       cout << "GeomSvc: loaded millepede-based alignment parameters from " << filename << endl; 

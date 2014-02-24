@@ -124,7 +124,7 @@ public:
   std::vector<int> getDetectorIDs(std::string pattern);
   bool findPatternInDetector(int detectorID, std::string pattern);
 
-  double getPlanePosition(int detectorID) { return planes[detectorID].z0; }
+  double getPlanePosition(int detectorID) { return planes[detectorID].z0 + planes[detectorID].deltaZ; }
   double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }
   double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
   double getCostheta(int detectorID)      { return planes[detectorID].costheta; }
