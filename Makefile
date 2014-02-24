@@ -38,11 +38,9 @@ SRAWEVENTO    = SRawEvent.o SRawEventDict.o
 SRECEVENTO    = SRecEvent.o SRecEventDict.o
 GEOMSVCO      = GeomSvc.o
 MYSQLSVCO     = MySQLSvc.o
-SEEDFINDERO   = SeedFinder.o
 KALMANUTILO   = KalmanUtil.o
 KALMANFILTERO = KalmanFilter.o
 KALMANTRACKO  = KalmanTrack.o
-KALMANFINDERO = KalmanFinder.o
 KALMANFITTERO = KalmanFitter.o
 FASTTRACKLETO = FastTracklet.o FastTrackletDict.o
 KALMANFASTO   = KalmanFastTracking.o
@@ -55,12 +53,6 @@ MILLEPEDES    = millepede.f
 
 TRIGGERROADO  = TriggerRoad.o TriggerRoadDict.o
 TRIGGERANALYZERO = TriggerAnalyzer.o
-
-KSEEDERO      = kSeeder.o
-KSEEDER       = kSeeder
-
-KTRACKERMULO  = kTracker.o
-KTRACKERMUL   = kTracker
 
 KFASTTRACKO   = kFastTracking.o
 KFASTTRACK    = kFastTracking
@@ -82,12 +74,12 @@ SRAWEVENTSO   = libSRawEvent.so
 
 TRKEXTOBJS    = TrackExtrapolator/TrackExtrapolator.o TrackExtrapolator/DetectorConstruction.o TrackExtrapolator/Field.o TrackExtrapolator/TabulatedField3D.o \
 		TrackExtrapolator/Settings.o TrackExtrapolator/GenericSD.o TrackExtrapolator/MCHit.o TrackExtrapolator/TPhysicsList.o 
-CLASSOBJS     = $(GEOMSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(SEEDFINDERO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFINDERO) $(KALMANFITTERO) $(VERTEXFITO) \
+CLASSOBJS     = $(GEOMSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(KALMANUTILO) $(KALMANFILTERO) $(KALMANTRACKO) $(KALMANFITTERO) $(VERTEXFITO) \
 		$(KALMANFASTO) $(FASTTRACKLETO) $(MYSQLSVCO) $(TRIGGERROADO) $(TRIGGERANALYZERO)
 ALIGNOBJS     = $(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO)
 OBJS          = $(CLASSOBJS) $(ALIGNOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
 SLIBS         = $(KTRACKERSO) $(SRAWEVENTSO)
-PROGRAMS      = $(KSEEDER) $(KTRACKERMUL) $(KVERTEX) $(KVERTEXM) $(MILLEALIGN) $(KFASTTRACK) $(KONLINETRACK)
+PROGRAMS      = $(KVERTEX) $(KVERTEXM) $(MILLEALIGN) $(KFASTTRACK) $(KONLINETRACK)
 
 all:            $(PROGRAMS) $(SLIBS)
 

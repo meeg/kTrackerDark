@@ -20,7 +20,6 @@
 #include "KalmanUtil.h"
 #include "KalmanTrack.h"
 #include "KalmanFilter.h"
-#include "KalmanFinder.h"
 #include "KalmanFitter.h"
 #include "VertexFit.h"
 #include "SRecEvent.h"

@@ -68,6 +68,7 @@
 #define Z_ST2 1347.36
 #define Z_ABSORBER 2028.19
 #define Z_REF 0.
+#define Z_TARGET -129.54 
 #define RESOLUTION_DC 0.1
 
 //-------------- Coarse swim setup --------------
