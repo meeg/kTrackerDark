@@ -315,6 +315,8 @@ void GeomSvc::init(std::string geometrySchema)
       planes[i].x0 = planes[i].x0/9.;
       planes[i].y0 = planes[i].y0/9.;
       planes[i].z0 = planes[i].z0/9.;
+    
+      planes[i].update();
     }
 
 #ifndef ALIGNMENT_MODE
