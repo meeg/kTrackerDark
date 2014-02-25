@@ -90,9 +90,9 @@ public:
   double resolution;
 
   //Geometric setup
-  TVector3 nVec;             //Point to the center
-  TVector3 uVec;             //measuring direction
-  TVector3 vVec;             //non-measuring direction
+  double nVec[3];             //Point to the center
+  double uVec[3];             //measuring direction
+  double vVec[3];             //non-measuring direction
 
   //Calibration info
   double tmin;
@@ -124,14 +124,14 @@ public:
   std::vector<int> getDetectorIDs(std::string pattern);
   bool findPatternInDetector(int detectorID, std::string pattern);
 
-  double getPlanePosition(int detectorID) { return planes[detectorID].z0 + planes[detectorID].deltaZ; }
+  double getPlanePosition(int detectorID) { return planes[detectorID].nVec[2]; }
   double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }
   double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
   double getCostheta(int detectorID)      { return planes[detectorID].costheta; }
   double getSintheta(int detectorID)      { return planes[detectorID].sintheta; }
   double getTantheta(int detectorID)      { return planes[detectorID].tantheta; }
-  double getPlaneCenterX(int detectorID)  { return planes[detectorID].x0; }
-  double getPlaneCenterY(int detectorID)  { return planes[detectorID].y0; }
+  double getPlaneCenterX(int detectorID)  { return planes[detectorID].nVec[0]; }
+  double getPlaneCenterY(int detectorID)  { return planes[detectorID].nVec[1]; }
   double getPlaneScaleX(int detectorID)   { return planes[detectorID].x2 - planes[detectorID].x1; }
   double getPlaneScaleY(int detectorID)   { return planes[detectorID].y2 - planes[detectorID].y1; }
   int getPlaneNElements(int detectorID)   { return planes[detectorID].nElements; }
@@ -141,7 +141,7 @@ public:
   double getRotationInY(int detectorID)    { return planes[detectorID].thetaY; } 
   double getPlaneZOffset(int detectorID)   { return planes[detectorID].deltaZ; }
   double getPlanePhiOffset(int detectorID) { return planes[detectorID].rotZ; }
-  double getPlaneWOffset(int detectorID)   { return planes[detectorID].deltaZ; }
+  double getPlaneWOffset(int detectorID)   { return planes[detectorID].deltaW; }
   double getPlaneWOffset(int detectorID, int moduleID) { return planes[detectorID].deltaW_module[moduleID]; }
 
   int getPlaneType(int detectorID) { return planes[detectorID].planeType; }
@@ -152,6 +152,7 @@ public:
 
   ///Get the interception of a line an a plane
   double getInterception(int detectorID, double tx, double ty, double x0, double y0) { return planes[detectorID].intercept(tx, ty, x0, y0); }
+  double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0);
 
   ///Convert the detectorID and elementID to the actual hit position
   void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);

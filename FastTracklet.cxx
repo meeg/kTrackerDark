@@ -426,15 +426,20 @@ double Tracklet::calcChisq()
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
-      if(KMAG_ON == 1 && stationID == 6 && detectorID <= 6)
+      if(stationID == 6 || stationID == 5)
 	{
-	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);//(x0_st1 + tx_st1*z)*costheta - (y0 + ty*z)*sintheta;
-	  //LogInfo("Fast: " << detectorID << "  " << (x0_st1 + tx_st1*z) << "   " << (y0 + ty*z) << "  " << (x0_st1 + tx_st1*z)*costheta+(y0 + ty*z)*sintheta);
+	  if(KMAG_ON == 1 && detectorID <= 6)
+	    {
+	      residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
+	    }
+	  else
+	    {
+	      residual[index] = p - p_geomSvc->getInterception(detectorID, tx, ty, x0, y0);
+	    } 
 	}
       else
 	{
-    	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx, ty, x0, y0);//(x0 + tx*z)*costheta - (y0 + ty*z)*sintheta;
-	  //LogInfo("Fast: " << detectorID << "  " << (x0 + tx*z) << "   " << (y0 + ty*z) << "   " << (x0 + tx*z)*costheta+(y0 + ty*z)*sintheta);
+	  residual[index] = p - p_geomSvc->getInterceptionFast(detectorID, tx, ty, x0, y0);
 	}
      
       chisq += (residual[index]*residual[index]/sigma/sigma);

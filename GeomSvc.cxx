@@ -62,17 +62,26 @@ void Plane::update()
   costheta = cos(angleFromVert + thetaZ + rotZ);
   tantheta = tan(angleFromVert + thetaZ + rotZ);
 
-  nVec.SetXYZ(x0 + deltaX, y0 + deltaY, z0 + deltaZ);
-  uVec.SetXYZ(1., 0., 0.);
-  vVec.SetXYZ(0., 1., 0.);
+  nVec[0] = x0 + deltaX;
+  nVec[1] = y0 + deltaY;
+  nVec[2] = z0 + deltaZ;
+
+  TVector3 uVec_temp(1., 0., 0.);
+  TVector3 vVec_temp(0., 1., 0.);
 
   TRotation rot;
   rot.RotateX(-thetaX);
   rot.RotateY(-thetaY);
   //rot.RotateZ(-(thetaZ + rotZ));
 
-  uVec *= rot;
-  vVec *= rot;
+  uVec_temp *= rot;
+  vVec_temp *= rot;
+
+  for(int i = 0; i < 3; ++i)
+    {
+      uVec[i] = uVec_temp[i];
+      vVec[i] = vVec_temp[i];
+    } 
 }
 
 double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
@@ -550,6 +559,11 @@ double GeomSvc::getDriftDistance(int detectorID, double tdcTime)
     }
   
   return 0.;
+}
+
+double GeomSvc::getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0)
+{
+  return (tx*planes[detectorID].nVec[2] + x0)*planes[detectorID].costheta + (ty*planes[detectorID].nVec[2] + y0)*planes[detectorID].sintheta;
 }
 
 void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string alignmentFile_hodo, std::string alignmentFile_prop)
