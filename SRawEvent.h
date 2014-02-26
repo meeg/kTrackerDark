@@ -128,6 +128,18 @@ public:
   Int_t getTargetPos() { return fTargetPos; }
   void setTargetPos(Int_t targetPos) { fTargetPos = targetPos; }
 
+  //Set/get the beam info
+  Int_t getTurnID() { return fTurnID; }
+  Int_t getRFID() { return fRFID; }
+  Int_t getIntensity() { return fIntensity[16]; }
+  Int_t getIntensity(Int_t i) { return fIntensity[i+16]; }
+  Int_t* getIntensityAll() { return fIntensity; }
+
+  void setTurnID(Int_t turnID) { fTurnID = turnID; }
+  void setRFID(Int_t rfID) { fRFID = rfID; }
+  void setIntensity(const Int_t intensity[]) { for(int i = 0; i < 33; ++i) fIntensity[i] = intensity[i]; }
+  void setIntensity(Int_t i, Int_t val) { fIntensity[i] = val; }
+
   //Set the event info from another event
   void setEventInfo(SRawEvent* event);
 
@@ -165,12 +177,17 @@ private:
   //Target pos
   Int_t fTargetPos;
 
+  //Beam intensity information
+  Int_t fTurnID;
+  Int_t fRFID;
+  Int_t fIntensity[33];   //16 before, one onset, and 16 after
+
   ///Hits of this event
   Int_t fNHits[nChamberPlanes+nHodoPlanes+nPropPlanes+1];  //0 for all hits, 1, 2, ..., 24 for number of hits in plane 1, 2, ..., 24
   std::vector<Hit> fAllHits;
   std::vector<Hit> fTriggerHits;
 
-  ClassDef(SRawEvent, 5)
+  ClassDef(SRawEvent, 6)
 };
 
 class SRawMCEvent: public SRawEvent

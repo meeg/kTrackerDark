@@ -277,6 +277,26 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
       rawEvent->setTargetPos(99);
     }
 
+  //Get beam information
+  sprintf(query, "SELECT turnOnset,rfOnSet,`RF-16`,`RF-15`,`RF-14`,`RF-13`,`RF-12`,`RF-11`,`RF-10`,`RF-09`,"
+	         "`RF-08`,`RF-07`,`RF-06`,`RF-05`,`RF-04`,`RF-03`,`RF-02`,`RF-01`,`RF+00`,`RF+01`,`RF+02`,"
+		 "`RF+03`,`RF+04`,`RF+05`,`RF+06`,`RF+07`,`RF+08`,`RF+09`,`RF+10`,`RF+11`,`RF+12`,`RF+13`,"
+		 "`RF+14`,`RF+15`,`RF+16` FROM QIE WHERE eventID=%d", eventID);
+  if(makeQuery() == 1)
+    {
+      nextEntry();
+
+      rawEvent->setTurnID(getInt(0, -1));
+      rawEvent->setRFID(getInt(1, -1));
+      for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, getInt(i+2));
+    }
+  else
+    {
+      rawEvent->setTurnID(-2);
+      rawEvent->setRFID(-2);
+      for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, -1);
+    }
+
   //Get trigger hits
   sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' AND eventID=%d", eventID);
   int nTriggerHits = makeQuery();
