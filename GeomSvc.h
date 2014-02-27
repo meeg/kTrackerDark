@@ -27,7 +27,78 @@ Updated by Kun Liu on 07-03-2012
 #include <map>
 #include <algorithm>
 
+#include <TVector3.h>
 #include <TSpline.h>
+
+class Plane
+{
+public:
+  //Default constructor
+  Plane();
+
+  //Get interception with track
+  double intercept(double tx, double ty, double x0_track, double y0_track);
+
+  //X, Y, U, V conversion
+  double getX(double w, double y) { return w/costheta - y*tantheta; } 
+  double getY(double x, double w) { return w/sintheta - x/tantheta; }
+  double getW(double x, double y) { return x*costheta + y*sintheta; }
+
+  //Calculate the internal variables
+  void update();
+
+  //Debugging output
+  friend std::ostream& operator << (std::ostream& os, const Plane& plane);
+
+public:
+  //Detector identifier
+  int detectorID;
+  std::string detectorName;
+  int planeType;   //X = 1, U = 2, V = 3, Y = 4
+
+  //Ideal properties 
+  int nElements;
+  double spacing;
+  double cellWidth;
+  double xoffset;
+  double overlap;
+  double angleFromVert;
+  double sintheta;
+  double costheta;
+  double tantheta;
+
+  //Survey info
+  double x0;     //x0, y0, z0 define the center of detector
+  double y0;
+  double z0;
+  double x1;     //x1, y1 define the lower/left edge of detector
+  double y1;
+  double x2;     //x2, y2 define the upper/right edge of detector
+  double y2;
+  double thetaX;
+  double thetaY;
+  double thetaZ;
+
+  //Alignment info
+  double deltaX;
+  double deltaY;
+  double deltaZ;
+  double deltaW;             //for chambers and hodos
+  double deltaW_module[9];   //for prop. tubes only
+  double rotZ;
+
+  double resolution;
+
+  //Geometric setup
+  double nVec[3];             //Point to the center
+  double uVec[3];             //measuring direction
+  double vVec[3];             //non-measuring direction
+
+  //Calibration info
+  double tmin;
+  double tmax;
+  TSpline3* rtprofile;
+};
 
 class GeomSvc
 {
@@ -53,104 +124,84 @@ public:
   std::vector<int> getDetectorIDs(std::string pattern);
   bool findPatternInDetector(int detectorID, std::string pattern);
 
-  double getPlanePosition(int planeID) { return z0[planeID]; }
-  double getPlaneSpacing(int planeID) { return spacing[planeID]; }
-  double getCellWidth(int planeID) { return cellWidth[planeID]; }
-  double getCostheta(int planeID) { return costheta[planeID]; }
-  double getSintheta(int planeID) { return sintheta[planeID]; }
-  double getPlaneCenterX(int planeID) { return x0[planeID]; }
-  double getPlaneCenterY(int planeID) { return y0[planeID]; }
-  double getPlaneScaleX(int planeID) { return x2[planeID] - x1[planeID]; }
-  double getPlaneScaleY(int planeID) { return y2[planeID] - y1[planeID]; }
-  int getPlaneNElements(int planeID) { return nElements[planeID]; }
-  double getPlaneResolution(int planeID) { return resolution[planeID]; }
-  
-  double getPlaneZOffset(int planeID) {return offset_z0[planeID]; }
-  double getPlanePhiOffset(int planeID) { return offset_phi[planeID]; }
-  double getPlaneWOffset(int planeID) { return offset_pos[planeID]; }
-  double getPlaneWOffset(int planeID, int moduleID);
+  double getPlanePosition(int detectorID) { return planes[detectorID].nVec[2]; }
+  double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }
+  double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
+  double getCostheta(int detectorID)      { return planes[detectorID].costheta; }
+  double getSintheta(int detectorID)      { return planes[detectorID].sintheta; }
+  double getTantheta(int detectorID)      { return planes[detectorID].tantheta; }
+  double getPlaneCenterX(int detectorID)  { return planes[detectorID].nVec[0]; }
+  double getPlaneCenterY(int detectorID)  { return planes[detectorID].nVec[1]; }
+  double getPlaneScaleX(int detectorID)   { return planes[detectorID].x2 - planes[detectorID].x1; }
+  double getPlaneScaleY(int detectorID)   { return planes[detectorID].y2 - planes[detectorID].y1; }
+  int getPlaneNElements(int detectorID)   { return planes[detectorID].nElements; }
+  double getPlaneResolution(int detectorID) { return planes[detectorID].resolution; }
+ 
+  double getRotationInX(int detectorID)    { return planes[detectorID].thetaX; }
+  double getRotationInY(int detectorID)    { return planes[detectorID].thetaY; } 
+  double getPlaneZOffset(int detectorID)   { return planes[detectorID].deltaZ; }
+  double getPlanePhiOffset(int detectorID) { return planes[detectorID].rotZ; }
+  double getPlaneWOffset(int detectorID)   { return planes[detectorID].deltaW; }
+  double getPlaneWOffset(int detectorID, int moduleID) { return planes[detectorID].deltaW_module[moduleID]; }
 
-  int getPlaneType(int planeID);
+  int getPlaneType(int detectorID) { return planes[detectorID].planeType; }
 
-  double getRotationInZ(int planeID) { return theta_z[planeID]; }
-  double getRotationInX(int planeID) { return theta_x[planeID]; }
-  double getRotationInY(int planeID) { return theta_y[planeID]; }
-
-  double getKMAGCenter() { return (zmin_kmag + zmax_kmag)/2.; }
-  double getKMAGUpstream() { return zmin_kmag; }
+  double getKMAGCenter()     { return (zmin_kmag + zmax_kmag)/2.; }
+  double getKMAGUpstream()   { return zmin_kmag; }
   double getKMAGDownstream() { return zmax_kmag; }
 
-  ///Convert the planeID and elementID to the actual hit position
-  void getMeasurement(int planeID, int elementID, double& measurement, double& dmeasurement);
-  double getMeasurement(int planeID, int elementID);
-  void get2DBoxSize(int planeID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max);
-  int getExpElementID(int planeID, double pos_exp);
+  ///Get the interception of a line an a plane
+  double getInterception(int detectorID, double tx, double ty, double x0, double y0) { return planes[detectorID].intercept(tx, ty, x0, y0); }
+  double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0);
 
+  ///Convert the detectorID and elementID to the actual hit position
+  void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);
+  double getMeasurement(int detectorID, int elementID);
+  void get2DBoxSize(int detectorID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max);
+  int getExpElementID(int detectorID, double pos_exp);
+
+  ///Calibration related
   bool isCalibrationLoaded() { return calibration_loaded; }
-  double getDriftDistance(int planeID, double tdcTime);
-  bool isInTime(int planeID, double tdcTime);
-  TSpline3* getRTCurve(int planeID) { return rtprofile[planeID-1]; }
+  double getDriftDistance(int detectorID, double tdcTime);
+  bool isInTime(int detectorID, double tdcTime);
+  TSpline3* getRTCurve(int detectorID) { return planes[detectorID].rtprofile; }
 
   ///Convert the stereo hits to Y value
-  double getYinStereoPlane(int planeID, double x, double u) { return u/sintheta[planeID] - x/tantheta[planeID]; }
-  double getUinStereoPlane(int planeID, double x, double y) { return x*costheta[planeID] + y*sintheta[planeID]; } 
-  double getXinStereoPlane(int planeID, double u, double y) { return u/costheta[planeID] - y*tantheta[planeID]; } 
+  double getYinStereoPlane(int detectorID, double x, double u) { return planes[detectorID].getY(x, u); }
+  double getUinStereoPlane(int detectorID, double x, double y) { return planes[detectorID].getW(x, y); } 
+  double getXinStereoPlane(int detectorID, double u, double y) { return planes[detectorID].getX(u, y); } 
 
   ///See if a point is in a plane
-  bool isInPlane(int planeID, double x, double y);
-  bool isInElement(int planeID, int elementID, double x, double y, double tolr = 0.);
+  bool isInPlane(int detectorID, double x, double y);
+  bool isInElement(int detectorID, int elementID, double x, double y, double tolr = 0.);
   bool isInKMAG(double x, double y);
 
   ///Debugging print of the content
-  void print();
   void printAlignPar();
   void printTable();
   void printWirePosition();
 
 private:
 
-  ///Parameters
-  double spacing[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double cellWidth[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double xoffset[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double overlap[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  int nElements[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double angleFromVert[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double sintheta[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double costheta[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double tantheta[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double z0[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double x1[nChamberPlanes+nHodoPlanes+nPropPlanes+1], x2[nChamberPlanes+nHodoPlanes+nPropPlanes+1], x0[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double y1[nChamberPlanes+nHodoPlanes+nPropPlanes+1], y2[nChamberPlanes+nHodoPlanes+nPropPlanes+1], y0[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
+  //All the detector planes
+  Plane planes[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
 
-  ///Alignment parameters
-  //For chambers and hodoscopes, it is defined by plane
-  double offset_pos[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  //For prop. tubes, it is defined by module
-  double offset_pos_prop[4][9];   //4 planes, each has 9 modules
-  double resolution[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-
-  double theta_x[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double theta_y[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double theta_z[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-
-  //Alignment from millepede
-  double offset_phi[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-  double offset_z0[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
-
-  //Calibration parameters
+  //flag of loading calibration parameters
   bool calibration_loaded;
-  TSpline3 *rtprofile[nChamberPlanes];
-  double tmin[nChamberPlanes], tmax[nChamberPlanes];
-  
+ 
+  //Position of KMag 
   double xmin_kmag, xmax_kmag;
   double ymin_kmag, ymax_kmag;
   double zmin_kmag, zmax_kmag;
 
+  //Mapping of detectorName to detectorID, and vice versa
   std::map<std::string, int> map_detectorID;
   std::map<int, std::string> map_detectorName;
+
+  //Mapping to wire position
   std::map<std::pair<int, int>, double> map_wirePosition;
 
+  //singleton pointor 
   static GeomSvc* p_geometrySvc;
 };
 
