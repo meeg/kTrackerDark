@@ -23,8 +23,11 @@
 //=== Enable Kalman fitting in fast tracking and alignment, enabled by default
 //#define _ENABLE_KF
 
+//=== Enable reading the alignment data from online schema instead of external ascii file
+#define LOAD_ONLINE_ALIGNMENT
+
 //--------------- Geometry version ---------------
-#define GEOMETRY_VERSION "geometry_R1086_run2"
+#define GEOMETRY_VERSION "geometry_R1124_run2"
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER "localhost"

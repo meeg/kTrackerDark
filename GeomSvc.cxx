@@ -319,7 +319,7 @@ void GeomSvc::init(std::string geometrySchema)
       planes[i].update();
     }
 
-#ifndef ALIGNMENT_MODE
+#ifdef LOAD_ONLINE_ALIGNMENT
   //load the initial value in the planeOffsets table
   const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
     " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
@@ -359,8 +359,10 @@ void GeomSvc::init(std::string geometrySchema)
 
   /////Here starts the user-defined part
   //load alignment parameters
+#ifndef LOAD_ONLINE_ALIGNMENT
   loadAlignment("alignment.txt", "alignment_hodo.txt", "alignment_prop.txt");
   loadMilleAlignment("align_mille.txt");
+#endif
   calibration_loaded = false;
 
   ///Initialize the position look up table for all wires, hodos, and tubes
@@ -670,8 +672,10 @@ void GeomSvc::loadMilleAlignment(std::string alignmentFile_mille)
 	  istringstream stringBuf(buf);
 
 	  stringBuf >> planes[i].deltaZ >> planes[i].rotZ >> planes[i].deltaW >> planes[i].resolution;
-
+	  planes[i].deltaX = planes[i].deltaW*planes[i].costheta;
+	  planes[i].deltaY = planes[i].deltaW*planes[i].sintheta;
           planes[i].update();
+	  
 	  if(planes[i].resolution < RESOLUTION_DC) planes[i].resolution = RESOLUTION_DC;
 	}	  
       cout << "GeomSvc: loaded millepede-based alignment parameters from " << filename << endl; 
