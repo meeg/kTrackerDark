@@ -60,8 +60,8 @@ void SRecTrack::setZVertex(Double_t z)
   m[1][0] = 0.;
 
   cov.Zero();
-  cov[0][0] = 1.;
-  cov[1][1] = 1.;
+  cov[0][0] = BEAM_SPOT_X*BEAM_SPOT_X;
+  cov[1][1] = BEAM_SPOT_Y*BEAM_SPOT_Y;
 
   proj.Zero();
   proj[0][3] = 1.;

@@ -55,16 +55,16 @@ int main(int argc, char *argv[])
   //Initialize track finder
   LogInfo("Initializing the track finder and kalman filter ... ");
   VertexFit* vtxfit = new VertexFit();
+  if(argc > 3) vtxfit->bookEvaluation(argv[3]);
 
-  int offset = argc > 3 ? atoi(argv[3]) : 0;
-  int nEvtMax = argc > 4 ? atoi(argv[4]) + offset : dataTree->GetEntries();
+  int nEvtMax = argc > 4 ? atoi(argv[4]) : dataTree->GetEntries();
   if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
-  for(int i = offset; i < nEvtMax; i++)
+  LogInfo("Running from event 0 through to event " << nEvtMax);
+  for(int i = 0; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
       cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
-      cout << (i - offset + 1)*100/(nEvtMax - offset) << "% finished .. ";
+      cout << (i + 1)*100/nEvtMax << "% finished .. ";
 
       vtxfit->setRecEvent(recEvent);
 

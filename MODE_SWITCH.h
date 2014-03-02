@@ -74,6 +74,9 @@
 #define Z_TARGET -129.54 
 #define RESOLUTION_DC 0.1
 
+#define BEAM_SPOT_X 0.5
+#define BEAM_SPOT_Y 0.5
+
 //-------------- Coarse swim setup --------------
 #define FMAG_HOLE_LENGTH 27.94
 #define FMAG_HOLE_RADIUS 1.27

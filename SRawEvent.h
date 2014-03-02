@@ -133,11 +133,13 @@ public:
   Int_t getRFID() { return fRFID; }
   Int_t getIntensity() { return fIntensity[16]; }
   Int_t getIntensity(Int_t i) { return fIntensity[i+16]; }
+  Int_t getIntensitySumBefore(Int_t n = 16) { Int_t sum = 0; for(Int_t i = n; i < 16; ++i) sum += fIntensity[i]; return sum; } 
+  Int_t getIntensitySumAfter(Int_t n = 16) { Int_t sum = 0; for(Int_t i = 16; i < n+16; ++i) sum += fIntensity[i]; return sum; } 
   Int_t* getIntensityAll() { return fIntensity; }
 
   void setTurnID(Int_t turnID) { fTurnID = turnID; }
   void setRFID(Int_t rfID) { fRFID = rfID; }
-  void setIntensity(const Int_t intensity[]) { for(int i = 0; i < 33; ++i) fIntensity[i] = intensity[i]; }
+  void setIntensity(const Int_t intensity[]) { for(Int_t i = 0; i < 33; ++i) fIntensity[i] = intensity[i]; }
   void setIntensity(Int_t i, Int_t val) { fIntensity[i] = val; }
 
   //Set the event info from another event

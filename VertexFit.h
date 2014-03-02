@@ -20,6 +20,8 @@ Created: 2-8-2012
 
 #include "MODE_SWITCH.h"
 
+#include <TFile.h>
+#include <TTree.h>
 #include <TMatrixD.h>
 
 #include "KalmanUtil.h"
@@ -56,6 +58,9 @@ class VertexFit
 public:
   VertexFit();
   ~VertexFit();
+
+  ///Enable the optimization of final dimuon vertex z position
+  void enableOptimzation() { optimize = true; }
 
   ///Set the convergence control parameters
   void setControlParameter(int nMaxIteration, double tolerance) 
@@ -95,6 +100,10 @@ public:
   ///Core function, update the vertex prediction according to the track info.
   void updateVertex();
 
+  ///Evaluation
+  void bookEvaluation(std::string evalFileName = "vtx_eval.root");
+  void fillEvaluation();
+
   ///Debugging output
   void print();
 
@@ -109,7 +118,7 @@ private:
   Node _node_vertex;
 
   ///pointer to external Kalman filter
-  KalmanFilter *_kmfit;
+  KalmanFilter* _kmfit;
  
   ///chi squares 
   double _chisq_vertex;
@@ -121,6 +130,7 @@ private:
 
   ///Temporary results
   std::vector<double> z_vertex;
+  std::vector<double> r_vertex;
   std::vector<double> chisq_km;
   std::vector<double> chisq_vx;
 
@@ -130,6 +140,26 @@ private:
 
   ///Track extrapolator
   TrackExtrapolator _extrapolator;
+
+  ///Flag to enable/disable optimization of final position
+  bool optimize;
+
+  ///Evaluation file and tree
+  TFile* evalFile;
+  TTree* evalTree;
+ 
+  int eventID; 
+  int choice_eval;
+  int choice_by_kf_eval;
+  int choice_by_vx_eval;
+
+  int nStart;
+  int nIter_eval[50];
+  double chisq_kf_eval[50];
+  double chisq_vx_eval[50];
+  double z_vertex_eval[50];
+  double r_vertex_eval[50];
+   
 };
 
 #endif

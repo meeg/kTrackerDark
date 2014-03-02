@@ -41,10 +41,23 @@ VertexFit::VertexFit()
   
   ///Single track finding doesn't require a propagation matrix
   _extrapolator.setPropCalc(false);
+
+  ///disable target optimization by default
+  optimize = false;
+
+  ///disable evaluation by default
+  evalFile = NULL;
+  evalTree = NULL;
 }
 
 VertexFit::~VertexFit()
 {
+  if(evalFile != NULL)
+    {
+      evalFile->cd();
+      evalTree->Write();
+      evalFile->Close();
+    }
 }
 
 bool VertexFit::setRecEvent(SRecEvent* recEvent)
@@ -68,6 +81,10 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
   int nNeg = idx_neg.size();
   if(nPos*nNeg == 0) return false;
 
+  //Prepare evaluation output
+  eventID = recEvent->getEventID();
+
+  //Loop over all possible combinations
   for(int i = 0; i < nPos; ++i)
     {
       SRecTrack track_pos = recEvent->getTrack(idx_pos[i]);
@@ -91,11 +108,17 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	  addTrack(0, track_pos);
 	  addTrack(1, track_neg);
 	  addHypothesis(0.5*(dimuon.vtx_pos[2] + dimuon.vtx_neg[2]), 50.);
-	  processOnePair();
+	  choice_eval = processOnePair();
 
 	  //Retrieve the results
-	  track_pos.setZVertex(getVertexZ0());
-	  track_neg.setZVertex(getVertexZ0());
+	  double z_vertex = getVertexZ0();
+	  if(optimize)
+	    {
+	      if(z_vertex < -50. && getKFChisq() < 10.) z_vertex = Z_TARGET;
+	    }
+
+	  track_pos.setZVertex(z_vertex);
+	  track_neg.setZVertex(z_vertex);
 	  dimuon.p_pos = track_pos.getMomentumVertex();
 	  dimuon.p_neg = track_neg.getMomentumVertex();
 	  dimuon.chisq_kf = getKFChisq();
@@ -104,6 +127,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	  dimuon.calcVariables();
 
 	  recEvent->insertDimuon(dimuon);
+          fillEvaluation();
 	}
     }
 
@@ -123,8 +147,8 @@ void VertexFit::init()
   sig_z_start.clear();
 
   ///Two default starting points
-  addHypothesis(100., 50.);
-  addHypothesis(-130., 50.);
+  addHypothesis(40., 50.);
+  addHypothesis(Z_TARGET, 50.);
 }
 
 void VertexFit::setStartingVertex(double z_start, double sigz_start)
@@ -134,8 +158,8 @@ void VertexFit::setStartingVertex(double z_start, double sigz_start)
   _vtxpar_curr._r[2][0] = z_start;
 
   _vtxpar_curr._cov.Zero();
-  _vtxpar_curr._cov[0][0] = 1.5;
-  _vtxpar_curr._cov[1][1] = 1.5;
+  _vtxpar_curr._cov[0][0] = BEAM_SPOT_X*BEAM_SPOT_X;
+  _vtxpar_curr._cov[1][1] = BEAM_SPOT_Y*BEAM_SPOT_Y;
   _vtxpar_curr._cov[2][2] = sigz_start*sigz_start;
   
   _chisq_vertex = 0.;
@@ -146,18 +170,21 @@ int VertexFit::processOnePair()
 {
   double chisq_min = 1E6;
   int index_min = -1; 
-  for(unsigned int i = 0; i < z_start.size(); i++)
+  
+  nStart = z_start.size();
+  for(int i = 0; i < nStart; ++i)
     {
 #ifdef _DEBUG_ON
       LogInfo("Testing starting point: " << z_start[i]);
 #endif
 
       setStartingVertex(z_start[i], sig_z_start[i]);
-      findVertex();
+      nIter_eval[i] = findVertex();
 
       chisq_km.push_back(_chisq_kalman);
       chisq_vx.push_back(_chisq_vertex);
       z_vertex.push_back(_vtxpar_curr._r[2][0]);
+      r_vertex.push_back(sqrt(_vtxpar_curr._r[0][0]*_vtxpar_curr._r[0][0] + _vtxpar_curr._r[1][0]*_vtxpar_curr._r[1][0]));
 
       if(_chisq_kalman < chisq_min)
 	{
@@ -171,9 +198,13 @@ int VertexFit::processOnePair()
   _chisq_kalman = chisq_km[index_min];
   _chisq_vertex = chisq_vx[index_min];
   _vtxpar_curr._r[2][0] = z_vertex[index_min];
-  if(z_vertex[index_min] > 1E4) _vtxpar_curr._r[2][0] = z_start.back();
+  if(z_vertex[index_min] > 1E4)
+    {
+      index_min = z_start.size();
+      _vtxpar_curr._r[2][0] = z_start.back();
+    }
 
-  return index_min+1;
+  return index_min;
 }
 
 void VertexFit::addTrack(int index, KalmanTrack& _track)
@@ -329,6 +360,56 @@ double VertexFit::findSingleMuonVertex(TrkPar& _trkpar_start)
   double z_vertex = _extrapolator.extrapolateToIP();
   
   return z_vertex;
+}
+
+void VertexFit::bookEvaluation(std::string evalFileName)
+{
+  evalFile = new TFile(evalFileName.c_str(), "recreate");
+  evalTree = new TTree("save", "save");
+
+  evalTree->Branch("eventID", &eventID, "eventID/I");
+  evalTree->Branch("choice_eval", &choice_eval, "choice_eval/I");
+  evalTree->Branch("choice_by_kf_eval", &choice_by_kf_eval, "choice_by_kf_eval/I");
+  evalTree->Branch("choice_by_vx_eval", &choice_by_vx_eval, "choice_by_vx_eval/I");
+
+  evalTree->Branch("nStart", &nStart, "nStart/I");
+  evalTree->Branch("nIter_eval", nIter_eval, "nIter_eval[nStart]/I");
+  evalTree->Branch("chisq_kf_eval", chisq_kf_eval, "chisq_kf_eval[nStart]/D");
+  evalTree->Branch("chisq_vx_eval", chisq_vx_eval, "chisq_vx_eval[nStart]/D");
+  evalTree->Branch("z_vertex_eval", z_vertex_eval, "z_vertex_eval[nStart]/D");
+  evalTree->Branch("r_vertex_eval", r_vertex_eval, "r_vertex_eval[nStart]/D");
+}
+
+void VertexFit::fillEvaluation()
+{
+  if(evalTree == NULL) return;
+
+  choice_by_kf_eval = -1;
+  choice_by_vx_eval = -1;
+  double chisq_kf_min = 1E6;
+  double chisq_vx_min = 1E6;
+
+  for(int i = 0; i < nStart; ++i)
+    {
+      chisq_kf_eval[i] = chisq_km[i];
+      chisq_vx_eval[i] = chisq_vx[i];
+      z_vertex_eval[i] = z_vertex[i];
+      r_vertex_eval[i] = r_vertex[i];
+
+      if(chisq_kf_min > chisq_km[i])
+	{
+	  choice_by_kf_eval = i;
+	  chisq_kf_min = chisq_km[i];
+	}
+
+      if(chisq_vx_min > chisq_vx[i])
+	{
+	  choice_by_vx_eval = i;
+	  chisq_vx_min = chisq_vx[i];
+	}      
+    }
+
+  evalTree->Fill();
 }
 
 void VertexFit::print()
