@@ -34,7 +34,7 @@ VertexFit::VertexFit()
   _node_vertex.getMeasurementCov()[1][1] = 1.;
 
   _max_iteration = 100;
-  _tolerance = .1;
+  _tolerance = .5;
 
   _kmfit = KalmanFilter::instance();
   _extrapolator.init(GEOMETRY_VERSION);
@@ -77,12 +77,16 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
   std::vector<int> idx_pos = recEvent->getChargedTrackIDs(+1);
   std::vector<int> idx_neg = recEvent->getChargedTrackIDs(-1);
 
-  int nPos = idx_pos.size();
-  int nNeg = idx_neg.size();
+  nPos = idx_pos.size();
+  nNeg = idx_neg.size();
   if(nPos*nNeg == 0) return false;
 
   //Prepare evaluation output
-  eventID = recEvent->getEventID();
+  if(evalTree != NULL)
+    {
+      runID = recEvent->getRunID();
+      eventID = recEvent->getEventID();
+    }
 
   //Loop over all possible combinations
   for(int i = 0; i < nPos; ++i)
@@ -246,6 +250,7 @@ void VertexFit::addTrack(int index, TrkPar& _trkpar)
 int VertexFit::findVertex()
 {
   int nIter = 0;
+  double _chisq_kalman_prev = 1E6;
   for(; nIter < _max_iteration; nIter++)
     {
 #ifdef _DEBUG_ON
@@ -290,7 +295,8 @@ int VertexFit::findVertex()
 	  break;
 	} 
 
-      if(nIter > 0 && fabs(_vtxpar_curr._r[2][0] - _node_vertex.getZ()) < _tolerance) break;
+      if(nIter > 0 && fabs(_vtxpar_curr._r[2][0] - _node_vertex.getZ()) < _tolerance && _chisq_kalman > _chisq_kalman_prev) break;
+      _chisq_kalman_prev = _chisq_kalman;
     } 
 
   return nIter+1;
@@ -372,11 +378,8 @@ void VertexFit::bookEvaluation(std::string evalFileName)
   evalFile = new TFile(evalFileName.c_str(), "recreate");
   evalTree = new TTree("save", "save");
 
+  evalTree->Branch("runID", &runID, "runID/I");
   evalTree->Branch("eventID", &eventID, "eventID/I");
-  evalTree->Branch("nPos", &nPos, "nPos/I");
-  evalTree->Branch("nNeg", &nNeg, "nNeg/I");
-  evalTree->Branch("p_idx_eval", &p_idx_eval, "p_idx_eval/I");
-  evalTree->Branch("m_idx_eval", &m_idx_eval, "m_idx_eval/I");
   evalTree->Branch("choice_eval", &choice_eval, "choice_eval/I");
   evalTree->Branch("choice_by_kf_eval", &choice_by_kf_eval, "choice_by_kf_eval/I");
   evalTree->Branch("choice_by_vx_eval", &choice_by_vx_eval, "choice_by_vx_eval/I");

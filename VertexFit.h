@@ -147,7 +147,8 @@ private:
   ///Evaluation file and tree
   TFile* evalFile;
   TTree* evalTree;
- 
+
+  int runID; 
   int eventID;
   int nPos;
   int nNeg; 
