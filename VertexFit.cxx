@@ -34,7 +34,7 @@ VertexFit::VertexFit()
   _node_vertex.getMeasurementCov()[1][1] = 1.;
 
   _max_iteration = 100;
-  _tolerance = 1.;
+  _tolerance = .1;
 
   _kmfit = KalmanFilter::instance();
   _extrapolator.init(GEOMETRY_VERSION);
@@ -126,8 +126,13 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	  dimuon.vtx.SetXYZ(_vtxpar_curr._r[0][0], _vtxpar_curr._r[1][0], _vtxpar_curr._r[2][0]);
 	  dimuon.calcVariables();
 
+	  //Fill the final data
 	  recEvent->insertDimuon(dimuon);
-          fillEvaluation();
+          
+	  //Fill the evaluation data
+	  p_idx_eval = dimuon.trackID_pos;
+	  m_idx_eval = dimuon.trackID_neg;
+	  fillEvaluation();
 	}
     }
 
@@ -368,6 +373,10 @@ void VertexFit::bookEvaluation(std::string evalFileName)
   evalTree = new TTree("save", "save");
 
   evalTree->Branch("eventID", &eventID, "eventID/I");
+  evalTree->Branch("nPos", &nPos, "nPos/I");
+  evalTree->Branch("nNeg", &nNeg, "nNeg/I");
+  evalTree->Branch("p_idx_eval", &p_idx_eval, "p_idx_eval/I");
+  evalTree->Branch("m_idx_eval", &m_idx_eval, "m_idx_eval/I");
   evalTree->Branch("choice_eval", &choice_eval, "choice_eval/I");
   evalTree->Branch("choice_by_kf_eval", &choice_by_kf_eval, "choice_by_kf_eval/I");
   evalTree->Branch("choice_by_vx_eval", &choice_by_vx_eval, "choice_by_vx_eval/I");
@@ -378,6 +387,7 @@ void VertexFit::bookEvaluation(std::string evalFileName)
   evalTree->Branch("chisq_vx_eval", chisq_vx_eval, "chisq_vx_eval[nStart]/D");
   evalTree->Branch("z_vertex_eval", z_vertex_eval, "z_vertex_eval[nStart]/D");
   evalTree->Branch("r_vertex_eval", r_vertex_eval, "r_vertex_eval[nStart]/D");
+  evalTree->Branch("z_start_eval", z_start_eval, "z_start_eval[nStart]/D");
 }
 
 void VertexFit::fillEvaluation()
@@ -395,6 +405,7 @@ void VertexFit::fillEvaluation()
       chisq_vx_eval[i] = chisq_vx[i];
       z_vertex_eval[i] = z_vertex[i];
       r_vertex_eval[i] = r_vertex[i];
+      z_start_eval[i] = z_start[i];
 
       if(chisq_kf_min > chisq_km[i])
 	{

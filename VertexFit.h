@@ -148,12 +148,17 @@ private:
   TFile* evalFile;
   TTree* evalTree;
  
-  int eventID; 
+  int eventID;
+  int nPos;
+  int nNeg; 
+  int p_idx_eval;
+  int m_idx_eval;
   int choice_eval;
   int choice_by_kf_eval;
   int choice_by_vx_eval;
 
   int nStart;
+  double z_start_eval[50];
   int nIter_eval[50];
   double chisq_kf_eval[50];
   double chisq_vx_eval[50];
