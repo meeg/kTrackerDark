@@ -170,11 +170,13 @@ public:
   SRecEvent();
 
   ///Set/Get event info
-  void setEventInfo(Int_t runID, Int_t spillID, Int_t eventID);
-  void setRawEvent(SRawEvent *rawEvent);
+  void setEventInfo(SRawEvent* rawEvent);
+  void setRawEvent(SRawEvent* rawEvent);
   Int_t getRunID() { return fRunID; }
   Int_t getSpillID() { return fSpillID; }
   Int_t getEventID() { return fEventID; }
+  Int_t getTargetPos() { return fTargetPos; }
+  Int_t getTriggerBits() { return fTriggerBits; }
 
   Int_t getLocalID(Int_t hitID) { return fLocalID[hitID]; }
 
@@ -205,6 +207,12 @@ private:
   Int_t fSpillID;
   Int_t fEventID;
 
+  ///Target position
+  Int_t fTargetPos;
+
+  ///Trigger bit
+  Int_t fTriggerBits;
+
   ///Container of SRecTrack
   std::vector<SRecTrack> fAllTracks;
 
@@ -214,7 +222,7 @@ private:
   ///Mapping of hitID to local container ID in SRawEvent
   std::map<Int_t, Int_t> fLocalID;
 
-  ClassDef(SRecEvent, 2)
+  ClassDef(SRecEvent, 3)
 };
 
 #endif

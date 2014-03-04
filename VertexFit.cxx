@@ -86,6 +86,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
     {
       runID = recEvent->getRunID();
       eventID = recEvent->getEventID();
+      targetPos = recEvent->getTargetPos();
     }
 
   //Loop over all possible combinations
@@ -380,6 +381,7 @@ void VertexFit::bookEvaluation(std::string evalFileName)
 
   evalTree->Branch("runID", &runID, "runID/I");
   evalTree->Branch("eventID", &eventID, "eventID/I");
+  evalTree->Branch("targetPos", &targetPos, "targetPos/I");
   evalTree->Branch("choice_eval", &choice_eval, "choice_eval/I");
   evalTree->Branch("choice_by_kf_eval", &choice_by_kf_eval, "choice_by_kf_eval/I");
   evalTree->Branch("choice_by_vx_eval", &choice_by_vx_eval, "choice_by_vx_eval/I");

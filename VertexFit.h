@@ -150,6 +150,7 @@ private:
 
   int runID; 
   int eventID;
+  int targetPos;
   int nPos;
   int nNeg; 
   int p_idx_eval;

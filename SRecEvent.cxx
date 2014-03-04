@@ -299,10 +299,7 @@ SRecEvent::SRecEvent()
 
 void SRecEvent::setRawEvent(SRawEvent *rawEvent)
 {
-  setEventInfo(rawEvent->getRunID(), rawEvent->getSpillID(), rawEvent->getEventID());
-  fRunID = rawEvent->getRunID();
-  fSpillID = rawEvent->getSpillID();
-  fEventID = rawEvent->getEventID();
+  setEventInfo(rawEvent);
 
   for(Int_t i = 0; i < rawEvent->getNHitsAll(); i++)
     {
@@ -312,11 +309,14 @@ void SRecEvent::setRawEvent(SRawEvent *rawEvent)
   fAllTracks.clear();
 }
 
-void SRecEvent::setEventInfo(Int_t runID, Int_t spillID, Int_t eventID)
+void SRecEvent::setEventInfo(SRawEvent* rawEvent)
 {
-  fRunID = runID;
-  fSpillID = spillID;
-  fEventID = eventID;
+  fRunID = rawEvent->getRunID();
+  fSpillID = rawEvent->getSpillID();
+  fEventID = rawEvent->getEventID();
+
+  fTriggerBits = rawEvent->getTriggerBits();
+  fTargetPos = rawEvent->getTargetPos();
 }
 
 std::vector<Int_t> SRecEvent::getChargedTrackIDs(Int_t charge)
