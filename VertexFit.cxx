@@ -33,7 +33,7 @@ VertexFit::VertexFit()
   _node_vertex.getMeasurementCov()[0][0] = 1.;
   _node_vertex.getMeasurementCov()[1][1] = 1.;
 
-  _max_iteration = 100;
+  _max_iteration = 60;
   _tolerance = .5;
 
   _kmfit = KalmanFilter::instance();
@@ -116,14 +116,14 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	  choice_eval = processOnePair();
 
 	  //Retrieve the results
-	  double z_vertex = getVertexZ0();
+	  double z_vertex_opt = getVertexZ0();
 	  if(optimize)
 	    {
-	      if(z_vertex < -50. && getKFChisq() < 10.) z_vertex = Z_TARGET;
+	      if(z_vertex_opt < -50. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
 	    }
 
-	  track_pos.setZVertex(z_vertex);
-	  track_neg.setZVertex(z_vertex);
+	  track_pos.setZVertex(z_vertex_opt);
+	  track_neg.setZVertex(z_vertex_opt);
 	  dimuon.p_pos = track_pos.getMomentumVertex();
 	  dimuon.p_neg = track_neg.getMomentumVertex();
 	  dimuon.chisq_kf = getKFChisq();
@@ -150,6 +150,7 @@ void VertexFit::init()
   _trkpar_curr.clear();
 
   z_vertex.clear();
+  r_vertex.clear();
   chisq_km.clear();
   chisq_vx.clear();
 
@@ -252,7 +253,7 @@ int VertexFit::findVertex()
 {
   int nIter = 0;
   double _chisq_kalman_prev = 1E6;
-  for(; nIter < _max_iteration; nIter++)
+  while(true)
     {
 #ifdef _DEBUG_ON
       LogInfo("Iteration: " << nIter);
@@ -297,7 +298,15 @@ int VertexFit::findVertex()
 	} 
 
       if(nIter > 0 && fabs(_vtxpar_curr._r[2][0] - _node_vertex.getZ()) < _tolerance && _chisq_kalman > _chisq_kalman_prev) break;
+      if(nIter == _max_iteration)
+	{
+	  _chisq_kalman = 1E5;
+	  _chisq_vertex = 1E5;
+	  break;
+	}
+
       _chisq_kalman_prev = _chisq_kalman;
+      ++nIter;
     } 
 
   return nIter+1;
@@ -369,9 +378,9 @@ double VertexFit::findSingleMuonVertex(Node& _node_start)
 double VertexFit::findSingleMuonVertex(TrkPar& _trkpar_start)
 {
   _extrapolator.setInitialStateWithCov(_trkpar_start._z, _trkpar_start._state_kf, _trkpar_start._covar_kf);
-  double z_vertex = _extrapolator.extrapolateToIP();
+  double z_vertex_single = _extrapolator.extrapolateToIP();
   
-  return z_vertex;
+  return z_vertex_single;
 }
 
 void VertexFit::bookEvaluation(std::string evalFileName)
