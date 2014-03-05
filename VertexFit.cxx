@@ -34,7 +34,7 @@ VertexFit::VertexFit()
   _node_vertex.getMeasurementCov()[1][1] = 1.;
 
   _max_iteration = 200;
-  _tolerance = .5;
+  _tolerance = .05;
 
   _kmfit = KalmanFilter::instance();
   _extrapolator.init(GEOMETRY_VERSION);
@@ -297,7 +297,7 @@ int VertexFit::findVertex()
 	  break;
 	} 
 
-      if(nIter > 0 && fabs(_vtxpar_curr._r[2][0] - _node_vertex.getZ()) < _tolerance && _chisq_kalman > _chisq_kalman_prev) break;
+      if(nIter > 0 && (fabs(_vtxpar_curr._r[2][0] - _node_vertex.getZ()) < _tolerance || _chisq_kalman > _chisq_kalman_prev)) break;
       _chisq_kalman_prev = _chisq_kalman;
     } 
 
