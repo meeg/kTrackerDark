@@ -27,6 +27,7 @@ Created: 01-21-2013
 #include <TObject.h>
 #include <TROOT.h>
 #include <TMatrixD.h>
+#include <TVector3.h>
 #include <TLorentzVector.h>
 
 #include "SRawEvent.h"
@@ -87,12 +88,14 @@ public:
 
   ///Plain setting, no KF-related stuff
   void setVertexFast(TVector3 mom, TVector3 pos);
+  void setDumpPos(TVector3 pos) { fDumpPos = pos; } 
 
   TLorentzVector getMomentumVertex();
   Double_t getMomentumVertex(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fStateVertex, px, py, pz); }
   Double_t getZVertex() { return fVtxPar[2]; }
   Double_t getRVertex() { return sqrt(fVtxPar[0]*fVtxPar[0] + fVtxPar[1]*fVtxPar[1]); }
   TVector3 getVertex() { return fVtxPar; }
+  TVector3 getDumpPos() { return fDumpPos; }
   Double_t getVtxPar(Int_t i) { return fVtxPar[i]; }
   Double_t getChisqVertex() { return fChisqVertex; }
 
@@ -114,13 +117,16 @@ private:
   std::vector<Double_t> fChisqAtNode;
   Int_t fNHodoHits[3];
 
+  ///Dump face position
+  TVector3 fDumpPos;
+
   ///Vertex infomation
   Double_t fVtxPar[3];
   Double_t fChisqVertex;
   TMatrixD fStateVertex;
   TMatrixD fCovarVertex;
 
-  ClassDef(SRecTrack, 2)
+  ClassDef(SRecTrack, 3)
 };
 
 class SRecDimuon: public TObject

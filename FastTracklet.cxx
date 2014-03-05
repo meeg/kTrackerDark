@@ -521,7 +521,7 @@ SRecTrack Tracklet::getSRecTrack()
     }
 
   TVector3 mom_vtx, pos_vtx;
-  swimToVertex(mom_vtx, pos_vtx);
+  strack.setDumpPos(swimToVertex(mom_vtx, pos_vtx));
   strack.setVertexFast(mom_vtx, pos_vtx);
 
   strack.setHodoHits();
@@ -543,7 +543,7 @@ TVector3 Tracklet::getMomentumSt3()
   return TVector3(pz*tx, pz*ty, pz);
 }
 
-void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
+TVector3 Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
 {
   //Store the steps on each point (center of the interval)
   TVector3 mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
@@ -567,7 +567,7 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
 
   //Now make the swim
   int iStep = 1;
-  for(; iStep <= NSLICES_FMAG+1; ++iStep)
+  for(; iStep <= NSLICES_FMAG; ++iStep)
     {
       //Make pT kick at the center of slice, add energy loss at both first and last half-slice
       //Note that ty is the global class data member, which does not change during the entire swimming
@@ -653,6 +653,8 @@ void Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
   std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
   std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
 #endif
+
+  return pos[NSLICES_FMAG];
 }
 
 void Tracklet::print()
