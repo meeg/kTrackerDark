@@ -51,7 +51,7 @@
 #define X0_MAX 80.
 #define Y0_MAX 150.
 #define INVP_MIN 0.01
-#define INVP_MAX 0.1
+#define INVP_MAX 0.2
 #define PROB_LOOSE 0.0
 #define PROB_TIGHT 0.001
 #define HIT_REJECT 3.

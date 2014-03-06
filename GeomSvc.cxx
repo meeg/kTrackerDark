@@ -58,9 +58,9 @@ Plane::Plane()
 
 void Plane::update()
 {
-  sintheta = sin(angleFromVert + thetaZ + rotZ);
-  costheta = cos(angleFromVert + thetaZ + rotZ);
-  tantheta = tan(angleFromVert + thetaZ + rotZ);
+  sintheta = sin(angleFromVert);// + thetaZ + rotZ);
+  costheta = cos(angleFromVert);// + thetaZ + rotZ);
+  tantheta = tan(angleFromVert);// + thetaZ + rotZ);
 
   nVec[0] = x0 + deltaX;
   nVec[1] = y0 + deltaY;
@@ -72,7 +72,7 @@ void Plane::update()
   TRotation rot;
   rot.RotateX(-thetaX);
   rot.RotateY(-thetaY);
-  //rot.RotateZ(-(thetaZ + rotZ));
+  rot.RotateZ(-(thetaZ + rotZ));
 
   uVec_temp *= rot;
   vVec_temp *= rot;
@@ -112,7 +112,7 @@ double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
   double yp = v[0]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]) + v[1]*(m[0][1]*m[2][0] - m[0][0]*m[2][1]) + v[2]*(m[0][0]*m[1][1] - m[0][1]*m[1][0]);
   
   //LogInfo("Geom: " << detectorID << "  " << xp/det+x0 << "   " << yp/det+y0 << "   " << getW(xp/det+x0, yp/det+y0) + deltaW);
-  return getW(xp/det + x0, yp/det + y0) + deltaW;
+  return getW(xp/det, yp/det) + deltaW;
 }
 
 std::ostream& operator << (std::ostream& os, const Plane& plane)
@@ -371,7 +371,7 @@ void GeomSvc::init(std::string geometrySchema)
     {
       for(int j = 1; j <= planes[i].nElements; ++j)
 	{
-	  double pos = (j - (planes[i].nElements+1.)/2.)*planes[i].spacing + planes[i].xoffset + planes[i].x0*planes[i].costheta + planes[i].y0*planes[i].sintheta + planes[i].deltaW;
+	  double pos = (j - (planes[i].nElements+1.)/2.)*planes[i].spacing + planes[i].xoffset;// + planes[i].x0*planes[i].costheta + planes[i].y0*planes[i].sintheta + planes[i].deltaW;
 	  map_wirePosition.insert(posType(make_pair(i, j), pos));
 	}
     }
