@@ -96,7 +96,6 @@ public:
 
   double wVec[3];             //x'
   double hVec[3];             //y'
-  double tVec[3];
 
   double rotM[3][3];          //rotation matrix
 

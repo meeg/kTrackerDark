@@ -123,7 +123,7 @@ void Plane::update()
       uVec[i] = 0.;
       for(int j = 0; j < 3; ++j)
 	{
-	  uVec[i] += rotM[i][j]*temp[i];
+	  uVec[i] += rotM[i][j]*temp[j];
 	}
     }
 
@@ -133,7 +133,7 @@ void Plane::update()
       vVec[i] = 0.;
       for(int j = 0; j < 3; ++j)
 	{
-	  vVec[i] += rotM[i][j]*temp[i];
+	  vVec[i] += rotM[i][j]*temp[j];
 	}
     }
 
@@ -143,7 +143,7 @@ void Plane::update()
       wVec[i] = 0.;
       for(int j = 0; j < 3; ++j)
 	{
-	  wVec[i] += rotM[i][j]*temp[i];
+	  wVec[i] += rotM[i][j]*temp[j];
 	}
     }
 
@@ -153,7 +153,7 @@ void Plane::update()
       hVec[i] = 0.;
       for(int j = 0; j < 3; ++j)
 	{
-	  hVec[i] += rotM[i][j]*temp[i];
+	  hVec[i] += rotM[i][j]*temp[j];
 	}
     }
 
