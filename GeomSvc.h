@@ -85,18 +85,25 @@ public:
   double deltaZ;
   double deltaW;             //for chambers and hodos
   double deltaW_module[9];   //for prop. tubes only
+  double rotX;
+  double rotY;
   double rotZ;
-
   double resolution;
 
+  //Final position/rotation
+  double xc;
+  double yc;
+  double zc;
+  double wc;
+  double rX;
+  double rY;
+  double rZ;
+
+
   //Geometric setup
-  double nVec[3];             //Point to the center
+  double nVec[3];             //Perpendicular to plane
   double uVec[3];             //measuring direction
   double vVec[3];             //non-measuring direction
-
-  double wVec[3];             //x'
-  double hVec[3];             //y'
-
   double rotM[3][3];          //rotation matrix
 
   //Calibration info
