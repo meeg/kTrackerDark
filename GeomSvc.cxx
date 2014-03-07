@@ -56,6 +56,7 @@ Plane::Plane()
   rtprofile = NULL;
 }
 
+/*
 void Plane::update()
 {
   sintheta = sin(angleFromVert);// + thetaZ + rotZ);
@@ -83,7 +84,85 @@ void Plane::update()
       vVec[i] = vVec_temp[i];
     } 
 }
+*/
 
+void Plane::update()
+{
+  sintheta = sin(angleFromVert);
+  costheta = cos(angleFromVert);
+  tantheta = tan(angleFromVert);
+
+  double xc = x0 + deltaX;
+  double yc = y0 + deltaY;
+  double zc = z0 + deltaZ;
+
+  double rX = thetaX;
+  double rY = thetaY;
+  double rZ = thetaZ + rotZ;
+
+  rotM[0][0] = cos(rZ)*cos(rY);
+  rotM[0][1] = cos(rZ)*sin(rX)*sin(rY) - cos(rX)*sin(rZ);
+  rotM[0][2] = cos(rX)*cos(rZ)*sin(rY) + sin(rX)*sin(rZ);
+  rotM[1][0] = sin(rZ)*cos(rY);
+  rotM[1][1] = sin(rZ)*sin(rX)*sin(rY) + cos(rZ)*cos(rX);
+  rotM[1][2] = sin(rZ)*sin(rY)*cos(rX) - cos(rZ)*sin(rX);
+  rotM[2][0] = -sin(rY);
+  rotM[2][1] = cos(rY)*sin(rX);
+  rotM[2][2] = cos(rY)*cos(rX);
+
+  uVec[0] = costheta; uVec[1] = sintheta; uVec[2] = 0.;
+  vVec[0] = -sintheta; vVec[1] = costheta; vVec[2] = 0.;
+  nVec[0] = 0.; nVec[1] = 0.; nVec[2] = 1.;
+  wVec[0] = 1.; wVec[1] = 0.; wVec[2] = 0.;
+  hVec[0] = 0.; hVec[1] = 1.; hVec[2] = 0.;
+
+  double temp[3];
+  for(int i = 0; i < 3; ++i) temp[i] = uVec[i];
+  for(int i = 0; i < 3; ++i)
+    {
+      uVec[i] = 0.;
+      for(int j = 0; j < 3; ++j)
+	{
+	  uVec[i] += rotM[i][j]*temp[i];
+	}
+    }
+
+  for(int i = 0; i < 3; ++i) temp[i] = vVec[i];
+  for(int i = 0; i < 3; ++i)
+    {
+      vVec[i] = 0.;
+      for(int j = 0; j < 3; ++j)
+	{
+	  vVec[i] += rotM[i][j]*temp[i];
+	}
+    }
+
+  for(int i = 0; i < 3; ++i) temp[i] = wVec[i];
+  for(int i = 0; i < 3; ++i)
+    {
+      wVec[i] = 0.;
+      for(int j = 0; j < 3; ++j)
+	{
+	  wVec[i] += rotM[i][j]*temp[i];
+	}
+    }
+
+  for(int i = 0; i < 3; ++i) temp[i] = hVec[i];
+  for(int i = 0; i < 3; ++i)
+    {
+      hVec[i] = 0.;
+      for(int j = 0; j < 3; ++j)
+	{
+	  hVec[i] += rotM[i][j]*temp[i];
+	}
+    }
+
+  nVec[0] = uVec[1]*vVec[2] - vVec[1]*uVec[2];
+  nVec[1] = uVec[2]*vVec[0] - vVec[2]*uVec[0];
+  nVec[2] = uVec[0]*vVec[1] - vVec[0]*uVec[1];
+}
+
+/*
 double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
 {
   //See ref. http://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
@@ -112,7 +191,24 @@ double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
   double yp = v[0]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]) + v[1]*(m[0][1]*m[2][0] - m[0][0]*m[2][1]) + v[2]*(m[0][0]*m[1][1] - m[0][1]*m[1][0]);
   
   //LogInfo("Geom: " << detectorID << "  " << xp/det+x0 << "   " << yp/det+y0 << "   " << getW(xp/det+x0, yp/det+y0) + deltaW);
-  return getW(xp/det, yp/det) + deltaW;
+  return getW(xp/det, yp/det);
+}
+*/
+
+double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
+{
+  double mom[3] = {tx, ty, 1.};
+  double pos[3] = {x0_track, y0_track, 0.};
+
+  double det = -(mom[0]*nVec[0] + mom[1]*nVec[1] + mom[2]*nVec[2]);
+  double dpos[3] = {pos[0] - x0 - deltaX, pos[1] - y0 - deltaY, pos[2] - z0 - deltaZ};
+
+  double vcp[3];
+  vcp[0] = vVec[1]*mom[2] - vVec[2]*mom[1];
+  vcp[1] = vVec[2]*mom[0] - vVec[0]*mom[2];
+  vcp[2] = vVec[0]*mom[1] - vVec[1]*mom[0];
+
+  return -(vcp[0]*dpos[0] + vcp[1]*dpos[1] + vcp[2]*dpos[2])/det;
 }
 
 std::ostream& operator << (std::ostream& os, const Plane& plane)
