@@ -143,7 +143,7 @@ double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
   vcp[1] = vVec[2]*tx - vVec[0];
   vcp[2] = vVec[0]*ty - vVec[1]*tx;
 
-  LogInfo(-(vcp[0]*dpos[0] + vcp[1]*dpos[1] + vcp[2]*dpos[2])/det);
+  //LogInfo(detectorID << "  " << detectorName << "  " << tx << "  " << ty << "  " << x0_track << "  " << y0_track << "  "  << -(vcp[0]*dpos[0] + vcp[1]*dpos[1] + vcp[2]*dpos[2])/det);
   return -(vcp[0]*dpos[0] + vcp[1]*dpos[1] + vcp[2]*dpos[2])/det + wc;
 }
 

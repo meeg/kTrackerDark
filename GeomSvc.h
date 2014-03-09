@@ -136,14 +136,14 @@ public:
   std::vector<int> getDetectorIDs(std::string pattern);
   bool findPatternInDetector(int detectorID, std::string pattern);
 
-  double getPlanePosition(int detectorID) { return planes[detectorID].nVec[2]; }
+  double getPlanePosition(int detectorID) { return planes[detectorID].zc; }
   double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }
   double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
   double getCostheta(int detectorID)      { return planes[detectorID].costheta; }
   double getSintheta(int detectorID)      { return planes[detectorID].sintheta; }
   double getTantheta(int detectorID)      { return planes[detectorID].tantheta; }
-  double getPlaneCenterX(int detectorID)  { return planes[detectorID].nVec[0]; }
-  double getPlaneCenterY(int detectorID)  { return planes[detectorID].nVec[1]; }
+  double getPlaneCenterX(int detectorID)  { return planes[detectorID].xc; }
+  double getPlaneCenterY(int detectorID)  { return planes[detectorID].yc; }
   double getPlaneScaleX(int detectorID)   { return planes[detectorID].x2 - planes[detectorID].x1; }
   double getPlaneScaleY(int detectorID)   { return planes[detectorID].y2 - planes[detectorID].y1; }
   int getPlaneNElements(int detectorID)   { return planes[detectorID].nElements; }
@@ -165,7 +165,7 @@ public:
   ///Get the interception of a line an a plane
   double getInterception(int detectorID, double tx, double ty, double x0, double y0) { return planes[detectorID].intercept(tx, ty, x0, y0); }
   double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0);
-
+  double getInterceptionFast(int detectorID, double x_exp, double y_exp) { return planes[detectorID].getW(x_exp, y_exp); }
   ///Convert the detectorID and elementID to the actual hit position
   void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);
   double getMeasurement(int detectorID, int elementID);
