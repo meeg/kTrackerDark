@@ -264,7 +264,7 @@ void SRecTrack::swimToVertex()
   double tx = fState.front()[1][0];
   double ty = fState.front()[2][0];
   double x0 = fState.front()[3][0];
-  double y0 = fState.front()[3][0];
+  double y0 = fState.front()[4][0];
   double z0 = fZ.front();
 
   //Initial position should be on the downstream face of beam dump

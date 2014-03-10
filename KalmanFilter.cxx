@@ -79,9 +79,15 @@ bool KalmanFilter::predict(Node& _node)
   _extrapolator.getPropagator(_node.getPropagator());
   _node.setPredictionDone();
 
-  if(z_pred > 540.)
+  if(z_pred > FMAG_LENGTH)
     {
       _node.getPredicted()._covar_kf = SMatrix::getABCt(_node.getPropagator(), _trkpar_curr._covar_kf, _node.getPropagator());
+    }
+  else
+    {
+      double p_corr = ELOSS_CORR;
+      if(z_pred > 0) p_corr = ELOSS_CORR*(FMAG_LENGTH - z_pred)*sqrt(1. + _node.getPredicted()._state_kf[1][0]*_node.getPredicted()._state_kf[1][0] + _node.getPredicted()._state_kf[2][0]*_node.getPredicted()._state_kf[2][0])/FMAG_LENGTH;
+      _node.getPredicted()._state_kf[0][0] = _node.getPredicted().get_charge()/(_node.getPredicted().get_mom() - p_corr);
     }
 
   ///Empty prediction, for debugging purpose

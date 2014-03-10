@@ -439,7 +439,7 @@ double Tracklet::calcChisq()
 	}
       else
 	{
-	  residual[index] = p - p_geomSvc->getInterceptionFast(detectorID, tx, ty, x0, y0);
+	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx, ty, x0, y0);
 	}
      
       chisq += (residual[index]*residual[index]/sigma/sigma);
