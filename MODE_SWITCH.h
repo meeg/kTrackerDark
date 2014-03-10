@@ -83,8 +83,8 @@
 #define FMAG_LENGTH 502.92
 #define NSLICES_FMAG 100
 #define NSTEPS_TARGET 100
-#define ELOSS_FMAG 7.4739
-#define ELOSS_FMAG_RAD 0.009133
+#define ELOSS_FMAG 7.3971
+#define ELOSS_FMAG_RAD 0.0078
 #define Z_UPSTREAM -250.
 
 //-------------- Useful marcros -----------------

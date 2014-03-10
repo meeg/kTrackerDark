@@ -406,6 +406,8 @@ void SRecDimuon::calcVariables()
   Double_t y = 0.5*TMath::Log((p_sum.E() + p_sum.Pz())/(p_sum.E() - p_sum.Pz()));
   x1 = TMath::Sqrt(tau)*TMath::Exp(y);
   x2 = TMath::Sqrt(tau)*TMath::Exp(-y);
+
+  mass_single = (p_pos_single + p_neg_single).M();
 }
 
 SRecEvent::SRecEvent()
