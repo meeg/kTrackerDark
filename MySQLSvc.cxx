@@ -369,7 +369,14 @@ bool MySQLSvc::getEventHeader(SRawMCEvent* mcEvent, int eventID)
       mcEvent->nHits[i] = getInt(0);
        
       //At station 1,2,3,4
-      sprintf(query, "SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName RLIKE '^H[1-4][TB]$' AND mTrackID=%d", trackID[i]);
+      sprintf(query, "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D1%%' AND mTrackID=%d LIMIT 1)"
+	      " UNION "
+	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D2%%' AND mTrackID=%d LIMIT 1)"
+	      " UNION "
+	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D3%%' AND mTrackID=%d LIMIT 1)"
+	      " UNION "
+	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'P%%' AND mTrackID=%d LIMIT 1)",
+	      trackID[i], trackID[i], trackID[i], trackID[i]);
       if(makeQuery() != 4) return false;
 
       nextEntry();
