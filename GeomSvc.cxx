@@ -599,7 +599,7 @@ double GeomSvc::getDriftDistance(int detectorID, double tdcTime)
 
 double GeomSvc::getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0)
 {
-  return (tx*planes[detectorID].nVec[2] + x0)*planes[detectorID].costheta + (ty*planes[detectorID].nVec[2] + y0)*planes[detectorID].sintheta;
+  return (tx*planes[detectorID].zc + x0)*planes[detectorID].costheta + (ty*planes[detectorID].zc + y0)*planes[detectorID].sintheta;
 }
 
 void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string alignmentFile_hodo, std::string alignmentFile_prop)
