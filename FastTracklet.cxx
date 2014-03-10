@@ -520,10 +520,7 @@ SRecTrack Tracklet::getSRecTrack()
       strack.insertZ(z);
     }
 
-  TVector3 mom_vtx, pos_vtx;
-  strack.setDumpPos(swimToVertex(mom_vtx, pos_vtx));
-  strack.setVertexFast(mom_vtx, pos_vtx);
-
+  strack.swimToVertex();
   strack.setHodoHits();
   return strack;
 }
@@ -541,120 +538,6 @@ TVector3 Tracklet::getMomentumSt3()
 {
   double pz = 1./invP/sqrt(1. + tx*tx);
   return TVector3(pz*tx, pz*ty, pz);
-}
-
-TVector3 Tracklet::swimToVertex(TVector3& mom_vtx, TVector3& pos_vtx)
-{
-  //Store the steps on each point (center of the interval)
-  TVector3 mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
-  TVector3 pos[NSLICES_FMAG + NSTEPS_TARGET + 1];
-
-  //E-loss and pT-kick per length, note the eloss is done in half-slices
-  double eloss_unit_0 = ELOSS_FMAG/FMAG_LENGTH;
-  double eloss_unit_1 = ELOSS_FMAG_RAD/FMAG_LENGTH;
-  double ptkick_unit = PT_KICK_FMAG/FMAG_LENGTH;
-
-  //Step size in FMAG/target area
-  double step_fmag = FMAG_LENGTH/NSLICES_FMAG/2.;   //note that in FMag, each step is devided into two slices
-  double step_target = fabs(Z_UPSTREAM)/NSTEPS_TARGET;
-
-  //Initial position should be on the downstream face of beam dump
-  pos[0].SetXYZ(getExpPositionX(FMAG_LENGTH), getExpPositionY(FMAG_LENGTH), FMAG_LENGTH);
-  mom[0] = getMomentumSt1();
-
-  //Charge of the track
-  double charge = getCharge();
-
-  //Now make the swim
-  int iStep = 1;
-  for(; iStep <= NSLICES_FMAG; ++iStep)
-    {
-      //Make pT kick at the center of slice, add energy loss at both first and last half-slice
-      //Note that ty is the global class data member, which does not change during the entire swimming
-      double tx_i = mom[iStep-1].Px()/mom[iStep-1].Pz();
-      double tx_f = tx_i + 2.*charge*ptkick_unit*step_fmag/sqrt(mom[iStep-1].Px()*mom[iStep-1].Px() + mom[iStep-1].Pz()*mom[iStep-1].Pz());
-
-      TVector3 trajVec1(tx_i*step_fmag, ty*step_fmag, step_fmag);
-      TVector3 pos_b = pos[iStep-1] - trajVec1;
-
-      double p_tot_i = mom[iStep-1].Mag();
-      double p_tot_b;
-      if(pos_b[2] > FMAG_HOLE_LENGTH || pos_b.Perp() > FMAG_HOLE_RADIUS)
-	{
-  	  p_tot_b = p_tot_i + (eloss_unit_0 + p_tot_i*eloss_unit_1)*trajVec1.Mag();
-	}
-      else
-	{
-	  p_tot_b = p_tot_i;
-	}
-
-      TVector3 trajVec2(tx_f*step_fmag, ty*step_fmag, step_fmag);
-      pos[iStep] = pos_b - trajVec2;
-
-      double p_tot_f;
-      if(pos[iStep][2] > FMAG_HOLE_LENGTH || pos[iStep].Perp() > FMAG_HOLE_RADIUS)
-	{
-  	  p_tot_f = p_tot_b + (eloss_unit_0 + p_tot_b*eloss_unit_1)*trajVec2.Mag();
-	}
-      else
-	{
-	  p_tot_f = p_tot_b;
-	}
-
-      //Now the final position and momentum in this step
-      double pz_f = p_tot_f/sqrt(1. + tx_f*tx_f + ty*ty);
-      mom[iStep].SetXYZ(pz_f*tx_f, pz_f*ty, pz_f);
-      pos[iStep] = pos[iStep-1] - trajVec1 - trajVec2;
-
-#ifdef _DEBUG_ON_LEVEL_2 
-      std::cout << "FMAG: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
-      std::cout << mom[iStep-1][0]/mom[iStep-1][2] << "     " << mom[iStep-1][1]/mom[iStep-1][2] << "     " << mom[iStep-1][2] << "     ";
-      std::cout << pos[iStep-1][0] << "  " << pos[iStep-1][1] << "   " << pos[iStep-1][2] << std::endl << std::endl;
-      std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
-      std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
-#endif
-    }
-
-  for(; iStep < NSLICES_FMAG+NSTEPS_TARGET+1; ++iStep)
-    {
-      //Simple straight line flight
-      double tx_i = mom[iStep-1].Px()/mom[iStep-1].Pz();
-      TVector3 trajVec(tx_i*step_target, ty*step_target, step_target);
-
-      mom[iStep] = mom[iStep-1];
-      pos[iStep] = pos[iStep-1] - trajVec;
-
-#ifdef _DEBUG_ON_LEVEL_2
-      std::cout << "TARGET: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
-      std::cout << mom[iStep-1][0]/mom[iStep-1][2] << "     " << mom[iStep-1][1]/mom[iStep-1][2] << "     " << mom[iStep-1][2] << "     ";
-      std::cout << pos[iStep-1][0] << "  " << pos[iStep-1][1] << "   " << pos[iStep-1][2] << std::endl << std::endl;
-      std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
-      std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
-#endif
-    }
-
-  //Now the swimming is done, find the point with closest distance of approach, let iStep store the index of that step
-  double dca_min = 1E9;
-  for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
-    {
-      double dca = pos[i].Perp();
-      if(dca < dca_min)
-	{
-	  dca_min = dca;
-	  iStep = i;
-	}
-    }
-
-  mom_vtx = mom[iStep];
-  pos_vtx = pos[iStep];
-
-#ifdef _DEBUG_ON_LEVEL_2
-  std::cout << "The one with minimum DCA is: " << iStep << ": " << std::endl;
-  std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
-  std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
-#endif
-
-  return pos[NSLICES_FMAG];
 }
 
 void Tracklet::print()

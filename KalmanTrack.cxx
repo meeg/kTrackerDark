@@ -965,6 +965,8 @@ SRecTrack KalmanTrack::getSRecTrack()
       _strack.insertChisq(iter->getChisq());
     }
 
+  _strack.swimToVertex();
+  _strack.setHodoHits();
   return _strack;
 }
 

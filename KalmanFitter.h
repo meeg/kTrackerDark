@@ -80,6 +80,12 @@ private:
   ///Pointer to an instance of Kalman filter
   KalmanFilter *_kmfit;
 
+  ///cache of the rotation matrix of all detector planes
+  double rM_20[nChamberPlanes];
+  double rM_21[nChamberPlanes];
+  double rM_22[nChamberPlanes];
+  double z_planes[nChamberPlanes]; 
+
   ///Control variables
   int _max_iteration;
   double _tolerance;

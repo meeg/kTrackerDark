@@ -122,7 +122,6 @@ int main(int argc, char *argv[])
 
 #ifndef _ENABLE_KF
 	  SRecTrack recTrack = iter->getSRecTrack();
-	  recTrack.setHodoHits();      //Any track that can be reconstructed already required hodo and prop. tube masking
 	  recEvent->insertTrack(recTrack);
 #endif
 	}
@@ -133,8 +132,6 @@ int main(int argc, char *argv[])
 	{
 	  //iter->print();
 	  SRecTrack recTrack = iter->getSRecTrack();
-	  recTrack.setHodoHits(); 
-	  recTrack.setZVertex(vtxfit->findSingleMuonVertex(recTrack));
           recEvent->insertTrack(recTrack);
 	}
 #endif

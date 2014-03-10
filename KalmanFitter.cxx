@@ -18,17 +18,23 @@ Created: 10-18-2012
 KalmanFitter::KalmanFitter()
 {
   _kmfit = KalmanFilter::instance();
-
+  
   _max_iteration = 100;
   _tolerance = 1E-3;
-}
 
-/*
-KalmanFitter::~KalmanFitter()
-{
-  _kmfit->close();
+  GeomSvc* p_geomSvc = GeomSvc::instance();
+  for(int i = 1; i <= nChamberPlanes; ++i)
+    {
+      double rX = p_geomSvc->getRotationInX(i); 
+      double rY = p_geomSvc->getRotationInY(i); 
+      double rZ = p_geomSvc->getRotationInZ(i);
+      
+      z_planes[i-1] = p_geomSvc->getPlaneCenterZ(i);
+      rM_20[i-1] = cos(rX)*sin(rY)*cos(rZ) + sin(rX)*sin(rZ); 
+      rM_21[i-1] = cos(rX)*sin(rY)*sin(rZ) - sin(rX)*cos(rZ); 
+      rM_22[i-1] = cos(rY)*cos(rX);; 
+    }
 }
-*/
 
 void KalmanFitter::init()
 {
@@ -130,18 +136,12 @@ int KalmanFitter::initNodeList(KalmanTrack& _track)
 
 void KalmanFitter::updateAlignment()
 {
-  //GeomSvc *p_geomSvc = GeomSvc::instance();
   //update the z positon of each node according to the current fit
   // of (x, y)
   
-  GeomSvc *p_geomSvc = GeomSvc::instance();
   for(std::list<Node>::iterator node = _nodes.begin(); node != _nodes.end(); ++node)
     {
-      double x, y, z;
-      
-      int detectorID = node->getHit().detectorID;
-      z = p_geomSvc->getPlanePosition(detectorID);
-
+      double x, y;
       if(node->isSmoothDone())
 	{
 	  x = node->getSmoothed().get_x();
@@ -158,14 +158,8 @@ void KalmanFitter::updateAlignment()
 	  y = node->getPredicted().get_y();
 	}
 
-      double theta_x = p_geomSvc->getRotationInX(detectorID);
-      double theta_y = p_geomSvc->getRotationInY(detectorID);
-
-      double ax = -sin(theta_y);
-      double ay = cos(theta_y)*sin(theta_x);
-      double az = cos(theta_y)*cos(theta_x);
-      
-      node->setZ(ax*x + ay*y + az*z);
+      int index = node->getHit().detectorID - 1;
+      node->setZ(rM_20[index]*x + rM_21[index]*y + rM_22[index]*z_planes[index]);
     }
 }
 

@@ -142,15 +142,18 @@ public:
   double getCostheta(int detectorID)      { return planes[detectorID].costheta; }
   double getSintheta(int detectorID)      { return planes[detectorID].sintheta; }
   double getTantheta(int detectorID)      { return planes[detectorID].tantheta; }
-  double getPlaneCenterX(int detectorID)  { return planes[detectorID].xc; }
-  double getPlaneCenterY(int detectorID)  { return planes[detectorID].yc; }
   double getPlaneScaleX(int detectorID)   { return planes[detectorID].x2 - planes[detectorID].x1; }
   double getPlaneScaleY(int detectorID)   { return planes[detectorID].y2 - planes[detectorID].y1; }
   int getPlaneNElements(int detectorID)   { return planes[detectorID].nElements; }
   double getPlaneResolution(int detectorID) { return planes[detectorID].resolution; }
  
-  double getRotationInX(int detectorID)    { return planes[detectorID].thetaX; }
-  double getRotationInY(int detectorID)    { return planes[detectorID].thetaY; } 
+  double getPlaneCenterX(int detectorID)  { return planes[detectorID].xc; }
+  double getPlaneCenterY(int detectorID)  { return planes[detectorID].yc; }
+  double getPlaneCenterZ(int detectorID)  { return planes[detectorID].zc; }
+  double getRotationInX(int detectorID)    { return planes[detectorID].rX; }
+  double getRotationInY(int detectorID)    { return planes[detectorID].rY; } 
+  double getRotationInZ(int detectorID)    { return planes[detectorID].rZ; }
+
   double getPlaneZOffset(int detectorID)   { return planes[detectorID].deltaZ; }
   double getPlanePhiOffset(int detectorID) { return planes[detectorID].rotZ; }
   double getPlaneWOffset(int detectorID)   { return planes[detectorID].deltaW; }

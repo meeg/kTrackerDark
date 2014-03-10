@@ -59,12 +59,19 @@ public:
 
   Double_t getMomentumSt1(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fState.front(), px, py, pz); }
   Double_t getMomentumSt1() { Double_t px, py, pz; return getMomentumSt1(px, py, pz); }
+  TVector3 getMomentumVecSt1() { Double_t px, py, pz; getMomentumSt1(px, py, pz); return TVector3(px, py, pz); }
+
   Double_t getMomentumSt3(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fState.back(), px, py, pz); }
   Double_t getMomentumSt3() { Double_t px, py, pz; return getMomentumSt3(px, py, pz); }
+  TVector3 getMomentumVecSt3() { Double_t px, py, pz; getMomentumSt1(px, py, pz); return TVector3(px, py, pz); }
+
   Double_t getPositionSt1(Double_t& x, Double_t& y) { return getPosition(fState.front(), x, y); }
   Double_t getPositionSt1() { Double_t x, y; return getPositionSt1(x, y); }
+  TVector3 getPositionVecSt1() { Double_t x, y; getPositionSt1(x, y); return TVector3(x, y, fZ.front()); }
+
   Double_t getPositionSt3(Double_t& x, Double_t& y) { return getPosition(fState.back(), x, y); }
   Double_t getPositionSt3() { Double_t x, y; return getPositionSt3(x, y); }
+  TVector3 getPositionVecSt3() { Double_t x, y; getPositionSt3(x, y); return TVector3(x, y, fZ.back()); }
 
   Double_t getMomentum(TMatrixD& state, Double_t& px, Double_t& py, Double_t& pz);
   Double_t getPosition(TMatrixD& state, Double_t& x, Double_t& y);
@@ -90,6 +97,10 @@ public:
   void setVertexFast(TVector3 mom, TVector3 pos);
   void setDumpPos(TVector3 pos) { fDumpPos = pos; } 
 
+  ///Simple swim to vertex
+  void swimToVertex();
+
+  ///Get the vertex info
   TLorentzVector getMomentumVertex();
   Double_t getMomentumVertex(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fStateVertex, px, py, pz); }
   Double_t getZVertex() { return fVtxPar[2]; }
