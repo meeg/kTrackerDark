@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
 #ifdef _ENABLE_KF
   KalmanFilter* filter = new KalmanFilter();
   KalmanFastTracking* fastfinder = new KalmanFastTracking();
-  VertexFit* vtxfit = new VertexFit();
 #else
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
 #endif

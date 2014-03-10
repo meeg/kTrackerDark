@@ -218,7 +218,16 @@ public:
   TVector3 p_station4[2];
   TVector3 v_station4[2];
 
-  ClassDef(SRawMCEvent, 1) 
+  TVector3 p_stationH1[2];
+  TVector3 v_stationH1[2];
+  TVector3 p_stationH2[2];
+  TVector3 v_stationH2[2];
+  TVector3 p_stationH3[2];
+  TVector3 v_stationH3[2];
+  TVector3 p_stationH4[2];
+  TVector3 v_stationH4[2];
+
+  ClassDef(SRawMCEvent, 2) 
 };
 
 #endif
