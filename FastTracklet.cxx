@@ -426,16 +426,9 @@ double Tracklet::calcChisq()
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
-      if(stationID == 6 || stationID == 5)
+      if(KMAG_ON == 1 && stationID == 6 && detectorID <= 6)
 	{
-	  if(KMAG_ON == 1 && detectorID <= 6)
-	    {
-	      residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
-	    }
-	  else
-	    {
-	      residual[index] = p - p_geomSvc->getInterception(detectorID, tx, ty, x0, y0);
-	    } 
+    	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
 	}
       else
 	{
