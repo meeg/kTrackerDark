@@ -33,6 +33,7 @@ MySQLSvc::MySQLSvc()
   user = "seaguest";
   passwd = "qqbar2mu+mu-";
 
+  nEvents = 0;
   nTracks = 0;
   nDimuons = 0;
 
@@ -85,7 +86,7 @@ void MySQLSvc::setWorkingSchema(std::string schema)
   eventIDs.push_back(0);
 
   if(!server->HasTable("QIE")) readQIE = false;
-  if(!server->HasTable("TriggerHits")) readQIE = false;
+  if(!server->HasTable("TriggerHit")) readTriggerHits = false;
 
   if(!readQIE) std::cout << "MySQLSvc: QIE information readout is disabled." << std::endl; 
   if(!readTriggerHits) std::cout << "MySQLSvc: TriggerHits table readout is disabled." << std::endl;
