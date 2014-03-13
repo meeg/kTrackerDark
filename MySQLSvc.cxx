@@ -36,6 +36,10 @@ MySQLSvc::MySQLSvc()
   nTracks = 0;
   nDimuons = 0;
 
+  readQIE = true;
+  readTriggerHits = true;
+  readTargetPos = true;
+
   rndm.SetSeed(0);
 }
 
@@ -79,6 +83,13 @@ void MySQLSvc::setWorkingSchema(std::string schema)
   server->Exec(query);
   eventIDs.clear();
   eventIDs.push_back(0);
+
+  if(!server->HasTable("QIE")) readQIE = false;
+  if(!server->HasTable("TriggerHits")) readQIE = false;
+
+  if(!readQIE) std::cout << "MySQLSvc: QIE information readout is disabled." << std::endl; 
+  if(!readTriggerHits) std::cout << "MySQLSvc: TriggerHits table readout is disabled." << std::endl;
+  if(!readTargetPos) std::cout << "MySQLSvc: Target position readout is disabled." << std::endl;
 }
 
 bool MySQLSvc::isRunStopped()
@@ -266,63 +277,72 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
   rawEvent->setTriggerBits(triggers);
 
   //Get target position
-  sprintf(query, "SELECT targetPos FROM Spill WHERE spillID=%d", spillID);
-  if(makeQuery() == 1)
+  if(readTargetPos)
     {
-      nextEntry();
-      rawEvent->setTargetPos(getInt(0));
-    }
-  else
-    {
-      rawEvent->setTargetPos(99);
+      sprintf(query, "SELECT targetPos FROM Spill WHERE spillID=%d", spillID);
+      if(makeQuery() == 1)
+      	{
+	  nextEntry();
+     	  rawEvent->setTargetPos(getInt(0));
+	}
+      else
+	{
+	  rawEvent->setTargetPos(99);
+       	}
     }
 
   //Get beam information
-  sprintf(query, "SELECT turnOnset,rfOnSet,`RF-16`,`RF-15`,`RF-14`,`RF-13`,`RF-12`,`RF-11`,`RF-10`,`RF-09`,"
-	         "`RF-08`,`RF-07`,`RF-06`,`RF-05`,`RF-04`,`RF-03`,`RF-02`,`RF-01`,`RF+00`,`RF+01`,`RF+02`,"
-		 "`RF+03`,`RF+04`,`RF+05`,`RF+06`,`RF+07`,`RF+08`,`RF+09`,`RF+10`,`RF+11`,`RF+12`,`RF+13`,"
-		 "`RF+14`,`RF+15`,`RF+16` FROM QIE WHERE eventID=%d", eventID);
-  if(makeQuery() == 1)
+  if(readQIE)
     {
-      nextEntry();
-
-      rawEvent->setTurnID(getInt(0, -1));
-      rawEvent->setRFID(getInt(1, -1));
-      for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, getInt(i+2));
-    }
-  else
-    {
-      rawEvent->setTurnID(-2);
-      rawEvent->setRFID(-2);
-      for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, -1);
+      sprintf(query, "SELECT turnOnset,rfOnSet,`RF-16`,`RF-15`,`RF-14`,`RF-13`,`RF-12`,`RF-11`,`RF-10`,`RF-09`,"
+         	     "`RF-08`,`RF-07`,`RF-06`,`RF-05`,`RF-04`,`RF-03`,`RF-02`,`RF-01`,`RF+00`,`RF+01`,`RF+02`,"
+		     "`RF+03`,`RF+04`,`RF+05`,`RF+06`,`RF+07`,`RF+08`,`RF+09`,`RF+10`,`RF+11`,`RF+12`,`RF+13`,"
+		     "`RF+14`,`RF+15`,`RF+16` FROM QIE WHERE eventID=%d", eventID);
+      if(makeQuery() == 1)
+	{
+	  nextEntry();
+      
+	  rawEvent->setTurnID(getInt(0, -1));
+	  rawEvent->setRFID(getInt(1, -1));
+	  for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, getInt(i+2));
+       	}
+      else
+       	{
+	  rawEvent->setTurnID(-2);
+	  rawEvent->setRFID(-2);
+	  for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, -1);
+       	}
     }
 
   //Get trigger hits
-  sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' AND eventID=%d", eventID);
-  int nTriggerHits = makeQuery();
-
-  for(int i = 0; i < nTriggerHits; ++i)
+  if(readTriggerHits)
     {
-      nextEntry();
+      sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' AND eventID=%d", eventID);
+      int nTriggerHits = makeQuery();
 
-      Hit h;
-      h.index = getInt(0);
-      h.elementID = getInt(2);
-      h.tdcTime = getDouble(3);
-      h.inTime = getInt(4);
-      h.driftTime = 0.;
-      h.driftDistance = 0.;
-      h.hodoMask = 0;
-
-      std::string detectorName(row->GetField(1));
-      if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
+      for(int i = 0; i < nTriggerHits; ++i)
 	{
-	  detectorName.replace(3, detectorName.length(), "");
-	}
-      h.detectorID = p_geomSvc->getDetectorID(detectorName);
-      h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-
-      rawEvent->insertTriggerHit(h);
+	  nextEntry();
+      
+	  Hit h;
+	  h.index = getInt(0);
+	  h.elementID = getInt(2);
+	  h.tdcTime = getDouble(3);
+	  h.inTime = getInt(4);
+       	  h.driftTime = 0.;
+      	  h.driftDistance = 0.;
+	  h.hodoMask = 0;
+      
+	  std::string detectorName(row->GetField(1));
+	  if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
+    	    {
+    	      detectorName.replace(3, detectorName.length(), "");
+    	    }
+	  h.detectorID = p_geomSvc->getDetectorID(detectorName);
+	  h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
+     
+	  rawEvent->insertTriggerHit(h);
+       	}
     }
 
   return true;

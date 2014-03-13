@@ -73,6 +73,9 @@ public:
   //Set the data schema
   void setWorkingSchema(std::string schema);
   void setLoggingSchema(std::string schema) { logSchema = schema; } 
+  void enableQIE(bool opt) { readQIE = opt; }
+  void enableTargetPos(bool opt) { readTargetPos = opt; }
+  void enableTriggerHits(bool opt) { readTriggerHits = opt; }
 
   //Memory-safe sql queries
   int makeQuery();
@@ -96,6 +99,11 @@ private:
   TSQLServer* server;
   TSQLResult* res;
   TSQLRow* row;
+
+  //Test if QIE/TriggerHits table exists
+  bool readQIE;
+  bool readTriggerHits;
+  bool readTargetPos;
 
   //Random generator
   TRandom rndm;
