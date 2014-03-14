@@ -85,8 +85,7 @@ bool KalmanFilter::predict(Node& _node)
     }
   else
     {
-      double p_corr = ELOSS_CORR;
-      if(z_pred > 0) p_corr = ELOSS_CORR*(FMAG_LENGTH - z_pred)*sqrt(1. + _node.getPredicted()._state_kf[1][0]*_node.getPredicted()._state_kf[1][0] + _node.getPredicted()._state_kf[2][0]*_node.getPredicted()._state_kf[2][0])/FMAG_LENGTH;
+      double p_corr = ELOSS_CORR/FMAG_LENGTH*_extrapolator.getTravelLength()/10.;
       _node.getPredicted()._state_kf[0][0] = _node.getPredicted().get_charge()/(_node.getPredicted().get_mom() - p_corr);
     }
 

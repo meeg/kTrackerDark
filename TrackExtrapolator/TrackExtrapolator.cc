@@ -258,10 +258,12 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
 
 int TrackExtrapolator::propagate()
 {
-  ///If propagation matrix is not needed, then call the one step Propagate()
+  travelLength = 0.;
+
+  ///If propagation matrix is not needed, then call the one step Propagate() 
   if(!calcProp)
     {
-      return g4eMgr->Propagate(g4eState, g4eTarget, g4eMode);
+      return g4eMgr->Propagate(g4eState, g4eTarget, g4eMode);    
     } 
 
   for(int i = 0; i < 5; i++)
@@ -278,6 +280,7 @@ int TrackExtrapolator::propagate()
   while(!isLastStep)
     {
       //G4ErrorTrajErr cov_temp_i = g4eState->GetError();
+      G4ThreeVector pos_before = g4eState->GetPosition();
       int ierr = g4eMgr->PropagateOneStep(g4eState, g4eMode);
       if(ierr != 0)
 	{
@@ -289,6 +292,22 @@ int TrackExtrapolator::propagate()
       g4eProp = g4eProp_temp;
       isLastStep = g4eMgr->GetPropagator()->CheckIfLastStep(g4eState->GetG4Track());
 
+      G4ThreeVector pos_after = g4eState->GetPosition();
+      if((pos_before[2] < FMAG_LENGTH*cm && pos_before[2] > 0) || (pos_after[2] < FMAG_LENGTH*cm && pos_after[2] > 0))
+	{
+	  double length = (pos_before - pos_after).mag();
+	  if(pos_after[2] < 0)
+	    {
+	      length *= fabs(pos_before[2]/(pos_before[2] - pos_after[2]));
+	    }
+	  else if(pos_before[2] > FMAG_LENGTH*cm)
+	    {
+	      length *= fabs((pos_after[2] - FMAG_LENGTH*cm)/(pos_before[2] - pos_after[2]));
+	    }
+
+	  travelLength += length;
+	}
+      
       /* 
       std::cout << g4eState->GetPosition()[2] << "  ===========================================================" << std::endl;
       G4ErrorTrajErr cov_temp_f = g4eState->GetError();

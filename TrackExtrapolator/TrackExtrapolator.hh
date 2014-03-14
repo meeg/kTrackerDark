@@ -53,6 +53,7 @@ public:
 
   ///Get the final state parameters and covariance
   void getFinalStateWithCov(TMatrixD& state_out, TMatrixD& cov_out);
+  double getTravelLength() { return travelLength; }
 
   ///Get the propagator
   //void buildNumericalPropagator();
@@ -116,6 +117,9 @@ private:
 
   ///Control on calculation of propagation matrix
   bool calcProp;
+
+  ///Control on calculation of travel length
+  double travelLength;
 };
 
 #endif
