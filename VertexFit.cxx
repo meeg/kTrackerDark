@@ -42,6 +42,7 @@ VertexFit::VertexFit()
   
   ///Single track finding doesn't require a propagation matrix
   _extrapolator.setPropCalc(false);
+  _extrapolator.setLengthCalc(false);
 
   ///disable target optimization by default
   optimize = false;

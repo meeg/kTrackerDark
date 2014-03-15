@@ -46,7 +46,7 @@ public:
   bool fit_node(Node& _node);
 
   ///Enable the dump mode: stop calc prop matrix, start calc travel length
-  void enableDumpCorrection() { _extrapolator.setPropCalc(false); _extrapolator.setLengthCalc(true); }
+  void enableDumpCorrection() { _extrapolator.setPropCalc(true); _extrapolator.setLengthCalc(true); }
 
 private:
   ///Pointer to singlton instance
