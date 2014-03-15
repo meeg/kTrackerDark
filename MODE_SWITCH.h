@@ -21,10 +21,10 @@
 //#define _ENABLE_TRIGGER_MASK
 
 //=== Enable Kalman fitting in fast tracking and alignment, enabled by default
-#define _ENABLE_KF
+//#define _ENABLE_KF
 
 //=== Enable reading the alignment data from online schema instead of external ascii file
-#define LOAD_ONLINE_ALIGNMENT
+//#define LOAD_ONLINE_ALIGNMENT
 
 //--------------- Geometry version ---------------
 #define GEOMETRY_VERSION "geometry_R1124_run2"
@@ -83,7 +83,7 @@
 #define FMAG_LENGTH 502.92
 #define NSLICES_FMAG 100
 #define NSTEPS_TARGET 100
-#define ELOSS_CORR 1.05
+#define ELOSS_CORR 0.95
 #define ELOSS_FMAG 7.3971
 #define ELOSS_FMAG_RAD 0.0078
 #define Z_UPSTREAM -250.

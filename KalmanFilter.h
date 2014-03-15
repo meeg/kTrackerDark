@@ -42,7 +42,11 @@ public:
   void setCurrTrkpar(Node& _node) { _trkpar_curr = _node.getFiltered(); }
   void setCurrTrkpar(TrkPar& _trkpar) { _trkpar_curr = _trkpar; }
 
+  ///Fit one node
   bool fit_node(Node& _node);
+
+  ///Enable the dump mode: stop calc prop matrix, start calc travel length
+  void enableDumpCorrection() { _extrapolator.setPropCalc(false); _extrapolator.setLengthCalc(true); }
 
 private:
   ///Pointer to singlton instance

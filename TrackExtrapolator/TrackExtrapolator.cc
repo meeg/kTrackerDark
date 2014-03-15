@@ -45,6 +45,7 @@ bool TrackExtrapolator::init(std::string geometrySchema)
   g4eData = G4ErrorPropagatorData::GetErrorPropagatorData();
 
   calcProp = true;
+  calcLength = false;
   if(!fullInit)
     {
       //Specify the geometry schema for the MySQL
@@ -260,71 +261,74 @@ int TrackExtrapolator::propagate()
 {
   travelLength = 0.;
 
-  ///If propagation matrix is not needed, then call the one step Propagate() 
-  if(!calcProp)
+  ///If neither prop mtrix or travelLength is needed, then call the one step Propagate() 
+  if(!(calcProp || calcLength))
     {
       return g4eMgr->Propagate(g4eState, g4eTarget, g4eMode);    
     } 
 
-  for(int i = 0; i < 5; i++)
+
+  ///Initialize the prop. matrix if needed
+  if(calcProp)
     {
-      for(int j = 0; j < 5; j++)
+      for(int i = 0; i < 5; i++)
 	{
-	  g4eProp[i][j] = 0.;
-	  if(i == j) g4eProp[i][j] = 1.;
+	  for(int j = 0; j < 5; j++)
+	    {
+	      g4eProp[i][j] = 0.;
+	      if(i == j) g4eProp[i][j] = 1.;
+    	    }
 	}
     }
 
+  ///Start the step-by-step propagation
   g4eMgr->InitTrackPropagation();
+  G4ThreeVector pos_before, pos_after;
+
   bool isLastStep = false;
   while(!isLastStep)
     {
-      //G4ErrorTrajErr cov_temp_i = g4eState->GetError();
-      G4ThreeVector pos_before = g4eState->GetPosition();
+      if(calcLength) pos_before = g4eState->GetPosition();
+      
       int ierr = g4eMgr->PropagateOneStep(g4eState, g4eMode);
       if(ierr != 0)
 	{
 	  return ierr;
 	}
 
-      G4ErrorMatrix g4eProp_oneStep = g4eState->GetTransfMat();
-      G4ErrorMatrix g4eProp_temp = g4eProp_oneStep*g4eProp;
-      g4eProp = g4eProp_temp;
+      //calculate the propagation matrix
+      if(calcProp)
+	{
+	  G4ErrorMatrix g4eProp_oneStep = g4eState->GetTransfMat();
+          G4ErrorMatrix g4eProp_temp = g4eProp_oneStep*g4eProp;
+          g4eProp = g4eProp_temp;
+	}
+
+      //calculate the travel length
+      if(calcLength)
+	{	
+	  pos_after = g4eState->GetPosition();
+          if((pos_before[2] < FMAG_LENGTH*cm && pos_before[2] > 0) || (pos_after[2] < FMAG_LENGTH*cm && pos_after[2] > 0))
+	    {
+	      double length = (pos_before - pos_after).mag();
+	      if(pos_after[2] < 0)
+	        {
+	          length *= fabs(pos_before[2]/(pos_before[2] - pos_after[2]));
+	        }
+	      else if(pos_before[2] > FMAG_LENGTH*cm)
+	        {
+	          length *= fabs((pos_after[2] - FMAG_LENGTH*cm)/(pos_before[2] - pos_after[2]));
+	        }
+
+	      travelLength += length;
+	    }
+	}
+     
+      //Check if the target plane is reached
       isLastStep = g4eMgr->GetPropagator()->CheckIfLastStep(g4eState->GetG4Track());
-
-      G4ThreeVector pos_after = g4eState->GetPosition();
-      if((pos_before[2] < FMAG_LENGTH*cm && pos_before[2] > 0) || (pos_after[2] < FMAG_LENGTH*cm && pos_after[2] > 0))
-	{
-	  double length = (pos_before - pos_after).mag();
-	  if(pos_after[2] < 0)
-	    {
-	      length *= fabs(pos_before[2]/(pos_before[2] - pos_after[2]));
-	    }
-	  else if(pos_before[2] > FMAG_LENGTH*cm)
-	    {
-	      length *= fabs((pos_after[2] - FMAG_LENGTH*cm)/(pos_before[2] - pos_after[2]));
-	    }
-
-	  travelLength += length;
-	}
-      
-      /* 
-      std::cout << g4eState->GetPosition()[2] << "  ===========================================================" << std::endl;
-      G4ErrorTrajErr cov_temp_f = g4eState->GetError();
-      G4ErrorTrajErr cov_temp_c = cov_temp_i.similarity(g4eProp_oneStep);
-      for(int i = 0; i < 5; i++)
-	{
-	  for(int j = 0; j < 5; j++)
-	    {
-	      std::cout << cov_temp_f[i][j] - cov_temp_c[i][j] << "      ";
-	    }
-	  std::cout << std::endl;
-	}
-      */
     }
 
   g4eMgr->GetPropagator()->InvokePostUserTrackingAction(g4eState->GetG4Track());
-  
   return 0;
 }
 

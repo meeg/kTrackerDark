@@ -60,7 +60,7 @@ public:
   ~VertexFit();
 
   ///Enable the optimization of final dimuon vertex z position
-  void enableOptimzation() { optimize = true; }
+  void enableOptimization() { optimize = true; }
 
   ///Set the convergence control parameters
   void setControlParameter(int nMaxIteration, double tolerance) 

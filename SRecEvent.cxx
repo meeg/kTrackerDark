@@ -80,7 +80,8 @@ void SRecTrack::setZVertex(Double_t z)
   _trkpar_curr._covar_kf = fCovar[0];
   _trkpar_curr._z = fZ[0];
 
-  KalmanFilter *kmfit = KalmanFilter::instance();
+  KalmanFilter* kmfit = KalmanFilter::instance();
+  kmfit->enableDumpCorrection();
   kmfit->setCurrTrkpar(_trkpar_curr);
   kmfit->fit_node(_node_vertex);
 

@@ -80,6 +80,7 @@ public:
 
   ///External control of modes
   void setPropCalc(bool option) { calcProp = option; }
+  void setLengthCalc(bool option) { calcLength = option; }
 
   ///Debug print
   void print();
@@ -117,8 +118,9 @@ private:
 
   ///Control on calculation of propagation matrix
   bool calcProp;
-
+ 
   ///Control on calculation of travel length
+  bool calcLength;
   double travelLength;
 };
 
