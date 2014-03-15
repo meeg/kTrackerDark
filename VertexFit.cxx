@@ -120,7 +120,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	  double z_vertex_opt = getVertexZ0();
 	  if(optimize)
 	    {
-	      if(z_vertex_opt < -50. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
+	      if(z_vertex_opt < -80. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
 	    }
 
 	  track_pos.setZVertex(z_vertex_opt);

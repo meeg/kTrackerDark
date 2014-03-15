@@ -24,12 +24,15 @@ Settings::Settings()
   ironOn = true;
   trackingZCut = 400*cm;
   trackingEnergyCut = 1.0*GeV;
-#ifdef ALIGNMENT_MODE
+#if defined ALIGNMENT_MODE
   kMagMultiplier = 0.;
   fMagMultiplier = 0.;
-#else
+#elif defined MC_MODE
   kMagMultiplier = 1.;
   fMagMultiplier = 1.;
+#else
+  kMagMultiplier = 1.;
+  fMagMultiplier = 0.98;
 #endif
   geometrySchema = "geometry_R997";
   magnetSchema = "geometry_R996_magneticFields";
