@@ -33,8 +33,8 @@ VertexFit::VertexFit()
   _node_vertex.getMeasurementCov()[0][0] = 1.;
   _node_vertex.getMeasurementCov()[1][1] = 1.;
 
-  _max_iteration = 100;
-  _tolerance = .5;
+  _max_iteration = 200;
+  _tolerance = .05;
 
   _kmfit = KalmanFilter::instance();
   _kmfit->enableDumpCorrection();
