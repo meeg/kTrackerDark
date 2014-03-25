@@ -49,6 +49,8 @@ int main(int argc, char **argv)
 
   int nEvents = p_mysqlSvc->getNEventsFast();
   cout << "Totally " << nEvents << " events in this run" << endl;
+  
+  if(argc > 4) nEvents = atoi(argv[4]);
   for(int i = 0; i < nEvents; ++i)
     {
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;

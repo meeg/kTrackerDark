@@ -35,7 +35,7 @@ bool Hit::operator<(const Hit& elem) const
     {
       return true;
     }
-  else
+  else if(elementID > elem.elementID)
     {
       return false;
     }
@@ -460,6 +460,7 @@ void SRawEvent::reIndex(std::string option)
   bool _outoftime = false;
   bool _nonchamber = false;
   bool _decluster = false;
+  bool _mergehodo = false;
 
   TString option_lower(option.c_str());
   option_lower.ToLower();
@@ -468,17 +469,23 @@ void SRawEvent::reIndex(std::string option)
   if(option_lower.Contains("o")) _outoftime = true;
   if(option_lower.Contains("n")) _nonchamber = true;
   if(option_lower.Contains("c")) _decluster = true;
+  if(option_lower.Contains("u")) _mergehodo = true;
 
   ///Dump the vector into a list and do the reduction
   std::list<Hit> hitlist_temp;
   hitlist_temp.clear();
-  for(UInt_t i = 0; i < fAllHits.size(); i++)
+  for(std::vector<Hit>::iterator iter = fAllHits.begin(); iter != fAllHits.end(); ++iter)
     {
-      if(_outoftime && fAllHits[i].inTime == 0) continue;
-      if(_hodomask && fAllHits[i].hodoMask == 0) continue;
-      if(_nonchamber && fAllHits[i].detectorID > 24) continue;
+      if(_outoftime && iter->inTime == 0) continue;
+      if(_hodomask && iter->hodoMask == 0) continue;
+      if(_nonchamber && iter->detectorID > 24) continue;
 
-      hitlist_temp.push_back(fAllHits[i]);
+      hitlist_temp.push_back(*iter);
+    }
+
+  if(_mergehodo)
+    {
+      for(std::vector<Hit>::iterator iter = fTriggerHits.begin(); iter != fTriggerHits.end(); ++iter) hitlist_temp.push_back(*iter);
     }
 
   ///Remove after hits

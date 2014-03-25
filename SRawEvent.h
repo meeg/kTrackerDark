@@ -141,6 +141,7 @@ public:
   void setRFID(Int_t rfID) { fRFID = rfID; }
   void setIntensity(const Int_t intensity[]) { for(Int_t i = 0; i < 33; ++i) fIntensity[i] = intensity[i]; }
   void setIntensity(Int_t i, Int_t val) { fIntensity[i] = val; }
+  void setIntensity(Int_t val) { fIntensity[16] = val; }
 
   //Set the event info from another event
   void setEventInfo(SRawEvent* event);

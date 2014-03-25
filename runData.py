@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from optparse import OptionParser
 
 ## Run one job on a given schema
 def runCmd(cmd):
@@ -10,17 +11,17 @@ def runCmd(cmd):
     os.system('nice ' + cmd)
 
 ## command line parser
-exe = sys.argv[1]
-pattern1 = sys.argv[2]
-pattern2 = sys.argv[3]
-runlist = 'runlist.txt'
-if len(sys.argv) > 4:
-    runlist = sys.argv[4]
+parser = OptionParser('Usage: %prog executable sources targets [options]')
+parser.add_option('-l', '--list', type = 'string', dest = 'list', help = 'List of run IDs', default = '')
+parser.add_option('-m', '--jobs', type = 'int', dest = 'nJobsMax', help = 'Maximum number of jobs running', default = 6)
+parser.add_option('-n', '--notify', type = 'string', dest = 'notify', help = 'E-mail sent to notify the end of jobs', default = '')
+(options, args) = parser.parse_args()
 
-## Decide how many jobs should be run at the same time
-nJobsMax = 6
-if len(sys.argv) > 5:
-    nJobsMax = int(sys.argv[5])
+exe = args[0]
+pattern1 = args[1]
+pattern2 = args[2]
+runlist = options.list
+nJobsMax = options.nJobsMax
 
 ## get the username
 username = os.environ['USER']
@@ -33,6 +34,11 @@ if os.path.isfile(runlist):
 else:
     runlist = raw_input('Input the run list separated by space: ')
     schemas = [word.strip() for word in runlist.strip().split()]
+
+## open log file
+fout = open('log_%s_%s' % (exe, username), 'w')
+for schema in schemas:
+	fout.write(schema + '\n')
 
 ## Check the active job list
 nSubmitted = 0
@@ -65,3 +71,13 @@ while nRunning != 0:
 
     nRunning = int(os.popen('pgrep -u %s -g %d %s | wc -l' % (username, os.getpgrp(), exe)).read().strip())
     print(exe+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
+
+## Send out notification if required
+fout.close()
+if '@' in options.notify:
+	subject = '%s finished successfully on %d/%d jobs after %f minutes' % (exe, nSubmitted, len(schemas), nnMinutes)
+	runCmd('mail -s "%s" %s < log_%s_%s' % (subject, options.notify, exe, username))
+
+## clean up
+runCmd('rm log_%s_%s' % (exe, username))
+
