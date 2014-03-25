@@ -35,11 +35,6 @@ else:
     runlist = raw_input('Input the run list separated by space: ')
     schemas = [word.strip() for word in runlist.strip().split()]
 
-## open log file
-fout = open('log_%s_%s' % (exe, username), 'w')
-for schema in schemas:
-	fout.write(schema + '\n')
-
 ## Check the active job list
 nSubmitted = 0
 nMinutes = 0.
@@ -73,11 +68,7 @@ while nRunning != 0:
     print(exe+': '+str(nMinutes)+' minutes passed, '+str(nSubmitted)+" submitted, "+str(nRunning)+' running ...' )
 
 ## Send out notification if required
-fout.close()
 if '@' in options.notify:
 	subject = '%s finished successfully on %d/%d jobs after %f minutes' % (exe, nSubmitted, len(schemas), nnMinutes)
-	runCmd('mail -s "%s" %s < log_%s_%s' % (subject, options.notify, exe, username))
-
-## clean up
-runCmd('rm log_%s_%s' % (exe, username))
-
+	content = str(schemas).strip('[]')
+	runCmd('echo "%s" | mail -s "%s" %s' % (content, subject, options.notify))
