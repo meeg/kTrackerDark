@@ -87,6 +87,7 @@
 #define ELOSS_FMAG 7.3971
 #define ELOSS_FMAG_RAD 0.0078
 #define Z_UPSTREAM -250.
+#define Z_DOWNSTREAM 500.
 
 //-------------- Useful marcros -----------------
 #define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl

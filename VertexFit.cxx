@@ -292,7 +292,7 @@ int VertexFit::findVertex()
       LogInfo("At this iteration: ");
       LogInfo(_vtxpar_curr._r[2][0] << " ===  " << _node_vertex.getZ() << " : " << _chisq_kalman << " === " << _chisq_vertex << " : " << _vtxpar_curr._r[0][0] << " === " << _vtxpar_curr._r[1][0]);
 #endif
-      if(_vtxpar_curr._r[2][0] < -260. || _vtxpar_curr._r[2][0] > 700.)
+      if(_vtxpar_curr._r[2][0] < Z_UPSTREAM || _vtxpar_curr._r[2][0] > Z_DOWNSTREAM)
 	{
 	  _chisq_kalman = 1E5;
 	  _chisq_vertex = 1E5;

@@ -69,6 +69,6 @@ while nRunning != 0:
 
 ## Send out notification if required
 if '@' in options.notify:
-	subject = '%s finished successfully on %d/%d jobs after %f minutes' % (exe, nSubmitted, len(schemas), nnMinutes)
+	subject = '%s finished successfully on %d/%d jobs after %f minutes' % (exe, nSubmitted, len(schemas), nMinutes)
 	content = str(schemas).strip('[]')
 	runCmd('echo "%s" | mail -s "%s" %s' % (content, subject, options.notify))

@@ -586,8 +586,8 @@ double TrackExtrapolator::extrapolateToIP()
   G4ThreeVector pos[NSLICES_FMAG + NSTEPS_TARGET + 1];
 
   //Step size in FMAG/target area, unit is cm.
-  double step_fmag = FMAG_LENGTH/NSLICES_FMAG;
-  double step_target = fabs(Z_UPSTREAM)/NSTEPS_TARGET;
+  double step_fmag = FMAG_LENGTH/NSLICES_FMAG*cm;
+  double step_target = fabs(Z_UPSTREAM)/NSTEPS_TARGET*cm;
 
   //Start from FMAG face downstream
   extrapolateTo(FMAG_LENGTH);
@@ -596,7 +596,7 @@ double TrackExtrapolator::extrapolateToIP()
 
   //Now make the real swimming
   int iStep = 1;
-  for(; iStep <= NSLICES_FMAG+1; ++iStep)
+  for(; iStep <= NSLICES_FMAG; ++iStep)
     {
       pos_i = pos[iStep-1];
       mom_i = mom[iStep-1];
