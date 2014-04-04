@@ -31,8 +31,9 @@
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER "localhost"
-//#define MYSQL_SERVER "seaquel.physics.illinois.edu"
+//#define MYSQL_SERVER "seaquel.physics.illinois.edu:3283"
 //#define MYSQL_SERVER "e906-db1.fnal.gov"
+
 
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0
@@ -72,6 +73,7 @@
 #define Z_ABSORBER 2028.19
 #define Z_REF 0.
 #define Z_TARGET -129.54 
+#define Z_DUMP 40.
 #define RESOLUTION_DC 0.1
 
 #define BEAM_SPOT_X 0.5

@@ -316,6 +316,22 @@ void SRecTrack::swimToVertex()
       mom[iStep].SetXYZ(pz_f*tx_f, pz_f*ty, pz_f);
       pos[iStep] = pos[iStep-1] - trajVec1 - trajVec2;
 
+      //Save the dump position when applicable
+      if(fabs(pos_b.Z() - Z_DUMP) < step_fmag)
+	{
+	  double dz = Z_DUMP - pos_b.Z();
+	  if(dz < 0)
+	    {
+	      setDumpPos(pos_b + TVector3(tx_f*dz, ty*dz, dz));
+	      setDumpMom(mom[iStep]);
+	    }
+	  else
+	    {
+	      setDumpPos(pos_b + TVector3(tx_i*dz, ty*dz, dz));
+	      setDumpMom(mom[iStep-1]);
+	    }
+	}
+
 #ifdef _DEBUG_ON_LEVEL_2 
       std::cout << "FMAG: " << iStep << ": " << pos[iStep-1][2] << " ==================>>> " << pos[iStep][2] << std::endl;
       std::cout << mom[iStep-1][0]/mom[iStep-1][2] << "     " << mom[iStep-1][1]/mom[iStep-1][2] << "     " << mom[iStep-1][2] << "     ";
@@ -356,7 +372,10 @@ void SRecTrack::swimToVertex()
     }
 
   setVertexFast(mom[iStep], pos[iStep]);
-  setDumpPos(pos[NSLICES_FMAG]);
+  setDumpFacePos(pos[NSLICES_FMAG]);
+  setDumpFaceMom(mom[NSLICES_FMAG]);
+  setTargetPos(fDumpFacePos + TVector3(fDumpFaceMom.Px()/fDumpFaceMom.Pz()*Z_TARGET, fDumpFaceMom.Py()/fDumpFaceMom.Pz()*Z_TARGET, Z_TARGET));
+  setTargetMom(mom[NSLICES_FMAG]);
 
 #ifdef _DEBUG_ON_LEVEL_2
   std::cout << "The one with minimum DCA is: " << iStep << ": " << std::endl;
@@ -364,7 +383,6 @@ void SRecTrack::swimToVertex()
   std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
 #endif
 }
-
 
 void SRecTrack::print()
 {

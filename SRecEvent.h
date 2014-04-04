@@ -95,7 +95,6 @@ public:
 
   ///Plain setting, no KF-related stuff
   void setVertexFast(TVector3 mom, TVector3 pos);
-  void setDumpPos(TVector3 pos) { fDumpPos = pos; } 
 
   ///Simple swim to vertex
   void swimToVertex();
@@ -106,10 +105,25 @@ public:
   Double_t getZVertex() { return fVtxPar[2]; }
   Double_t getRVertex() { return sqrt(fVtxPar[0]*fVtxPar[0] + fVtxPar[1]*fVtxPar[1]); }
   TVector3 getVertex() { return fVtxPar; }
-  TVector3 getDumpPos() { return fDumpPos; }
   Double_t getVtxPar(Int_t i) { return fVtxPar[i]; }
   Double_t getChisqVertex() { return fChisqVertex; }
 
+  //Get mom/pos at a given location
+  TVector3 getDumpPos() { return fDumpPos; }
+  TVector3 getDumpFacePos() { return fDumpFacePos; }
+  TVector3 getTargetPos() { return fTargetPos; }
+  TVector3 getDumpMom() { return fDumpMom; }
+  TVector3 getDumpFaceMom() { return fDumpFaceMom; }
+  TVector3 getTargetMom() { return fTargetMom; }
+
+  //Set mom/pos at a given location
+  void setDumpPos(TVector3 pos) { fDumpPos = pos; } 
+  void setDumpFacePos(TVector3 pos) { fDumpFacePos = pos; } 
+  void setTargetPos(TVector3 pos) { fTargetPos = pos; } 
+  void setDumpMom(TVector3 mom) { fDumpMom = mom; } 
+  void setDumpFaceMom(TVector3 mom) { fDumpFaceMom = mom; } 
+  void setTargetMom(TVector3 mom) { fTargetMom = mom; } 
+  
   //Overall track quality cut
   bool isValid();
 
@@ -128,8 +142,14 @@ private:
   std::vector<Double_t> fChisqAtNode;
   Int_t fNHodoHits[3];
 
-  ///Dump face position
+  ///Momentum/Position at a given z
+  TVector3 fDumpFacePos;
   TVector3 fDumpPos;
+  TVector3 fTargetPos;
+
+  TVector3 fDumpFaceMom;
+  TVector3 fDumpMom;
+  TVector3 fTargetMom;
 
   ///Vertex infomation
   Double_t fVtxPar[3];
@@ -137,7 +157,7 @@ private:
   TMatrixD fStateVertex;
   TMatrixD fCovarVertex;
 
-  ClassDef(SRecTrack, 3)
+  ClassDef(SRecTrack, 4)
 };
 
 class SRecDimuon: public TObject
