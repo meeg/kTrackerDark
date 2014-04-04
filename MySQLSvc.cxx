@@ -61,10 +61,10 @@ MySQLSvc* MySQLSvc::instance()
   return p_mysqlSvc;
 }
 
-bool MySQLSvc::connect(std::string sqlServer)
+bool MySQLSvc::connect(std::string sqlServer, int serverPort)
 {
   char address[300];
-  sprintf(address, "mysql://%s", sqlServer.c_str());
+  sprintf(address, "mysql://%s:%d", sqlServer.c_str(), serverPort);
 
   server = TSQLServer::Connect(address, user.c_str(), passwd.c_str());
   

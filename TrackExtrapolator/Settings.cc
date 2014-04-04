@@ -19,7 +19,7 @@ Settings::Settings()
   password = "qqbar2mu+mu-";
   fMagName = "tab.Fmag";
   kMagName = "tab.Kmag";
-  sqlServer = MYSQL_SERVER;
+  sqlServer = MYSQL_SERVER_ADDR;
   dimuonRepeat = 1;
   ironOn = true;
   trackingZCut = 400*cm;

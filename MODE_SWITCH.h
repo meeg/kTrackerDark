@@ -30,9 +30,9 @@
 #define GEOMETRY_VERSION "geometry_R1124_run2"
 
 //-------------- SQL database --------------------
-#define MYSQL_SERVER "localhost"
-//#define MYSQL_SERVER "seaquel.physics.illinois.edu:3283"
-//#define MYSQL_SERVER "e906-db1.fnal.gov"
+#define MYSQL_SERVER_ADDR "localhost"
+//#define MYSQL_SERVER_ADDR "seaquel.physics.illinois.edu"
+//#define MYSQL_SERVER_ADDR "e906-db1.fnal.gov"
 
 #define MYSQL_SERVER_PORT 3306
 //#define MYSQL_SERVER_PORT 3283

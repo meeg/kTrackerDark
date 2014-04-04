@@ -262,7 +262,7 @@ void GeomSvc::init(std::string geometrySchema)
   ///Initialize the geometrical variables which should be from MySQL database
   //Connect server
   char serverName[200];
-  sprintf(serverName, "mysql://%s", MYSQL_SERVER);
+  sprintf(serverName, "mysql://%s:%d", MYSQL_SERVER_ADDR, MYSQL_SERVER_PORT);
   TSQLServer* con = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
   
   //Make query to Planes table

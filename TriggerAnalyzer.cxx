@@ -48,7 +48,7 @@ bool TriggerAnalyzer::init(std::string schemaName)
 	  "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
   
   char serverName[200];
-  sprintf(serverName, "mysql://%s", MYSQL_SERVER);
+  sprintf(serverName, "mysql://%s:%d", MYSQL_SERVER_ADDR, MYSQL_SERVER_PORT);
   TSQLServer* server = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
   if(server == NULL) return false;
 
@@ -103,16 +103,13 @@ bool TriggerAnalyzer::init()
 	  istringstream stringBuf(buffer);
 
 	  int elementIDs[4];
-	  double px;
+	  int roadID;
 	  int groupID;
-	  int mcCount;
-	  double weight;
-	  double ratio;
-	  double rndf;
-	  stringBuf >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> px >> groupID
-	    >> mcCount >> weight >> ratio >> rndf;
+	  int charge;
+	  stringBuf >> roadID >> elementIDs[0] >> elementIDs[1] >> elementIDs[2] >> elementIDs[3] >> charge >> groupID;
 
 	  TriggerRoad road_new;
+	  road_new.groupID = groupID;
 	  if(i == 0 || i == 3)
 	    {
 	      road_new.addElement(26, elementIDs[0]);
@@ -126,14 +123,9 @@ bool TriggerAnalyzer::init()
 	      road_new.addElement(31, elementIDs[1]);
 	      road_new.addElement(33, elementIDs[2]);
 	      road_new.addElement(39, elementIDs[3]);
+	    
+	      road_new.groupID *= -1;
 	    }
-	  road_new.px_mean = px;
-	  road_new.px_min = px;
-	  road_new.px_max = px;
-	  road_new.targetWeight = weight*ratio;
-	  road_new.dumpWeight = weight*(1. - ratio);
-	  road_new.rndf = rndf;
-	  road_new.groupID = groupID;
 
 	  if(i < 2)
 	    {
@@ -232,11 +224,11 @@ void TriggerAnalyzer::filterRoads(double cut_td, double cut_gun)
 
   //Form accepted trigger pair and rejected trigger pair
   triggers.clear();
-  for(int i = 1; i <= 15; i++)
+  for(int i = 1; i <= 7; i++)
     {
-      for(int j = 1; j <= 15; j++)
+      for(int j = 1; j <= 7; j++)
 	{
-	  if(abs(i-j) < 4 && i+j > 10) 
+	  //if(abs(i-j) < 4 && i+j > 10) 
 	    {
 #ifndef REQUIRE_TB
 	      //Don't separate top/bottom
@@ -315,10 +307,10 @@ bool TriggerAnalyzer::buildData(int nHits, int detectorIDs[], int elementIDs[])
 bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent)
 {
   int nHits = 0;
-  int detectorIDs[1000];
-  int elementIDs[1000];
+  int detectorIDs[10000];
+  int elementIDs[10000];
 
-  std::vector<Hit> triggerHits = rawEvent->getTriggerHits();
+  std::vector<Hit> triggerHits = rawEvent->getAllHits();
   for(std::vector<Hit>::iterator iter = triggerHits.begin(); iter != triggerHits.end(); ++iter)
     {
       if(iter->inTime != 1) continue;
@@ -383,7 +375,7 @@ bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[]
 	{
 	  std::list<Trigger>::iterator trigger = std::find(triggers.begin(), triggers.end(), std::make_pair(*p_groupID, *m_groupID));
 	  if(trigger != triggers.end()) return true;
-	  //return true;
+	  if((*p_groupID)*(*m_groupID) < 0) return true;
 	}
     }
 
