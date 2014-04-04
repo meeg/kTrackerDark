@@ -28,7 +28,11 @@ int main(int argc, char* argv[])
   triggerAna->init();
   triggerAna->buildTriggerTree();
 
+#ifdef MC_MODE
+  SRawMCEvent* rawEvent = new SRawMCEvent();
+#else
   SRawEvent* rawEvent = new SRawEvent();
+#endif
 
   TFile* dataFile = new TFile(argv[1], "READ");
   TTree* dataTree = (TTree*)dataFile->Get("save");
@@ -41,6 +45,7 @@ int main(int argc, char* argv[])
   int H1YT, H2YT, H3YT, H4YT;
   int H1YB, H2YB, H3YB, H4YB;
 
+  int FPGA;
   int p_FPGA, m_FPGA;
   int p_roadID[10000];
   int m_roadID[10000];
@@ -69,6 +74,7 @@ int main(int argc, char* argv[])
   saveTree->Branch("H3YB", &H3YB, "H3YB/I");
   saveTree->Branch("H4YB", &H4YB, "H4YB/I");
 
+  saveTree->Branch("FPGA", &FPGA, "FPGA/I");
   saveTree->Branch("p_FPGA", &p_FPGA, "p_FPGA/I");
   saveTree->Branch("p_roadID", p_roadID, "p_roadID[p_FPGA]/I");
   saveTree->Branch("m_FPGA", &m_FPGA, "m_FPGA/I");
@@ -90,7 +96,7 @@ int main(int argc, char* argv[])
       H1XB = 0; H2XB = 0; H3XB = 0; H4XB = 0;
       H1YT = 0; H2YT = 0; H3YT = 0; H4YT = 0;
       H1YB = 0; H2YB = 0; H3YB = 0; H4YB = 0;
-      p_FPGA = 0; m_FPGA = 0;
+      p_FPGA = 0; m_FPGA = 0; FPGA = -1;
 
       //NIM trigger part
       vector<Hit> triggerHits = rawEvent->getTriggerHits();
@@ -122,7 +128,7 @@ int main(int argc, char* argv[])
       NIMYT = H1YT > 0 && H2YT > 0 && H3YT > 0 && H4YT > 0 ? 1 : 0;
       NIMYB = H1YB > 0 && H2YB > 0 && H3YB > 0 && H4YB > 0 ? 1 : 0;
 
-      triggerAna->acceptEvent(rawEvent);
+      if(triggerAna->acceptEvent(rawEvent)) FPGA = 1;
       list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
       list<TriggerRoad>& m_roads_found = triggerAna->getRoadsFound(-1);
       p_FPGA = 0;;
