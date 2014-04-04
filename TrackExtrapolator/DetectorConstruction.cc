@@ -10,6 +10,7 @@
 // the physical componets, and assigns which components will be detectors.
 
 #include "DetectorConstruction.hh"
+#include "../MODE_SWITCH.h"
 
 DetectorConstruction::DetectorConstruction(Settings* settings)
 {
@@ -25,7 +26,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   con = mysql_init(NULL);
 
-  mysql_real_connect(con,mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->geometrySchema, 0, NULL, 0);
+  mysql_real_connect(con,mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->geometrySchema, MYSQL_PORT, NULL, 0);
 
   G4cout << "begin Construct routine..." << endl;
 

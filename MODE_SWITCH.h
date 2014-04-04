@@ -34,6 +34,8 @@
 //#define MYSQL_SERVER "seaquel.physics.illinois.edu:3283"
 //#define MYSQL_SERVER "e906-db1.fnal.gov"
 
+#define MYSQL_PORT 3306
+//#define MYSQL_PORT 3283
 
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0

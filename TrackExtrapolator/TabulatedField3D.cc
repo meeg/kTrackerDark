@@ -35,6 +35,7 @@
 // GEANT4 tag $Name: geant4-09-01-patch-02 $
 
 #include "TabulatedField3D.hh"
+#include "../MODE_SWITCH.h"
 
 TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool fMagnet, Settings* settings) 
 {
@@ -138,7 +139,7 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
     con = mysql_init(NULL);
     mysql_real_connect(con, mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->magnetSchema, 
-		       0, NULL, 0);
+		       MYSQL_PORT, NULL, 0);
 
     cout << mysql_error(con) << endl;
     cout << mySettings->magnetSchema << endl;
