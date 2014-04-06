@@ -12,7 +12,7 @@ void signalFit(string file, double lo = 0, double hi = 1E8)
   w.factory("CEXPR::bkg('exp(a*mass)/(exp(b*mass+c)+d)',mass[1.6,6],a[-0.9,-5,0],b[-10,-50,0],c[1.,0,100],d[1.,0,100])");
   w.factory("SUM::model(nsig[0,25000]*sig,nbkg[0,120000]*bkg)");
 
-  RooDataSet data("data", "data", dataTree, w::x, "mass>1.6 && mass<6.");
+  RooDataSet data("data", "data", dataTree, w::mass, "mass>1.6 && mass<6.");
   
   RooFitResult* res = w::model.fitTo(data, Save());
   res->Print();

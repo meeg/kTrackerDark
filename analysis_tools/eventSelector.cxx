@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
   TTree* saveTree = new TTree("save", "save");
   
   double mass;
-  saveTree->Branch("x", &mass, "mass/D");
+  saveTree->Branch("mass", &mass, "mass/D");
 
   int nEntry = 0;
   for(int i = 0; i < dataTree->GetEntries(); ++i)
