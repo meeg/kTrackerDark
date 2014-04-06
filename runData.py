@@ -70,5 +70,5 @@ while nRunning != 0:
 ## Send out notification if required
 if '@' in options.notify:
 	subject = '%s finished successfully on %d/%d jobs after %f minutes' % (exe, nSubmitted, len(schemas), nMinutes)
-	content = str(sys.argv) + '\n' + str(schemas).strip('[]')
+	content = str(sys.argv).strip('[]') + '\n' + str(schemas).strip('[]')
 	os.system('echo "%s" | mail -s "%s" %s' % (content, subject, options.notify))
