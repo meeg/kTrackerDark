@@ -67,8 +67,9 @@ int main(int argc, char *argv[])
 
   //Start tracking
   int nEvents = p_mysqlSvc->getNEvents();
+  int sample = argc > 3 ? atoi(argv[3]) : 1;
   cout << "There are " << nEvents << " events in " << argv[1] << endl;
-  for(int i = 0; i < nEvents; ++i) 
+  for(int i = 0; i < nEvents; i += sample) 
     {
       //Read data
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
