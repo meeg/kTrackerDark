@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   //Initialize MySQL service and connect to database, e906-db1 by default
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->setUserPasswd("production", "qqbar2mu+mu-");
-  p_mysqlSvc->connect();
+  p_mysqlSvc->connect(argv[3], atoi(argv[4]));
   p_mysqlSvc->setWorkingSchema(argv[1]);
   p_mysqlSvc->bookOutputTables();
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
   //Start tracking
   int nEvents = p_mysqlSvc->getNEvents();
-  int sample = argc > 3 ? atoi(argv[3]) : 1;
+  int sample = argc > 5 ? atoi(argv[5]) : 1;
   cout << "There are " << nEvents << " events in " << argv[1] << endl;
   for(int i = 0; i < nEvents; i += sample) 
     {
