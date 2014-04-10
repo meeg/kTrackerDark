@@ -254,12 +254,12 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
   if(pos == NULL)
     {
       pos = new TVector3[NSLICES_FMAG + NSTEPS_TARGET + 1];
-      cleanupMom = true;
+      cleanupPos = true;
     }
   if(mom == NULL)
     {
       mom = new TVector3[NSLICES_FMAG + NSTEPS_TARGET + 1];
-      cleanupPos = true;
+      cleanupMom = true;
     }
 
   //E-loss and pT-kick per length, note the eloss is done in half-slices

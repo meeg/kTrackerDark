@@ -198,8 +198,9 @@ bool VertexFit::setRecEventFast(SRecEvent* recEvent, int sign1, int sign2)
 	  //Swim both tracks all the way down, and store the numbers
 	  TVector3 pos1[NSLICES_FMAG + NSTEPS_TARGET + 1];
 	  TVector3 pos2[NSLICES_FMAG + NSTEPS_TARGET + 1];
-	  track_pos.swimToVertex(pos1);
-	  track_neg.swimToVertex(pos2);
+	  TVector3 mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
+	  track_pos.swimToVertex(pos1, mom);
+	  track_neg.swimToVertex(pos2, mom);
 
 	  int iStep_min = -1; 
 	  double dist_min = 1E6;
