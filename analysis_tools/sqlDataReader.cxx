@@ -54,11 +54,12 @@ int main(int argc, char **argv)
   for(int i = 0; i < nEvents; ++i)
     {
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-      cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEvents << "% finished." << flush;
+      cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished." << flush;
 
       saveTree->Fill();
     }
   cout << endl;
+  cout << "sqlDataReader ends successfully." << endl;
 
   saveFile->cd();
   saveTree->Write();

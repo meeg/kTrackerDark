@@ -56,6 +56,7 @@ int main(int argc, char **argv)
       saveTree->Fill();
     }
   cout << endl;
+  cout << "sqlMCReader ends successfully." << endl;
 
   saveFile->cd();
   saveTree->Write();
