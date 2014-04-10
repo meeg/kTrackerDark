@@ -194,12 +194,13 @@ public:
   Double_t x2;
   Double_t costh;
   Double_t mass_single;
+  Double_t chisq_single;
 
   //Vertex fit chisqs
   Double_t chisq_kf;
   Double_t chisq_vx;
 
-  ClassDef(SRecDimuon, 2)
+  ClassDef(SRecDimuon, 3)
 };
 
 class SRecEvent: public TObject

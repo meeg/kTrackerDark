@@ -62,7 +62,7 @@ VertexFit::~VertexFit()
     }
 }
 
-bool VertexFit::setRecEvent(SRecEvent* recEvent)
+bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 {
   //if the single vertex is not set, set it first
   int nTracks = recEvent->getNTracks();
@@ -76,8 +76,8 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	}
     }
 
-  std::vector<int> idx_pos = recEvent->getChargedTrackIDs(+1);
-  std::vector<int> idx_neg = recEvent->getChargedTrackIDs(-1);
+  std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
+  std::vector<int> idx_neg = recEvent->getChargedTrackIDs(sign2);
 
   nPos = idx_pos.size();
   nNeg = idx_neg.size();
@@ -98,6 +98,9 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
       if(!track_pos.isValid()) continue;
       for(int j = 0; j < nNeg; ++j)
 	{
+	  //Only needed for like-sign muons
+	  if(idx_pos[i] == idx_neg[j]) continue;
+
 	  SRecTrack track_neg = recEvent->getTrack(idx_neg[j]);
 	  if(!track_neg.isValid()) continue;
 
@@ -109,6 +112,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent)
 	  dimuon.p_neg_single = track_neg.getMomentumVertex();
 	  dimuon.vtx_pos = track_pos.getVertex();
 	  dimuon.vtx_neg = track_neg.getVertex();
+          dimuon.chisq_single = track_pos.getChisqVertex() + track_neg.getChisqVertex();
 
 	  //Start prepare the vertex fit
 	  init();
