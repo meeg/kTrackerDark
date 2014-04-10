@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
       cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
       cout << (i + 1)*100/nEvtMax << "% finished .. ";
 
-      vtxfit->setRecEvent(recEvent);
+      vtxfit->setRecEventFast(recEvent);
 
       if(recEvent->getNDimuons() > 0) saveTree->Fill();
       rawEvent->clear();

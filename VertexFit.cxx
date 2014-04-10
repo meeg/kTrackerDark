@@ -151,6 +151,101 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
   return false; 
 }
 
+bool VertexFit::setRecEventFast(SRecEvent* recEvent, int sign1, int sign2)
+{
+  //if the single vertex is not set, set it first
+  int nTracks = recEvent->getNTracks();
+  for(int i = 0; i < nTracks; ++i)
+    {
+      SRecTrack& recTrack = recEvent->getTrack(i);
+      if(recTrack.getChisqVertex() < 0.)
+	{
+	  //recTrack.setZVertex(findSingleMuonVertex(recTrack));
+	  recTrack.setZVertex(recTrack.getZVertex());
+	}
+    }
+
+  std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
+  std::vector<int> idx_neg = recEvent->getChargedTrackIDs(sign2);
+
+  nPos = idx_pos.size();
+  nNeg = idx_neg.size();
+  if(nPos*nNeg == 0) return false;
+
+  //Loop over all possible combinations
+  for(int i = 0; i < nPos; ++i)
+    {
+      SRecTrack track_pos = recEvent->getTrack(idx_pos[i]);
+      if(!track_pos.isValid()) continue;
+      for(int j = 0; j < nNeg; ++j)
+	{
+	  //Only needed for like-sign muons
+	  if(idx_pos[i] == idx_neg[j]) continue;
+
+	  SRecTrack track_neg = recEvent->getTrack(idx_neg[j]);
+	  if(!track_neg.isValid()) continue;
+
+	  SRecDimuon dimuon;
+	  dimuon.trackID_pos = idx_pos[i];
+	  dimuon.trackID_neg = idx_neg[j];
+
+	  dimuon.p_pos_single = track_pos.getMomentumVertex();
+	  dimuon.p_neg_single = track_neg.getMomentumVertex();
+	  dimuon.vtx_pos = track_pos.getVertex();
+	  dimuon.vtx_neg = track_neg.getVertex();
+          dimuon.chisq_single = track_pos.getChisqVertex() + track_neg.getChisqVertex();
+
+	  //Swim both tracks all the way down, and store the numbers
+	  TVector3 pos1[NSLICES_FMAG + NSTEPS_TARGET + 1];
+	  TVector3 pos2[NSLICES_FMAG + NSTEPS_TARGET + 1];
+	  track_pos.swimToVertex(pos1);
+	  track_neg.swimToVertex(pos2);
+
+	  int iStep_min = -1; 
+	  double dist_min = 1E6;
+	  for(int iStep = 0; iStep < NSLICES_FMAG + NSTEPS_TARGET + 1; ++iStep)
+	    {
+	      double dist = (pos1[iStep] - pos2[iStep]).Perp();
+	      if(dist < dist_min)
+		{
+		  iStep_min = iStep;
+		  dist_min = dist;
+		}
+	    }
+
+	  if(iStep_min < 0) continue;
+
+	  //Retrieve the results
+	  dimuon.vtx = 0.5*(pos1[iStep_min] + pos2[iStep_min]);
+	  double z_vertex_opt = dimuon.vtx.Z();
+	  if(optimize)
+	    {
+	      if(z_vertex_opt < -80. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
+	    }
+
+	  track_pos.setZVertex(z_vertex_opt);
+	  track_neg.setZVertex(z_vertex_opt);
+	  dimuon.p_pos = track_pos.getMomentumVertex();
+	  dimuon.p_neg = track_neg.getMomentumVertex();
+	  dimuon.chisq_kf = track_pos.getChisqVertex() + track_neg.getChisqVertex();;
+	  dimuon.chisq_vx = dimuon.vtx.X()*dimuon.vtx.X()/BEAM_SPOT_X/BEAM_SPOT_X + dimuon.vtx.Y()*dimuon.vtx.Y()/BEAM_SPOT_Y/BEAM_SPOT_Y;
+	  dimuon.calcVariables();
+
+	  //Fill the final data
+	  recEvent->insertDimuon(dimuon);
+          
+	  //Fill the evaluation data
+	  p_idx_eval = dimuon.trackID_pos;
+	  m_idx_eval = dimuon.trackID_neg;
+	}
+    }
+
+  if(recEvent->getNDimuons() > 0) return true;
+  return false; 
+}
+
+
+
 void VertexFit::init()
 {
   _trkpar_curr.clear();
