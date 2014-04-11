@@ -40,7 +40,7 @@ else:
     offset = 1
 
 ## Key performance knob
-nEvtMax = 100000
+nEvtMax = 200000
 nJobs = 5
 
 for i in range(offset, nCycle+1):
@@ -68,7 +68,7 @@ for i in range(offset, nCycle+1):
         time.sleep(60)
     sys.stdout.write('\n')
     
-    # combine the outputsxw
+    # combine the outputs
     runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_[1-'+str(nJobs)+'].root')
 
     # clean up space

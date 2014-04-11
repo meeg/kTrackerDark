@@ -110,7 +110,7 @@ bool TriggerAnalyzer::init()
 
 	  TriggerRoad road_new;
 	  road_new.groupID = groupID;
-	  if(i == 0 || i == 3)
+	  if(i == 0 || i == 2)
 	    {
 	      road_new.addElement(26, elementIDs[0]);
 	      road_new.addElement(32, elementIDs[1]);
