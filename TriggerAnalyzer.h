@@ -43,6 +43,7 @@ public:
   bool init(std::string schemaName); //init by MySQL database
   bool init(); //init by ascii file in the same directory
   void filterRoads(double cut_td, double cut_gun);
+  void makeRoadPairs();
 
   //Accept a event
   bool acceptEvent(TriggerRoad& p_road, TriggerRoad& m_road);

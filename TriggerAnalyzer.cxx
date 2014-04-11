@@ -140,6 +140,8 @@ bool TriggerAnalyzer::init()
 	}
     }
 
+  makeRoadPairs();
+
   std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
   return true;
 }
@@ -172,6 +174,7 @@ bool TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
     }
 
   filterRoads(cut_td, cut_gun);
+  makeRoadPairs();
   return true;
 }
 
@@ -184,6 +187,7 @@ bool TriggerAnalyzer::init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad
   roads[1].assign(m_roads.begin(), m_roads.end());
 
   filterRoads(cut_td, cut_gun);
+  makeRoadPairs();
   return true;
 }
 
@@ -222,6 +226,12 @@ void TriggerAnalyzer::filterRoads(double cut_td, double cut_gun)
 	}
     }
 
+  std::cout << "Loaded " << roads[0].size() << " positive roads and " << roads[1].size() << " negative roads" << std::endl;
+  std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
+}
+
+void TriggerAnalyzer::makeRoadPairs()
+{
   //Form accepted trigger pair and rejected trigger pair
   triggers.clear();
   for(int i = 1; i <= 7; i++)
@@ -241,9 +251,6 @@ void TriggerAnalyzer::filterRoads(double cut_td, double cut_gun)
 	    } 
 	}
     }
-
-  std::cout << "Loaded " << roads[0].size() << " positive roads and " << roads[1].size() << " negative roads" << std::endl;
-  std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
 }
 
 bool TriggerAnalyzer::acceptEvent(TriggerRoad& p_road, TriggerRoad& m_road)
@@ -375,7 +382,7 @@ bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[]
 	{
 	  std::list<Trigger>::iterator trigger = std::find(triggers.begin(), triggers.end(), std::make_pair(*p_groupID, *m_groupID));
 	  if(trigger != triggers.end()) return true;
-	  if((*p_groupID)*(*m_groupID) < 0) return true;
+	  //if((*p_groupID)*(*m_groupID) < 0) return true;
 	}
     }
 
