@@ -141,7 +141,7 @@ bool TriggerAnalyzer::init()
     }
   makeRoadPairs();
 
-  std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
+  std::cout << "TriggerAnalyzer: " << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
   return roads_enabled[0].size() > 0 && roads_enabled[1].size();
 }
 
