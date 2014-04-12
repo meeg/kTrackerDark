@@ -48,6 +48,10 @@ MySQLSvc::MySQLSvc()
     {
       p_triggerAna->buildTriggerTree();
     }
+  else
+    {
+      std::cout << "MySQLSvc: Trigger emulation is disabled." << std::endl;
+    }
 
   rndm.SetSeed(0);
 }
