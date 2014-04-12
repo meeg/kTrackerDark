@@ -262,11 +262,11 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
     {
       if(readTriggerHits)
 	{
-	  rawEvent->setMatrix(p_triggerAna->acceptEvent(rawEvent, 1));
+	  rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 1));
 	}
       else
 	{
-	  rawEvent->setMatrix(p_triggerAna->acceptEvent(rawEvent, 2));
+	  rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 2));
 	}
 
       int nRoads[4] = {p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsPosBot(), p_triggerAna->getNRoadsNegTop(), p_triggerAna->getNRoadsNegBot()};
@@ -274,7 +274,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
     }
   else
     {
-      rawEvent->setMatrix(false);
+      rawEvent->setTriggerEmu(false);
 
       int nRoads[4] = {0, 0, 0, 0};
       rawEvent->setNRoads(nRoads);

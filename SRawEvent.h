@@ -125,14 +125,14 @@ public:
   bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
 
   //Set/get offline trigger emulation results
-  bool matrixTrigger() { return fMatrix > 0; }
+  bool isEmuTriggered() { return fTriggerEmu > 0; }
   Int_t getNRoadsPos() { return fNRoads[0] + fNRoads[1]; } 
   Int_t getNRoadsNeg() { return fNRoads[2] + fNRoads[3]; }
   Int_t getNRoadsPosTop() { return fNRoads[0]; } 
   Int_t getNRoadsPosBot() { return fNRoads[1]; } 
   Int_t getNRoadsNegTop() { return fNRoads[2]; } 
   Int_t getNRoadsNegBot() { return fNRoads[3]; } 
-  void setMatrix(bool flag) { fMatrix = flag ? 1 : -1; }
+  void setTriggerEmu(bool flag) { fTriggerEmu = flag ? 1 : -1; }
   void setNRoads(Int_t nRoads[]) { for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i]; }
 
   //Set/get the target position
@@ -197,7 +197,7 @@ private:
   Int_t fIntensity[33];   //16 before, one onset, and 16 after
 
   //Offline trigger simulation res
-  Int_t fMatrix;
+  Int_t fTriggerEmu;
   Int_t fNRoads[4];       //0, positive top; 1, positive bottom; 2, negative top; 3, negative bottom
 
   ///Hits of this event
