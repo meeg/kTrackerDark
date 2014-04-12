@@ -269,7 +269,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 	  rawEvent->setMatrix(p_triggerAna->acceptEvent(rawEvent, 2));
 	}
 
-      int nRoads[4] = {p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsPosBot(), p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsNegBot()};
+      int nRoads[4] = {p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsPosBot(), p_triggerAna->getNRoadsNegTop(), p_triggerAna->getNRoadsNegBot()};
       rawEvent->setNRoads(nRoads);
     }
   else

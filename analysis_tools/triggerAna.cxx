@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 	  m_roadID[m_FPGA++] = iter->roadID;
 	}
 
-      int nRoads[4] = {triggerAna->getNRoadsPosTop(), triggerAna->getNRoadsPosBot(), triggerAna->getNRoadsPosTop(), triggerAna->getNRoadsNegBot()};
+      int nRoads[4] = {triggerAna->getNRoadsPosTop(), triggerAna->getNRoadsPosBot(), triggerAna->getNRoadsNegTop(), triggerAna->getNRoadsNegBot()};
       rawEvent->setNRoads(nRoads);
 
       saveTree->Fill(); 
