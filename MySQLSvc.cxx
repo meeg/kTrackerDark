@@ -41,6 +41,14 @@ MySQLSvc::MySQLSvc()
   readTriggerHits = true;
   readTargetPos = true;
 
+  //Initialize trigger analyzer
+  p_triggerAna = new TriggerAnalyzer();
+  setTriggerEmu = p_triggerAna->init();
+  if(setTriggerEmu)
+    {
+      p_triggerAna->buildTriggerTree();
+    }
+
   rndm.SetSeed(0);
 }
 
@@ -49,6 +57,8 @@ MySQLSvc::~MySQLSvc()
   if(server != NULL) delete server;
   if(res != NULL) delete res;
   if(row != NULL) delete row;
+
+  delete p_triggerAna;
 }
 
 MySQLSvc* MySQLSvc::instance()
@@ -242,6 +252,29 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       rawEvent->insertHit(h);
     }
   rawEvent->reIndex();
+
+  //Set the trigger emulation info
+  if(setTriggerEmu)
+    {
+      if(readTriggerHits)
+	{
+	  rawEvent->setMatrix(p_triggerAna->acceptEvent(rawEvent, 1));
+	}
+      else
+	{
+	  rawEvent->setMatrix(p_triggerAna->acceptEvent(rawEvent, 2));
+	}
+
+      int nRoads[4] = {p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsPosBot(), p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsNegBot()};
+      rawEvent->setNRoads(nRoads);
+    }
+  else
+    {
+      rawEvent->setMatrix(false);
+
+      int nRoads[4] = {0, 0, 0, 0};
+      rawEvent->setNRoads(nRoads);
+    }
 
   return true;
 }

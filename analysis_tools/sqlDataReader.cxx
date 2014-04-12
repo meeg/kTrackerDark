@@ -30,9 +30,9 @@ int main(int argc, char **argv)
   p_geomSvc->loadCalibration("calibration.txt");
 
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  if(argc > 3)
+  if(argc > 4)
     {
-      p_mysqlSvc->connect(argv[3]);
+      p_mysqlSvc->connect(argv[3], atoi(argv[4]));
     }
   else
     {
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   int nEvents = p_mysqlSvc->getNEventsFast();
   cout << "Totally " << nEvents << " events in this run" << endl;
   
-  if(argc > 4) nEvents = atoi(argv[4]);
+  if(argc > 5) nEvents = atoi(argv[5]);
   for(int i = 0; i < nEvents; ++i)
     {
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;

@@ -139,11 +139,10 @@ bool TriggerAnalyzer::init()
 	    }
 	}
     }
-
   makeRoadPairs();
 
   std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
-  return true;
+  return roads_enabled[0].size() > 0 && roads_enabled[1].size();
 }
 
 bool TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
@@ -311,15 +310,25 @@ bool TriggerAnalyzer::buildData(int nHits, int detectorIDs[], int elementIDs[])
   return true;
 }
 
-bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent)
+bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent, int mode)
 {
   int nHits = 0;
   int detectorIDs[10000];
   int elementIDs[10000];
 
-  std::vector<Hit> triggerHits = rawEvent->getAllHits();
+  std::vector<Hit> triggerHits;
+  if(mode == 1)
+    {
+      triggerHits = rawEvent->getTriggerHits();
+    }
+  else
+    {
+      triggerHits = rawEvent->getAllHits();
+    }
+
   for(std::vector<Hit>::iterator iter = triggerHits.begin(); iter != triggerHits.end(); ++iter)
     {
+      if(iter->detectorID < 25 || iter->detectorID > 40) continue;
       if(iter->inTime != 1) continue;
 
       detectorIDs[nHits] = iter->detectorID;
@@ -333,9 +342,13 @@ bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent)
 
 bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[])
 {
-  //Build data structure
+  //initialize the container and counter
   roads_found[0].clear();
   roads_found[1].clear();
+  nRoads[0][0] = 0; nRoads[0][1] = 0;
+  nRoads[1][0] = 0; nRoads[1][1] = 0;
+  
+  //Build data structure
   if(!buildData(nHits, detectorIDs, elementIDs)) return false;
 
   //search for patterns
@@ -343,8 +356,6 @@ bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[]
     {
       roads_temp.clear();
       search(root[i], data, 0, i);
-
-      //if(roads_found[i].empty()) return false;
     }
 
   //road selection criteria: remove invalid roads
@@ -362,6 +373,8 @@ bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[]
 	  else
 	    {
 	      *iter = *road;
+              iter->groupID > 0 ? ++nRoads[i][0] : ++nRoads[i][1];	
+
 #ifndef REQUIRE_TB 
 	      //Don't separate top/bottom
 	      groupIDs[i].insert(abs(road->groupID));
@@ -382,7 +395,6 @@ bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[]
 	{
 	  std::list<Trigger>::iterator trigger = std::find(triggers.begin(), triggers.end(), std::make_pair(*p_groupID, *m_groupID));
 	  if(trigger != triggers.end()) return true;
-	  //if((*p_groupID)*(*m_groupID) < 0) return true;
 	}
     }
 

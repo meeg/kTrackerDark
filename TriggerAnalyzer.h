@@ -48,14 +48,19 @@ public:
   //Accept a event
   bool acceptEvent(TriggerRoad& p_road, TriggerRoad& m_road);
   bool acceptEvent(int nHits, int detectorIDs[], int elementIDs[]);
-  bool acceptEvent(SRawEvent* rawEvent);
+  bool acceptEvent(SRawEvent* rawEvent, int mode = 1);
   
   //Get the road list of +/-
   std::list<TriggerRoad>& getRoadsAll(int charge) { return roads[(-charge+1)/2]; }
   std::list<TriggerRoad>& getRoadsFound(int charge) { return roads_found[(-charge+1)/2]; }
   std::list<TriggerRoad>& getRoadsEnabled(int charge) { return roads_enabled[(-charge+1)/2]; }
   std::list<TriggerRoad>& getRoadsDisabled(int charge) { return roads_disabled[(-charge+1)/2]; }
-  
+
+  int getNRoadsPosTop() { return nRoads[0][0]; }
+  int getNRoadsPosBot() { return nRoads[0][1]; }
+  int getNRoadsNegTop() { return nRoads[1][0]; }
+  int getNRoadsNegBot() { return nRoads[1][1]; }
+
   //Build prefix tree
   void buildTriggerTree();
  
@@ -83,6 +88,9 @@ private:
   std::list<TriggerRoad> roads[2];
   std::list<TriggerRoad> roads_enabled[2];
   std::list<TriggerRoad> roads_disabled[2];
+
+  //Counters of single roads
+  int nRoads[2][2];  //first index stands for +/-, second stands for top/bottom
 
   //Dimuon road pairs (accepted groupID pairs)
   std::list<Trigger> triggers;

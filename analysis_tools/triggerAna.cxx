@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
       NIMYT = H1YT > 0 && H2YT > 0 && H3YT > 0 && H4YT > 0 ? 1 : 0;
       NIMYB = H1YB > 0 && H2YB > 0 && H3YB > 0 && H4YB > 0 ? 1 : 0;
 
-      if(triggerAna->acceptEvent(rawEvent)) FPGA = 1;
+      rawEvent->setMatrix(triggerAna->acceptEvent(rawEvent));
       list<TriggerRoad>& p_roads_found = triggerAna->getRoadsFound(+1);
       list<TriggerRoad>& m_roads_found = triggerAna->getRoadsFound(-1);
       p_FPGA = 0;;
@@ -141,6 +141,9 @@ int main(int argc, char* argv[])
 	{
 	  m_roadID[m_FPGA++] = iter->roadID;
 	}
+
+      int nRoads[4] = {triggerAna->getNRoadsPosTop(), triggerAna->getNRoadsPosBot(), triggerAna->getNRoadsPosTop(), triggerAna->getNRoadsNegBot()};
+      rawEvent->setNRoads(nRoads);
 
       saveTree->Fill(); 
       rawEvent->clear();

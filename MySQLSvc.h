@@ -25,6 +25,7 @@ Created: 2013.9.29
 #include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "FastTracklet.h"
+#include "TriggerAnalyzer.h"
 
 //#define OUT_TO_SCREEN
 //#define USE_M_TABLES
@@ -95,6 +96,9 @@ private:
   //pointer to the geometry service
   GeomSvc* p_geomSvc;
 
+  //pointer to trigger analyzer
+  TriggerAnalyzer* p_triggerAna;
+
   //SQL server
   TSQLServer* server;
   TSQLResult* res;
@@ -104,6 +108,7 @@ private:
   bool readQIE;
   bool readTriggerHits;
   bool readTargetPos;
+  bool setTriggerEmu;
 
   //Random generator
   TRandom rndm;
