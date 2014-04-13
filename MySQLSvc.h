@@ -62,7 +62,7 @@ public:
 
   //Get the event header
   bool getEventHeader(SRawEvent* rawEvent, int eventID);
-  bool getEventHeader(SRawMCEvent* mcEvent, int eventID);
+  bool getMCGenInfo(SRawMCEvent* mcEvent, int eventID);
 
   //Output to database/txt file/screen
   void bookOutputTables();
