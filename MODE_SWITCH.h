@@ -6,7 +6,7 @@
 
 //--------------- Mode controls ------------------
 //=== Enable this when running over MC events
-#define MC_MODE
+//#define MC_MODE
 
 //=== Enable alignment mode
 //#define ALIGNMENT_MODE
@@ -24,7 +24,7 @@
 //#define _ENABLE_KF
 
 //=== Enable reading the alignment data from online schema instead of external ascii file
-#define LOAD_ONLINE_ALIGNMENT
+//#define LOAD_ONLINE_ALIGNMENT
 
 //--------------- Geometry version ---------------
 #define GEOMETRY_VERSION "geometry_R1124_run2"
