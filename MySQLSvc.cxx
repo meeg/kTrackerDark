@@ -167,7 +167,7 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
   int eventID = eventIDs.back() + 1;
 
   mcEvent->clear();
-  if(!(getEventHeader(mcEvent, eventID) && getEventHeader(mcEvent, eventID)))
+  if(!(getEventHeader(mcEvent, eventID) && getMCGenInfo(mcEvent, eventID)))
     {
       return false;
     }
@@ -388,8 +388,6 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 
 bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
 {
-  eventIDs.push_back(eventID);
-  
   sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
   if(makeQuery() != 1) return false;
   nextEntry();
