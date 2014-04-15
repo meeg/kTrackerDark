@@ -392,9 +392,6 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
   if(makeQuery() != 1) return false;
   nextEntry();
 
-  //Special mass cut
-  if(getDouble(3) < 4.) return false;
-
   runID = getInt(12);
   spillID = getInt(13);
   mcEvent->setEventInfo(runID, spillID, eventID);
