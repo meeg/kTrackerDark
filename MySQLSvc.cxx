@@ -167,7 +167,7 @@ bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
   int eventID = eventIDs.back() + 1;
 
   mcEvent->clear();
-  if(!getMCGenInfo(mcEvent, eventID) || !getEventHeader(mcEvent, eventID))
+  if(!getEventHeader(mcEvent, eventID) || !getMCGenInfo(mcEvent, eventID))
     {
       return false;
     }
