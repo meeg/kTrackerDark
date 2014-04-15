@@ -102,10 +102,10 @@ public:
   ///Get the vertex info
   TLorentzVector getMomentumVertex();
   Double_t getMomentumVertex(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fStateVertex, px, py, pz); }
-  Double_t getZVertex() { return fVtxPar[2]; }
-  Double_t getRVertex() { return sqrt(fVtxPar[0]*fVtxPar[0] + fVtxPar[1]*fVtxPar[1]); }
-  TVector3 getVertex() { return fVtxPar; }
-  Double_t getVtxPar(Int_t i) { return fVtxPar[i]; }
+  Double_t getZVertex() { return fVertexPos[2]; }
+  Double_t getRVertex() { return fVertexPos.Perp(); }
+  TVector3 getVertex() { return fVertexPos; }
+  Double_t getVtxPar(Int_t i) { return fVertexPos[i]; }
   Double_t getChisqVertex() { return fChisqVertex; }
 
   //Get mom/pos at a given location
@@ -115,6 +115,8 @@ public:
   TVector3 getDumpMom() { return fDumpMom; }
   TVector3 getDumpFaceMom() { return fDumpFaceMom; }
   TVector3 getTargetMom() { return fTargetMom; }
+  TVector3 getVertexPos() { return fVertexPos; }
+  TVector3 getVertexMom() { return fVertexMom; }
 
   //Set mom/pos at a given location
   void setDumpPos(TVector3 pos) { fDumpPos = pos; } 
@@ -152,12 +154,13 @@ private:
   TVector3 fTargetMom;
 
   ///Vertex infomation
-  Double_t fVtxPar[3];
+  TVector3 fVertexMom;      //duplicate information as fStateVertex already contains all the info., just keep it for now
+  TVector3 fVertexPos;
   Double_t fChisqVertex;
   TMatrixD fStateVertex;
   TMatrixD fCovarVertex;
 
-  ClassDef(SRecTrack, 4)
+  ClassDef(SRecTrack, 5)
 };
 
 class SRecDimuon: public TObject
@@ -168,6 +171,9 @@ public:
 
   //Calculate the kinematic vairables
   void calcVariables();
+
+  //Dimuon quality cut
+  bool isValid();
 
   //Index of muon track used in host SRecEvent
   Int_t trackID_pos;

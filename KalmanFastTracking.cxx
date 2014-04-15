@@ -238,10 +238,10 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
 #endif
     }
 
-  //Initialize sagitta ratios, index 0, 1, 2 are for X, U, V
-  s_ratio[0] = 1.8; s_sigma[0] = 0.2; s_detectorID[0] = 10;
-  s_ratio[1] = 1.9; s_sigma[1] = 0.2; s_detectorID[1] = 12;
-  s_ratio[2] = 1.7; s_sigma[2] = 0.2; s_detectorID[2] = 8;
+  //Initialize sagitta ratios, index 0, 1, 2 are for U, X, V
+  s_ratio[0] = 1.77; s_sigma[0] = 0.2; s_detectorID[0] = 12;
+  s_ratio[1] = 1.77; s_sigma[1] = 0.2; s_detectorID[1] = 10;
+  s_ratio[2] = 1.77; s_sigma[2] = 0.2; s_detectorID[2] = 8;
 }
 
 KalmanFastTracking::~KalmanFastTracking()

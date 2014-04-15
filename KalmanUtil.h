@@ -62,6 +62,7 @@ public:
   double get_dydz() { return _state_kf(2, 0); }
   double get_mom(double& px, double& py, double& pz);
   double get_mom() { return 1./fabs(_state_kf[0][0]); }
+  TVector3 get_mom_vec() { double px, py, pz; get_mom(px, py, pz); return TVector3(px, py, pz); }
   double get_pos(double& x, double& y, double& z);
   int get_charge() { return _state_kf[0][0] > 0 ? 1 : -1; }
 

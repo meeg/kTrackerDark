@@ -31,9 +31,7 @@ SRecTrack::SRecTrack()
   fChisqAtNode.clear();
 
   fChisqVertex = -99.;
-  fVtxPar[0] = 999.;
-  fVtxPar[1] = 999.;
-  fVtxPar[2] = 999.;
+  fVertexPos.SetXYZ(999., 999., 999.);
   fStateVertex.ResizeTo(5, 1);
   fCovarVertex.ResizeTo(5, 5);
 }
@@ -86,9 +84,8 @@ void SRecTrack::setZVertex(Double_t z)
   kmfit->fit_node(_node_vertex);
 
   fChisqVertex = _node_vertex.getChisq();
-  fVtxPar[0] = _node_vertex.getFiltered().get_x();
-  fVtxPar[1] = _node_vertex.getFiltered().get_y();
-  fVtxPar[2] = z;
+  fVertexPos.SetXYZ(_node_vertex.getFiltered().get_x(), _node_vertex.getFiltered().get_y(), z);
+  fVertexMom = _node_vertex.getFiltered().get_mom_vec();
 
   fStateVertex = _node_vertex.getFiltered()._state_kf;
   fCovarVertex = _node_vertex.getFiltered()._covar_kf;
@@ -96,9 +93,8 @@ void SRecTrack::setZVertex(Double_t z)
 
 void SRecTrack::setVertexFast(TVector3 mom, TVector3 pos)
 {
-  fVtxPar[0] = pos[0];
-  fVtxPar[1] = pos[1];
-  fVtxPar[2] = pos[2];
+  fVertexPos = pos;
+  fVertexMom = mom;
 
   fStateVertex[0][0] = getCharge()/mom.Mag();
   fStateVertex[1][0] = mom[0]/mom[2];
@@ -395,7 +391,7 @@ void SRecTrack::print()
   for(Int_t i = 0; i < 3; i++) std::cout << "Station " << i+1 << ": " << fNHodoHits[i] << std::endl;
 
   std::cout << "Current vertex position: " << std::endl;
-  for(Int_t i = 0; i < 3; i++) std::cout << fVtxPar[i] << "  ";
+  for(Int_t i = 0; i < 3; i++) std::cout << fVertexPos[i] << "  ";
   std::cout << std::endl;
 
   std::cout << "Momentum at vertex: " << 1./fabs(fStateVertex[0][0]) << std::endl; 
@@ -427,6 +423,26 @@ void SRecDimuon::calcVariables()
   x2 = TMath::Sqrt(tau)*TMath::Exp(-y);
 
   mass_single = (p_pos_single + p_neg_single).M();
+}
+
+bool SRecDimuon::isValid()
+{
+  //Chisq of vertex fit
+  if(chisq_kf > 5.) return false;
+
+  //Kinematic cuts
+  if(p_pos.Px() < p_neg.Px()) return false;
+  if(fabs(xF) > 1.) return false;
+  if(x1 < 0. || x1 > 1.) return false;
+  if(x2 < 0. || x2 > 1.) return false;
+  if(mass < 0. || mass > 10.) return false;
+  if(p_pos.Pz() + p_neg.Pz() > 120.) return false;
+
+  //Track separation cuts
+  if(fabs(vtx_pos.Z() - vtx_neg.Z()) > 150.) return false;
+
+  //Everything is fine
+  return true;
 }
 
 SRecEvent::SRecEvent()
