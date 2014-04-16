@@ -132,7 +132,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  track_neg.setZVertex(z_vertex_opt);
 	  dimuon.p_pos = track_pos.getMomentumVertex();
 	  dimuon.p_neg = track_neg.getMomentumVertex();
-	  dimuon.chisq_kf = getKFChisq();
+	  dimuon.chisq_kf = track_pos.getChisqVertex() + track_neg.getChisqVertex();
 	  dimuon.chisq_vx = getVXChisq();
 	  dimuon.vtx.SetXYZ(_vtxpar_curr._r[0][0], _vtxpar_curr._r[1][0], _vtxpar_curr._r[2][0]);
 	  dimuon.calcVariables();
@@ -164,8 +164,8 @@ void VertexFit::init()
   sig_z_start.clear();
 
   ///Two default starting points
-  addHypothesis(40., 50.);
-  addHypothesis(Z_TARGET, 50.);
+  //addHypothesis(40., 50.);
+  //addHypothesis(Z_TARGET, 50.);
 }
 
 void VertexFit::setStartingVertex(double z_start, double sigz_start)
