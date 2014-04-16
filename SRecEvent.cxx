@@ -242,11 +242,21 @@ bool SRecTrack::isValid()
   return true;
 }
 
-void SRecTrack::swimToVertex()
+void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
 {
   //Store the steps on each point (center of the interval)
-  TVector3 mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
-  TVector3 pos[NSLICES_FMAG + NSTEPS_TARGET + 1];
+  bool cleanupPos = false;
+  bool cleanupMom = false;
+  if(pos == NULL)
+    {
+      pos = new TVector3[NSLICES_FMAG + NSTEPS_TARGET + 1];
+      cleanupPos = true;
+    }
+  if(mom == NULL)
+    {
+      mom = new TVector3[NSLICES_FMAG + NSTEPS_TARGET + 1];
+      cleanupMom = true;
+    }
 
   //E-loss and pT-kick per length, note the eloss is done in half-slices
   double eloss_unit_0 = ELOSS_FMAG/FMAG_LENGTH;
@@ -378,6 +388,9 @@ void SRecTrack::swimToVertex()
   std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
   std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
 #endif
+
+  if(cleanupPos) delete[] pos;
+  if(cleanupMom) delete[] mom;
 }
 
 void SRecTrack::print()
