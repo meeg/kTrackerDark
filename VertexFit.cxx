@@ -190,7 +190,7 @@ void VertexFit::init()
   sig_z_start.clear();
 
   ///Two default starting points
-  //addHypothesis(40., 50.);
+  //addHypothesis(Z_DUMP, 50.);
   //addHypothesis(Z_TARGET, 50.);
 }
 
@@ -426,6 +426,11 @@ void VertexFit::bookEvaluation(std::string evalFileName)
   evalTree->Branch("z_vertex_eval", z_vertex_eval, "z_vertex_eval[nStart]/D");
   evalTree->Branch("r_vertex_eval", r_vertex_eval, "r_vertex_eval[nStart]/D");
   evalTree->Branch("z_start_eval", z_start_eval, "z_start_eval[nStart]/D");
+  
+  evalTree->Branch("m_chisq_kf_eval", &m_chisq_kf_eval, "m_chisq_kf_eval/D");
+  evalTree->Branch("m_z_vertex_eval", &m_z_vertex_eval, "m_z_vertex_eval/D");
+  evalTree->Branch("s_chisq_kf_eval", &s_chisq_kf_eval, "s_chisq_kf_eval/D");
+  evalTree->Branch("s_z_vertex_eval", &s_z_vertex_eval, "s_z_vertex_eval/D");
 }
 
 void VertexFit::fillEvaluation()
@@ -437,6 +442,8 @@ void VertexFit::fillEvaluation()
   double chisq_kf_min = 1E6;
   double chisq_vx_min = 1E6;
 
+  m_chisq_kf_eval = 0.;
+  m_z_vertex_eval = 0.;
   for(int i = 0; i < nStart; ++i)
     {
       chisq_kf_eval[i] = chisq_km[i];
@@ -444,6 +451,9 @@ void VertexFit::fillEvaluation()
       z_vertex_eval[i] = z_vertex[i];
       r_vertex_eval[i] = r_vertex[i];
       z_start_eval[i] = z_start[i];
+
+      m_chisq_kf_eval += chisq_kf_eval[i];
+      m_z_vertex_eval += z_vertex_eval[i];
 
       if(chisq_kf_min > chisq_km[i])
 	{
@@ -457,7 +467,25 @@ void VertexFit::fillEvaluation()
 	  chisq_vx_min = chisq_vx[i];
 	}      
     }
+  m_chisq_kf_eval /= nStart;
+  m_z_vertex_eval /= nStart;
 
+  s_chisq_kf_eval = 0.;
+  s_z_vertex_eval = 0.;
+  if(nStart == 1)
+    {
+      evalTree->Fill();
+      return;
+    }
+
+  for(int i = 0; i < nStart; ++i)
+    {
+      s_chisq_kf_eval += ((m_chisq_kf_eval - chisq_kf_eval[i])*(m_chisq_kf_eval - chisq_kf_eval[i]));
+      s_z_vertex_eval += ((m_z_vertex_eval - z_vertex_eval[i])*(m_z_vertex_eval - z_vertex_eval[i]));
+    }
+  s_chisq_kf_eval = sqrt(s_chisq_kf_eval/(nStart-1));
+  s_z_vertex_eval = sqrt(s_z_vertex_eval/(nStart-1));
+  
   evalTree->Fill();
 }
 

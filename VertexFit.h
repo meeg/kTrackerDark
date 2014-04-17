@@ -167,7 +167,11 @@ private:
   double chisq_vx_eval[50];
   double z_vertex_eval[50];
   double r_vertex_eval[50];
-   
+  
+  double m_chisq_kf_eval;
+  double s_chisq_kf_eval;
+  double m_z_vertex_eval; 
+  double s_z_vertex_eval; 
 };
 
 #endif

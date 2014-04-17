@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
       dataTree->GetEntry(i);
       
       double intensity = rawEvent->getIntensity();
-      if(intensity < lo || intensity > hi)
+      if(!(intensity > lo && intensity < hi && rawEvent->isEmuTriggered() && rawEvent->isTriggeredBy(SRawEvent::MATRIX1)))
 	{
 	  rawEvent->clear();
 	  recEvent->clear();
@@ -46,13 +46,8 @@ int main(int argc, char* argv[])
       for(int j = 0; j < recEvent->getNDimuons(); ++j)
 	{
 	  SRecDimuon dimuon = recEvent->getDimuon(j);
-	  double chisq_kf = dimuon.chisq_kf;
-	  double p1x = dimuon.p_pos.Px();
-	  double p2x = dimuon.p_neg.Px();
-	  double xF = dimuon.xF;
-	  double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 	  mass = dimuon.mass;
-	  if(chisq_kf < 5. && xF < 1 && p1x > p2x && abs(dz) < 150.)
+	  if(dimuon.isValid())
 	    {
     	      saveTree->Fill();
 	    }
