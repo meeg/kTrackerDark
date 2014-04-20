@@ -132,7 +132,7 @@ void PropSegment::fit()
     {
       if(hits[i].hit.index < 0) continue;
 
-      y[i] = hits[i].pos();
+      y[i] = hits[i].pos()*p_geomSvc->getCostheta(hits[i].hit.detectorID);
       x[i] = p_geomSvc->getPlanePosition(hits[i].hit.detectorID);
 
       ++sum;
@@ -143,10 +143,10 @@ void PropSegment::fit()
       sxy += (x[i]*y[i]);
     }
 
-  double det = sxx - sx*sx;
+  double det = sum*sxx - sx*sx;
   if(fabs(det) < 1E-20) return;
 
-  a = (sxy - sx*sy)/det;
+  a = (sum*sxy - sx*sy)/det;
   b = (sy*sxx - sxy*sx)/det;
   err_a = sqrt(fabs(sum/det));
   err_b = sqrt(fabs(sxx/det));
