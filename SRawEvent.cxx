@@ -658,6 +658,10 @@ void SRawEvent::setEventInfo(SRawEvent* event)
   setTurnID(event->getTurnID());
   setRFID(event->getRFID());
   setIntensity(event->getIntensityAll());
+
+  //Set the trigger emu info
+  setTriggerEmu(event->isEmuTriggered());
+  setNRoads(event->getNRoads());
 }
 
 void SRawEvent::clear()

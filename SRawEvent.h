@@ -74,6 +74,7 @@ public:
   std::list<Int_t> getAdjacentHitsIndex(Hit& _hit);
 
   Int_t getNHitsAll() { return fNHits[0]; }
+  Int_t getNTriggerHits() { return fTriggerHits.size(); }
   Int_t getNChamberHitsAll();
   Int_t getNHodoHitsAll();
   Int_t getNPropHitsAll();
@@ -91,6 +92,8 @@ public:
   Hit getTriggerHit(Int_t index) { return fTriggerHits[index]; } 
   Hit getHit(Int_t index) { return fAllHits[index]; } 
   Hit getHit(Int_t detectorID, Int_t elementID); 
+  void setHit(Int_t index, Hit hit) { fAllHits[index] = hit; }
+  void setTriggerHit(Int_t index, Hit hit) { fTriggerHits[index] = hit; }
 
   Int_t getRunID() { return fRunID; }
   Int_t getEventID() { return fEventID; }
@@ -102,7 +105,7 @@ public:
   ///Insert a new hit
   void insertHit(Hit h);
   void insertTriggerHit(Hit h) { fTriggerHits.push_back(h); }
-
+  
   ///Find a hit
   Int_t findHit(Int_t detectorID, Int_t elementID);
 
@@ -132,6 +135,7 @@ public:
   Int_t getNRoadsPosBot() { return fNRoads[1]; } 
   Int_t getNRoadsNegTop() { return fNRoads[2]; } 
   Int_t getNRoadsNegBot() { return fNRoads[3]; } 
+  Int_t* getNRoads() { return fNRoads; }
   void setTriggerEmu(bool flag) { fTriggerEmu = flag ? 1 : -1; }
   void setNRoads(Int_t nRoads[]) { for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i]; }
 

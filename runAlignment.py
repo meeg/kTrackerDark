@@ -88,10 +88,12 @@ for i in range(offset, nCycle+1):
     runCmd('mv hodo_eval.root hodo_eval_'+str(i)+'.root')
     runCmd('cp alignment_hodo_'+str(i)+'.txt alignment_hodo.txt')
 
-    # hodoscope alignment
-    #runCmd('./propAlign '+recFile_initial+'.root alignment_prop_'+str(i)+'.txt')
-    #runCmd('mv prop_eval.root prop_eval_'+str(i)+'.root')
-    #runCmd('cp alignment_prop_'+str(i)+'.txt alignment_prop.txt')
+    # prop. tube alignment
+    for j in range(10):
+    	runCmd('./propAlign '+recFile_initial+'.root alignment_prop_temp.txt')
+    	runCmd('mv alignment_prop_temp.txt alignment_prop.txt')
+    runCmd('mv prop_eval.root prop_eval_'+str(i)+'.root')
+    runCmd('cp alignment_prop.txt alignment_prop_'+str(i)+'.txt')
     
     # chamber calibration
     #runCmd('./makeRTProfile '+recFile_initial+'.root calibration_'+str(i)+'.txt')

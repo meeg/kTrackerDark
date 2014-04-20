@@ -182,9 +182,9 @@ void GeomSvc::close()
 {
   if(!p_geometrySvc)
     {
-      for(int i = 0; i < 24; i++)
+      for(int i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes; ++i)
 	{
-	  delete planes[i].rtprofile;
+	  if(planes[i].rtprofile != NULL)delete planes[i].rtprofile;
 	}
 
       delete p_geometrySvc;
@@ -420,7 +420,7 @@ void GeomSvc::init(std::string geometrySchema)
 	    }
 	  else
 	    {
-	      int moduleID = int((j - 1)/8);        //Need to re-define moduleID for run2, note it's reversed compared to elementID
+	      int moduleID = 8 - int((j - 1)/8);        //Need to re-define moduleID for run2, note it's reversed compared to elementID
 	      pos = planes[i].x0*planes[i].costheta + planes[i].y0*planes[i].sintheta + planes[i].xoffset + (j - (planes[i].nElements+1)/2.)*planes[i].spacing + planes[i].deltaW_module[moduleID];
 	    }
 	  map_wirePosition.insert(posType(make_pair(i, j), pos));
@@ -580,20 +580,27 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 
 double GeomSvc::getDriftDistance(int detectorID, double tdcTime)
 {
-  if(!calibration_loaded) return 0.;
-  if(detectorID <= 24)
+  if(!calibration_loaded)
     {
-      if(tdcTime < planes[detectorID].tmin) 
-	{
-	  return 0.5*planes[detectorID].cellWidth;
-	}
-      else if(tdcTime > planes[detectorID].tmax)
-	{
-  	  return 0.;
-	}
+      return 0.;
+    }
+  else if(planes[detectorID].rtprofile == NULL)
+    {
+      return 0.;
+    }
+  else if(tdcTime < planes[detectorID].tmin) 
+    {
+      return 0.5*planes[detectorID].cellWidth;
+    }
+  else if(tdcTime > planes[detectorID].tmax)
+    {
+      return 0.;
+    }
+  else
+    {
       return planes[detectorID].rtprofile->Eval(tdcTime);
     }
-  
+
   return 0.;
 }
 
@@ -669,6 +676,8 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
     {
       for(int i = nChamberPlanes+nHodoPlanes+1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i += 2)
 	{
+	  planes[i].deltaW = 0.;
+	  planes[i+1].deltaW = 0.;
 	  for(int j = 0; j < 9; j++)
 	    {
 	      _align_prop.getline(buf, 100);
@@ -676,10 +685,18 @@ void GeomSvc::loadAlignment(std::string alignmentFile_chamber, std::string align
 
 	      stringBuf >> planes[i].deltaW_module[j];
 	      planes[i+1].deltaW_module[j] = planes[i].deltaW_module[j];
+
+	      planes[i].deltaW += planes[i].deltaW_module[j];
+	      planes[i+1].deltaW += planes[i+1].deltaW_module[j];
 	    }
 
-	  planes[i].spacing = 5.08;
-	  planes[i+1].spacing = 5.08;
+	  planes[i].deltaW /= 9.;
+	  planes[i].deltaX = planes[i].deltaW*planes[i].costheta;
+	  planes[i].deltaY = planes[i].deltaW*planes[i].sintheta;
+
+	  planes[i+1].deltaW /= 9.;
+	  planes[i+1].deltaX = planes[i+1].deltaW*planes[i+1].costheta;
+	  planes[i+1].deltaY = planes[i+1].deltaW*planes[i+1].sintheta;
 	}
       cout << "GeomSvc: loaded prop. tube alignment parameters from " << filename << endl; 
     }
@@ -763,8 +780,7 @@ void GeomSvc::loadCalibration(std::string calibrationFile)
 
 bool GeomSvc::isInTime(int detectorID, double tdcTime)
 {
-  if(detectorID <= 24) return tdcTime > planes[detectorID].tmin && tdcTime < planes[detectorID].tmax;
-  if(detectorID > 40) return tdcTime > 400. && tdcTime < 1100.;
+  if(planes[detectorID].rtprofile != NULL) return tdcTime > planes[detectorID].tmin && tdcTime < planes[detectorID].tmax;
 
   return true;
 }

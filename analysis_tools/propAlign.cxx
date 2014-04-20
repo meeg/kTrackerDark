@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <TROOT.h>
+#include <TString.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TRandom.h>
@@ -15,8 +16,10 @@
 #include <TH1I.h>
 #include <TCanvas.h>
 #include <TGraph.h>
-#include <TF1.h>
 #include <TClonesArray.h>
+#include <TArrow.h>
+#include <TPaveText.h>
+#include <TF1.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -25,282 +28,259 @@
 
 using namespace std;
 
-double findCenter(TH1D *hist)
+double findCenter(TH1D* hist)
 {
-  if(hist->GetEntries() < 1000) return 9999;
-
-  int nBin = hist->GetNbinsX();
-  int nBinInSize = nBin/2;
-  double binWidth = hist->GetBinWidth(1);
-
-  //cout << hist->GetName() << endl;
-  //cout << nBin << "  " << nBinInSize << "  " << binWidth << endl;
-
-  int nEvt_max = 0;
-  int index_max_left = 0;
-  for(int i = 1; i <= nBinInSize; ++i)
+  if(hist->GetEffectiveEntries() < 300) return -9999.;
+  if(hist->GetEffectiveEntries() < 3000)
     {
-      int nEvt_curr = hist->Integral(i, i + nBinInSize);
-      //cout << i << " : " << hist->GetBinCenter(i) << " <===> " << hist->GetBinCenter(i + nBinInSize) << " : " << nEvt_curr << " === " << nEvt_max << endl;
-    
-      if(nEvt_curr > nEvt_max)
-	{
-	  nEvt_max = nEvt_curr;
-	  index_max_left = i;
-	}
+      TF1 f("func", "gaus", -5., 5.);
+      hist->Fit(&f, "QNL");
+
+      return f.GetParameter(1);
     }
 
-  nEvt_max = 0;
-  int index_max_right = nBin;
-  for(int i = nBin; i >= nBinInSize; --i)
-    {
-      int nEvt_curr = hist->Integral(i - nBinInSize, i);
-      
-      if(nEvt_curr > nEvt_max)
-	{
-	  nEvt_max = nEvt_curr;
-	  index_max_right = i;
-	}
-    }
-
-  return (hist->GetBinCenter(index_max_left) + hist->GetBinCenter(index_max_right))/2.;
+  return hist->GetBinCenter(hist->GetMaximumBin());
 }
 
-void linearFit(double x[], double y[], double w[], int n, double& a, double& b)
+void linearFit(double* par, double& a, double& b)
 {
-  if(n < 2)
+  double x[9], y[9];
+  int nPars = 0;
+
+  for(int i = 0; i < 9; ++i)
     {
-      std::cout << "Should have at least two points!!!" << std::endl;
-      return; 
+      if(par[i] > -100.)
+	{
+	  x[nPars] = i+1;
+	  y[nPars] = par[i];
+	  ++nPars;
+	}
     }
 
-  double sum, sx, sy, sxx, sxy, syy, det;
-  sum = 0.;
-  sx = 0.;
-  sy = 0.;
-  sxx = 0.;
-  syy = 0.;
-  sxy = 0.;
+  TF1 f("func", "pol1", 0, 10);
+  TGraph g(nPars, x, y);
+  g.Fit(&f, "QN");
 
-  for(int i = 0; i < n; i++)
-    {
-      sum += w[i];
-      sx += w[i]*x[i];
-      sy += w[i]*y[i];
-      sxx += w[i]*x[i]*x[i];
-      syy += w[i]*y[i]*y[i];
-      sxy += w[i]*x[i]*y[i];
-    }
-
-  det = sum*sxx - sx*sx;
-  if(fabs(det) < 1.0e-20)
-    {
-      a = 1.0e20;
-      b = x[0];
-      
-      return;
-    }
-
-  a = (sum*sxy - sx*sy)/det;
-  b = (sy*sxx - sxy*sx)/det;
+  a = f.GetParameter(1);
+  b = f.GetParameter(0);
 }
 
 int main(int argc, char *argv[])
 {
-  GeomSvc *p_geomSvc = GeomSvc::instance();
+  //Initialization of geometry and tracked data
+  GeomSvc* p_geomSvc = GeomSvc::instance();
   p_geomSvc->init(GEOMETRY_VERSION);
 
-  SRawEvent *rawEvent = new SRawEvent();
+  SRawEvent* rawEvent = new SRawEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");
 
-  TFile *dataFile = new TFile(argv[1], "READ");
-  TTree *dataTree = (TTree *)dataFile->Get("save");
+  TFile* dataFile = new TFile(argv[1], "READ");
+  TTree* dataTree = (TTree*)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
   dataTree->SetBranchAddress("tracklets", &tracklets);
 
-  int m_propIDs[] = {41, 43, 45, 47};
-  vector<int> propIDs(m_propIDs, m_propIDs+sizeof(m_propIDs)/sizeof(int));
-  const int nProps = propIDs.size();
+  //Hodoscope IDs
+  double propIDs[8] = {41, 42, 43, 44, 45, 46, 47, 48};
+  const int nProps = 8;
 
-  double res, z_exp, x_exp, y_exp, pos_exp;
-  int propID, moduleID, elementID;
+  //Evaluation tree structure
+  double z_exp, x_exp, y_exp, pos_exp, pos;
+  int propID, elementID;
 
-  TFile *saveFile = new TFile(argv[2], "recreate");
-  TTree *saveTree = new TTree("save", "save");
+  TFile* saveFile = new TFile("prop_eval.root", "recreate");
+  TTree* saveTree = new TTree("save", "save");
 
   saveTree->Branch("z_exp", &z_exp, "z_exp/D");
   saveTree->Branch("x_exp", &x_exp, "x_exp/D");
   saveTree->Branch("y_exp", &y_exp, "y_exp/D");
   saveTree->Branch("pos_exp", &pos_exp, "pos_exp/D");
-  saveTree->Branch("res", &res, "res/D");
+  saveTree->Branch("pos", &pos, "pos/D");
   saveTree->Branch("propID", &propID, "propID/I");
-  saveTree->Branch("moduleID", &moduleID, "moduleID/I");
   saveTree->Branch("elementID", &elementID, "elementID/I");
 
-  //Intialization of arrays and hists  
-  TH1D* hist[4][9];
-  double offset[4][9];
-  int nEffective[4];
-  double a[4], b[4];
-  for(int i = 0; i < nProps; i++)
+  //Initialization of container and hists
+  //Offsets using all elements added together
+  TH1D* hists[nProps/2][9];
+  double offsets[nProps/2][9];
+
+  //Other useful hodo properties
+  for(int i = 0; i < nProps/2; ++i)
     {
-      string detectorName = p_geomSvc->getDetectorName(propIDs[i]);
+      string detectorName = p_geomSvc->getDetectorName(propIDs[2*i]);
+      double spacing = p_geomSvc->getPlaneSpacing(propIDs[2*i]);
+
       for(int j = 0; j < 9; j++)
 	{
 	  stringstream suffix;
-	  suffix << j;
+	  suffix << (j+1);
 	  string histName = detectorName + "_" + suffix.str();
 
-	  hist[i][j] = new TH1D(histName.c_str(), histName.c_str(), 200, -5.08, 5.08);
-	  offset[i][j] = 9999.;
+	  hists[i][j] = new TH1D(histName.c_str(), histName.c_str(), 100, -spacing, spacing);
+	  offsets[i][j] = 9999.;
 	}
-
-      nEffective[i] = 0;
     }
 
-  //Use tracks to fill residual distributions
+  //User tracks to fill residual distributions
   int nEvtMax = dataTree->GetEntries();
-  for(int i = 0; i < nEvtMax; i++)
+  for(int i = 0; i < nEvtMax; ++i)
     {
       dataTree->GetEntry(i);
+      
+      //Extract the tracklets, only use the first one for one less loop
       if(tracklets->GetEntries() < 1) continue;
+      Tracklet* track = (Tracklet*)tracklets->At(0);
 
+      if(track->getNHits() < 16) continue;
+      if(track->getChisq() > 10.) continue;
+
+      //Loop over prop. tube hits on each plane
       rawEvent->reIndex("oa");
       vector<Hit> hitAll = rawEvent->getAllHits();
-
-      //Only the first track is used, for simplicity
-      Tracklet* _track = (Tracklet*)tracklets->At(0);
-      for(int j = 0; j < nProps; j++)
+      for(int j = 0; j < nProps; ++j)
 	{
-	  //If and only if one paired prop. tube hits are found, we proceed
-	  list<SRawEvent::hit_pair> hit_pairs = rawEvent->getHitPairsInSuperDetector((propIDs[j]+1)/2);
-	  if(hit_pairs.size() != 1) continue;
+	  propID = propIDs[j];
 
-	  //Expected hit position at first plane
-	  z_exp = p_geomSvc->getPlanePosition(propIDs[j]);
-	  x_exp = _track->getExpPositionX(z_exp);
-	  y_exp = _track->getExpPositionY(z_exp);
-	  pos_exp = p_geomSvc->getUinStereoPlane(propIDs[j], x_exp, y_exp);
-	  if(!p_geomSvc->isInPlane(propIDs[j], x_exp, y_exp)) continue;
+	  //Expected hit position on one plane
+	  z_exp = p_geomSvc->getPlanePosition(propID);
+	  x_exp = track->getExpPositionX(z_exp);
+	  y_exp = track->getExpPositionY(z_exp);
+	  pos_exp = p_geomSvc->getUinStereoPlane(propID, x_exp, y_exp);
 
-	  propID = hitAll[hit_pairs.front().first].detectorID;
-	  elementID = hitAll[hit_pairs.front().first].elementID;     
-	  moduleID = Int_t((elementID-1)/8);                //Need to re-define moduleID for run2
-	  res = pos_exp - hitAll[hit_pairs.front().first].pos;//p_geomSvc->getMeasurement(propID, elementID);
-	  hist[j][moduleID]->Fill(res);
-	  saveTree->Fill();
+	  //if the hit is outside of that hodo, skip
+	  if(!p_geomSvc->isInPlane(propID, x_exp, y_exp)) continue;
 
-	  //Expected hit position at second plane
-	  z_exp = p_geomSvc->getPlanePosition(propIDs[j]+1);
-	  x_exp = _track->getExpPositionX(z_exp);
-	  y_exp = _track->getExpPositionY(z_exp);
-	  pos_exp = p_geomSvc->getUinStereoPlane(propIDs[j]+1, x_exp, y_exp);
-	  if(!p_geomSvc->isInPlane(propIDs[j]+1, x_exp, y_exp)) continue;
+	  //Get the hits on that plane, in the case of 2 hits if they are not next to each other, skip 
+	  list<int> hitlist = rawEvent->getHitsIndexInDetector(propIDs[j]);
+	  elementID = -1;
+	  double dist_min = 1E6;
+	  for(std::list<int>::iterator iter = hitlist.begin(); iter != hitlist.end(); ++iter)
+	    {
+	      double dist_l = p_geomSvc->getMeasurement(propIDs[j], hitAll[*iter].elementID) + hitAll[*iter].driftDistance - pos_exp; 
+	      double dist_r = p_geomSvc->getMeasurement(propIDs[j], hitAll[*iter].elementID) - hitAll[*iter].driftDistance - pos_exp; 
+	      double dist = fabs(dist_l) < fabs(dist_r) ? fabs(dist_l) : fabs(dist_r);
+	      if(dist < dist_min)
+		{
+		  dist_min = dist;
+		  pos = fabs(dist_l) < fabs(dist_r) ? dist_l + pos_exp : dist_r + pos_exp;
+		  elementID = hitAll[*iter].elementID;
+		}
+	    }
 
-	  propID = hitAll[hit_pairs.front().second].detectorID;
-	  elementID = hitAll[hit_pairs.front().second].elementID;     
-	  moduleID = Int_t((elementID-1)/8);                //Need to re-define moduleID for run2
-	  res = pos_exp - hitAll[hit_pairs.front().second].pos;//p_geomSvc->getMeasurement(propID, elementID);
-	  hist[j][moduleID]->Fill(res);
-	  saveTree->Fill();
+	  if(elementID > 0)
+	    {
+	      saveTree->Fill();
+
+	      int histID = (propID - 41)/2;
+	      int moduleID = 8 - int(elementID - 1)/8;
+	      if(fabs(pos_exp - pos) < 5.08) hists[histID][moduleID]->Fill(pos_exp - pos);
+	    }
 	}
 
       rawEvent->clear();
       tracklets->Clear();
     }
 
-  //Process the residual hists, use linear fit to extrapolate
-  for(int i = 0; i < nProps; i++)
+  //Extract center values
+  for(int i = 0; i < 4; ++i)
     {
-      double x[9], y[9], w[9];
-      for(int j = 0; j < 9; j++)
+      for(int j = 0; j < 9; ++j)
 	{
-	  //NOTE: the original plane offset is already added here
-	  offset[i][j] = findCenter(hist[i][j]) + p_geomSvc->getPlaneWOffset(propIDs[i], j);
-	  if(offset[i][j] < 100.)
-	    {
-	      x[nEffective[i]] = j;
-	      y[nEffective[i]] = offset[i][j];
-	      w[nEffective[i]] = hist[i][j]->GetEntries();
-
-	      ++nEffective[i];
-	    }
+	  offsets[i][j] = findCenter(hists[i][j]);
+	  cout << i << "  " << j << "  " << hists[i][j]->GetTitle() << "  " << offsets[i][j] << endl;
 	}
-
-      linearFit(x, y, w, nEffective[i], a[i], b[i]);
+      cout << endl;
     }
 
-  //Output alignment numbers to txt file
-  ofstream fout(argv[3], ios::out);
-  for(int i = 0; i < nProps; i++)
+  double offsets_corr[4][9];
+  for(int i = 0; i < 4; ++i)
     {
-      cout << " === " << p_geomSvc->getDetectorName(propIDs[i]) << " === " << endl;
-      cout << " = " << nEffective[i] << "  " << a[i] << "  " << b[i] << endl;
-      
-      double x_real[9], x_ext[9];
-      double y_real[9], y_ext[9];
-      int n_real = 0;
-      int n_ext = 0;
-      for(int j = 0; j < 9; j++)
+      double a, b;
+      linearFit(offsets[i], a, b);
+      for(int j = 0; j < 9; ++j)
 	{
-	  if(offset[i][j] > 100.) 
+	  if(offsets[i][j] > -100.)
 	    {
-	      offset[i][j] = a[i]*j + b[i];
-              x_ext[n_ext] = j;
-	      y_ext[n_ext] = offset[i][j];
-	      n_ext++;
-	      cout << "Extrapolated!  "; 
+	      offsets_corr[i][j] = offsets[i][j] + p_geomSvc->getPlaneWOffset(propIDs[2*i], j);
 	    }
 	  else
 	    {
-	      x_real[n_real] = j;
-	      y_real[n_real] = offset[i][j];
-	      n_real++;
+	      offsets_corr[i][j] = a*(j+1) + b + p_geomSvc->getPlaneWOffset(propIDs[2*i], j);
 	    }
-	  cout << p_geomSvc->getDetectorName(propIDs[i]) << "  " << j << "  " << hist[i][j]->GetEntries() << "  " << offset[i][j] << endl;
-	  fout << offset[i][j] << endl;
+
+	  cout << i << "  " << j << "  " << hists[i][j]->GetTitle() << "  " << offsets_corr[i][j] << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
+	  //cout << i << "  " << j << "  " << propIDs[2*j] << "  " << p_geomSvc->getDetectorName(propIDs[2*j]) << "  " << hists[i][j]->GetTitle() << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
 	}
-
-      //Make plots
-      /*
-      TF1 line("line", "[0] + [1]*x", -1, 9);
-      line.SetParameter(0, b[i]);
-      line.SetParameter(1, a[i]);
-
-      line.SetLineWidth(2);
-      line.SetLineStyle(kDashed);
-
-      TGraph gr_real(n_real, x_real, y_real);
-      TGraph gr_ext(n_ext, x_ext, y_ext);
-
-      gr_real.SetMarkerColor(kRed);
-      gr_real.SetMarkerStyle(8);
-      gr_ext.SetMarkerColor(kBlue);
-      gr_ext.SetMarkerStyle(4);
-
-      TCanvas c;
-      c.cd();
-      line.Draw();
-      line.GetYaxis()->SetRangeUser(-3., 3.);
-      c.Update();
-      gr_ext.Draw("P same");
-      gr_real.Draw("P same");
-      c.SaveAs(p_geomSvc->getDetectorName(propIDs[i]).c_str());
-      */
+      cout << endl;
     }
 
-  //Save temporary results to ROOT file
+  ofstream fout(argv[2], ios::out);
+  for(int i = 0; i < 4; ++i)
+    {
+      for(int j = 0; j < 9; ++j)
+	{
+	  fout << offsets_corr[i][j] << endl;
+	}
+    }
+
   saveFile->cd();
   saveTree->Write();
-  for(int i = 0; i < nProps; i++)
+  for(int i = 0; i < 4; ++i)
     {
-      for(int j = 0; j < 9; j++)
+      for(int j = 0; j < 9; ++j)
 	{
-	  hist[i][j]->Write();
+	  hists[i][j]->Write();
 	}
     }
   saveFile->Close();
+
+
+  /*
+  TCanvas* c1 = new TCanvas();
+  c1->Divide(4, 4);
+  for(int i = 0; i < nHodos; ++i)
+    {
+      c1->cd(i+1);
+      hist_all[i]->Draw();
+
+      double y_max = hist_all[i]->GetBinContent(hist_all[i]->GetMaximumBin());
+      TArrow* ar_center = new TArrow(offset_all[i], y_max, offset_all[i], 0., 0.01, ">");
+      TArrow* ar_left = new TArrow(offset_all[i] - 0.5*spacing[i], y_max, offset_all[i] - 0.5*spacing[i], 0., 0.01, ">");
+      TArrow* ar_right = new TArrow(offset_all[i] + 0.5*spacing[i], y_max, offset_all[i] + 0.5*spacing[i], 0., 0.01, ">");
+
+      ar_center->SetLineWidth(2);
+      ar_left->SetLineWidth(2);
+      ar_right->SetLineWidth(2);
+
+      ar_center->SetLineColor(kRed);
+      ar_right->SetLineColor(kBlue);
+      ar_left->SetLineColor(kBlue);
+
+      ar_center->Draw();
+      ar_left->Draw();
+      ar_right->Draw();
+   
+      char content[100];
+      sprintf(content, "Offsets: %f cm", offset_all[i]); 
+      TText* text = new TText();
+      text->DrawTextNDC(0.1, 0.92, content);
+    }
+
+  //Save the temporary results into the ROOT file
+  saveFile->cd();
+  saveTree->Write();
+  c1->Write();
+  for(int i = 0; i < nHodos; i++)
+    {
+      hist_all[i]->Write();
+      for(int j = 0; j < nElement[i]; j++)
+	{
+	  hist[i][j]->Write();
+          //cout << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << j << "  " << hist[i][j]->GetEntries() << "  " << findCenter(hist[i][j]) << endl;
+	}
+    }
+  saveFile->Close();
+  */
 
   return 1;
 }
