@@ -5,6 +5,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class SignedHit+;
+#pragma link C++ class PropSegment+;
 #pragma link C++ class Tracklet;
 
 #endif

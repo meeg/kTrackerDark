@@ -17,6 +17,7 @@ Created: 05-28-2013
 #include "FastTracklet.h"
 
 ClassImp(SignedHit)
+ClassImp(PropSegment)
 ClassImp(Tracklet)
 
 SignedHit::SignedHit()
@@ -39,6 +40,123 @@ SignedHit::SignedHit(Hit hit_input, int sign_input)
 {
   hit = hit_input;
   sign = sign_input;
+}
+
+PropSegment::PropSegment()
+{
+  a = -999.;
+  b = -999.;
+  err_a = 100;
+  err_b = 100;
+  
+  for(int i = 0; i < 4; ++i) hits[i].hit.index = -1;
+
+  chisq = 1E6;
+}
+
+void PropSegment::init()
+{
+  a = -999.;
+  b = -999.;
+  err_a = 100;
+  err_b = 100;
+  
+  for(int i = 0; i < 4; ++i) hits[i].hit.index = -1;
+
+  chisq = 1E6;
+}
+
+int PropSegment::getNHits()
+{
+  int nHits = 0;
+  for(int i = 0; i < 4; ++i)
+    {
+      if(hits[i].hit.index >= 0) ++nHits; 
+    }
+  return nHits;
+}
+
+bool PropSegment::isValid()
+{
+  if(getNHits() < 3) return false;
+  if(chisq > 100.) return false;
+
+  return true;
+}
+
+void PropSegment::fit()
+{
+  if(getNHits() < 3) return;
+  GeomSvc* p_geomSvc = GeomSvc::instance();
+
+  //Sign assignment for 1st and 2nd hits
+  if(hits[0].hit.index > 0 && hits[1].hit.index > 0)
+    {
+      if(hits[0].hit.elementID == hits[1].hit.elementID)
+	{
+	  hits[0].sign = -1;
+	  hits[1].sign = 1;
+	}
+      else 
+	{
+	  hits[0].sign = 1;
+	  hits[1].sign = -1;
+	}
+    }
+
+  //Sign assignment for 3rd and 4th hits
+  if(hits[2].hit.index > 0 && hits[3].hit.index > 0)
+    {
+      if(hits[2].hit.elementID == hits[3].hit.elementID)
+	{
+	  hits[2].sign = -1;
+	  hits[3].sign = 1;
+	}
+      else 
+	{
+	  hits[2].sign = 1;
+	  hits[3].sign = -1;
+	}
+    }
+
+  //A linear fit
+  double sum = 0.;
+  double sx = 0.;
+  double sy = 0.;
+  double sxx = 0.;
+  double syy = 0.;
+  double sxy = 0.;
+
+  double x[4], y[4];
+  for(int i = 0; i < 4; ++i)
+    {
+      if(hits[i].hit.index < 0) continue;
+
+      y[i] = hits[i].pos();
+      x[i] = p_geomSvc->getPlanePosition(hits[i].hit.detectorID);
+
+      ++sum;
+      sx += x[i];
+      sy += y[i];
+      sxx += (x[i]*x[i]);
+      syy += (y[i]*y[i]);
+      sxy += (x[i]*y[i]);
+    }
+
+  double det = sxx - sx*sx;
+  if(fabs(det) < 1E-20) return;
+
+  a = (sxy - sx*sy)/det;
+  b = (sy*sxx - sxy*sx)/det;
+  err_a = sqrt(fabs(sum/det));
+  err_b = sqrt(fabs(sxx/det));
+
+  chisq = 0.;
+  for(int i = 0; i < 4; ++i)
+    {
+      if(hits[i].hit.index < 0) continue;
+      chisq += ((y[i] - a*x[i] -b)*(y[i] - a*x[i] -b));
+    }
 }
 
 Tracklet::Tracklet()

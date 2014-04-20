@@ -44,6 +44,38 @@ public:
   ClassDef(SignedHit, 1)
 };
 
+class PropSegment : public TObject
+{
+public:
+  PropSegment();
+
+  //init -- temporary, only used for tests
+  void init();
+
+  //Quality cut
+  bool isValid();
+
+  //Number of hits
+  int getNHits();
+
+  //Fit the segment -- naive linear fit
+  void fit();
+
+  //track slope the interception
+  double a;
+  double b;
+  double err_a;
+  double err_b;
+
+  //chisq of the segment
+  double chisq;
+
+  //Hit list -- only 4 hits at most
+  SignedHit hits[4];
+
+  ClassDef(PropSegment, 1)
+};
+
 class Tracklet : public TObject
 {
 public:

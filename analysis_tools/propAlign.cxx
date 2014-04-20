@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   dataTree->SetBranchAddress("tracklets", &tracklets);
 
   //Hodoscope IDs
-  double propIDs[8] = {41, 42, 43, 44, 45, 46, 47, 48};
+  int propIDs[8] = {41, 42, 43, 44, 45, 46, 47, 48};
   const int nProps = 8;
 
   //Evaluation tree structure
@@ -187,7 +187,6 @@ int main(int argc, char *argv[])
       for(int j = 0; j < 9; ++j)
 	{
 	  offsets[i][j] = findCenter(hists[i][j]);
-	  cout << i << "  " << j << "  " << hists[i][j]->GetTitle() << "  " << offsets[i][j] << endl;
 	}
       cout << endl;
     }
@@ -208,7 +207,7 @@ int main(int argc, char *argv[])
 	      offsets_corr[i][j] = a*(j+1) + b + p_geomSvc->getPlaneWOffset(propIDs[2*i], j);
 	    }
 
-	  cout << i << "  " << j << "  " << hists[i][j]->GetTitle() << "  " << offsets_corr[i][j] << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
+	  cout << i << "  " << j << "  " << hists[i][j]->GetTitle() << "  " << offsets[i][j] << "  " << offsets_corr[i][j] << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
 	  //cout << i << "  " << j << "  " << propIDs[2*j] << "  " << p_geomSvc->getDetectorName(propIDs[2*j]) << "  " << hists[i][j]->GetTitle() << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
 	}
       cout << endl;
