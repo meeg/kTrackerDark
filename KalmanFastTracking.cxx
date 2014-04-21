@@ -101,7 +101,6 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   stationIDs_mask[5].push_back(2);
   stationIDs_mask[5].push_back(3);
   stationIDs_mask[5].push_back(4);
-  stationIDs_mask[5].push_back(5);
 
   //prop. tube IDs for mu id
   detectorIDs_muid[0][0] = 43;
@@ -269,7 +268,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 #endif
 
   //Initialize hodo and masking IDs
-  for(int i = 0; i < 5; i++)
+  for(int i = 0; i < 4; i++)
     {
       //std::cout << "For station " << i << std::endl;
       hitIDs_mask[i].clear();
@@ -968,7 +967,7 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
       segs[i]->init();
       for(int j = 0; j < 4; ++j)
 	{
-	  int index = detectorIDs_muid[i][j] - 41;
+	  int index = detectorIDs_muid[i][j] - 25;
 	  double x_exp = tracklet.getExpPositionX(z_mask[index]);
 	  double y_exp = tracklet.getExpPositionY(z_mask[index]);
 	  double pos_exp = p_geomSvc->getInterceptionFast(index, x_exp, y_exp);
