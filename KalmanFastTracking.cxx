@@ -281,7 +281,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
   //Initialize prop. tube IDs
   for(int i = 0; i < 2; ++i)
     {
-      for(int j = 0; j < 7; ++j)
+      for(int j = 0; j < 4; ++j)
 	{
 	  hitIDs_muid[i][j].clear();
 	  hitIDs_muid[i][j] = rawEvent->getHitsIndexInDetector(detectorIDs_muid[i][j]);
@@ -970,9 +970,9 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
 	  int index = detectorIDs_muid[i][j] - 25;
 	  double x_exp = tracklet.getExpPositionX(z_mask[index]);
 	  double y_exp = tracklet.getExpPositionY(z_mask[index]);
-	  double pos_exp = p_geomSvc->getInterceptionFast(index, x_exp, y_exp);
+	  double pos_exp = p_geomSvc->getInterceptionFast(detectorIDs_muid[i][j], x_exp, y_exp);
 
-	  if(!p_geomSvc->isInPlane(index, x_exp, y_exp)) continue;
+	  if(!p_geomSvc->isInPlane(detectorIDs_muid[i][j], x_exp, y_exp)) continue;
 
 	  double dist_min = 1E6;
 	  for(std::list<int>::iterator iter = hitIDs_muid[i][j].begin(); iter != hitIDs_muid[i][j].end(); ++iter)
@@ -996,7 +996,7 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
 	}
       
       segs[i]->fit();
-      if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < 0.015)) return false;
+      if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < 0.03)) return false;
     }
 
   return true;
