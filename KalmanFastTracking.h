@@ -52,6 +52,7 @@ public:
 
   //Check the quality of tracklet, number of hits
   bool acceptTracklet(Tracklet& tracklet);
+  bool muonID(Tracklet& tracklet);
 
   //Resolve left-right when possible
   void resolveLeftRight(SRawEvent::hit_pair hpair, int& LR1, int& LR2);
@@ -99,12 +100,16 @@ private:
   std::list<KalmanTrack> tracks;
 
   ///Configurations of tracklet finding
-  //Hodo. IDs and prop. tube IDs for masking
-  std::vector<int> detectorIDs_mask[5];
-  std::vector<int> detectorIDs_maskX[5];
-  std::vector<int> detectorIDs_maskY[5];
-  std::list<int> hitIDs_mask[5]; //hits in T/B, L/R are combined
+  //Hodo. IDs for masking
+  std::vector<int> detectorIDs_mask[4];
+  std::vector<int> detectorIDs_maskX[4];
+  std::vector<int> detectorIDs_maskY[4];
+  std::list<int> hitIDs_mask[4]; //hits in T/B, L/R are combined
   std::vector<int> stationIDs_mask[6];
+
+  //prop. tube IDs for MUID -- 0 for x-z, 1 for y-z
+  int detectorIDs_muid[2][4];
+  std::list<int> hitIDs_muid[2][4];
 
   //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
   double z_mask[24];

@@ -85,10 +85,6 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   detectorIDs_maskY[2] = p_geomSvc->getDetectorIDs("H4Y1[LR]"); 
   detectorIDs_maskY[3] = p_geomSvc->getDetectorIDs("H4Y2[LR]"); 
 
-  detectorIDs_mask[4] = p_geomSvc->getDetectorIDs("P[12]");
-  detectorIDs_maskX[4] = p_geomSvc->getDetectorIDs("P[12]X");
-  detectorIDs_maskY[4] = p_geomSvc->getDetectorIDs("P[12]Y");
-
   //Masking stations for tracklets in station-1, 2, 3+/-
   stationIDs_mask[0].push_back(1);
   stationIDs_mask[1].push_back(2);
@@ -99,7 +95,6 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   stationIDs_mask[4].push_back(2);
   stationIDs_mask[4].push_back(3);
   stationIDs_mask[4].push_back(4);
-  stationIDs_mask[4].push_back(5);
 
   //Masking stations for global track
   stationIDs_mask[5].push_back(1);
@@ -108,19 +103,32 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   stationIDs_mask[5].push_back(4);
   stationIDs_mask[5].push_back(5);
 
-  //Initialize masking window sizes, with 10% contingency
+  //prop. tube IDs for mu id
+  detectorIDs_muid[0][0] = 43;
+  detectorIDs_muid[0][1] = 44;
+  detectorIDs_muid[0][2] = 45;
+  detectorIDs_muid[0][3] = 46;
+  detectorIDs_muid[1][0] = 41;
+  detectorIDs_muid[1][1] = 42;
+  detectorIDs_muid[1][2] = 47;
+  detectorIDs_muid[1][3] = 48;
+
+  //Initialize masking window sizes, with 15% contingency, for station-2, increase that to 20%
   for(int i = 25; i <= 48; i++)
     {
+      double factor = 0.15;
+      if(i > 28 && i < 33) factor = 0.2; //for station-2
+
       z_mask[i-25] = p_geomSvc->getPlanePosition(i);
       for(int j = 1; j <= p_geomSvc->getPlaneNElements(i); j++)
 	{
 	  double x_min, x_max, y_min, y_max;
 	  p_geomSvc->get2DBoxSize(i, j, x_min, x_max, y_min, y_max);
 	  
-	  x_min -= (0.15*(x_max - x_min));
-	  x_max += (0.15*(x_max - x_min));
-	  y_min -= (0.15*(y_max - y_min));
-	  y_max += (0.15*(y_max - y_min));
+	  x_min -= (factor*(x_max - x_min));
+	  x_max += (factor*(x_max - x_min));
+	  y_min -= (factor*(y_max - y_min));
+	  y_max += (factor*(y_max - y_min));
 
 	  x_mask_min[i-25][j-1] = x_min;
 	  x_mask_max[i-25][j-1] = x_max;
@@ -260,7 +268,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
   for(std::vector<Hit>::iterator iter = hitAll.begin(); iter != hitAll.end(); ++iter) iter->print();
 #endif
 
-  //Initialize hodo and prop. tube masking IDs
+  //Initialize hodo and masking IDs
   for(int i = 0; i < 5; i++)
     {
       //std::cout << "For station " << i << std::endl;
@@ -269,6 +277,16 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
       //for(std::list<int>::iterator iter = hitIDs_mask[i].begin(); iter != hitIDs_mask[i].end(); ++iter) std::cout << *iter << " " << hitAll[*iter].detectorID << " === ";
       //std::cout << std::endl;
+    }
+
+  //Initialize prop. tube IDs
+  for(int i = 0; i < 2; ++i)
+    {
+      for(int j = 0; j < 7; ++j)
+	{
+	  hitIDs_muid[i][j].clear();
+	  hitIDs_muid[i][j] = rawEvent->getHitsIndexInDetector(detectorIDs_muid[i][j]);
+	}
     }
 
   //Initialize tracklet lists
@@ -375,7 +393,6 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[1]) > 10) return false;
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[2]) > 10) return false;
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[3]) > 10) return false;
-  //prop tube hits less than 250...
   
   return true;
 }
@@ -931,12 +948,58 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 #endif
   if(nHodoHits < nMinimum) return false;
 
+  //For back partials, require projection inside KMAG, and muon id in prop. tubes
   if(tracklet.stationID > 4)
     {
       if(!p_geomSvc->isInKMAG(tracklet.getExpPositionX(Z_KMAG_BEND), tracklet.getExpPositionY(Z_KMAG_BEND))) return false;
+      if(!muonID(tracklet)) return false;
     }
 
   //If everything is fine ...
+  return true;
+}
+
+bool KalmanFastTracking::muonID(Tracklet& tracklet)
+{
+  double slope[2] = {tracklet.tx, tracklet.ty};
+  PropSegment* segs[2] = {&(tracklet.seg_x), &(tracklet.seg_y)};
+  for(int i = 0; i < 2; ++i)
+    {
+      segs[i]->init();
+      for(int j = 0; j < 4; ++j)
+	{
+	  int index = detectorIDs_muid[i][j] - 41;
+	  double x_exp = tracklet.getExpPositionX(z_mask[index]);
+	  double y_exp = tracklet.getExpPositionY(z_mask[index]);
+	  double pos_exp = p_geomSvc->getInterceptionFast(index, x_exp, y_exp);
+
+	  if(!p_geomSvc->isInPlane(index, x_exp, y_exp)) continue;
+
+	  double dist_min = 1E6;
+	  for(std::list<int>::iterator iter = hitIDs_muid[i][j].begin(); iter != hitIDs_muid[i][j].end(); ++iter)
+	    {
+	      double pos = hitAll[*iter].pos;
+	      if(fabs(pos - pos_exp) > 5.08) continue;
+
+	      double dist_l = fabs(pos - hitAll[*iter].driftDistance - pos_exp);
+	      double dist_r = fabs(pos + hitAll[*iter].driftDistance - pos_exp);
+	      double dist = dist_l < dist_r ? dist_l : dist_r;
+	      if(dist < dist_min)
+		{
+		  dist_min = dist;
+		  if(dist < 2.54)
+		    {
+		      segs[i]->hits[j].hit = hitAll[*iter];
+		      segs[i]->hits[j].sign = fabs(pos - hitAll[*iter].driftDistance - pos_exp) < fabs(pos + hitAll[*iter].driftDistance - pos_exp) ? -1 : 1;
+		    }
+		}
+	    }
+	}
+      
+      segs[i]->fit();
+      if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < 0.015)) return false;
+    }
+
   return true;
 }
 

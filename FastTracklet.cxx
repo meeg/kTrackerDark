@@ -79,7 +79,7 @@ int PropSegment::getNHits()
 bool PropSegment::isValid()
 {
   if(getNHits() < 3) return false;
-  if(chisq > 100.) return false;
+  if(chisq > 5.) return false;
 
   return true;
 }
@@ -132,7 +132,7 @@ void PropSegment::fit()
     {
       if(hits[i].hit.index < 0) continue;
 
-      y[i] = hits[i].pos()*p_geomSvc->getCostheta(hits[i].hit.detectorID);
+      y[i] = hits[i].pos();
       x[i] = p_geomSvc->getPlanePosition(hits[i].hit.detectorID);
 
       ++sum;

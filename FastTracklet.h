@@ -159,6 +159,10 @@ public:
   //List of signed hits
   std::list<SignedHit> hits;
 
+  //Corresponding prop. tube segments
+  PropSegment seg_x;
+  PropSegment seg_y;
+
   //Slope, intersection, momentum and their errors
   double tx;
   double ty;
@@ -175,7 +179,7 @@ public:
   //Residuals of all pos
   double residual[24];
 
-  ClassDef(Tracklet, 2)
+  ClassDef(Tracklet, 3)
 };
 
 
