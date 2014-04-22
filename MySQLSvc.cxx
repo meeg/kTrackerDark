@@ -240,19 +240,12 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       
       if(p_geomSvc->isCalibrationLoaded())
 	{
-	  if(h.detectorID >= 1 && h.detectorID <= 24)
+	  if((h.detectorID >= 1 && h.detectorID <= 24) || (h.detectorID >= 41))
 	    {
 	      h.inTime = p_geomSvc->isInTime(h.detectorID, h.tdcTime) ? 1 : 0;
 	      if(h.inTime > 0) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
 	    }	  
 	}
-      
-      //Temporary ugly solution -- to correct prop. tube inTime flag 
-      if(h.detectorID > 40 && h.inTime == 0)
-	{
-	  h.inTime = h.tdcTime > 450. && h.tdcTime < 1100. ? 1 : 0;
-	}
-
       rawEvent->insertHit(h);
     }
   rawEvent->reIndex();
