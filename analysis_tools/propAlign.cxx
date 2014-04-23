@@ -208,7 +208,6 @@ int main(int argc, char *argv[])
 	    }
 
 	  cout << i << "  " << j << "  " << hists[i][j]->GetTitle() << "  " << offsets[i][j] << "  " << offsets_corr[i][j] << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
-	  //cout << i << "  " << j << "  " << propIDs[2*j] << "  " << p_geomSvc->getDetectorName(propIDs[2*j]) << "  " << hists[i][j]->GetTitle() << "  " << p_geomSvc->getPlaneWOffset(propIDs[2*i], j) << endl;
 	}
       cout << endl;
     }

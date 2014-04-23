@@ -385,14 +385,14 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
 #endif
 
   if(rawEvent->getNHitsInD1() > 200) return false;
-  if(rawEvent->getNHitsInD2() > 150) return false;
+  if(rawEvent->getNHitsInD2() > 100) return false;
   if(rawEvent->getNHitsInD3p() > 100) return false;
   if(rawEvent->getNHitsInD3m() > 100) return false;
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[0]) > 15) return false;
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[1]) > 10) return false;
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[2]) > 10) return false;
   if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[3]) > 10) return false;
-  
+  if(rawEvent->getNPropHitsAll() > 250) return false;  
   return true;
 }
 
