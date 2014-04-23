@@ -27,7 +27,7 @@
 //#define LOAD_ONLINE_ALIGNMENT
 
 //--------------- Geometry version ---------------
-#define GEOMETRY_VERSION "geometry_R1124_run2"
+#define GEOMETRY_VERSION "geometry_G1_run2"
 
 //-------------- SQL database --------------------
 #define MYSQL_SERVER_ADDR "localhost"
@@ -86,11 +86,11 @@
 #define FMAG_HOLE_RADIUS 1.27
 #define FMAG_LENGTH 502.92
 #define NSLICES_FMAG 100
-#define NSTEPS_TARGET 100
+#define NSTEPS_TARGET 200
 #define ELOSS_CORR 0.95
 #define ELOSS_FMAG 7.3971
 #define ELOSS_FMAG_RAD 0.0078
-#define Z_UPSTREAM -250.
+#define Z_UPSTREAM -500.
 #define Z_DOWNSTREAM 500.
 
 //-------------- Useful marcros -----------------
