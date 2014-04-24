@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
       mixEvent->insertTrack(mtracks[id2]); mflags[id2] = -1;
 
       saveTree->Fill();
-      recEvent->clear();
+      mixEvent->clear();
     }
 
   saveFile->cd();
