@@ -112,16 +112,6 @@ bool SRecTrack::isVertexValid()
   return true;
 }
 
-bool SRecTrack::isHodoMasked()
-{
-  for(Int_t i = 0; i < 3; i++)
-    {
-      if(fNHodoHits[i] < 1) return false;
-    }
-
-  return true;
-}
-
 Int_t SRecTrack::getNearestNode(Double_t z)
 {
   Int_t nNodes = getNHits();
@@ -235,9 +225,6 @@ bool SRecTrack::isValid()
 
   //Total chisq, may change to cut on prob
   if(getChisq() > 20.) return false;
-
-  //hodo and prop. tube masking
-  if(!isHodoMasked()) return false;
 
   return true;
 }
@@ -399,9 +386,6 @@ void SRecTrack::print()
   std::cout << "This candidate has " << fHitIndex.size() << " hits!" << std::endl;
   std::cout << "Most upstream momentum is: " << 1./fabs((fState[0])[0][0]) << std::endl;
   std::cout << "Chi square of the track is: " << fChisq << std::endl;
-
-  std::cout << "Hodoscope hits: " << std::endl;
-  for(Int_t i = 0; i < 3; i++) std::cout << "Station " << i+1 << ": " << fNHodoHits[i] << std::endl;
 
   std::cout << "Current vertex position: " << std::endl;
   for(Int_t i = 0; i < 3; i++) std::cout << fVertexPos[i] << "  ";

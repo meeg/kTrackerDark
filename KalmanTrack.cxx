@@ -966,7 +966,6 @@ SRecTrack KalmanTrack::getSRecTrack()
     }
 
   _strack.swimToVertex();
-  _strack.setHodoHits();
   return _strack;
 }
 

@@ -72,7 +72,6 @@ bool SMillepede::acceptTrack(SRecTrack& recTrack)
   if(recTrack.getNHits() < MILLEPEDE::NHITSMIN) return false;
   if(recTrack.getChisq() > MILLEPEDE::CHISQMAX) return false;
   if(recTrack.getMomentumSt1() < MILLEPEDE::MOMMIN) return false;
-  //if(!recTrack.isHodoMasked()) return false;
 
   return true;
 }

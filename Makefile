@@ -63,9 +63,6 @@ KONLINETRACK    = kOnlineTracking
 KVERTEXO      = kVertex.o 
 KVERTEX       = kVertex
 
-KVERTEXMO     = kVertex_mix.o 
-KVERTEXM      = kVertex_mix
-
 MILLEALIGNO   = milleAlign.o
 MILLEALIGN    = milleAlign
 
@@ -79,7 +76,7 @@ CLASSOBJS     = $(GEOMSVCO) $(SRAWEVENTO) $(SRECEVENTO) $(KALMANUTILO) $(KALMANF
 ALIGNOBJS     = $(SMPUTILO) $(SMILLEPEDEO) $(MILLEPEDEO)
 OBJS          = $(CLASSOBJS) $(ALIGNOBJS) $(KVERTEXO) $(KTRACKERMULO) $(KSEEDERO) $(KVERTEXMO) $(KFASTTRACKO) $(KONLINETRACKO) $(MILLEALIGNO)
 SLIBS         = $(KTRACKERSO) $(SRAWEVENTSO)
-PROGRAMS      = $(KVERTEX) $(KVERTEXM) $(MILLEALIGN) $(KFASTTRACK) $(KONLINETRACK)
+PROGRAMS      = $(KVERTEX) $(MILLEALIGN) $(KFASTTRACK) $(KONLINETRACK)
 
 all:            $(PROGRAMS) $(SLIBS)
 
@@ -96,10 +93,6 @@ $(SRAWEVENTSO):  $(SRAWEVENTO)
 	$(LD) $^ -o $@  $(SOFLAGS) $(LDFLAGS)
 	@echo "$@ done."
 
-$(KSEEDER):   $(KSEEDERO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $^ -o $@ $(LDFLAGS) 
-	@echo "$@ done."
-
 $(KTRACKERMUL):   $(KTRACKERMULO) $(CLASSOBJS) $(TRKEXTOBJS)
 	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
@@ -113,10 +106,6 @@ $(KONLINETRACK):   $(KONLINETRACKO) $(CLASSOBJS) $(TRKEXTOBJS)
 	@echo "$@ done."
 
 $(KVERTEX):   $(KVERTEXO) $(CLASSOBJS) $(TRKEXTOBJS)
-	$(LD) $^ -o $@ $(LDFLAGS) 
-	@echo "$@ done."
-
-$(KVERTEXM):   $(KVERTEXMO) $(CLASSOBJS) $(TRKEXTOBJS)
 	$(LD) $^ -o $@ $(LDFLAGS) 
 	@echo "$@ done."
 

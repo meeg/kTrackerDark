@@ -42,8 +42,6 @@ public:
   Int_t getNHits() { return fHitIndex.size(); }
   Double_t getChisq() { return fChisq; }
   Double_t getQuality() { return (Double_t)getNHits() - 0.4*getChisq(); }
-  bool isHodoMasked();
-  Int_t getNHodoHits(Int_t i) { return fNHodoHits[i]; }
 
   Int_t getHitIndex(Int_t i) { return fHitIndex[i]; }
   TMatrixD getStateVector(Int_t i) { return fState[i]; }
@@ -81,8 +79,6 @@ public:
 
   ///Sets
   void setChisq(Double_t chisq) { fChisq = chisq; }
-  void setHodoHits(Int_t hodoHits[]) { for(Int_t i = 0; i < 3; i++) fNHodoHits[i] = hodoHits[i]; }
-  void setHodoHits() { for(Int_t i = 0; i < 3; i++) fNHodoHits[i] = 1; }
   void insertHitIndex(Int_t index) { fHitIndex.push_back(index); }
   void insertStateVector(TMatrixD state) { fState.push_back(state); }
   void insertCovariance(TMatrixD covar) { fCovar.push_back(covar); }

@@ -632,7 +632,6 @@ SRecTrack Tracklet::getSRecTrack()
     }
 
   strack.swimToVertex();
-  strack.setHodoHits();
   return strack;
 }
 

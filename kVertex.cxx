@@ -33,24 +33,15 @@ int main(int argc, char *argv[])
 
   //Retrieve the raw event
   LogInfo("Retrieving the event stored in ROOT file ... ");
-#ifdef MC_MODE
-  SRawMCEvent* rawEvent = new SRawMCEvent();
-#else
-  SRawEvent* rawEvent = new SRawEvent();
-#endif
   SRecEvent* recEvent = new SRecEvent();
 
   TFile* dataFile = new TFile(argv[1], "READ");
   TTree* dataTree = (TTree*)dataFile->Get("save");
 
-  dataTree->SetBranchAddress("rawEvent", &rawEvent);
   dataTree->SetBranchAddress("recEvent", &recEvent);
 
   TFile* saveFile = new TFile(argv[2], "recreate");
-  TTree* saveTree = new TTree("save", "save");
-
-  saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
-  saveTree->Branch("recEvent", &recEvent, 256000, 99);
+  TTree* saveTree = dataTree->CloneTree(0);
   
   //Initialize track finder
   LogInfo("Initializing the track finder and kalman filter ... ");
@@ -64,13 +55,12 @@ int main(int argc, char *argv[])
   for(int i = 0; i < nEvtMax; i++)
     {
       dataTree->GetEntry(i);
-      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
+      cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
       cout << (i + 1)*100/nEvtMax << "% finished .. ";
 
       vtxfit->setRecEvent(recEvent);
 
       if(recEvent->getNDimuons() > 0) saveTree->Fill();
-      rawEvent->clear();
       recEvent->clear();
     }
   cout << endl;
