@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
   //Initialize geometry service
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init(GEOMETRY_VERSION);
+  geometrySvc->init();
   geometrySvc->loadCalibration("calibration.txt");
 
   //Initialize MySQL service and connect to database, e906-db1 by default

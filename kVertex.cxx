@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   //Initialize geometry service
   LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init(GEOMETRY_VERSION);
+  geometrySvc->init();
 
   //Retrieve the raw event
   LogInfo("Retrieving the event stored in ROOT file ... ");

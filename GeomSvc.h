@@ -19,16 +19,13 @@ Updated by Kun Liu on 07-03-2012
 #ifndef _GEOMSVC_H
 #define _GEOMSVC_H
 
-#include "MODE_SWITCH.h"
-
-#include <iostream>
 #include <vector>
 #include <string>
 #include <map>
-#include <algorithm>
 
-#include <TVector3.h>
-#include <TSpline.h>
+//forward declare
+class TVector3;
+class TSpline3;
 
 class Plane
 {
@@ -119,10 +116,10 @@ public:
   static GeomSvc* instance();
 
   ///Initialization, either from MySQL or from ascii file
-  void init(std::string geometrySchema);
-  void loadCalibration(std::string calibrateFile);
-  void loadAlignment(std::string alignmentFile_chamber, std::string alignmentFile_hodo, std::string alignmentFile_prop);
-  void loadMilleAlignment(std::string alignmentFile_mille);
+  void init( );
+  void loadCalibration(const std::string& calibrateFile);
+  void loadAlignment(const std::string& alignmentFile_chamber, const std::string& alignmentFile_hodo, const std::string& alignmentFile_prop);
+  void loadMilleAlignment(const std::string& alignmentFile_mille);
 
   ///Close the geometry service before exit or starting a new one
   void close();
@@ -215,6 +212,9 @@ private:
 
   //Mapping to wire position
   std::map<std::pair<int, int>, double> map_wirePosition;
+
+  //job options service
+  JobOptsSvc *jobOptsSvc;
 
   //singleton pointor 
   static GeomSvc* p_geometrySvc;

@@ -31,7 +31,7 @@ public:
   void close();
 
   ///Real constructor
-  KalmanFilter(bool limitedStep = true);
+  KalmanFilter( );
 
   ///Kalman filter steps
   bool predict(Node& _node);

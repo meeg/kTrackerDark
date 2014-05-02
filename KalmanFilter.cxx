@@ -34,9 +34,9 @@ void KalmanFilter::close()
     }
 }
 
-KalmanFilter::KalmanFilter(bool limitedStep)
+KalmanFilter::KalmanFilter( )
 {
-  _extrapolator.init(GEOMETRY_VERSION);
+  _extrapolator.init( );
 }
 
 bool KalmanFilter::fit_node(Node& _node)
