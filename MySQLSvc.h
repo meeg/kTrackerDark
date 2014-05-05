@@ -22,10 +22,11 @@ Created: 2013.9.29
 #include <TVector3.h>
 #include <TLorentzVector.h>
 
-#include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "FastTracklet.h"
 #include "TriggerAnalyzer.h"
+
+class GeomSvc;
 
 //#define OUT_TO_SCREEN
 //#define USE_M_TABLES
@@ -37,8 +38,9 @@ public:
   ~MySQLSvc();
   static MySQLSvc* instance();
   
-  //Connect to the server
-  bool connect(std::string sqlServer = MYSQL_SERVER_ADDR, int serverPort = MYSQL_SERVER_PORT);
+  //! Connect to the server
+  //! Take defaults from job options
+  bool connect(const std::string sqlServer = "", int serverPort = -1);
 
   //Set username/password
   void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }

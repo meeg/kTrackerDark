@@ -1,10 +1,13 @@
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
+#include <algorithm>
 
 #include <TSQLServer.h>
 #include <TSQLResult.h>
 #include <TSQLRow.h>
 
+#include "kTrackerServices/JobOptsSvc.h"
 #include "TriggerAnalyzer.h"
 
 #define REQUIRE_TB
@@ -48,7 +51,8 @@ bool TriggerAnalyzer::init(std::string schemaName)
 	  "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
   
   char serverName[200];
-  sprintf(serverName, "mysql://%s:%d", MYSQL_SERVER_ADDR, MYSQL_SERVER_PORT);
+  JobOptsSvc *jobOpts = JobOptsSvc::instance();
+  sprintf(serverName, "mysql://%s:%d", jobOpts->m_mySQLServer.c_str(), jobOpts->m_mySQLPort );
   TSQLServer* server = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
   if(server == NULL) return false;
 

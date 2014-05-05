@@ -3,57 +3,46 @@ Version 05/12/2008
 Larry Isenhower modified by Aldo Raeliarijaona
 */
 #include "Field.hh"
+#include "Settings.hh"
+#include <fstream>
+#include <cstdlib>
+#include <cstdio>
+#include <unistd.h>
 #include "../MODE_SWITCH.h"
+#include "../kTrackerServices/JobOptsSvc.h"
+
+#include "TabulatedField3D.hh"
+
+using namespace std;
 
 Field::Field(Settings* settings)
 {
   mySettings = settings;
   if (settings->asciiFieldMap)
   {
-    char *gmcroot, *filepath=new char[300], *originalpath, *buf=new char[300];
-    long size;
-    FILE * filecheck;
     bool errorFlag = true;
 
     cout << "Preparing to read magnetic field map file...\n"; 
 
-    // get path name for directory in which to look for the field map file
-    gmcroot = (char *)getenv("GMCROOT");
-
-    size = 1000;
-    originalpath = getcwd(buf, size);   
-
-    filepath = new char[300];
-    sprintf(filepath,"%s/TrackExtrapolator", KTRACKER_ROOT);
-      
-    if(filepath[0] != (char)NULL)
+    JobOptsSvc *jobOpts = JobOptsSvc::instance();
+    FILE *filecheck = fopen(jobOpts->m_fMagFile.c_str(), "r");
+    if(filecheck != NULL)
     {
-      if(!chdir(filepath))
-      {
-        filecheck = fopen(mySettings->fMagName,"r");
-        if(filecheck != NULL)
-        {
-          errorFlag = false;
-	  fclose(filecheck);
-	  cout << "Reading field maps..." << endl;
-	  //                             zOffset, nx, ny, nz, fmag, settings
-	  Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
-	  Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
-        }
-	else
-	  cout << "File not found!" << endl;
-      }
-      else
-        cout << "Failed to find directory for magnetic field maps" << endl;
+      errorFlag = false;
+      fclose(filecheck);
+      cout << "Reading field maps..." << endl;
+      //                             zOffset, nx, ny, nz, fmag, settings
+      Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
+      Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
     }
-   
+    else
+      cout << "File not found!" << endl; //todo: make this a useful error and quit
+
     // This exception prevents an error by keeping physiWorld from trying 
     // to acces a world volume if no file input was read
     if(errorFlag)
       cout << "No magnetic field input file found! \nPlease check your field map file location and your GMCROOT environment variable." << endl;
-   
-   // Move back to original working directory
-    chdir(originalpath);
+
   }
   else // if reading in field map from MySQL
   {

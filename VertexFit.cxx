@@ -38,7 +38,7 @@ VertexFit::VertexFit()
 
   _kmfit = KalmanFilter::instance();
   _kmfit->enableDumpCorrection();
-  _extrapolator.init(GEOMETRY_VERSION);
+  _extrapolator.init();
   
   ///Single track finding doesn't require a propagation matrix
   _extrapolator.setPropCalc(false);

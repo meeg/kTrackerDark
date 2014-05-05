@@ -43,7 +43,7 @@ public:
   ~TrackExtrapolator();
 
   ///Initialize geometry and physics
-  bool init(std::string geometrySchema);
+  bool init( );
 
   ///Set input initial state parameters
   void setInitialStateWithCov(double z_in, TMatrixD& state_in, TMatrixD& cov_in);

@@ -4,29 +4,28 @@
 
 using namespace std;
 
-void printMatrix(const TMatrixD& m, std::string str)
+void printMatrix(const TMatrixD& m, string str)
 {  
   int nRow = m.GetNrows();
   int nCol = m.GetNcols();
-  
-  std::cout << "Printing the content of matrix: " << str << std::endl;  
-  std::cout << "The matrix has " << nRow << " rows and " << nCol << " columns." << std::endl;
+
+  cout << "Printing the content of matrix: " << str << endl;  
+  cout << "The matrix has " << nRow << " rows and " << nCol << " columns." << endl;
   for(int i = 0; i < nRow; i++)
+  {
+    cout << "Line " << i << ":  "; 
+    for(int j = 0; j < nCol; j++)
     {
-      std::cout << "Line " << i << ":  "; 
-      for(int j = 0; j < nCol; j++)
-	{
-	  std::cout << m[i][j] << "  ";
-	}
-      std::cout << std::endl;
+      cout << m[i][j] << "  ";
     }
+    cout << endl;
+  }
 }
 
 int main(int argc, char *argv[])
 {
   TrackExtrapolator j;
-
-  j.init("geometry_R997");
+  j.init();
 
   TMatrixD state_i(5, 1), state_f(5, 1);
   //state_i[0][0] = 0.0197863;
@@ -43,14 +42,14 @@ int main(int argc, char *argv[])
 
   TMatrixD cov_i(5, 5), cov_f(5, 5);
   for(Int_t i = 0; i < 5; i++)
+  {
+    state_f[i][0] = 0.;
+    for(Int_t j = 0; j < 5; j++)
     {
-      state_f[i][0] = 0.;
-      for(Int_t j = 0; j < 5; j++)
-	{
-	  cov_i[i][j] = 0.;
-	  cov_f[i][j] = 0.;
-	}
+      cov_i[i][j] = 0.;
+      cov_f[i][j] = 0.;
     }
+  }
 
   cov_i[0][0] = 1.5E-5;
   cov_i[1][1] = 0.008;
@@ -61,16 +60,16 @@ int main(int argc, char *argv[])
   //cov_i.Zero();
 
   for(int i = 0; i < 1; i++) {
-  j.setInitialStateWithCov(atof(argv[1]), state_i, cov_i);
-  j.extrapolateTo(atof(argv[2]));
-  j.getFinalStateWithCov(state_f, cov_f);
+    j.setInitialStateWithCov(atof(argv[1]), state_i, cov_i);
+    j.extrapolateTo(atof(argv[2]));
+    j.getFinalStateWithCov(state_f, cov_f);
   }
-  
+
   TMatrixD prop(5, 5);
   j.getPropagator(prop);
-    
+
   TMatrixD state_calc = prop*state_i;
-  
+
   printMatrix(prop, "propagator");
   printMatrix(state_f, "final state vector");
   printMatrix(prop*state_i, "calculated state vector");

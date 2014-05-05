@@ -12,6 +12,8 @@ Created: 9-29-2013
 
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
+#include "kTrackerServices/JobOptsSvc.h"
+#include "GeomSvc.h"
 
 MySQLSvc* MySQLSvc::p_mysqlSvc = NULL;
 
@@ -75,16 +77,23 @@ MySQLSvc* MySQLSvc::instance()
   return p_mysqlSvc;
 }
 
-bool MySQLSvc::connect(std::string sqlServer, int serverPort)
+bool MySQLSvc::connect(const std::string& sqlServer, int serverPort)
 {
+  //if port is not specified, use the joboptions
+  if( serverPort < 0 )
+    serverPort = jobOpts->m_mySQLPort;
+
   char address[300];
-  sprintf(address, "mysql://%s:%d", sqlServer.c_str(), serverPort);
+  if( sqlServer != "" )
+    sprintf(address, "mysql://%s:%d", sqlServer.c_str(), serverPort );
+  else
+    sprintf(address, "mysql://%s:%d", jobOpts->m_mySQLServer.c_str(), serverPort );
 
   server = TSQLServer::Connect(address, user.c_str(), passwd.c_str());
   
   if(server == NULL)
     {
-      LogInfo("Connection to database " << sqlServer.c_str() << " failed!");
+      LogInfo("Connection to database " << address << " failed!");
       return false;
     }
   return true;

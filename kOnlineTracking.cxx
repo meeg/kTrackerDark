@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   //Initialize geometry service
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init();
-  geometrySvc->loadCalibration("calibration.txt");
+  geometrySvc->loadCalibration("calibration.txt");//todo: What is this file?
 
   //Initialize MySQL service and connect to database, e906-db1 by default
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();

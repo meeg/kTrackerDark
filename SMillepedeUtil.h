@@ -15,7 +15,9 @@ Created: Apr. 29, 2013
 #include <TObject.h>
 #include <TROOT.h>
 
-#include "KalmanUtil.h"
+class Node;
+class Tracklet;
+class SignedHit;
 
 class MPNode: public TObject
 {

@@ -1,0 +1,320 @@
+diff --git a/FastTracklet.cxx b/FastTracklet.cxx
+index f7d9f58..52961a0 100644
+--- a/FastTracklet.cxx
++++ b/FastTracklet.cxx
+@@ -17,6 +17,7 @@ Created: 05-28-2013
+ #include "FastTracklet.h"
+ 
+ ClassImp(SignedHit)
++ClassImp(PropSegment)
+ ClassImp(Tracklet)
+ 
+ SignedHit::SignedHit()
+@@ -41,6 +42,123 @@ SignedHit::SignedHit(Hit hit_input, int sign_input)
+   sign = sign_input;
+ }
+ 
++PropSegment::PropSegment()
++{
++  a = -999.;
++  b = -999.;
++  err_a = 100;
++  err_b = 100;
++  
++  for(int i = 0; i < 4; ++i) hits[i].hit.index = -1;
++
++  chisq = 1E6;
++}
++
++void PropSegment::init()
++{
++  a = -999.;
++  b = -999.;
++  err_a = 100;
++  err_b = 100;
++  
++  for(int i = 0; i < 4; ++i) hits[i].hit.index = -1;
++
++  chisq = 1E6;
++}
++
++int PropSegment::getNHits()
++{
++  int nHits = 0;
++  for(int i = 0; i < 4; ++i)
++    {
++      if(hits[i].hit.index >= 0) ++nHits; 
++    }
++  return nHits;
++}
++
++bool PropSegment::isValid()
++{
++  if(getNHits() < 3) return false;
++  if(chisq > 5.) return false;
++
++  return true;
++}
++
++void PropSegment::fit()
++{
++  if(getNHits() < 3) return;
++  GeomSvc* p_geomSvc = GeomSvc::instance();
++
++  //Sign assignment for 1st and 2nd hits
++  if(hits[0].hit.index > 0 && hits[1].hit.index > 0)
++    {
++      if(hits[0].hit.elementID == hits[1].hit.elementID)
++	{
++	  hits[0].sign = -1;
++	  hits[1].sign = 1;
++	}
++      else 
++	{
++	  hits[0].sign = 1;
++	  hits[1].sign = -1;
++	}
++    }
++
++  //Sign assignment for 3rd and 4th hits
++  if(hits[2].hit.index > 0 && hits[3].hit.index > 0)
++    {
++      if(hits[2].hit.elementID == hits[3].hit.elementID)
++	{
++	  hits[2].sign = -1;
++	  hits[3].sign = 1;
++	}
++      else 
++	{
++	  hits[2].sign = 1;
++	  hits[3].sign = -1;
++	}
++    }
++
++  //A linear fit
++  double sum = 0.;
++  double sx = 0.;
++  double sy = 0.;
++  double sxx = 0.;
++  double syy = 0.;
++  double sxy = 0.;
++
++  double x[4], y[4];
++  for(int i = 0; i < 4; ++i)
++    {
++      if(hits[i].hit.index < 0) continue;
++
++      y[i] = hits[i].pos();
++      x[i] = p_geomSvc->getPlanePosition(hits[i].hit.detectorID);
++
++      ++sum;
++      sx += x[i];
++      sy += y[i];
++      sxx += (x[i]*x[i]);
++      syy += (y[i]*y[i]);
++      sxy += (x[i]*y[i]);
++    }
++
++  double det = sum*sxx - sx*sx;
++  if(fabs(det) < 1E-20) return;
++
++  a = (sum*sxy - sx*sy)/det;
++  b = (sy*sxx - sxy*sx)/det;
++  err_a = sqrt(fabs(sum/det));
++  err_b = sqrt(fabs(sxx/det));
++
++  chisq = 0.;
++  for(int i = 0; i < 4; ++i)
++    {
++      if(hits[i].hit.index < 0) continue;
++      chisq += ((y[i] - a*x[i] -b)*(y[i] - a*x[i] -b));
++    }
++}
++
+ Tracklet::Tracklet()
+ {
+   nXHits = 0;
+@@ -414,28 +532,25 @@ double Tracklet::calcChisq()
+       if(iter->hit.index < 0) continue;
+ 
+       int detectorID = iter->hit.detectorID;
+-      double costheta = p_geomSvc->getCostheta(detectorID); 
+-      double sintheta = p_geomSvc->getSintheta(detectorID); 
+-      double z = p_geomSvc->getPlanePosition(detectorID);
++      int index = detectorID - 1;
+ 
+       double sigma;
+ #ifdef COARSE_MODE
+       if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
+ #else
+-      if(iter->sign == 0) sigma = fabs(iter->hit.driftDistance);
+-      //if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
++      //if(iter->sign == 0) sigma = fabs(iter->hit.driftDistance);
++      if(iter->sign == 0) sigma = p_geomSvc->getPlaneSpacing(detectorID)/sqrt(12.);
+ #endif
+       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
+ 
+       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
+-      int index = detectorID - 1;
+       if(KMAG_ON == 1 && stationID == 6 && detectorID <= 6)
+ 	{
+-	  residual[index] = p - (x0_st1 + tx_st1*z)*costheta - (y0 + ty*z)*sintheta;
++    	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
+ 	}
+       else
+ 	{
+-    	  residual[index] = p - (x0 + tx*z)*costheta - (y0 + ty*z)*sintheta;
++	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx, ty, x0, y0);
+ 	}
+      
+       chisq += (residual[index]*residual[index]/sigma/sigma);
+@@ -516,10 +631,25 @@ SRecTrack Tracklet::getSRecTrack()
+       strack.insertZ(z);
+     }
+ 
+-  strack.setHodoHits();
++  strack.swimToVertex();
+   return strack;
+ }
+ 
++TVector3 Tracklet::getMomentumSt1()
++{
++  double tx_st1, x0_st1;
++  getXZInfoInSt1(tx_st1, x0_st1);
++
++  double pz = 1./invP/sqrt(1. + tx_st1*tx_st1);
++  return TVector3(pz*tx_st1, pz*ty, pz);
++}
++
++TVector3 Tracklet::getMomentumSt3()
++{
++  double pz = 1./invP/sqrt(1. + tx*tx);
++  return TVector3(pz*tx, pz*ty, pz);
++}
++
+ void Tracklet::print()
+ {
+   using namespace std;
+@@ -542,15 +672,7 @@ void Tracklet::print()
+ 
+   cout << "X-Z: (" << tx << " +/- " << err_tx << ")*z + (" << x0 << " +/- " << err_x0 << ")" << endl;
+   cout << "Y-Z: (" << ty << " +/- " << err_ty << ")*z + (" << y0 << " +/- " << err_y0 << ")" << endl;
+-
+-  /*
+-  cout << "X_X: " << getExpPositionX(584.873) << " +/- " << getExpPosErrorX(584.873) << endl;
+-  cout << "X_Y: " << getExpPositionY(584.873) << " +/- " << getExpPosErrorY(584.873) << endl;
+-
+-  cout << "U_X: " << getExpPositionX(559.168) << " +/- " << getExpPosErrorX(559.168) << endl;
+-  cout << "U_Y: " << getExpPositionY(559.168) << " +/- " << getExpPosErrorY(559.168) << endl;
+-
+-  cout << "V_X: " << getExpPositionX(608.769) << " +/- " << getExpPosErrorX(608.769) << endl;
+-  cout << "V_Y: " << getExpPositionY(608.769) << " +/- " << getExpPosErrorY(608.769) << endl;
+-  */
++  
++  cout << "KMAG projection: X =  " << getExpPositionX(Z_KMAG_BEND) << " +/- " << getExpPosErrorX(Z_KMAG_BEND) << endl;  
++  cout << "KMAG projection: Y =  " << getExpPositionY(Z_KMAG_BEND) << " +/- " << getExpPosErrorY(Z_KMAG_BEND) << endl;  
+ }
+diff --git a/FastTracklet.h b/FastTracklet.h
+index 5121aaf..25f1c1f 100644
+--- a/FastTracklet.h
++++ b/FastTracklet.h
+@@ -16,6 +16,7 @@ Created: 06-09-2013
+ #include <vector>
+ 
+ #include <TObject.h>
++#include <TVector3.h>
+ 
+ #include "GeomSvc.h"
+ #include "SRawEvent.h"
+@@ -43,6 +44,38 @@ public:
+   ClassDef(SignedHit, 1)
+ };
+ 
++class PropSegment : public TObject
++{
++public:
++  PropSegment();
++
++  //init -- temporary, only used for tests
++  void init();
++
++  //Quality cut
++  bool isValid();
++
++  //Number of hits
++  int getNHits();
++
++  //Fit the segment -- naive linear fit
++  void fit();
++
++  //track slope the interception
++  double a;
++  double b;
++  double err_a;
++  double err_b;
++
++  //chisq of the segment
++  double chisq;
++
++  //Hit list -- only 4 hits at most
++  SignedHit hits[4];
++
++  ClassDef(PropSegment, 1)
++};
++
+ class Tracklet : public TObject
+ {
+ public:
+@@ -60,6 +93,9 @@ public:
+   //Get the probabilities
+   double getProb() const;
+ 
++  //Get the chi square 
++  double getChisq() const { return chisq; }
++
+   //Get x and y positions at a given z
+   double getExpPositionX(double z) const;
+   double getExpPosErrorX(double z) const;
+@@ -67,6 +103,10 @@ public:
+   double getExpPosErrorY(double z) const;
+   double getExpPositionW(int detectorID);
+ 
++  //Get momentum upstream/downstream
++  TVector3 getMomentumSt1();
++  TVector3 getMomentumSt3();
++
+   //Get the i-th signed hit
+   SignedHit getSignedHit(int index);
+ 
+@@ -119,6 +159,10 @@ public:
+   //List of signed hits
+   std::list<SignedHit> hits;
+ 
++  //Corresponding prop. tube segments
++  PropSegment seg_x;
++  PropSegment seg_y;
++
+   //Slope, intersection, momentum and their errors
+   double tx;
+   double ty;
+@@ -135,7 +179,7 @@ public:
+   //Residuals of all pos
+   double residual[24];
+ 
+-  ClassDef(Tracklet, 2)
++  ClassDef(Tracklet, 3)
+ };
+ 
+ 
+diff --git a/FastTrackletLinkDef.h b/FastTrackletLinkDef.h
+index 2510c6a..9248402 100644
+--- a/FastTrackletLinkDef.h
++++ b/FastTrackletLinkDef.h
+@@ -5,6 +5,7 @@
+ #pragma link off all functions;
+ 
+ #pragma link C++ class SignedHit+;
++#pragma link C++ class PropSegment+;
+ #pragma link C++ class Tracklet;
+ 
+ #endif

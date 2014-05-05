@@ -6,6 +6,7 @@
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
+//todo: don't need to include all these things
 #include "G4EqMagElectricField.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "G4ThreeVector.hh"
@@ -36,6 +37,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <vector>
 #include <string>
 #include <mysql.h>
 #include "GenericSD.hh"
@@ -50,11 +52,13 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Material;
 
+using std::vector;
+
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
 
-    DetectorConstruction(Settings*);
+    explicit DetectorConstruction(Settings*);
     ~DetectorConstruction();
 
     G4VPhysicalVolume* Construct();

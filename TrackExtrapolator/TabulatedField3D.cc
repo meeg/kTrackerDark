@@ -34,11 +34,23 @@
 // $Id: PurgMagTabulatedField3D.cc,v 1.4 2006/06/29 16:06:25 gunter Exp $
 // GEANT4 tag $Name: geant4-09-01-patch-02 $
 
+#include "Settings.hh"
 #include "TabulatedField3D.hh"
-#include "../MODE_SWITCH.h"
+
+#include "globals.hh"
+#include "G4MagneticField.hh"
+#include "G4ios.hh"
+#include "../kTrackerServices/JobOptsSvc.h"
+#include <fstream>
+#include <vector>
+#include <cmath>
+#include <mysql.h>
+
+using namespace std;
 
 TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool fMagnet, Settings* settings) 
 {
+  JobOptsSvc *jobOpts = JobOptsSvc::instance();
   mySettings = settings;
   if (mySettings->asciiFieldMap)
   {
@@ -52,9 +64,9 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     G4String filename;
 
     if (fmag)
-      filename = settings->fMagName;
+      filename = jobOpts->m_fMagFile.c_str();
     else
-      filename = settings->kMagName;
+      filename = jobOpts->m_kMagFile.c_str();
 
     double fieldUnit= tesla; 
     G4cout << "\n-----------------------------------------------------------"
@@ -76,13 +88,12 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     xField.resize( nx );
     yField.resize( nx );
     zField.resize( nx );
-    int ix, iy, iz;
-    for (ix=0; ix<nx; ix++)
+    for (int ix=0; ix<nx; ix++)
     {
       xField[ix].resize(ny);
       yField[ix].resize(ny);
       zField[ix].resize(ny);
-      for (iy=0; iy<ny; iy++)
+      for (int iy=0; iy<ny; iy++)
       {
         xField[ix][iy].resize(nz);
         yField[ix][iy].resize(nz);
@@ -92,15 +103,13 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
     // Read in the data
     double xval,yval,zval,bx,by,bz;
-    double temp;
-
     minx = miny = minz = maxx = maxy = maxz = 0;
 
-    for (ix=0; ix<nx; ix++)
+    for (int ix=0; ix<nx; ix++)
     {
-      for (iy=0; iy<ny; iy++)
+      for (int iy=0; iy<ny; iy++)
       {
-        for (iz=0; iz<nz; iz++)
+        for (int iz=0; iz<nz; iz++)
         {
 	  //  The field map has 1 column we don't use
           file >> xval >> yval >> zval >> bx >> by >> bz;
@@ -138,8 +147,8 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     MYSQL_ROW row;
 
     con = mysql_init(NULL);
-    mysql_real_connect(con, mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->magnetSchema, 
-		       MYSQL_SERVER_PORT, NULL, 0);
+    mysql_real_connect(con, jobOpts->m_mySQLServer.c_str(), mySettings->login, mySettings->password, mySettings->magnetSchema, jobOpts->m_mySQLPort, NULL, 0);
+
 
     cout << mysql_error(con) << endl;
     cout << mySettings->magnetSchema << endl;
@@ -160,13 +169,12 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     xField.resize( nx );
     yField.resize( nx );
     zField.resize( nx );
-    int ix, iy;
-    for (ix=0; ix<nx; ix++)
+    for (int ix=0; ix<nx; ix++)
     {
       xField[ix].resize(ny);
       yField[ix].resize(ny);
       zField[ix].resize(ny);
-      for (iy=0; iy<ny; iy++)
+      for (int iy=0; iy<ny; iy++)
       {
         xField[ix][iy].resize(nz);
         yField[ix][iy].resize(nz);

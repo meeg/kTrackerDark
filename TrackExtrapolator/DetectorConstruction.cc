@@ -10,7 +10,9 @@
 // the physical componets, and assigns which components will be detectors.
 
 #include "DetectorConstruction.hh"
-#include "../MODE_SWITCH.h"
+#include "Settings.hh"
+#include "../kTrackerServices/JobOptsSvc.h"
+using namespace std;
 
 DetectorConstruction::DetectorConstruction(Settings* settings)
 {
@@ -26,7 +28,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   con = mysql_init(NULL);
 
-  mysql_real_connect(con,mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->geometrySchema, MYSQL_SERVER_PORT, NULL, 0);
+  JobOptsSvc *jobOpts = JobOptsSvc::instance();
+  mysql_real_connect(con,jobOpts->m_mySQLServer.c_str(), mySettings->login, mySettings->password, mySettings->geometrySchema, jobOpts->m_mySQLPort, NULL, 0);
+
 
   G4cout << "begin Construct routine..." << endl;
 

@@ -11,6 +11,7 @@ Created: 05-01-2013
 
 #include "GeomSvc.h"
 #include "SMillepedeUtil.h"
+#include "KalmanUtil.h"
 
 ClassImp(MPNode)
 
