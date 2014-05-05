@@ -79,7 +79,9 @@ MySQLSvc* MySQLSvc::instance()
 
 bool MySQLSvc::connect(const std::string& sqlServer, int serverPort)
 {
+
   //if port is not specified, use the joboptions
+  JobOptsSvc* jobOpts = JobOptsSvc::instance();
   if( serverPort < 0 )
     serverPort = jobOpts->m_mySQLPort;
 

@@ -13,7 +13,6 @@
 #include <TClonesArray.h>
 
 #include "GeomSvc.h"
-#include "kTrackerServices/JobOptsSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
@@ -27,10 +26,6 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  //Initialize job options
-  LogInfo("Initializing job options service");
-  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
-
   //Initialize geometry service
   LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();

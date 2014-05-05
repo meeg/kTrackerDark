@@ -24,8 +24,11 @@ Updated by Kun Liu on 07-03-2012
 #include <map>
 
 //forward declare
+class JobOptsSvc;
 class TVector3;
 class TSpline3;
+
+#include "MODE_SWITCH.h"
 
 class Plane
 {
@@ -128,10 +131,10 @@ public:
   void toLocalDetectorName(std::string& detectorName, int& eID);
 
   ///Get the plane position
-  int getDetectorID(std::string detectorName) { return map_detectorID[detectorName]; }
+  int getDetectorID(const std::string& detectorName) { return map_detectorID[detectorName]; }
   std::string getDetectorName(int detectorID) { return map_detectorName[detectorID]; }
-  std::vector<int> getDetectorIDs(std::string pattern);
-  bool findPatternInDetector(int detectorID, std::string pattern);
+  std::vector<int> getDetectorIDs(const std::string& pattern);
+  bool findPatternInDetector(int detectorID, const std::string& pattern);
 
   double getPlanePosition(int detectorID) { return planes[detectorID].zc; }
   double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }

@@ -40,7 +40,7 @@ public:
   
   //! Connect to the server
   //! Take defaults from job options
-  bool connect(const std::string sqlServer = "", int serverPort = -1);
+  bool connect(const std::string& sqlServer = "", int serverPort = -1);
 
   //Set username/password
   void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }

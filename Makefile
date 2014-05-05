@@ -38,6 +38,8 @@ LDFLAGS      += $(G4LDFLAGS)
 CXXFLAGS     += $(MYSQLCFLAGS)
 LDFLAGS      += $(MYSQLLDFLAGS)
 
+LDFLAGS      += -L$(KTRACKER_LIB)/ -lkTrackerSvc
+
 SRAWEVENTO    = SRawEvent.o SRawEventDict.o
 SRECEVENTO    = SRecEvent.o SRecEventDict.o
 KALMANUTILO   = KalmanUtil.o

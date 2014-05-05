@@ -30,16 +30,18 @@ AlignmentFile_Mille   $KTRACKER_ROOT/alignment_mille.txt
 CalibrationsFile no_such_file
 
 #Magnet field maps
-fMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Fmag
-kMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Kmag
+fMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Fmag
+kMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Kmag
 
 #Geometry schema
 Geometry_Version geometry_R1086_run2
 
 #choices are localhost, e906-db1.fnal.gov, seaquel.physics.illinois.edu
-MySQL_Server seaquel.physics.illinois.edu
+MySQL_Server e906-db1.fnal.gov
 
 #Int switches
+
+#choices are 3306 (e906-db1), 3282 (seaquel)
 MySQL_Port 3306
 
 #Boolean switches

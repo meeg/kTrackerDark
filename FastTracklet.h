@@ -26,7 +26,7 @@ class SignedHit : public TObject
 {
 public:
   SignedHit();
-  SignedHit(int detectorID);
+  explicit SignedHit(int detectorID);
   SignedHit(Hit hit_input, int sign_input);
   
   //comparision operators for sorting
@@ -144,6 +144,9 @@ public:
 
   //Convert to a SRecTrack
   SRecTrack getSRecTrack();
+
+  //remember if jobopts tells us kmag is one
+  bool m_enableKMag;
 
   //Station ID
   int stationID;
