@@ -1,5 +1,5 @@
 #Set locations
-export KTRACKER_ROOT=$SEAQUEST_INSTALL_ROOT/seaquest/kTracker
+export KTRACKER_ROOT="$(dirname "$(readlink -f ${BASH_SOURCE[0]})")"
 export KTRACKER_LIB=$KTRACKER_ROOT/lib-opt  #todo test for opt/dbg
 
 #make the lib directory
