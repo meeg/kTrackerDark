@@ -23,7 +23,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
   GeomSvc* p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init(GEOMETRY_VERSION);
+  p_geomSvc->init();
 
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->connect();

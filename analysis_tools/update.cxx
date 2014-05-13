@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
   //Initialize geometry service
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init(GEOMETRY_VERSION);
+  geometrySvc->init();
   geometrySvc->loadCalibration("calibration.txt");
 
   //Old data

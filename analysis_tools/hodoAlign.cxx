@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 {
   //Initialization of geometry and tracked data
   GeomSvc* p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init(GEOMETRY_VERSION);
+  p_geomSvc->init();
 
   SRawEvent* rawEvent = new SRawEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");

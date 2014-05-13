@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
   ///Initialize the geometry service and output file 
   GeomSvc* p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init(GEOMETRY_VERSION);
+  p_geomSvc->init();
   p_geomSvc->loadCalibration("calibration.txt");
 
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();

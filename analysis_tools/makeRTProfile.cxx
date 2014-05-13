@@ -37,7 +37,7 @@ bool acceptTracklet(Tracklet& tracklet)
 int main(int argc, char *argv[])
 {
   GeomSvc *p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init(GEOMETRY_VERSION);
+  p_geomSvc->init();
 
   ///Retrieve the maximum and minimum of tdc time spectra
   TSQLServer *con = TSQLServer::Connect("mysql://e906-db1.fnal.gov", "seaguest","qqbar2mu+mu-");
