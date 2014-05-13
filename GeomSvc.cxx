@@ -202,7 +202,6 @@ void GeomSvc::init( )
   using namespace std;
 
   jobOptsSvc = JobOptsSvc::instance();
-  jobOptsSvc->init();
   const std::string geometrySchema = jobOptsSvc->m_geomVersion;
 
 
@@ -739,9 +738,14 @@ void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
   _align_mille.close();
 }
 
-void GeomSvc::loadCalibration(const std::string& calibrationFile)
+void GeomSvc::loadCalibration(const std::string& calibrationFile_in)
 {
   using namespace std;
+
+  //if calibration file not specified, use the opts file
+  string calibrationFile = calibrationFile_in;
+  if( "" == calibrationFile_in )
+    calibrationFile = jobOptsSvc->m_calibrationsFile;
 
   fstream _cali_file;
   _cali_file.open(calibrationFile.c_str(), ios::in);

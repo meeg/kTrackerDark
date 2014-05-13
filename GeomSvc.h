@@ -120,7 +120,7 @@ public:
 
   ///Initialization, either from MySQL or from ascii file
   void init( );
-  void loadCalibration(const std::string& calibrateFile);
+  void loadCalibration(const std::string& calibrateFile = "");
   void loadAlignment(const std::string& alignmentFile_chamber, const std::string& alignmentFile_hodo, const std::string& alignmentFile_prop);
   void loadMilleAlignment(const std::string& alignmentFile_mille);
 

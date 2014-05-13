@@ -27,7 +27,8 @@ AlignmentFile_Prop    $KTRACKER_ROOT/alignment_prop.txt
 AlignmentFile_Mille   $KTRACKER_ROOT/alignment_mille.txt
 
 #Calibration
-CalibrationsFile no_such_file
+#todo: currently, no such file
+CalibrationsFile $KTRACKER_ROOT/calibration.txt
 
 #Magnet field maps
 fMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Fmag
