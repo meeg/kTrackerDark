@@ -8,5 +8,9 @@ if [ ! -d "$KTRACKER_LIB" ]; then
 fi
 
 #Set libs
-#todo remove existing references to kTracker
+#remove existing references to kTracker
+if [ -f $SEAQUEST_SETUP_ROOT/setup_bash_utils.sh ]; then
+  source $SEAQUEST_SETUP_ROOT/setup_bash_utils.sh
+  export LD_LIBRARY_PATH=`minidropit $LD_LIBRARY_PATH seaquest/ktracker`
+fi
 export LD_LIBRARY_PATH=$KTRACKER_LIB:$LD_LIBRARY_PATH
