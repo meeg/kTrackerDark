@@ -19,6 +19,7 @@
 #include "KalmanFastTracking.h"
 #include "KalmanFitter.h"
 #include "VertexFit.h"
+#include "kTrackerServices/JobOptsSvc.h"
 
 #include "MODE_SWITCH.h"
 
@@ -26,20 +27,45 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+  if( 2 != argc )
+  {
+    cout << "Usage: " << argv[0] << " <options file>" << endl;
+    return 1;
+  }
+  //Initialize JobOptions
+  JobOptsSvc *jobOptsSvc = JobOptsSvc::instance();
+  jobOptsSvc->init( argv[1] );
+
+
   //Initialize geometry service
   LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->init( );
 
+  //extract relevant job options
+  const string inputFileName  = jobOptsSvc->m_inputFile;
+  string outputFileName = jobOptsSvc->m_outputFile;
+  if( outputFileName == "" )
+  {
+    //if not output file is set, then name create it from input
+    outputFileName = inputFileName.substr(0, inputFileName.size()-5); //remove .root
+    outputFileName += "_fastTracking.root";
+  }
+  const int nEvents = jobOptsSvc->m_nEvents;
+  const int firstEvent = jobOptsSvc->m_firstEvent;
+
   //Retrieve the raw event
   LogInfo("Retrieving the event stored in ROOT file ... ");
+
+  //todo, remove this switch
 #ifdef MC_MODE
   SRawMCEvent* rawEvent = new SRawMCEvent();
 #else
   SRawEvent* rawEvent = new SRawEvent();
 #endif
 
-  TFile *dataFile = new TFile(argv[1], "READ");
+  //todo: a MakeClass of dataTree
+  TFile *dataFile = new TFile(inputFileName.c_str(), "READ");
   TTree *dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
@@ -56,7 +82,7 @@ int main(int argc, char *argv[])
   double time;
   SRecEvent* recEvent = new SRecEvent();
 
-  TFile* saveFile = new TFile(argv[2], "recreate");
+  TFile* saveFile = new TFile(outputFileName.c_str(), "recreate");
   TTree* saveTree = dataTree->CloneTree(0);
 
   saveTree->Branch("recEvent", &recEvent, 256000, 99);
@@ -77,9 +103,9 @@ int main(int argc, char *argv[])
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
 #endif
 
-  int offset = argc > 3 ? atoi(argv[3]) : 0;
-  int nEvtMax = argc > 4 ? atoi(argv[4]) + offset : dataTree->GetEntries();
-  if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
+  const int offset = firstEvent;
+  int nEvtMax = nEvents>0 ? nEvents + offset : dataTree->GetEntries();
+  nEvtMax = std::min( nEvtMax, (int)dataTree->GetEntries() );
   LogInfo("Running from event " << offset << " through to event " << nEvtMax);
   for(int i = offset; i < nEvtMax; i++)
   {

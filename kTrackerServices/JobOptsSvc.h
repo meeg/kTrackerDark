@@ -37,6 +37,11 @@ class JobOptsSvc
     bool m_diMuonMode;       ///< Turn on di-muon mode
  
     int m_mySQLPort;    ///< mysql database port
+    int m_nEvents;      ///< number of events to process
+    int m_firstEvent;   ///< first event to process
+
+    std::string m_inputFile;  ///< Name of the input file
+    std::string m_outputFile; ///< Name of the output file
 
     std::string m_alignmentFileHodo; ///< Name of hodoscope alignment file
     std::string m_alignmentFileChamber; ///< Name of chamber alignment file

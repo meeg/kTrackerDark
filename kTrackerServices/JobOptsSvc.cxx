@@ -91,6 +91,9 @@ bool JobOptsSvc::init( const char* configfile )
 
   //define the types of options to look for
   map<string,string*> stringOpts;
+  stringOpts["InputFile"] = &m_inputFile;
+  stringOpts["OutputFile"] = &m_outputFile;
+
   stringOpts["AlignmentFile_Hodo"] = &m_alignmentFileHodo;
   stringOpts["AlignmentFile_Mille"] = &m_alignmentFileMille;
   stringOpts["AlignmentFile_Prop"] = &m_alignmentFileProp;
@@ -106,6 +109,8 @@ bool JobOptsSvc::init( const char* configfile )
 
   map<string,int*> intOpts;
   intOpts["MySQL_Port"] = &m_mySQLPort;
+  intOpts["N_Events"] = &m_nEvents;
+  intOpts["FirstEvent"] = &m_firstEvent;
 
 
   map<string,bool*> boolOpts;

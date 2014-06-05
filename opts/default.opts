@@ -20,6 +20,13 @@
 #  bool - use 0 for false, 1 for true
 #  string - assumes no whitespace for now
 
+
+#must define input file
+InputFile NEED_ME
+#if not set, output file name is derived from input for most programs
+OutputFile
+
+
 #Alginment files
 AlignmentFile_Hodo    $KTRACKER_ROOT/alignment_hodo.txt
 AlignmentFile_Chamber $KTRACKER_ROOT/alignment_chamber.txt
@@ -44,6 +51,11 @@ MySQL_Server e906-db1.fnal.gov
 
 #choices are 3306 (e906-db1), 3282 (seaquel)
 MySQL_Port 3306
+
+#number of events to process (-1 for all)
+N_Events -1
+#first of events to process
+FirstEvent 0
 
 #Boolean switches
 MCMode_enable 0
