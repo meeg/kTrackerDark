@@ -109,7 +109,6 @@ os.system( "chmod 755 " + wrapper_name )
 #write the opts file
 for line in open( opts.template_opts ):
   line = line.strip()
-  print "--> start line: ",line
 
   #don't touch spacing or comment lines
   if len(line) and line[0] != "#":
@@ -134,7 +133,6 @@ for line in open( opts.template_opts ):
     elif "FirstEvent" in line:
       line = "FirstEvent %d" % opts.first_event
 
-  print "--> end line: ",line
   optsfile.write( line + "\n" )
 optsfile.close()
 
@@ -146,11 +144,6 @@ condor_job.addCondorFile( opts.input )
 
 #want jobsub_prefix !
 #condor_job.jobsub_prefix="kFastTracking"
-
-
-#TMP TMP TMP - force ifdf to use cpn since gftp isn't working?
-os.environ["FORCE_IFDH"] = 'cpn'
-condor_job.addCondorEnv("FORCE_IFDH")
 
 #run/submit
 condor_job.execute()
