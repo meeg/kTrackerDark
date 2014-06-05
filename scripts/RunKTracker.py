@@ -28,13 +28,13 @@ parser = OptionParser( formatter = formatter)
 default_opts   = os.path.join( ktracker_root, "opts/default.opts" )
 default_outdir = "/e906/data/users/%s/kTracker/%s" %( os.getenv("USER"), seaquest_v )
 
-parser.add_option("--go", dest="go", help="Run with defaults", action="store_true", default=False )
-parser.add_option("--interactive", dest="interactive", help="Run interactively", action="store_true", default=False )
+parser.add_option("--input", dest="input", help="Input file (required)", default=None )
 parser.add_option("--opts", dest="template_opts", help="Options file to use as template (default=%default)", default=default_opts )
 parser.add_option("--outdir", dest="outdir", help="Directory for output (default=%default)", default=default_outdir )
-parser.add_option("--input", dest="input", help="Input file (required)", default=None )
+parser.add_option("--outtag", dest="outtag", help="Append this tag to output filenames", default="" )
 parser.add_option("--n_events", dest="n_events", help="Number of events to process (default=all)", default=-1, type=int )
 parser.add_option("--first_event", dest="first_event", help="First event to process (default=0)", default=0, type=int )
+parser.add_option("--interactive", dest="interactive", help="Run interactively", action="store_true", default=False )
 
 #opts for input file or runnumber
 #opts for type of tracking
@@ -56,9 +56,13 @@ if opts.interactive:
 else:
   opts.outdir += "/grid"
 
+#outtag should start with _
+if opts.outtag != "" and opts.outtag[0] != "_":
+  opts.outtag = "_" + opts.outtag
+
 #filenames
 input_base = os.path.basename( opts.input )
-output_base = input_base.replace( "run_","reco_")
+output_base = input_base.replace( "run_","reco%s_" % opts.outtag )
 
 #set output directories
 reco_outdir = os.path.join( opts.outdir, "reco" )
@@ -82,8 +86,8 @@ if os.path.isfile( logfile ):
 ###
 #create a wrapper script and opts file in /e906/app
 wrapper_dir   = "/e906/app/users/%s/kTracker/gridwrapper/%s/" % ( os.getenv("USER"), seaquest_v )
-wrapper_name  = os.path.join( wrapper_dir, "kFastTracking_%s.sh" % timestamp )
-optsfile_name = os.path.join( wrapper_dir, "kFastTracking_%s.opts" % timestamp )
+wrapper_name  = os.path.join( wrapper_dir, "kFastTracking%s_%s.sh" % (opts.outtag, timestamp ) )
+optsfile_name = os.path.join( wrapper_dir, "kFastTracking%s_%s.opts" % (opts.outtag, timestamp ) )
 
 if not os.path.exists( wrapper_dir ):
   os.makedirs( os.path.dir(wrapper_dir) )
