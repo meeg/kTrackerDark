@@ -267,8 +267,7 @@ void GeomSvc::init( )
 
   ///Initialize the geometrical variables which should be from MySQL database
   //Connect server
-  char serverName[200];
-  sprintf(serverName, "mysql://%s:%d", jobOptsSvc->m_mySQLServer.c_str(), jobOptsSvc->m_mySQLPort);
+  TString serverName = Form("mysql://%s:%d", jobOptsSvc->m_mySQLServer.c_str(), jobOptsSvc->m_mySQLPort);
   TSQLServer* con = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
 
   //Make query to Planes table
