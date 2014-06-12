@@ -23,6 +23,10 @@ public:
   ///Close the service and cleanup
   void close();
 
+
+  ///Return a string with environmental variables expanded
+  std::string ExpandEnvironmentals( const std::string& input ) const;
+
   //@todo should store smart pointers instead of variable length variables
 
   std::string m_configFile; ///< Name of the config file loaded

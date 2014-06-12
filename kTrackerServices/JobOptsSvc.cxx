@@ -66,24 +66,16 @@ bool JobOptsSvc::init(const char* configfile)
   if(debug()) cout << "JobOptsSvc::init( " << configfile << " )" << endl;
 
   // expand any environment variables in the file name
-  wordexp_t exp_result;
-  if(wordexp(configfile, &exp_result, 0) != 0)
-    {
-      //this is a fatal error so throw
-      cout << "JobOptsSvc::init - ERROR - Your config file '" << configfile << "' cannot be understood!" << endl;
-      throw 1;
-    }
+  m_configFile = ExpandEnvironmentals( configfile );
+  if(debug()) cout << "My config file is :" << m_configFile << endl;
 
-  //todo: maybe this isn't bad and we can use hardcoded defaults in code here?
-  std::ifstream fin(exp_result.we_wordv[0]);
+  std::ifstream fin( m_configFile.c_str() );
   if(!fin) 
     {
-      cout << "JobOptsSvc::init - ERROR - Your config file '" << configfile << "' cannot be opened!" << endl;
+      cout << "JobOptsSvc::init - ERROR - Your config file '" << m_configFile << "' cannot be opened!" << endl;
       throw 1;
     }
 
-  m_configFile.assign( configfile );
-  if(debug()) cout << "My config file is :" << m_configFile << endl;
 
   //define the types of options to look for
   map<string,string*> stringOpts;
@@ -129,6 +121,12 @@ bool JobOptsSvc::init(const char* configfile)
       stringstream ss(line);
       string key, val;
       ss >> key >> val;
+      if( val.empty() )
+      {
+        cout << "JobOptsSvc::init - WARNING - caught std::logic_error on line.  Possible value missing in line: " << line << endl;
+        continue;
+      }
+
 
       if(debug()) cout << " key = " << key << ", val = " << val << endl;
 
@@ -137,7 +135,8 @@ bool JobOptsSvc::init(const char* configfile)
 	  map<string,string*>::iterator it = stringOpts.find(key);
 	  if(stringOpts.end() != it)
 	    {
-	      it->second->assign(val);
+        string expandedVal = ExpandEnvironmentals( val );
+	      it->second->assign(expandedVal);
 	      if(debug()) cout << " ... assign string key" << endl;
 	      continue;
 	    }
@@ -171,3 +170,23 @@ bool JobOptsSvc::init(const char* configfile)
   m_mySQLurl = "mysql://" + m_mySQLServer + ":" + boost::lexical_cast<string>(m_mySQLPort);
   return true;
 }
+
+
+
+std::string JobOptsSvc::ExpandEnvironmentals( const std::string& input ) const
+{
+  // expand any environment variables in the file name
+  wordexp_t exp_result;
+  if(wordexp(input.c_str(), &exp_result, 0) != 0)
+    {
+      //this is a fatal error so throw
+      cout << "JobOptsSvc::init - ERROR - Your string '" << input << "' cannot be understood!" << endl;
+      throw 1;
+    }
+
+  const string output( exp_result.we_wordv[0]);
+  if(debug()) cout << "JobOptsSvc::ExpandEnvironmentals - expanded " << input << " -> " << output << endl;
+
+  return output;
+}
+
