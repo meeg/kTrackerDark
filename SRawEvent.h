@@ -45,11 +45,7 @@ public:
 
   //overiden comparison operator for track seeding 
   bool operator<(const Hit& elem) const;
-  bool operator>(const Hit& elem) const { return detectorID > elem.detectorID; }
-  bool operator==(const Hit& elem) const { return detectorID == elem.detectorID; }
-
-  //comparison function for after pulse removal
-  static bool sameChannel(const Hit& elem1, const Hit& elem2);
+  bool operator==(const Hit& elem) const;
 
   //Debugging output
   void print() { std::cout << index << " : " << detectorID << " : " << elementID << " : " << pos << " : " << driftDistance << " : " << inTime << " : " << hodoMask << std::endl; }
@@ -90,10 +86,13 @@ public:
   std::vector<Hit> getAllHits() { return fAllHits; }
   std::vector<Hit> getTriggerHits() { return fTriggerHits; }
   Hit getTriggerHit(Int_t index) { return fTriggerHits[index]; } 
+
   Hit getHit(Int_t index) { return fAllHits[index]; } 
   Hit getHit(Int_t detectorID, Int_t elementID); 
   void setHit(Int_t index, Hit hit) { fAllHits[index] = hit; }
   void setTriggerHit(Int_t index, Hit hit) { fTriggerHits[index] = hit; }
+  void setHitFlag(Int_t index, Int_t flag) { if(index < 0) return; fAllHits[index].inTime = flag; }
+  void setHitFlag(Int_t detectorID, Int_t elementID, Int_t flag) { setHitFlag(findHit(detectorID, elementID), flag); }
 
   Int_t getRunID() { return fRunID; }
   Int_t getEventID() { return fEventID; }
@@ -106,7 +105,7 @@ public:
   void insertHit(Hit h);
   void insertTriggerHit(Hit h) { fTriggerHits.push_back(h); }
   
-  ///Find a hit
+  ///Find a hit -- binary search since hit list is sorted
   Int_t findHit(Int_t detectorID, Int_t elementID);
 
   ///Manipulation/reduction of hit list
@@ -224,6 +223,7 @@ public:
   Double_t pT;
   Double_t x1;
   Double_t x2;
+  Double_t costh;
   TVector3 vtx;
  
   //Track info, 0 for mu+, 1 for mu-
@@ -247,7 +247,7 @@ public:
   TVector3 p_stationH4[2];
   TVector3 v_stationH4[2];
 
-  ClassDef(SRawMCEvent, 2) 
+  ClassDef(SRawMCEvent, 3) 
 };
 
 #endif

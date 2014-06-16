@@ -138,7 +138,6 @@ private:
   std::vector<TMatrixD> fCovar;
   std::vector<Double_t> fZ;
   std::vector<Double_t> fChisqAtNode;
-  Int_t fNHodoHits[3];
 
   ///Momentum/Position at a given z
   TVector3 fDumpFacePos;
@@ -156,7 +155,7 @@ private:
   TMatrixD fStateVertex;
   TMatrixD fCovarVertex;
 
-  ClassDef(SRecTrack, 5)
+  ClassDef(SRecTrack, 6)
 };
 
 class SRecDimuon: public TObject

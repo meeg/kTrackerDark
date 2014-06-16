@@ -19,80 +19,47 @@
 #include "KalmanFastTracking.h"
 #include "KalmanFitter.h"
 #include "VertexFit.h"
-#include "kTrackerServices/JobOptsSvc.h"
-
+#include "TriggerAnalyzer.h"
+#include "JobOptsSvc.h"
 #include "MODE_SWITCH.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-  if( 2 != argc )
-  {
-    cout << "Usage: " << argv[0] << " <options file>" << endl;
-    return 1;
-  }
-  //Initialize JobOptions
-  JobOptsSvc *jobOptsSvc = JobOptsSvc::instance();
-  jobOptsSvc->init( argv[1] );
+  if(argc != 2)
+    {
+      cout << "Usage: " << argv[0] << "  <options file>" << endl;
+    }
 
-
-  //Initialize geometry service
-  LogInfo("Initializing geometry service ... ");
-  GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init( );
-
-  //extract relevant job options
-  const string inputFileName  = jobOptsSvc->m_inputFile;
-  string outputFileName = jobOptsSvc->m_outputFile;
-  if( outputFileName == "" )
-  {
-    //if not output file is set, then name create it from input
-    outputFileName = inputFileName.substr(0, inputFileName.size()-5); //remove .root
-    outputFileName += "_fastTracking.root";
-  }
-  const int nEvents = jobOptsSvc->m_nEvents;
-  const int firstEvent = jobOptsSvc->m_firstEvent;
+  //Initialize job options
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+  jobOptsSvc->init(argv[1]);
 
   //Retrieve the raw event
-  LogInfo("Retrieving the event stored in ROOT file ... ");
+  SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
 
-  //todo, remove this switch
-#ifdef MC_MODE
-  SRawMCEvent* rawEvent = new SRawMCEvent();
-#else
-  SRawEvent* rawEvent = new SRawEvent();
-#endif
-
-  //todo: a MakeClass of dataTree
-  TFile *dataFile = new TFile(inputFileName.c_str(), "READ");
-  TTree *dataTree = (TTree *)dataFile->Get("save");
+  TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
+  TTree* dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
-
+ 
   //Output definition
   int nTracklets;
   TClonesArray* tracklets = new TClonesArray("Tracklet");
   TClonesArray& arr_tracklets = *tracklets;
 
-  //int nTracklets_back;
-  //TClonesArray* tracklets_back = new TClonesArray("Tracklet");
-  //TClonesArray& arr_tracklets_back = *tracklets_back;
-
   double time;
   SRecEvent* recEvent = new SRecEvent();
 
-  TFile* saveFile = new TFile(outputFileName.c_str(), "recreate");
+  TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
   TTree* saveTree = dataTree->CloneTree(0);
 
   saveTree->Branch("recEvent", &recEvent, 256000, 99);
   saveTree->Branch("time", &time, "time/D");
   saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
   saveTree->Branch("tracklets", &tracklets, 256000, 99);
-  //saveTree->Branch("nTracklets_back", &nTracklets_back, "nTracklets_back/I");
-  //saveTree->Branch("tracklets_back", &tracklets_back, 256000, 99);
   tracklets->BypassStreamer();
-  //tracklets_back->BypassStreamer();
 
   //Initialize track finder
   LogInfo("Initializing the track finder and kalman filter ... ");
@@ -103,74 +70,76 @@ int main(int argc, char *argv[])
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
 #endif
 
-  const int offset = firstEvent;
-  int nEvtMax = nEvents>0 ? nEvents + offset : dataTree->GetEntries();
-  nEvtMax = std::min( nEvtMax, (int)dataTree->GetEntries() );
-  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
-  for(int i = offset; i < nEvtMax; i++)
-  {
-    dataTree->GetEntry(i);
-    cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
-    cout << (i - offset + 1)*100/(nEvtMax - offset) << "% finished .. ";
-
-    clock_t time_single = clock();
-
-    rawEvent->reIndex("aoc");
-    if(!fastfinder->setRawEvent(rawEvent)) continue;
-
-    //Fill the TClonesArray
-    arr_tracklets.Clear();
-    //arr_tracklets_back.Clear();
-    std::list<Tracklet>& rec_tracklets = fastfinder->getFinalTracklets();
-    //std::list<Tracklet>& rec_tracklets_back = fastfinder->getBackPartials();
-    if(rec_tracklets.empty()) continue;
-
-    /*
-       nTracklets_back = 0;
-       for(std::list<Tracklet>::iterator iter = rec_tracklets_back.begin(); iter != rec_tracklets_back.end(); ++iter)
-       {
-       iter->calcChisq();
-
-       new(arr_tracklets_back[nTracklets_back]) Tracklet(*iter);
-       ++nTracklets_back;
-       }
-       */
-
-    nTracklets = 0;
-    recEvent->setRawEvent(rawEvent);
-    for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
+  TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
+  if(jobOptsSvc->m_enableTriggerMask)
     {
-      iter->calcChisq();
-      //iter->print();
-      new(arr_tracklets[nTracklets]) Tracklet(*iter);
-      ++nTracklets;
+      triggerAna->init();
+      triggerAna->buildTriggerTree();
+    }
+
+  const int offset = jobOptsSvc->m_firstEvent;
+  int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
+  if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
+  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
+  for(int i = offset; i < nEvtMax; ++i)
+    {
+      dataTree->GetEntry(i);
+      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
+      cout << (i - offset + 1)*100/(nEvtMax - offset) << "% finished .. ";
+
+      clock_t time_single = clock();
+
+      if(jobOptsSvc->m_enableTriggerMask)
+	{
+	  triggerAna->trimEvent(rawEvent);
+	  rawEvent->reIndex("aoct");
+	}
+      else
+	{
+	  rawEvent->reIndex("aoc");
+	}
+      if(!fastfinder->setRawEvent(rawEvent)) continue;
+
+      //Fill the TClonesArray
+      arr_tracklets.Clear();
+      std::list<Tracklet>& rec_tracklets = fastfinder->getFinalTracklets();
+      if(rec_tracklets.empty()) continue;
+
+      nTracklets = 0;
+      recEvent->setRawEvent(rawEvent);
+      for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
+	{
+	  iter->calcChisq();
+	  //iter->print();
+	  new(arr_tracklets[nTracklets]) Tracklet(*iter);
+	  ++nTracklets;
 
 #ifndef _ENABLE_KF
-      SRecTrack recTrack = iter->getSRecTrack();
-      recEvent->insertTrack(recTrack);
+	  SRecTrack recTrack = iter->getSRecTrack();
+	  recEvent->insertTrack(recTrack);
 #endif
-    }
+	}
 
 #ifdef _ENABLE_KF
-    std::list<KalmanTrack>& rec_tracks = fastfinder->getKalmanTracks();
-    for(std::list<KalmanTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
-    {
-      //iter->print();
-      SRecTrack recTrack = iter->getSRecTrack();
-      recEvent->insertTrack(recTrack);
-    }
+      std::list<KalmanTrack>& rec_tracks = fastfinder->getKalmanTracks();
+      for(std::list<KalmanTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
+	{
+	  //iter->print();
+	  SRecTrack recTrack = iter->getSRecTrack();
+          recEvent->insertTrack(recTrack);
+	}
 #endif
 
-    time_single = clock() - time_single;
-    time = double(time_single)/CLOCKS_PER_SEC;
-    cout << "it takes " << time << " seconds for this event." << flush;
+      time_single = clock() - time_single;
+      time = double(time_single)/CLOCKS_PER_SEC;
+      cout << "it takes " << time << " seconds for this event." << flush;
 
-    recEvent->reIndex();
-    saveTree->Fill();
-
-    recEvent->clear();
-    rawEvent->clear();
-  }
+      recEvent->reIndex();
+      saveTree->Fill();
+      
+      recEvent->clear();
+      rawEvent->clear();
+    }
   cout << endl;
   cout << "kFastTracking ends successfully." << endl;
 
@@ -179,6 +148,7 @@ int main(int argc, char *argv[])
   saveFile->Close();
 
   delete fastfinder;
+  delete triggerAna;
 #ifdef _ENABLE_KF
   filter->close();
 #endif

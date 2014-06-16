@@ -8,10 +8,6 @@ G4CONFIG     := geant4-config
 G4CFLAGS     := $(shell $(G4CONFIG) --cflags) 
 G4LDFLAGS    := $(shell $(G4CONFIG) --libs)
 
-MYSQLCONIG   := mysql_config
-MYSQLCFLAGS  := $(shell $(MYSQLCONIG) --include)
-MYSQLLDFLAGS := $(shell $(MYSQLCONIG) --libs)
-
 CXX           = g++ -g
 CXXFLAGS      = -O3 -Wall -fPIC
 LD            = g++ -g
@@ -27,19 +23,15 @@ LDFLAGS      += $(ROOTLDFLAGS) $(ROOTGLIBS)
 CXXFLAGS     += $(G4CFLAGS)
 LDFLAGS      += $(G4LDFLAGS)
 
-CXXFLAGS     += $(MYSQLCFLAGS)
-LDFLAGS      += $(MYSQLLDFLAGS)
-
-LDFLAGS      += -L$(KTRACKER_LIB)/ -lkTrackerSvc
+CXXFLAGS     += -I$(MYSQL_INCLUDE)
+LDFLAGS      += -lz -L$(MYSQL_LIB) -lmysqlclient
 
 TRKEXTO       = TrackExtrapolator.o DetectorConstruction.o Field.o TabulatedField3D.o Settings.o GenericSD.o MCHit.o TPhysicsList.o 
-TRKEXTSO      = $(KTRACKER_LIB)/libTrkExt.so
-
+TRKEXTSO      = libTrkExt.so
 
 TESTO         = TrkExt.o
 TRKEXT        = TrkExt
 
-SLIBS         = $(TRKEXTSO)
 OBJS          = $(TRKEXTO) $(TESTO)
 PROGRAMS      = $(TRKEXT)
 
@@ -63,4 +55,4 @@ $(TRKEXT):      $(TRKEXTSO) $(TESTO)
 
 clean:
 	@echo "Cleanning everything ... "
-	@rm $(PROGRAMS) $(OBJS) $(SLIBS)
+	@rm $(PROGRAMS) $(OBJS) *.so 

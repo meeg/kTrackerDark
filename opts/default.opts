@@ -31,15 +31,15 @@ OutputFile
 AlignmentFile_Hodo    $KTRACKER_ROOT/alignment_hodo.txt
 AlignmentFile_Chamber $KTRACKER_ROOT/alignment_chamber.txt
 AlignmentFile_Prop    $KTRACKER_ROOT/alignment_prop.txt
-AlignmentFile_Mille   $KTRACKER_ROOT/alignment_mille.txt
+AlignmentFile_Mille   $KTRACKER_ROOT/align_mille.txt
 
 #Calibration
 #todo: currently, no such file
 CalibrationsFile $KTRACKER_ROOT/calibration.txt
 
 #Magnet field maps
-fMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Fmag
-kMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Kmag
+fMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Fmag
+kMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Kmag
 
 #Geometry schema
 Geometry_Version geometry_R1086_run2
@@ -54,15 +54,14 @@ MySQL_Port 3306
 
 #number of events to process (-1 for all)
 N_Events -1
+
 #first of events to process
 FirstEvent 0
 
 #Boolean switches
 MCMode_enable 0
-DiMuonMode_enable 0
 AlignmentMode_enable 0
-MultiMiniMode_enable 0
-CoarseMode_enable 0
-KF_enable 0 
 TriggerMask_enable 0
 kMag_enable 1
+Evaluation_enable 0
+OnlineAlignment_enable 0

@@ -20,6 +20,8 @@
 #include "KalmanFitter.h"
 #include "VertexFit.h"
 #include "MySQLSvc.h"
+#include "JobOptsSvc.h"
+#include "TriggerAnalyzer.h"
 
 #include "MODE_SWITCH.h"
 
@@ -27,16 +29,19 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  //Initialize geometry service
+  //Initialize job options
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+  jobOptsSvc->init(argv[1]);
+
+  //Initialize geometry service with calibration
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init();
-  geometrySvc->loadCalibration();
+  geometrySvc->loadCalibration(jobOptsSvc->m_calibrationsFile);
 
   //Initialize MySQL service and connect to database, e906-db1 by default
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->setUserPasswd("production", "qqbar2mu+mu-");
-  p_mysqlSvc->connect(argv[2], atoi(argv[3]));
-  p_mysqlSvc->setWorkingSchema(argv[1]);
+  p_mysqlSvc->connect();
+  p_mysqlSvc->setWorkingSchema(jobOptsSvc->m_inputFile);
   p_mysqlSvc->bookOutputTables();
 
   //Data output definition
@@ -47,7 +52,7 @@ int main(int argc, char *argv[])
   TClonesArray& arr_tracklets = *tracklets;
 
   /*
-  TFile* saveFile = new TFile(argv[2], "recreate");
+  TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
   TTree* saveTree = new TTree("save", "save");
 
   saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
@@ -61,6 +66,14 @@ int main(int argc, char *argv[])
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
   VertexFit* vtxfit  = new VertexFit();
 
+  //Initialize the trigger analyzer
+  TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
+  if(jobOptsSvc->m_enableTriggerMask)
+    {
+      triggerAna->init();
+      triggerAna->buildTriggerTree();
+    }
+
   //Quality control numbers and plots
   int nEvents_loaded = 0;
   int nEvents_tracked = 0;
@@ -69,9 +82,8 @@ int main(int argc, char *argv[])
 
   //Start tracking
   int nEvents = p_mysqlSvc->getNEvents();
-  int sample = argc > 4 ? atoi(argv[4]) : 1;
-  cout << "There are " << nEvents << " events in " << argv[1] << endl;
-  for(int i = 0; i < nEvents; i += sample) 
+  cout << "There are " << nEvents << " events in " << jobOptsSvc->m_inputFile << endl;
+  for(int i = 0; i < nEvents; ++i) 
     {
       //Read data
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
@@ -82,7 +94,15 @@ int main(int argc, char *argv[])
       cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
       cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
 
-      rawEvent->reIndex("oac");
+      if(jobOptsSvc->m_enableTriggerMask)
+	{
+	  triggerAna->trimEvent(rawEvent);
+	  rawEvent->reIndex("aoct");
+	}
+      else
+	{
+	  rawEvent->reIndex("oac");
+	}
       if(!fastfinder->setRawEvent(rawEvent)) continue;
       ++nEvents_tracked;
 
@@ -133,6 +153,7 @@ int main(int argc, char *argv[])
 
   delete fastfinder;
   delete vtxfit;
+  delete triggerAna;
 
   return 1;
 }

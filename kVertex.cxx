@@ -26,37 +26,45 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  //Initialize geometry service
-  LogInfo("Initializing geometry service ... ");
-  GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init();
+  if(argc != 2)
+    {
+      cout << "Usage: " << argv[0] << "  <options file>" << endl;
+    }
+
+  //Initialize job options
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+  jobOptsSvc->init(argv[1]);
 
   //Retrieve the raw event
-  LogInfo("Retrieving the event stored in ROOT file ... ");
   SRecEvent* recEvent = new SRecEvent();
 
-  TFile* dataFile = new TFile(argv[1], "READ");
+  TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
   TTree* dataTree = (TTree*)dataFile->Get("save");
 
   dataTree->SetBranchAddress("recEvent", &recEvent);
 
-  TFile* saveFile = new TFile(argv[2], "recreate");
+  TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
   TTree* saveTree = dataTree->CloneTree(0);
   
   //Initialize track finder
   LogInfo("Initializing the track finder and kalman filter ... ");
   VertexFit* vtxfit = new VertexFit();
   vtxfit->enableOptimization();
-  if(argc > 3) vtxfit->bookEvaluation(argv[3]);
+  if(jobOptsSvc->m_enableEvaluation) 
+    {
+      string evalFileName = "eval_" + jobOptsSvc->m_outputFile;
+      vtxfit->bookEvaluation(evalFileName.c_str());
+    }
 
-  int nEvtMax = argc > 4 ? atoi(argv[4]) : dataTree->GetEntries();
+  const int offset = jobOptsSvc->m_firstEvent;
+  int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
   if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-  LogInfo("Running from event 0 through to event " << nEvtMax);
-  for(int i = 0; i < nEvtMax; i++)
+  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
+  for(int i = offset; i < nEvtMax; ++i)
     {
       dataTree->GetEntry(i);
       cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
-      cout << (i + 1)*100/nEvtMax << "% finished .. ";
+      cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;
 
       vtxfit->setRecEvent(recEvent);
 

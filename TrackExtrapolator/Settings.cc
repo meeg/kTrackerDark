@@ -1,11 +1,10 @@
 #include "Settings.hh"
 #include "../MODE_SWITCH.h"
-#include "../kTrackerServices/JobOptsSvc.h"
 
 Settings::Settings()
 {
   //  These are the settings that will be used by the monte carlo if parameters are not specified.
-  JobOptsSvc *jobOpts = JobOptsSvc::instance();
+
   seed = 0;
   beamMomentum = 120*GeV;
   beamCurrent = 2e12;
@@ -18,26 +17,24 @@ Settings::Settings()
   login = "seaguest";
   outputFileName = "test_default";
   password = "qqbar2mu+mu-";
+  fMagName = "tab.Fmag";
+  kMagName = "tab.Kmag";
+  sqlServer = MYSQL_SERVER_ADDR;
   dimuonRepeat = 1;
   ironOn = true;
   trackingZCut = 400*cm;
   trackingEnergyCut = 1.0*GeV;
-  if( jobOpts->m_alignmentMode )
-  {
-    kMagMultiplier = 0.;
-    fMagMultiplier = 0.;
-  } 
-  else if( jobOpts->m_mcMode )
-  {
-    kMagMultiplier = 1.;
-    fMagMultiplier = 1.;
-  }
-  else
-  {
-    kMagMultiplier = 1.;
-    fMagMultiplier = 1.;
-  }
-  geometrySchema = jobOpts->m_geomVersion;
+#if defined ALIGNMENT_MODE
+  kMagMultiplier = 0.;
+  fMagMultiplier = 0.;
+#elif defined MC_MODE
+  kMagMultiplier = 1.;
+  fMagMultiplier = 1.;
+#else
+  kMagMultiplier = 1.;
+  fMagMultiplier = 1.;
+#endif
+  geometrySchema = "geometry_R997";
   magnetSchema = "geometry_R996_magneticFields";
   target = 1;
   pythia_shower = true;

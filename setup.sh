@@ -1,6 +1,6 @@
 #Set locations
-export KTRACKER_ROOT="$(dirname "$(readlink -f ${BASH_SOURCE[0]})")"
-export KTRACKER_LIB=$KTRACKER_ROOT/lib-opt  #todo test for opt/dbg
+export KTRACKER_ROOT=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
+export KTRACKER_LIB=$KTRACKER_ROOT/lib  #todo test for opt/dbg
 
 #make the lib directory
 if [ ! -d "$KTRACKER_LIB" ]; then

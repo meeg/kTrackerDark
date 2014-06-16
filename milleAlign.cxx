@@ -25,23 +25,21 @@
 #include "SRecEvent.h"
 #include "SMillepede.h"
 #include "SMillepedeUtil.h"
+#include "JobOptsSvc.h"
 
 #include "MODE_SWITCH.h"
 
 int main(int argc, char *argv[])
 {
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+
   //Initialize geometry service
-  LogInfo("Initializing geometry service ... ");
   GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->init( );
+  geometrySvc->init();
 
   //Retrieve the raw event
   LogInfo("Retrieving the event stored in ROOT file ... ");
-#ifndef MC_MODE
-  SRawEvent* rawEvent = new SRawEvent();
-#else
-  SRawMCEvent* rawEvent = new SRawMCEvent();
-#endif
+  SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
 #ifdef _ENABLE_KF
   SRecEvent* recEvent = new SRecEvent();
 #else
@@ -49,8 +47,8 @@ int main(int argc, char *argv[])
   tracklets->Clear();
 #endif
 
-  TFile *dataFile = new TFile(argv[1], "READ");
-  TTree *dataTree = (TTree *)dataFile->Get("save");
+  TFile* dataFile = new TFile(argv[1], "READ");
+  TTree* dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
 #ifdef _ENABLE_KF

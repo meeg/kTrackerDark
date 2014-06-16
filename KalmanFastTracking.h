@@ -15,28 +15,20 @@ Created: 05-24-2013
 #include <list>
 #include <vector>
 
+#include <Math/Factory.h>
+#include <Math/Minimizer.h>
 #include <Math/Functor.h>
 
+#include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "KalmanTrack.h"
 #include "KalmanFitter.h"
 #include "FastTracklet.h"
 
-class JobOptsSvc;
-class GeomSvc;
-namespace ROOT
-{
-  namespace Math
-  {
-  class Minimizer;
-  }
-}
-
-
 class KalmanFastTracking
 {
 public:
-  explicit KalmanFastTracking(bool flag = true);
+  KalmanFastTracking(bool flag = true);
   ~KalmanFastTracking();
 
   //Set the input event
@@ -94,6 +86,9 @@ public:
   std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
   std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
   std::list<KalmanTrack>& getKalmanTracks() { return tracks; }
+
+  ///Tool, a simple-minded chi square fit
+  void chi2fit(int n, double x[], double y[], double& a, double& b);
 
 private:
   //Raw event input
@@ -172,9 +167,6 @@ private:
 
   //Geometry service
   GeomSvc* p_geomSvc;
-
-  //JobOptsSvc
-  JobOptsSvc* jobOpts;
 
   //Flag for enable Kalman fitting
   bool enable_KF;

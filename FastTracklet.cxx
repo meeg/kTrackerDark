@@ -14,8 +14,6 @@ Created: 05-28-2013
 #include <TMath.h>
 #include <TMatrixD.h>
 
-#include "kTrackerServices/JobOptsSvc.h"
-
 #include "FastTracklet.h"
 
 ClassImp(SignedHit)
@@ -183,9 +181,6 @@ Tracklet::Tracklet()
   stationID = -1;
 
   for(int i = 0; i < 24; i++) residual[i] = 999.;
-
-  JobOptsSvc *jobOptsSvc = JobOptsSvc::instance();
-  m_enableKMag = jobOptsSvc->m_enableKMag;
 }
 
 bool Tracklet::isValid()
@@ -222,7 +217,7 @@ bool Tracklet::isValid()
       if(nHits < 12) return false;
       if(prob < PROB_TIGHT) return false;
       
-      if(m_enableKMag)
+      if(KMAG_ON == 1)
 	{
 	  if(invP < INVP_MIN || invP > INVP_MAX) return false;
        	}
@@ -234,7 +229,7 @@ bool Tracklet::isValid()
 double Tracklet::getProb() const
 {
   int ndf;
-  if(stationID == 6 && m_enableKMag)
+  if(stationID == 6 && KMAG_ON == 1)
     {
       ndf = getNHits() - 5;
     }
@@ -248,7 +243,7 @@ double Tracklet::getProb() const
 
 double Tracklet::getExpPositionX(double z) const
 {
-  if(m_enableKMag == 1 && stationID >= 5 && z < Z_KMAG_BEND - 1.)
+  if(KMAG_ON == 1 && stationID >= 5 && z < Z_KMAG_BEND - 1.)
     {
       double tx_st1 = tx + PT_KICK_KMAG*invP*getCharge();
       double x0_st1 = tx*Z_KMAG_BEND + x0 - tx_st1*Z_KMAG_BEND;
@@ -264,7 +259,7 @@ double Tracklet::getExpPositionX(double z) const
 double Tracklet::getExpPosErrorX(double z) const
 {
   double err_x;
-  if(m_enableKMag && stationID >= 5 && z < Z_KMAG_BEND - 1.)
+  if(KMAG_ON == 1 && stationID >= 5 && z < Z_KMAG_BEND - 1.)
     {
       double err_kick = err_invP*PT_KICK_KMAG;
       double err_tx_st1 = err_tx + err_kick;
@@ -349,7 +344,7 @@ bool Tracklet::similarity(const Tracklet& elem) const
 double Tracklet::getMomentum() const
 {
   //Ref. SEAQUEST-doc-453-v3 by Don. Geesaman
-  //if(!m_enableKMag) return 1E8;
+  //if(KMAG_ON == 0) return 1E8;
 
   double p = 50.;
   double charge = getCharge();
@@ -380,7 +375,7 @@ double Tracklet::getMomentum() const
 
 void Tracklet::getXZInfoInSt1(double& tx_st1, double& x0_st1)
 {
-  if(m_enableKMag)
+  if(KMAG_ON == 1)
     {
       tx_st1 = tx + PT_KICK_KMAG*invP*getCharge();
       x0_st1 = tx*Z_KMAG_BEND + x0 - tx_st1*Z_KMAG_BEND;
@@ -394,7 +389,7 @@ void Tracklet::getXZInfoInSt1(double& tx_st1, double& x0_st1)
 
 void Tracklet::getXZErrorInSt1(double& err_tx_st1, double& err_x0_st1)
 {
-  if(m_enableKMag)
+  if(KMAG_ON == 1)
     {
       double err_kick = err_invP*PT_KICK_KMAG;
       err_tx_st1 = err_tx + err_kick;
@@ -527,7 +522,7 @@ double Tracklet::calcChisq()
   chisq = 0.;
 
   double tx_st1, x0_st1;
-  if(stationID == 6 && m_enableKMag)
+  if(stationID == 6 && KMAG_ON == 1)
     {
       getXZInfoInSt1(tx_st1, x0_st1);
     }
@@ -549,7 +544,7 @@ double Tracklet::calcChisq()
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
-      if(m_enableKMag && stationID == 6 && detectorID <= 6)
+      if(KMAG_ON == 1 && stationID == 6 && detectorID <= 6)
 	{
     	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
 	}
@@ -585,7 +580,7 @@ double Tracklet::Eval(const double* par)
   ty = par[1];
   x0 = par[2];
   y0 = par[3];
-  if(m_enableKMag) invP = par[4];
+  if(KMAG_ON == 1) invP = par[4];
 
   //std::cout << tx << "  " << ty << "  " << x0 << "  " << y0 << "  " << 1./invP << std::endl;
   return calcChisq();

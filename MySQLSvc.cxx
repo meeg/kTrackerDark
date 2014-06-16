@@ -12,8 +12,6 @@ Created: 9-29-2013
 
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
-#include "kTrackerServices/JobOptsSvc.h"
-#include "GeomSvc.h"
 
 MySQLSvc* MySQLSvc::p_mysqlSvc = NULL;
 
@@ -77,25 +75,14 @@ MySQLSvc* MySQLSvc::instance()
   return p_mysqlSvc;
 }
 
-bool MySQLSvc::connect(const std::string& sqlServer, int serverPort)
+bool MySQLSvc::connect()
 {
-
-  //if port is not specified, use the joboptions
-  JobOptsSvc* jobOpts = JobOptsSvc::instance();
-  if( serverPort < 0 )
-    serverPort = jobOpts->m_mySQLPort;
-
-  char address[300];
-  if( sqlServer != "" )
-    sprintf(address, "mysql://%s:%d", sqlServer.c_str(), serverPort );
-  else
-    sprintf(address, "mysql://%s:%d", jobOpts->m_mySQLServer.c_str(), serverPort );
-
-  server = TSQLServer::Connect(address, user.c_str(), passwd.c_str());
+  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+  server = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), user.c_str(), passwd.c_str());
   
   if(server == NULL)
     {
-      LogInfo("Connection to database " << address << " failed!");
+      LogInfo("Connection to database " << p_jobOptsSvc->m_mySQLServer.c_str() << " failed!");
       return false;
     }
   return true;
@@ -116,6 +103,28 @@ void MySQLSvc::setWorkingSchema(std::string schema)
   if(!readQIE) std::cout << "MySQLSvc: QIE information readout is disabled." << std::endl; 
   if(!readTriggerHits) std::cout << "MySQLSvc: TriggerHits table readout is disabled." << std::endl;
   if(!readTargetPos) std::cout << "MySQLSvc: Target position readout is disabled." << std::endl;
+
+  //Enable index if not enabled already
+  bool indexEnabled = true;
+  sprintf(query, "SELECT COMMENT FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA='%s' AND TABLE_NAME='Hit' AND Column_name='detectorName'", dataSchema.c_str());
+  if(makeQuery() == 0)
+    { 
+      indexEnabled = false;
+    }
+  else
+    {
+      nextEntry();
+      if(getString(0) == "disabled") indexEnabled = false;
+    }
+
+  if(!indexEnabled) 
+    {
+      std::cout << "MySQLSvc: Index is not enabled for this schema, enable it now." << std::endl;
+
+      sprintf(query, "ALTER TABLE Hit ENABLE KEYS"); server->Exec(query);
+      if(readTriggerHits) sprintf(query, "ALTER TABLE TriggerHit ENABLE KEYS"); server->Exec(query);
+      sprintf(query, "OPTIMIZE LOCAL TABLE `Run`, `Spill`, `Event`, `Hit`, `TriggerHit`, `Scaler`"); server->Exec(query);
+    }
 }
 
 bool MySQLSvc::isRunStopped()
@@ -392,7 +401,7 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 
 bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
 {
-  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
+  sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID,theta_mu FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
   if(makeQuery() != 1) return false;
   nextEntry();
 
@@ -406,8 +415,9 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
   mcEvent->xF = getDouble(4);
   mcEvent->x1 = getDouble(5);
   mcEvent->x2 = getDouble(6);
+  mcEvent->costh = cos(getDouble(14));
   mcEvent->vtx.SetXYZ(getDouble(7), getDouble(8), getDouble(9));
-
+  
   double px = getDouble(10);
   double py = getDouble(11);
   mcEvent->pT = sqrt(px*px + py*py);
@@ -739,4 +749,14 @@ double MySQLSvc::getDouble(int id, double default_val)
     }
 
   return boost::lexical_cast<double>(row->GetField(id));
+}
+
+std::string MySQLSvc::getString(int id, std::string default_val)
+{
+  if(row->GetField(id) == NULL)
+    {
+      return default_val;
+    }
+
+  return std::string(row->GetField(id));
 }

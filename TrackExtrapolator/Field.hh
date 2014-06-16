@@ -3,13 +3,16 @@
 
 #include "globals.hh"
 #include "G4MagneticField.hh"
-class Settings;
+#include "TabulatedField3D.hh"
+#include <fstream>
+#include <cstdlib>
+#include <unistd.h>
 
 class Field : public G4MagneticField
 {
   public:
-    explicit Field(Settings*);
-    virtual ~Field();
+    Field(Settings*);
+    ~Field();
 
     void GetFieldValue(const double Point[3], double *Bfield) const;
 

@@ -12,10 +12,13 @@ Created: 2-8-2012
 #include <cmath>
 #include <TMatrixD.h>
 
+#include "JobOptsSvc.h"
 #include "VertexFit.h"
 
 VertexFit::VertexFit()
 {
+  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+
   ///In construction, initialize the projector for the vertex node
   TMatrixD proj(2, 5);
   proj.Zero();
@@ -38,7 +41,7 @@ VertexFit::VertexFit()
 
   _kmfit = KalmanFilter::instance();
   _kmfit->enableDumpCorrection();
-  _extrapolator.init();
+  _extrapolator.init(p_jobOptsSvc->m_geomVersion);
   
   ///Single track finding doesn't require a propagation matrix
   _extrapolator.setPropCalc(false);
@@ -136,6 +139,21 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  dimuon.chisq_kf = track_pos.getChisqVertex() + track_neg.getChisqVertex();
 	  dimuon.chisq_vx = getVXChisq();
 	  dimuon.vtx.SetXYZ(_vtxpar_curr._r[0][0], _vtxpar_curr._r[1][0], _vtxpar_curr._r[2][0]);
+
+	  //If we are running in the like-sign mode, reverse one sign of px
+	  if(sign1 + sign2 != 0)
+	    {
+	      if(dimuon.p_pos.Px() < 0)
+		{
+		  dimuon.p_pos.SetPx(-dimuon.p_pos.Px());
+		  dimuon.p_pos_single.SetPx(-dimuon.p_pos_single.Px());
+		}
+	      if(dimuon.p_neg.Px() > 0)
+		{
+		  dimuon.p_neg.SetPx(-dimuon.p_neg.Px());
+		  dimuon.p_neg_single.SetPx(-dimuon.p_neg_single.Px());
+		}
+	    }
 	  dimuon.calcVariables();
 
 	  //Fill the final data

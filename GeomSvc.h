@@ -19,16 +19,17 @@ Updated by Kun Liu on 07-03-2012
 #ifndef _GEOMSVC_H
 #define _GEOMSVC_H
 
+#include "MODE_SWITCH.h"
+
+#include <iostream>
 #include <vector>
 #include <string>
 #include <map>
 
-//forward declare
-class JobOptsSvc;
-class TVector3;
-class TSpline3;
+#include <TVector3.h>
+#include <TSpline.h>
 
-#include "MODE_SWITCH.h"
+#include "JobOptsSvc.h"
 
 class Plane
 {
@@ -119,8 +120,8 @@ public:
   static GeomSvc* instance();
 
   ///Initialization, either from MySQL or from ascii file
-  void init( );
-  void loadCalibration(const std::string& calibrateFile = "");
+  void init();
+  void loadCalibration(const std::string& calibrateFile);
   void loadAlignment(const std::string& alignmentFile_chamber, const std::string& alignmentFile_hodo, const std::string& alignmentFile_prop);
   void loadMilleAlignment(const std::string& alignmentFile_mille);
 
@@ -131,10 +132,10 @@ public:
   void toLocalDetectorName(std::string& detectorName, int& eID);
 
   ///Get the plane position
-  int getDetectorID(const std::string& detectorName) { return map_detectorID[detectorName]; }
+  int getDetectorID(std::string detectorName) { return map_detectorID[detectorName]; }
   std::string getDetectorName(int detectorID) { return map_detectorName[detectorID]; }
-  std::vector<int> getDetectorIDs(const std::string& pattern);
-  bool findPatternInDetector(int detectorID, const std::string& pattern);
+  std::vector<int> getDetectorIDs(std::string pattern);
+  bool findPatternInDetector(int detectorID, std::string pattern);
 
   double getPlanePosition(int detectorID) { return planes[detectorID].zc; }
   double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }
@@ -169,6 +170,7 @@ public:
   double getInterception(int detectorID, double tx, double ty, double x0, double y0) { return planes[detectorID].intercept(tx, ty, x0, y0); }
   double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0);
   double getInterceptionFast(int detectorID, double x_exp, double y_exp) { return planes[detectorID].getW(x_exp, y_exp); }
+  
   ///Convert the detectorID and elementID to the actual hit position
   void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);
   double getMeasurement(int detectorID, int elementID);
@@ -216,8 +218,8 @@ private:
   //Mapping to wire position
   std::map<std::pair<int, int>, double> map_wirePosition;
 
-  //job options service
-  JobOptsSvc *jobOptsSvc;
+  //Pointer to job option service
+  JobOptsSvc* p_jobOptsSvc;
 
   //singleton pointor 
   static GeomSvc* p_geometrySvc;

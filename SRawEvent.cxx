@@ -50,14 +50,14 @@ bool Hit::operator<(const Hit& elem) const
     }
 }
 
-bool Hit::sameChannel(const Hit& elem1, const Hit& elem2)
+bool Hit::operator==(const Hit& elem) const
 {
-  if(elem1.detectorID == elem2.detectorID && elem1.elementID == elem2.elementID)
+  if(detectorID == elem.detectorID && elementID == elem.elementID)
     {
       return true;
     }
 
-  if(elem1.detectorID == elem2.detectorID && fabs(elem1.pos - elem2.pos) < 1E-3)
+  if(detectorID == elem.detectorID && fabs(pos - elem.pos) < 1E-3)
     {
       return true;
     }
@@ -105,11 +105,48 @@ Int_t SRawEvent::findHit(Int_t detectorID, Int_t elementID)
   if(detectorID < 1 || detectorID > 48) return -1;
   if(elementID < 0) return -1;
 
-  for(Int_t i = 0; i < fNHits[0]; i++)
+  Hit h_dummy;
+  h_dummy.detectorID = detectorID;
+  h_dummy.elementID = elementID;
+
+  /*
+  This method produces problems in case of duplicate channels and thus people need to be cautious;
+  It's okay here for two reasons:
+     1. inTime is required when searching for trigger roads;
+     2. hodoscope hit doesn't need tdcTime information as long as it's in-time;
+  */
+  Int_t idx_start;
+  Int_t idx_end;
+  if(detectorID <= 24)
     {
-      if(fAllHits[i].detectorID == detectorID && fAllHits[i].elementID == elementID)
+      idx_start = 0;
+      idx_end = getNChamberHitsAll() - 1;
+    }
+  else if(detectorID <= 40)
+    {
+      idx_start = getNChamberHitsAll();
+      idx_end = idx_start + getNHodoHitsAll();
+    }
+  else
+    {
+      idx_start = getNChamberHitsAll() + getNHodoHitsAll();
+      idx_end = fNHits[0] - 1;
+    }
+
+  while(idx_start <= idx_end)
+    {
+      Int_t idx_mid = Int_t((idx_start + idx_end)/2);
+      if(fAllHits[idx_mid] == h_dummy)
 	{
-	  return i;
+	  return idx_mid;
+	}
+      else if(fAllHits[idx_mid] < h_dummy)
+	{
+	  idx_start = idx_mid + 1;
+	}
+      else
+	{
+	  idx_end = idx_mid - 1;
 	}
     }
 
@@ -461,6 +498,7 @@ void SRawEvent::reIndex(std::string option)
   bool _nonchamber = false;
   bool _decluster = false;
   bool _mergehodo = false;
+  bool _triggermask = false;
 
   TString option_lower(option.c_str());
   option_lower.ToLower();
@@ -470,6 +508,7 @@ void SRawEvent::reIndex(std::string option)
   if(option_lower.Contains("n")) _nonchamber = true;
   if(option_lower.Contains("c")) _decluster = true;
   if(option_lower.Contains("u")) _mergehodo = true;
+  if(option_lower.Contains("t")) _triggermask = true;
 
   ///Dump the vector into a list and do the reduction
   std::list<Hit> hitlist_temp;
@@ -479,6 +518,7 @@ void SRawEvent::reIndex(std::string option)
       if(_outoftime && iter->inTime == 0) continue;
       if(_hodomask && iter->hodoMask == 0) continue;
       if(_nonchamber && iter->detectorID > 24) continue;
+      if(_triggermask && iter->detectorID >= 24 && iter->detectorID <= 40 && iter->inTime != 2) continue;
 
       hitlist_temp.push_back(*iter);
     }
@@ -492,7 +532,7 @@ void SRawEvent::reIndex(std::string option)
   hitlist_temp.sort();
   if(_afterhit)
     {
-      hitlist_temp.unique(Hit::sameChannel);
+      hitlist_temp.unique();
     }
  
   if(_decluster)
@@ -608,7 +648,7 @@ void SRawEvent::mixEvent(SRawEvent *event, int nBkgHits)
     {
       for(std::vector<Hit>::iterator jter = hits_mix.begin(); jter != hits_mix.end(); ++jter)
 	{
-	  if(Hit::sameChannel(*iter, *jter))
+	  if(*iter == *jter)
 	    {
 	      hits_mix.erase(jter);
 	      break;

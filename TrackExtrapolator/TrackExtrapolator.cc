@@ -19,8 +19,6 @@ Created: 10-13-2011
 #include "TrackExtrapolator.hh"
 #include "TPhysicsList.hh"
 
-using namespace std;
-
 bool TrackExtrapolator::fullInit = false;
 
 TrackExtrapolator::TrackExtrapolator()
@@ -39,7 +37,7 @@ TrackExtrapolator::~TrackExtrapolator()
   g4eMgr->CloseGeometry();
 }
 
-bool TrackExtrapolator::init( )
+bool TrackExtrapolator::init(std::string geometrySchema)
 {
   //Initialize propagate manager and related stuff
   //G4VSteppingVerbose::SetInstance(new G4SteppingVerbose);
@@ -52,6 +50,7 @@ bool TrackExtrapolator::init( )
     {
       //Specify the geometry schema for the MySQL
       Settings *mySettings = new Settings();    
+      mySettings->geometrySchema = geometrySchema.c_str();
 
       g4eMgr->SetUserInitialization(new DetectorConstruction(mySettings));
       g4eMgr->InitGeant4e();
@@ -69,7 +68,7 @@ void TrackExtrapolator::setParticleType(int type)
 {
   iParType = type;
   switch(type)
-  {
+    {
     case 1:
       parType = "mu+";
       break;
@@ -81,7 +80,7 @@ void TrackExtrapolator::setParticleType(int type)
     default:
       LogDebug("TrackExtrapolator: Particle type is wrong! ");
       break;
-  }
+    }
 }
 
 void TrackExtrapolator::convertSVtoMP(double z, TMatrixD& state, G4ThreeVector& mom, G4ThreeVector& pos)
@@ -117,25 +116,25 @@ void TrackExtrapolator::setInitialStateWithCov(double z_in, TMatrixD& state_in, 
   convertSVtoMP(z_in, state_in, mom_i, pos_i);
 
   if(state_in[0][0] > 0)
-  {
-    setParticleType(1);
-  }
+    {
+      setParticleType(1);
+    }
   else
-  {
-    setParticleType(-1);
-  }
+    {
+      setParticleType(-1);
+    }
 
   TMatrixD cov_sd(5, 5);
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      cov_sd[i][j] = cov_in[i][j];
+      for(int j = 0; j < 5; j++)
+	{
+	  cov_sd[i][j] = cov_in[i][j];
 
-      if(i == 0) cov_sd[i][j] = double(iParType)*cov_sd[i][j];
-      if(j == 0) cov_sd[i][j] = double(iParType)*cov_sd[i][j];
+	  if(i == 0) cov_sd[i][j] = double(iParType)*cov_sd[i][j];
+	  if(j == 0) cov_sd[i][j] = double(iParType)*cov_sd[i][j];
+	}
     }
-  }
 
   ///convert the error matrix from SD to SC
   TRSDSC(iParType, mom_i, pos_i);
@@ -143,12 +142,12 @@ void TrackExtrapolator::setInitialStateWithCov(double z_in, TMatrixD& state_in, 
 
   TMatrixD cov_sc = jac_sd2sc*cov_sd*jac_sd2sc_T;
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      cov_i[i][j] = cov_sc[i][j];
+      for(int j = 0; j < 5; j++)
+	{
+	  cov_i[i][j] = cov_sc[i][j];
+	}
     }
-  }
 }
 
 bool TrackExtrapolator::extrapolateTo(double z_out)
@@ -160,34 +159,34 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
 
   ///If the initial or final position is out of the reasonable world
   if(pos_i[2] > 24000 || pos_i[2] < -2500 || z_out > 24000 || z_out < -2500)
-  {
-    return false;
-  }
+    {
+      return false;
+    }
 
   ///if the initial and final z position is the same, don't make the transportation
   if(fabs(pos_i[2] - z_out) < 1E-3)
-  {
-    mom_f = mom_i;
-    pos_f = pos_i;
-    cov_f = cov_i;
+    {
+      mom_f = mom_i;
+      pos_f = pos_i;
+      cov_f = cov_i;
 
-    return true;
-  }
+      return true;
+    }
 
   ///Set step size
   int step = 1;
   if(z_out < 5000.)
-  {
-    step = 50;
-  }
+    {
+      step = 50;
+    }
   else if(fabs(z_out - pos_i[2]) > 1000.)
-  {
-    step = 50;
-  }
+    {
+      step = 50;
+    }
   else
-  {
-    step = 4;
-  }
+    {
+      step = 4;
+    }
 
   char buffer[100];
   sprintf(buffer, "/geant4e/limits/stepLength %d mm", step);
@@ -195,23 +194,23 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
 
   ///Set direction of propagtion
   if(pos_i[2] < z_out)
-  {
-    g4eMode = G4ErrorMode_PropForwards;
-  }
-  else
-  {
-    g4eMode = G4ErrorMode_PropBackwards;
-    for(int i = 0; i < 5; i++)
     {
-      for(int j = 0; j < 5; j++)
-      {     
-        if(i == 1) cov_i[i][j] = -cov_i[i][j];
-        if(j == 1) cov_i[i][j] = -cov_i[i][j];
-        if(i == 3) cov_i[i][j] = -cov_i[i][j];
-        if(j == 3) cov_i[i][j] = -cov_i[i][j];
-      }
+      g4eMode = G4ErrorMode_PropForwards;
     }
-  }
+  else
+    {
+      g4eMode = G4ErrorMode_PropBackwards;
+      for(int i = 0; i < 5; i++)
+	{
+          for(int j = 0; j < 5; j++)
+	    {     
+	      if(i == 1) cov_i[i][j] = -cov_i[i][j];
+	      if(j == 1) cov_i[i][j] = -cov_i[i][j];
+	      if(i == 3) cov_i[i][j] = -cov_i[i][j];
+	      if(j == 3) cov_i[i][j] = -cov_i[i][j];
+	    }
+	}
+    }
 
   ///Set the initial plane and final target
   g4eTarget = new G4ErrorPlaneSurfaceTarget(0., 0., 1., -z_out);
@@ -226,21 +225,21 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
 
   int ierr = 0;  
   if(g4eMode == G4ErrorMode_PropBackwards)
-  {
-    g4eState->SetMomentum(-g4eState->GetMomentum());
-    ierr = propagate();
-    g4eState->SetMomentum(-g4eState->GetMomentum());
-  }
+    {
+      g4eState->SetMomentum(-g4eState->GetMomentum());
+      ierr = propagate();
+      g4eState->SetMomentum(-g4eState->GetMomentum());
+    }
   else
-  {
-    ierr = propagate();
-  }
+    {
+      ierr = propagate();
+    }
 
   if(ierr != 0)
-  {
-    LogDebug("Error code for this run from " << pos_i[2] << " to " << z_out << " is " << ierr);
-    return false;
-  }
+    {
+      LogDebug("Error code for this run from " << pos_i[2] << " to " << z_out << " is " << ierr);
+      return false;
+    }
 
   //LogDebug("============ After propagation ===================");
 
@@ -250,7 +249,7 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
   cov_f = g4eState->GetError();
 
   //print();
-
+  
   ///Clean up the temporary objects
   delete g4eState;
   delete g4eTarget;
@@ -264,23 +263,23 @@ int TrackExtrapolator::propagate()
 
   ///If neither prop mtrix or travelLength is needed, then call the one step Propagate() 
   if(!(calcProp || calcLength))
-  {
-    return g4eMgr->Propagate(g4eState, g4eTarget, g4eMode);    
-  } 
+    {
+      return g4eMgr->Propagate(g4eState, g4eTarget, g4eMode);    
+    } 
 
 
   ///Initialize the prop. matrix if needed
   if(calcProp)
-  {
-    for(int i = 0; i < 5; i++)
     {
-      for(int j = 0; j < 5; j++)
-      {
-        g4eProp[i][j] = 0.;
-        if(i == j) g4eProp[i][j] = 1.;
-      }
+      for(int i = 0; i < 5; i++)
+	{
+	  for(int j = 0; j < 5; j++)
+	    {
+	      g4eProp[i][j] = 0.;
+	      if(i == j) g4eProp[i][j] = 1.;
+    	    }
+	}
     }
-  }
 
   ///Start the step-by-step propagation
   g4eMgr->InitTrackPropagation();
@@ -288,46 +287,46 @@ int TrackExtrapolator::propagate()
 
   bool isLastStep = false;
   while(!isLastStep)
-  {
-    if(calcLength) pos_before = g4eState->GetPosition();
-
-    int ierr = g4eMgr->PropagateOneStep(g4eState, g4eMode);
-    if(ierr != 0)
     {
-      return ierr;
+      if(calcLength) pos_before = g4eState->GetPosition();
+      
+      int ierr = g4eMgr->PropagateOneStep(g4eState, g4eMode);
+      if(ierr != 0)
+	{
+	  return ierr;
+	}
+
+      //calculate the propagation matrix
+      if(calcProp)
+	{
+	  G4ErrorMatrix g4eProp_oneStep = g4eState->GetTransfMat();
+          G4ErrorMatrix g4eProp_temp = g4eProp_oneStep*g4eProp;
+          g4eProp = g4eProp_temp;
+	}
+
+      //calculate the travel length
+      if(calcLength)
+	{	
+	  pos_after = g4eState->GetPosition();
+          if((pos_before[2] < FMAG_LENGTH*cm && pos_before[2] > 0) || (pos_after[2] < FMAG_LENGTH*cm && pos_after[2] > 0))
+	    {
+	      double length = (pos_before - pos_after).mag();
+	      if(pos_after[2] < 0)
+	        {
+	          length *= fabs(pos_before[2]/(pos_before[2] - pos_after[2]));
+	        }
+	      else if(pos_before[2] > FMAG_LENGTH*cm)
+	        {
+	          length *= fabs((pos_after[2] - FMAG_LENGTH*cm)/(pos_before[2] - pos_after[2]));
+	        }
+
+	      travelLength += length;
+	    }
+	}
+     
+      //Check if the target plane is reached
+      isLastStep = g4eMgr->GetPropagator()->CheckIfLastStep(g4eState->GetG4Track());
     }
-
-    //calculate the propagation matrix
-    if(calcProp)
-    {
-      G4ErrorMatrix g4eProp_oneStep = g4eState->GetTransfMat();
-      G4ErrorMatrix g4eProp_temp = g4eProp_oneStep*g4eProp;
-      g4eProp = g4eProp_temp;
-    }
-
-    //calculate the travel length
-    if(calcLength)
-    {	
-      pos_after = g4eState->GetPosition();
-      if((pos_before[2] < FMAG_LENGTH*cm && pos_before[2] > 0) || (pos_after[2] < FMAG_LENGTH*cm && pos_after[2] > 0))
-      {
-        double length = (pos_before - pos_after).mag();
-        if(pos_after[2] < 0)
-        {
-          length *= fabs(pos_before[2]/(pos_before[2] - pos_after[2]));
-        }
-        else if(pos_before[2] > FMAG_LENGTH*cm)
-        {
-          length *= fabs((pos_after[2] - FMAG_LENGTH*cm)/(pos_before[2] - pos_after[2]));
-        }
-
-        travelLength += length;
-      }
-    }
-
-    //Check if the target plane is reached
-    isLastStep = g4eMgr->GetPropagator()->CheckIfLastStep(g4eState->GetG4Track());
-  }
 
   g4eMgr->GetPropagator()->InvokePostUserTrackingAction(g4eState->GetG4Track());
   return 0;
@@ -339,20 +338,20 @@ void TrackExtrapolator::getFinalStateWithCov(TMatrixD& state_out, TMatrixD& cov_
 
   TMatrixD cov_sc(5, 5);
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      cov_sc[i][j] = cov_f[i][j];
-
-      if(g4eMode == G4ErrorMode_PropBackwards)
-      {
-        if(i == 1) cov_sc[i][j] = -cov_sc[i][j];
-        if(j == 1) cov_sc[i][j] = -cov_sc[i][j];
-        if(i == 3) cov_sc[i][j] = -cov_sc[i][j];
-        if(j == 3) cov_sc[i][j] = -cov_sc[i][j];
-      }
+      for(int j = 0; j < 5; j++)
+	{
+	  cov_sc[i][j] = cov_f[i][j];
+	  
+	  if(g4eMode == G4ErrorMode_PropBackwards)
+	    {
+	      if(i == 1) cov_sc[i][j] = -cov_sc[i][j];
+	      if(j == 1) cov_sc[i][j] = -cov_sc[i][j];
+	      if(i == 3) cov_sc[i][j] = -cov_sc[i][j];
+	      if(j == 3) cov_sc[i][j] = -cov_sc[i][j];
+	    }
+	}
     }
-  }
 
   //convert from SC to SD error matrix
   TRSCSD(iParType, mom_f, pos_f);
@@ -361,40 +360,40 @@ void TrackExtrapolator::getFinalStateWithCov(TMatrixD& state_out, TMatrixD& cov_
   cov_out = jac_sc2sd*cov_sc*jac_sc2sd_T;
 
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      if(i == 0) cov_out[i][j] = double(iParType)*cov_out[i][j]; 
-      if(j == 0) cov_out[i][j] = double(iParType)*cov_out[i][j]; 
+      for(int j = 0; j < 5; j++)
+	{
+	  if(i == 0) cov_out[i][j] = double(iParType)*cov_out[i][j]; 
+	  if(j == 0) cov_out[i][j] = double(iParType)*cov_out[i][j]; 
+	}
     }
-  }
 }
 
 void TrackExtrapolator::getPropagator(TMatrixD& prop)
 {
   if(fabs(pos_i[2] - pos_f[2]) < 1E-3)
-  {
-    prop.UnitMatrix();
-    return;
-  }
+    {
+      prop.UnitMatrix();
+      return;
+    }
 
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      prop[i][j] = g4eProp[i][j];
+      for(int j = 0; j < 5; j++)
+	{
+	  prop[i][j] = g4eProp[i][j];
 
-      if(i == 0) prop[i][j] = double(iParType)*prop[i][j];
-      if(j == 0) prop[i][j] = double(iParType)*prop[i][j];
-      if(g4eMode == G4ErrorMode_PropBackwards)
-      {
-        if(i == 1) prop[i][j] = -prop[i][j];
-        if(j == 1) prop[i][j] = -prop[i][j];
-        if(i == 3) prop[i][j] = -prop[i][j];
-        if(j == 3) prop[i][j] = -prop[i][j];
-      }
+	  if(i == 0) prop[i][j] = double(iParType)*prop[i][j];
+	  if(j == 0) prop[i][j] = double(iParType)*prop[i][j];
+	  if(g4eMode == G4ErrorMode_PropBackwards)
+    	    {
+	      if(i == 1) prop[i][j] = -prop[i][j];
+	      if(j == 1) prop[i][j] = -prop[i][j];
+	      if(i == 3) prop[i][j] = -prop[i][j];
+	      if(j == 3) prop[i][j] = -prop[i][j];
+	    }
+	}
     }
-  }
 
   prop = jac_sc2sd*prop*jac_sd2sc;
 }
@@ -427,9 +426,9 @@ void TrackExtrapolator::TRSDSC(int charge, G4ThreeVector mom_input, G4ThreeVecto
 
   TVector3 TN;
   for(int i = 0; i < 3; i++)
-  {
-    TN[i] = TVW[0]*DI[i] + TVW[1]*DJ[i] + TVW[2]*DK[i];
-  }
+    {
+      TN[i] = TVW[0]*DI[i] + TVW[1]*DJ[i] + TVW[2]*DK[i];
+    }
 
   double cosl = cos(lambda);
   double cosl1 = 1./cosl;
@@ -455,38 +454,38 @@ void TrackExtrapolator::TRSDSC(int charge, G4ThreeVector mom_input, G4ThreeVecto
 
   const G4Field* field = G4TransportationManager::GetTransportationManager()->GetFieldManager()->GetDetectorField();
   if(charge != 0 && field) 
-  {
-    double pos_cm[3]; 
-    pos_cm[0] = pos.X()*cm; 
-    pos_cm[1] = pos.Y()*cm; 
-    pos_cm[2] = pos.Z()*cm;
-
-    double H_temp[3];
-    field->GetFieldValue(pos_cm, H_temp);
-    TVector3 H(H_temp[0], H_temp[1], H_temp[2]);
-    H = H*(10./tesla);
-
-    double HA = H.Mag();
-    double HAM = HA*p_inv;
-    double HM;
-    if(HA < 1E-6)
     {
-      HM = 0.;
-    }
-    else
-    {
-      HM = charge/HA;
-    }
+      double pos_cm[3]; 
+      pos_cm[0] = pos.X()*cm; 
+      pos_cm[1] = pos.Y()*cm; 
+      pos_cm[2] = pos.Z()*cm;
 
-    double Q = -HAM*c_light/(km/ns);
-    double sinz = -H.Dot(UN)*HM;
-    double cosz = H.Dot(VN)*HM;
+      double H_temp[3];
+      field->GetFieldValue(pos_cm, H_temp);
+      TVector3 H(H_temp[0], H_temp[1], H_temp[2]);
+      H = H*(10./tesla);
 
-    jac_sd2sc[1][3] = -Q*TVW[1]*sinz;
-    jac_sd2sc[1][4] = -Q*TVW[2]*sinz;
-    jac_sd2sc[2][3] = -Q*TVW[1]*cosz*cosl1;
-    jac_sd2sc[2][4] = -Q*TVW[2]*cosz*cosl1;
-  }
+      double HA = H.Mag();
+      double HAM = HA*p_inv;
+      double HM;
+      if(HA < 1E-6)
+	{
+	  HM = 0.;
+	}
+      else
+	{
+	  HM = charge/HA;
+	}
+
+      double Q = -HAM*c_light/(km/ns);
+      double sinz = -H.Dot(UN)*HM;
+      double cosz = H.Dot(VN)*HM;
+ 
+      jac_sd2sc[1][3] = -Q*TVW[1]*sinz;
+      jac_sd2sc[1][4] = -Q*TVW[2]*sinz;
+      jac_sd2sc[2][3] = -Q*TVW[1]*cosz*cosl1;
+      jac_sd2sc[2][4] = -Q*TVW[2]*cosz*cosl1;
+    }
 }
 
 void TrackExtrapolator::TRSCSD(int charge, G4ThreeVector mom_input, G4ThreeVector pos_input)
@@ -545,39 +544,39 @@ void TrackExtrapolator::TRSCSD(int charge, G4ThreeVector mom_input, G4ThreeVecto
 
   const G4Field* field = G4TransportationManager::GetTransportationManager()->GetFieldManager()->GetDetectorField();
   if(charge != 0 && field) 
-  {
-    double pos_cm[3]; 
-    pos_cm[0] = pos.X()*cm; 
-    pos_cm[1] = pos.Y()*cm; 
-    pos_cm[2] = pos.Z()*cm;
-
-    double H_temp[3];
-    field->GetFieldValue(pos_cm, H_temp);
-    TVector3 H(H_temp[0], H_temp[1], H_temp[2]);
-    H = H*(10./tesla);
-
-    double HA = H.Mag();
-    double HAM = HA*p_inv;
-    double HM;
-    if(HA < 1E-6)
     {
-      HM = 0.;
-    }
-    else
-    {
-      HM = charge/HA;
-    }
+      double pos_cm[3]; 
+      pos_cm[0] = pos.X()*cm; 
+      pos_cm[1] = pos.Y()*cm; 
+      pos_cm[2] = pos.Z()*cm;
 
-    double Q = -HAM*c_light/(km/ns);
-    double sinz = -H.Dot(UN)*HM;
-    double cosz = H.Dot(VN)*HM;
-    double T3R = Q*T1R*T1R*T1R;
+      double H_temp[3];
+      field->GetFieldValue(pos_cm, H_temp);
+      TVector3 H(H_temp[0], H_temp[1], H_temp[2]);
+      H = H*(10./tesla);
 
-    jac_sc2sd[1][3] = -UI*(VK*cosz - UK*sinz)*T3R;
-    jac_sc2sd[1][4] = -VI*(VK*cosz - UK*sinz)*T3R;
-    jac_sc2sd[2][3] = UI*(VJ*cosz - UJ*sinz)*T3R;
-    jac_sc2sd[2][4] = VI*(VJ*cosz - UJ*sinz)*T3R;
-  }
+      double HA = H.Mag();
+      double HAM = HA*p_inv;
+      double HM;
+      if(HA < 1E-6)
+	{
+	  HM = 0.;
+	}
+      else
+	{
+	  HM = charge/HA;
+	}
+
+      double Q = -HAM*c_light/(km/ns);
+      double sinz = -H.Dot(UN)*HM;
+      double cosz = H.Dot(VN)*HM;
+      double T3R = Q*T1R*T1R*T1R;
+
+      jac_sc2sd[1][3] = -UI*(VK*cosz - UK*sinz)*T3R;
+      jac_sc2sd[1][4] = -VI*(VK*cosz - UK*sinz)*T3R;
+      jac_sc2sd[2][3] = UI*(VJ*cosz - UJ*sinz)*T3R;
+      jac_sc2sd[2][4] = VI*(VJ*cosz - UJ*sinz)*T3R;
+   }
 }
 
 double TrackExtrapolator::extrapolateToIP()
@@ -598,38 +597,38 @@ double TrackExtrapolator::extrapolateToIP()
   //Now make the real swimming
   int iStep = 1;
   for(; iStep <= NSLICES_FMAG; ++iStep)
-  {
-    pos_i = pos[iStep-1];
-    mom_i = mom[iStep-1];
+    {
+      pos_i = pos[iStep-1];
+      mom_i = mom[iStep-1];
 
-    extrapolateTo((pos_i[2] - step_fmag)*mm/cm);
+      extrapolateTo((pos_i[2] - step_fmag)*mm/cm);
 
-    pos[iStep] = pos_f;
-    mom[iStep] = mom_f;
-  }
+      pos[iStep] = pos_f;
+      mom[iStep] = mom_f;
+    }
 
   for(; iStep < NSLICES_FMAG+NSTEPS_TARGET+1; ++iStep)
-  {
-    pos_i = pos[iStep-1];
-    mom_i = mom[iStep-1];
+    {
+      pos_i = pos[iStep-1];
+      mom_i = mom[iStep-1];
 
-    extrapolateTo((pos_i[2] - step_target)*mm/cm);
+      extrapolateTo((pos_i[2] - step_target)*mm/cm);
 
-    pos[iStep] = pos_f;
-    mom[iStep] = mom_f;
-  }
+      pos[iStep] = pos_f;
+      mom[iStep] = mom_f;
+    }
 
   //Find the one step with minimum DCA
   double dca_min = 1E6;
   for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
-  {
-    double dca = sqrt(pos[i][0]*pos[i][0] + pos[i][1]*pos[i][1]);
-    if(dca < dca_min)
     {
-      dca_min = dca;
-      iStep = i;
+      double dca = sqrt(pos[i][0]*pos[i][0] + pos[i][1]*pos[i][1]);
+      if(dca < dca_min)
+	{
+	  dca_min = dca;
+	  iStep = i;
+	}
     }
-  }
 
   return pos[iStep][2]*mm/cm;
 }
@@ -642,21 +641,21 @@ void TrackExtrapolator::print()
 
   cout << "Initial error matrix: " << endl;
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      cout << cov_i[i][j] << "  ";
+      for(int j = 0; j < 5; j++)
+	{
+	  cout << cov_i[i][j] << "  ";
+	}
+      cout << endl;
     }
-    cout << endl;
-  }
 
   cout << "Final error matrix: " << endl;
   for(int i = 0; i < 5; i++)
-  {
-    for(int j = 0; j < 5; j++)
     {
-      cout << cov_f[i][j] << "  ";
-    }
-    cout << endl;
-  } 
+      for(int j = 0; j < 5; j++)
+	{
+	  cout << cov_f[i][j] << "  ";
+	}
+      cout << endl;
+    } 
 }

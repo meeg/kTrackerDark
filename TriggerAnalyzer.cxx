@@ -1,13 +1,10 @@
 #include <fstream>
 #include <sstream>
-#include <cstdlib>
-#include <algorithm>
 
 #include <TSQLServer.h>
 #include <TSQLResult.h>
 #include <TSQLRow.h>
 
-#include "kTrackerServices/JobOptsSvc.h"
 #include "TriggerAnalyzer.h"
 
 #define REQUIRE_TB
@@ -35,6 +32,9 @@ TriggerAnalyzer::TriggerAnalyzer()
   detectorIDs_trigger.insert(detectorIDs_trigger.end(), H2X_trigger.begin(), H2X_trigger.end());
   detectorIDs_trigger.insert(detectorIDs_trigger.end(), H3X_trigger.begin(), H3X_trigger.end());
   detectorIDs_trigger.insert(detectorIDs_trigger.end(), H4X_trigger.begin(), H4X_trigger.end());
+
+  root[0] = NULL;
+  root[1] = NULL;
 }
 
 TriggerAnalyzer::~TriggerAnalyzer()
@@ -51,8 +51,7 @@ bool TriggerAnalyzer::init(std::string schemaName)
 	  "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
   
   char serverName[200];
-  JobOptsSvc *jobOpts = JobOptsSvc::instance();
-  sprintf(serverName, "mysql://%s:%d", jobOpts->m_mySQLServer.c_str(), jobOpts->m_mySQLPort );
+  sprintf(serverName, "mysql://%s:%d", MYSQL_SERVER_ADDR, MYSQL_SERVER_PORT);
   TSQLServer* server = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
   if(server == NULL) return false;
 
@@ -321,11 +320,11 @@ bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent, int mode)
   int elementIDs[10000];
 
   std::vector<Hit> triggerHits;
-  if(mode == 1)
+  if(mode == USE_TRIGGER_HIT)
     {
       triggerHits = rawEvent->getTriggerHits();
     }
-  else
+  else if(mode == USE_HIT)
     {
       triggerHits = rawEvent->getAllHits();
     }
@@ -427,6 +426,8 @@ void TriggerAnalyzer::search(TNode* root, DataMatrix& data, int level, int charg
 
 void TriggerAnalyzer::printTree(TNode* root)
 {
+  if(root == NULL) return;
+
   roads_temp.push_back(root->uniqueID);
   if(root->children.empty())
     {
@@ -445,6 +446,8 @@ void TriggerAnalyzer::printTree(TNode* root)
 
 void TriggerAnalyzer::clearTree(TNode* root)
 {
+  if(root == NULL) return;
+
   if(root->children.empty())
     {
       delete root;
@@ -557,4 +560,20 @@ void TriggerAnalyzer::outputEnabled()
       fout_pair << iter->first << "  " << iter->second << endl;
     }
   fout_pair.close();
+}
+
+void TriggerAnalyzer::trimEvent(SRawEvent* rawEvent)
+{
+  acceptEvent(rawEvent, USE_HIT);
+
+  for(int i = 0; i < 2; ++i)
+    {
+      for(std::list<TriggerRoad>::iterator iter = roads_found[i].begin(); iter != roads_found[i].end(); ++iter)
+	{
+	  for(int j = 0; j < 4; ++j)
+	    {
+	      rawEvent->setHitFlag(iter->detectorIDs[j], iter->elementIDs[j], 2);
+	    }
+	}
+    }
 }

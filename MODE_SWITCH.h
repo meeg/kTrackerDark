@@ -1,8 +1,52 @@
 #ifndef _MODE_SWITCH_H
 #define _MODE_SWITCH_H
 
+//-------------- kTracker ROOT -------------------
+#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
+
+//--------------- Mode controls ------------------
+//=== Enable this when running over MC events
+//#define MC_MODE
+
+//=== Enable alignment mode
+//#define ALIGNMENT_MODE
+
+//=== Enable multiple minimizer feature, disabled by default
+//#define _ENABLE_MULTI_MINI
+
+//=== Coarse mode, no driftTime info is used, disabled by default
+//#define COARSE_MODE
+
+//=== Enable hodo masking with trigger road info
+//#define _ENABLE_TRIGGER_MASK
+
+//=== Enable Kalman fitting in fast tracking and alignment, enabled by default
+//#define _ENABLE_KF
+
+//=== Enable triming of hodoscope hits by trigger requirements
+#define TRIGGER_TRIMING
+
+//=== Enable reading the alignment data from online schema instead of external ascii file
+//#define LOAD_ONLINE_ALIGNMENT
+
+//--------------- Geometry version ---------------
+#define GEOMETRY_VERSION "geometry_G3_run2"
+
+//-------------- SQL database --------------------
+#define MYSQL_SERVER_ADDR "localhost"
+//#define MYSQL_SERVER_ADDR "seaquel.physics.illinois.edu"
+//#define MYSQL_SERVER_ADDR "e906-db1.fnal.gov"
+
+#define MYSQL_SERVER_PORT 3306
+//#define MYSQL_SERVER_PORT 3283
+
+//==== Enable/disable dimuon mode
+#define DIMUON_MODE 0
+
+//==== Turn on/off KMag
+#define KMAG_ON 1
+
 //==== Enable massive debugging output, disabled by default
-//todo a simple msg service
 //#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
 
@@ -17,6 +61,12 @@
 #define PROB_LOOSE 0.0
 #define PROB_TIGHT 0.001
 #define HIT_REJECT 3.
+
+//--------------- Muon identification -----------
+#define MUID_REJECT 4.
+#define MUID_P0 6.43
+#define MUID_P1 -0.09
+#define MUID_P2 0.00046
 
 //--------------- Geometry setup -----------------
 #define nChamberPlanes 24
@@ -51,6 +101,10 @@
 #define ELOSS_FMAG_RAD 0.0078
 #define Z_UPSTREAM -500.
 #define Z_DOWNSTREAM 500.
+
+//-------------- Trigger analyzer modes ---------
+#define USE_TRIGGER_HIT 1
+#define USE_HIT 2
 
 //-------------- Useful marcros -----------------
 #define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
