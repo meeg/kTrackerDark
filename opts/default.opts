@@ -34,15 +34,20 @@ AlignmentFile_Prop    $KTRACKER_ROOT/alignment_prop.txt
 AlignmentFile_Mille   $KTRACKER_ROOT/align_mille.txt
 
 #Calibration
-#todo: currently, no such file
 CalibrationsFile $KTRACKER_ROOT/calibration.txt
+
+#Trigger road file
+RoadFile_plus_top       $KTRACKER_ROOT/roads_plus_top.txt
+RoadFile_plus_bottom    $KTRACKER_ROOT/roads_plus_bottom.txt
+RoadFile_minus_top      $KTRACKER_ROOT/roads_minus_top.txt
+RoadFile_minus_bottom   $KTRACKER_ROOT/roads_minus_bottom.txt
 
 #Magnet field maps
 fMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Fmag
 kMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Kmag
 
 #Geometry schema
-Geometry_Version geometry_R1086_run2
+Geometry_Version geometry_G3_run2
 
 #choices are localhost, e906-db1.fnal.gov, seaquel.physics.illinois.edu
 MySQL_Server e906-db1.fnal.gov

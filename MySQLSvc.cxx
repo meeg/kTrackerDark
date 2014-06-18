@@ -75,14 +75,23 @@ MySQLSvc* MySQLSvc::instance()
   return p_mysqlSvc;
 }
 
-bool MySQLSvc::connect()
+bool MySQLSvc::connect(std::string mysqlServer, int mysqlPort)
 {
-  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-  server = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), user.c_str(), passwd.c_str());
-  
+  if(mysqlPort < 0)
+    {
+      JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+      server = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), user.c_str(), passwd.c_str());
+    }
+  else
+    {
+      char serverUrl[200];
+      sprintf(serverUrl, "mysql://%s/%d", mysqlServer.c_str(), mysqlPort);
+      server = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
+    }
+
   if(server == NULL)
     {
-      LogInfo("Connection to database " << p_jobOptsSvc->m_mySQLServer.c_str() << " failed!");
+      LogInfo("Connection to database failed!");
       return false;
     }
   return true;

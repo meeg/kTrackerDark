@@ -6,6 +6,7 @@
 #include <TSQLRow.h>
 
 #include "TriggerAnalyzer.h"
+#include "JobOptsSvc.h"
 
 #define REQUIRE_TB
 
@@ -44,15 +45,14 @@ TriggerAnalyzer::~TriggerAnalyzer()
 
 bool TriggerAnalyzer::init(std::string schemaName)
 {
+  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
   GeomSvc* p_geomSvc = GeomSvc::instance();
 
   char query[300];
   sprintf(query, "SELECT charge,St1DetectorName,St1ElementID,St2DetectorName,St2ElementID,"
 	  "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
   
-  char serverName[200];
-  sprintf(serverName, "mysql://%s:%d", MYSQL_SERVER_ADDR, MYSQL_SERVER_PORT);
-  TSQLServer* server = TSQLServer::Connect(serverName, "seaguest","qqbar2mu+mu-");
+  TSQLServer* server = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), "seaguest","qqbar2mu+mu-");
   if(server == NULL) return false;
 
   TSQLResult* res = server->Query(query);
@@ -93,7 +93,9 @@ bool TriggerAnalyzer::init()
 {
   using namespace std;
 
-  std::string fileNames[4] = {"roads_plus_top.txt", "roads_plus_bottom.txt", "roads_minus_top.txt", "roads_minus_bottom.txt"};
+  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+
+  std::string fileNames[4] = {p_jobOptsSvc->m_roadFile_pt, p_jobOptsSvc->m_roadFile_pb, p_jobOptsSvc->m_roadFile_mt, p_jobOptsSvc->m_roadFile_mb};
   char buffer[300];
   int pRoads = 0;
   int mRoads = 0;

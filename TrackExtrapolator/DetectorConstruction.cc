@@ -26,7 +26,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   con = mysql_init(NULL);
 
-  mysql_real_connect(con,mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->geometrySchema, MYSQL_SERVER_PORT, NULL, 0);
+  mysql_real_connect(con,mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->geometrySchema, mySettings->sqlPort, NULL, 0);
 
   G4cout << "begin Construct routine..." << endl;
 

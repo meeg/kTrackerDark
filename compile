@@ -22,7 +22,7 @@ def compile(filename):
     ldflags = ldflags + ' -lz -L'+os.environ['MYSQL_LIB'] + ' -lmysqlclient'
 
     ## kTracker part
-    ldflags = ldflags + ' -L./ -lkTracker'
+    ldflags = ldflags + ' -L$KTRACKER_LIB -lkTracker'
 
     os.system('g++ '+cflags+' -c '+filename+'.cxx')
     os.system('g++ -o '+filename+' '+filename+'.o '+ldflags)

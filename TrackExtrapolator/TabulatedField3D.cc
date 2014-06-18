@@ -139,7 +139,7 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
     con = mysql_init(NULL);
     mysql_real_connect(con, mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->magnetSchema, 
-		       MYSQL_SERVER_PORT, NULL, 0);
+		       mySettings->sqlPort, NULL, 0);
 
     cout << mysql_error(con) << endl;
     cout << mySettings->magnetSchema << endl;

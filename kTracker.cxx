@@ -43,30 +43,28 @@ int main(int argc, char *argv[])
   GeomSvc* geometrySvc = GeomSvc::instance();
   geometrySvc->loadCalibration(jobOptsSvc->m_calibrationsFile);
 
-  //Initialize MySQL service and connect to database, e906-db1 by default
-  MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  p_mysqlSvc->setUserPasswd("production", "qqbar2mu+mu-");
-  p_mysqlSvc->connect();
-  p_mysqlSvc->setWorkingSchema(jobOptsSvc->m_inputFile);
-  p_mysqlSvc->bookOutputTables();
+  //Retrive the raw data
+  SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
+
+  TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
+  TTree* dataTree = (TTree*)dataFile->Get("save"); 
+
+  dataTree->SetBranchAddress("rawEvent", &rawEvent);
 
   //Data output definition
   int nTracklets;
-  SRawEvent* rawEvent = new SRawEvent();
   SRecEvent* recEvent = new SRecEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");
   TClonesArray& arr_tracklets = *tracklets;
 
-  /*
   TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
-  TTree* saveTree = new TTree("save", "save");
+  TTree* saveTree = dataTree->CloneTree(0);
 
   saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
   saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
   saveTree->Branch("recEvent", &recEvent, 256000, 99);
   saveTree->Branch("tracklets", &tracklets, 256000, 99);
   tracklets->BypassStreamer();
-  */
 
   //Initialize track finder
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
@@ -87,16 +85,17 @@ int main(int argc, char *argv[])
   int nEvents_dimuon_real = 0;
 
   //Start tracking
-  int nEvents = p_mysqlSvc->getNEvents();
-  cout << "There are " << nEvents << " events in " << jobOptsSvc->m_inputFile << endl;
-  for(int i = 0; i < nEvents; ++i) 
+  const int offset = jobOptsSvc->m_firstEvent;
+  int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
+  if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
+  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
+  for(int i = 0; i < nEvtMax; ++i) 
     {
-      //Read data
-      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
+      dataTree->GetEntry(i);
       ++nEvents_loaded;
 
       //Do the tracking
-      cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished. ";
+      cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/(nEvtMax - offset) << "% finished. ";
       cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
       cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
 
@@ -139,23 +138,20 @@ int main(int argc, char *argv[])
 
       if(nTracklets > 0)
 	{
-	  p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
-  	  //saveTree->Fill();
+  	  saveTree->Fill();
 	}	 
       rawEvent->clear();
       recEvent->clear();
     }
   cout << endl;
-  cout << "kOnlineTracking ended successfully." << endl;
+  cout << "kTracker ended successfully." << endl;
   cout << "In total " << nEvents_loaded << " events loaded from " << argv[1] << ": " << nEvents_tracked << " events have at least one track, ";
   cout << nEvents_dimuon << " events have at least one dimuon pair, ";
   cout << nEvents_dimuon_real << " events have successful dimuon vertex fit." << endl;
 
-  /*
   saveFile->cd();
   saveTree->Write();
   saveFile->Close();
-  */
 
   delete fastfinder;
   delete vtxfit;

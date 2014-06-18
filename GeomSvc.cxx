@@ -393,7 +393,7 @@ void GeomSvc::init()
 
   /////Here starts the user-defined part
   //load alignment parameters
-  if(p_jobOptsSvc->m_enableOnlineAlignment)
+  if(!p_jobOptsSvc->m_enableOnlineAlignment)
     {
       loadAlignment(p_jobOptsSvc->m_alignmentFileChamber, p_jobOptsSvc->m_alignmentFileHodo, p_jobOptsSvc->m_alignmentFileProp);
       loadMilleAlignment(p_jobOptsSvc->m_alignmentFileMille);
@@ -617,10 +617,8 @@ void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std:
   using namespace std;
 
   //load alignment numbers for chambers
-  char filename[300];
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_chamber.c_str());
   fstream _align_chamber;
-  _align_chamber.open(filename, ios::in);
+  _align_chamber.open(alignmentFile_chamber.c_str(), ios::in);
   
   char buf[300];
   if(_align_chamber)
@@ -645,14 +643,13 @@ void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std:
     	  planes[i].resolution = resol;    
 	}
 
-      cout << "GeomSvc: loaded chamber alignment parameters from " << filename << endl; 
+      cout << "GeomSvc: loaded chamber alignment parameters from " << alignmentFile_chamber << endl; 
     }
   _align_chamber.close();
 
   //load alignment numbers for hodos
   fstream _align_hodo;
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_hodo.c_str());
-  _align_hodo.open(filename, ios::in);
+  _align_hodo.open(alignmentFile_hodo.c_str(), ios::in);
   
   if(_align_hodo)
     {
@@ -666,14 +663,13 @@ void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std:
 	  planes[i].deltaY = planes[i].deltaW*planes[i].sintheta;
 	  planes[i].update();
 	}	  
-      cout << "GeomSvc: loaded hodoscope alignment parameters from " << filename << endl; 
+      cout << "GeomSvc: loaded hodoscope alignment parameters from " << alignmentFile_hodo << endl; 
     }
   _align_hodo.close();
 
   //load alignment numbers for prop. tubes
   fstream _align_prop;
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_prop.c_str());
-  _align_prop.open(filename, ios::in);
+  _align_prop.open(alignmentFile_prop.c_str(), ios::in);
 
   if(_align_prop)
     {
@@ -701,7 +697,7 @@ void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std:
 	  planes[i+1].deltaX = planes[i+1].deltaW*planes[i+1].costheta;
 	  planes[i+1].deltaY = planes[i+1].deltaW*planes[i+1].sintheta;
 	}
-      cout << "GeomSvc: loaded prop. tube alignment parameters from " << filename << endl; 
+      cout << "GeomSvc: loaded prop. tube alignment parameters from " << alignmentFile_prop << endl; 
     }
 }
 
@@ -710,10 +706,8 @@ void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
   using namespace std;
   
   //load alignment numbers for chambers
-  char filename[300];
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, alignmentFile_mille.c_str());
   fstream _align_mille;
-  _align_mille.open(filename, ios::in);
+  _align_mille.open(alignmentFile_mille.c_str(), ios::in);
   
   char buf[300];
   if(_align_mille)
@@ -730,7 +724,7 @@ void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
 	  
 	  if(planes[i].resolution < RESOLUTION_DC) planes[i].resolution = RESOLUTION_DC;
 	}	  
-      cout << "GeomSvc: loaded millepede-based alignment parameters from " << filename << endl; 
+      cout << "GeomSvc: loaded millepede-based alignment parameters from " << alignmentFile_mille << endl; 
 
       for(int i = 1; i <= nChamberPlanes; i+=2)
 	{
@@ -745,10 +739,8 @@ void GeomSvc::loadCalibration(const std::string& calibrationFile)
 {
   using namespace std;
  
-  char filename[300];
-  sprintf(filename, "%s/%s", KTRACKER_ROOT, calibrationFile.c_str()); 
   fstream _cali_file;
-  _cali_file.open(filename, ios::in);
+  _cali_file.open(calibrationFile.c_str(), ios::in);
  
   char buf[300];
   int iBin, nBin, detectorID;
@@ -776,7 +768,7 @@ void GeomSvc::loadCalibration(const std::string& calibrationFile)
 	  if(planes[detectorID].rtprofile != NULL) delete planes[detectorID].rtprofile;
 	  planes[detectorID].rtprofile = new TSpline3(getDetectorName(detectorID).c_str(), T, R, nBin, "b1e1");
 	}
-      cout << "GeomSvc: loaded calibration parameters from " << filename << endl; 
+      cout << "GeomSvc: loaded calibration parameters from " << calibrationFile << endl; 
     }
   _cali_file.close();
 }

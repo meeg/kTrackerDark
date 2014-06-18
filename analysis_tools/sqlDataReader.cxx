@@ -17,6 +17,7 @@
 #include "SRawEvent.h"
 #include "GeomSvc.h"
 #include "MySQLSvc.h"
+#include "JobOptsSvc.h"
 
 using namespace std;
 
@@ -24,10 +25,12 @@ int main(int argc, char **argv)
 {
   cout << "Exporting Run: " << argv[1] << " to ROOT file: " << argv[2] << endl;
 
+  ///Initialize the job option service
+  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+
   ///Initialize the geometry service and output file 
   GeomSvc* p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init();
-  p_geomSvc->loadCalibration("calibration.txt");
+  p_geomSvc->loadCalibration(p_jobOptsSvc->m_calibrationsFile);
 
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   if(argc > 4)
@@ -67,6 +70,7 @@ int main(int argc, char **argv)
 
   delete p_mysqlSvc;
   delete p_geomSvc;
+  delete p_jobOptsSvc;
 
   return 1;
 }

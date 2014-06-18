@@ -35,6 +35,7 @@ public:
   G4String fMagName;		// Name of the ascii text file that contains the fmag map
   G4String kMagName;		// Name of the ascii text file that contains the kmag map
   G4String sqlServer;		// Address of the SQL Server, shouldn't need to modify
+  int sqlPort;                  // Port of SQL server
   int dimuonRepeat;		// Usually one.  Number of times the same dimuon is generated each event
   bool ironOn;			// True if the magnet iron is in the run
   double trackingEnergyCut;	// The energy threshold a particle has to fall below before GMC considers killing the track

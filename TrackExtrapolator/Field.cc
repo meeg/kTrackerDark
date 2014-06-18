@@ -10,9 +10,8 @@ Field::Field(Settings* settings)
   mySettings = settings;
   if (settings->asciiFieldMap)
   {
-    char *gmcroot, *filepath=new char[300], *originalpath, *buf=new char[300];
+    char *gmcroot, *originalpath, *buf=new char[300];
     long size;
-    FILE * filecheck;
     bool errorFlag = true;
 
     cout << "Preparing to read magnetic field map file...\n"; 
@@ -23,29 +22,12 @@ Field::Field(Settings* settings)
     size = 1000;
     originalpath = getcwd(buf, size);   
 
-    filepath = new char[300];
-    sprintf(filepath,"%s/TrackExtrapolator", KTRACKER_ROOT);
-      
-    if(filepath[0] != (char)NULL)
-    {
-      if(!chdir(filepath))
-      {
-        filecheck = fopen(mySettings->fMagName,"r");
-        if(filecheck != NULL)
-        {
-          errorFlag = false;
-	  fclose(filecheck);
-	  cout << "Reading field maps..." << endl;
-	  //                             zOffset, nx, ny, nz, fmag, settings
-	  Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
-	  Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
-        }
-	else
-	  cout << "File not found!" << endl;
-      }
-      else
-        cout << "Failed to find directory for magnetic field maps" << endl;
-    }
+    errorFlag = false;
+	  
+    cout << "Reading field maps..." << endl;
+    //                             zOffset, nx, ny, nz, fmag, settings    
+    Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
+    Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
    
     // This exception prevents an error by keeping physiWorld from trying 
     // to acces a world volume if no file input was read

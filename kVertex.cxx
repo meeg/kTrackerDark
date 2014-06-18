@@ -21,6 +21,9 @@
 #include "KalmanFitter.h"
 #include "VertexFit.h"
 #include "SRecEvent.h"
+#include "JobOptsSvc.h"
+
+#include "MODE_SWITCH.h"
 
 using namespace std;
 
@@ -29,6 +32,7 @@ int main(int argc, char *argv[])
   if(argc != 2)
     {
       cout << "Usage: " << argv[0] << "  <options file>" << endl;
+      exit(0);
     }
 
   //Initialize job options

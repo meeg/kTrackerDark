@@ -39,7 +39,7 @@ public:
   static MySQLSvc* instance();
   
   //Connect to the server
-  bool connect();
+  bool connect(std::string mysqlServer = "", int mysqlPort = -1);
 
   //Set username/password
   void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }

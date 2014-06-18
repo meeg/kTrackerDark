@@ -31,6 +31,7 @@
 
 int main(int argc, char *argv[])
 {
+  //Initialize default job options
   JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
 
   //Initialize geometry service

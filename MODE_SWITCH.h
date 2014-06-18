@@ -1,10 +1,8 @@
 #ifndef _MODE_SWITCH_H
 #define _MODE_SWITCH_H
 
-//-------------- kTracker ROOT -------------------
-#define KTRACKER_ROOT "/Users/liuk/currentWork/kTracker_dev"
-
-//--------------- Mode controls ------------------
+//--------------- Mode controls, experts only  ------------------
+//Will be removed eventually
 //=== Enable this when running over MC events
 //#define MC_MODE
 
@@ -17,28 +15,8 @@
 //=== Coarse mode, no driftTime info is used, disabled by default
 //#define COARSE_MODE
 
-//=== Enable hodo masking with trigger road info
-//#define _ENABLE_TRIGGER_MASK
-
 //=== Enable Kalman fitting in fast tracking and alignment, enabled by default
 //#define _ENABLE_KF
-
-//=== Enable triming of hodoscope hits by trigger requirements
-#define TRIGGER_TRIMING
-
-//=== Enable reading the alignment data from online schema instead of external ascii file
-//#define LOAD_ONLINE_ALIGNMENT
-
-//--------------- Geometry version ---------------
-#define GEOMETRY_VERSION "geometry_G3_run2"
-
-//-------------- SQL database --------------------
-#define MYSQL_SERVER_ADDR "localhost"
-//#define MYSQL_SERVER_ADDR "seaquel.physics.illinois.edu"
-//#define MYSQL_SERVER_ADDR "e906-db1.fnal.gov"
-
-#define MYSQL_SERVER_PORT 3306
-//#define MYSQL_SERVER_PORT 3283
 
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0
