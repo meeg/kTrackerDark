@@ -92,7 +92,6 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
     // Read in the data
     double xval,yval,zval,bx,by,bz;
-    double temp;
 
     minx = miny = minz = maxx = maxy = maxz = 0;
 
