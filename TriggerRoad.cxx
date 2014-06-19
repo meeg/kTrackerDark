@@ -1,4 +1,6 @@
 #include <iomanip>
+#include <stdlib.h>
+#include <algorithm>
 
 #include "TriggerRoad.h"
 #include "GeomSvc.h"

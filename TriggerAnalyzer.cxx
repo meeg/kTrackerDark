@@ -1,5 +1,7 @@
 #include <fstream>
 #include <sstream>
+#include <stdlib.h>
+#include <algorithm>
 
 #include <TSQLServer.h>
 #include <TSQLResult.h>
