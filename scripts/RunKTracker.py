@@ -41,6 +41,10 @@ parser.add_option("--interactive", dest="interactive", help="Run interactively",
 
 opts,args = parser.parse_args()
 
+if len(sys.argv) < 2:
+  parser.parse_args(["--help"])
+
+
 #make sure input file was given
 if not opts.input:
   sys.exit( "ERROR: You must specify an input file with --input=<input>")
