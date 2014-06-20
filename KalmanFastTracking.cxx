@@ -19,7 +19,7 @@ Created: 05-28-2013
 #include "KalmanFitter.h"
 #include "KalmanFastTracking.h"
 
-KalmanFastTracking::KalmanFastTracking(bool flag)
+KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 {
   using namespace std;
 #ifdef _DEBUG_ON
@@ -27,7 +27,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   cout << "========================================" << endl;
 #endif
 
-  enable_KF = flag;
+  //Initialize jobOpts service
+  p_jobOptsSvc = JobOptsSvc::instance();
 
   //Initialize Kalman fitter
   if(enable_KF)
@@ -39,7 +40,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag)
   //Initialize minuit minimizer
   minimizer[0] = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
   minimizer[1] = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Combined");
-  if(KMAG_ON == 1)
+  if(p_jobOptsSvc->m_enableKMag)
     {
       fcn = ROOT::Math::Functor(&tracklet_curr, &Tracklet::Eval, 5);
     }
@@ -523,7 +524,7 @@ void KalmanFastTracking::buildGlobalTracks()
   for(std::list<Tracklet>::iterator tracklet23 = trackletsInSt[3].begin(); tracklet23 != trackletsInSt[3].end(); ++tracklet23)
     {
       //Calculate the window in station 1
-      if(KMAG_ON)
+      if(p_jobOptsSvc->m_enableKMag)
 	{
 	  getSagittaWindowsInSt1(*tracklet23, pos_exp, window);
 	}
@@ -1079,7 +1080,7 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
   minimizer[idx]->SetLimitedVariable(1, "ty", tracklet.ty, 0.001, -TY_MAX, TY_MAX);
   minimizer[idx]->SetLimitedVariable(2, "x0", tracklet.x0, 0.1, -X0_MAX, X0_MAX);
   minimizer[idx]->SetLimitedVariable(3, "y0", tracklet.y0, 0.1, -Y0_MAX, Y0_MAX);
-  if(KMAG_ON == 1)
+  if(p_jobOptsSvc->m_enableKMag)
     {
       minimizer[idx]->SetLimitedVariable(4, "invP", tracklet.invP, 0.001*tracklet.invP, INVP_MIN, INVP_MAX);
     }
@@ -1095,7 +1096,7 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
   tracklet.err_x0 = minimizer[idx]->Errors()[2];
   tracklet.err_y0 = minimizer[idx]->Errors()[3];
 
-  if(KMAG_ON == 1 && tracklet.stationID == 6)
+  if(p_jobOptsSvc->m_enableKMag && tracklet.stationID == 6)
     {
       tracklet.invP = minimizer[idx]->X()[4];
       tracklet.err_invP = minimizer[idx]->Errors()[4];

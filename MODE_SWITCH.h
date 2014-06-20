@@ -3,9 +3,6 @@
 
 //--------------- Mode controls, experts only  ------------------
 //Will be removed eventually
-//=== Enable this when running over MC events
-//#define MC_MODE
-
 //=== Enable alignment mode
 //#define ALIGNMENT_MODE
 

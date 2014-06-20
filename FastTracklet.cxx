@@ -20,6 +20,7 @@ ClassImp(SignedHit)
 ClassImp(PropSegment)
 ClassImp(Tracklet)
 
+//Signed hit definition
 SignedHit::SignedHit()
 {
   hit.index = -1;
@@ -41,6 +42,9 @@ SignedHit::SignedHit(Hit hit_input, int sign_input)
   hit = hit_input;
   sign = sign_input;
 }
+
+//Proptube segment definition
+const GeomSvc* PropSegment::p_geomSvc = GeomSvc::instance();
 
 PropSegment::PropSegment()
 {
@@ -87,7 +91,6 @@ bool PropSegment::isValid()
 void PropSegment::fit()
 {
   if(getNHits() < 3) return;
-  GeomSvc* p_geomSvc = GeomSvc::instance();
 
   //Sign assignment for 1st and 2nd hits
   if(hits[0].hit.index > 0 && hits[1].hit.index > 0)
@@ -159,6 +162,10 @@ void PropSegment::fit()
     }
 }
 
+//General tracklet part
+const GeomSvc* Tracklet::p_geomSvc = GeomSvc::instance();
+const bool Tracklet::kmag_on = JobOptsSvc::instance()->m_enableKMag;
+
 Tracklet::Tracklet()
 {
   nXHits = 0;
@@ -217,7 +224,7 @@ bool Tracklet::isValid()
       if(nHits < 12) return false;
       if(prob < PROB_TIGHT) return false;
       
-      if(KMAG_ON == 1)
+      if(kmag_on)
 	{
 	  if(invP < INVP_MIN || invP > INVP_MAX) return false;
        	}
@@ -229,7 +236,7 @@ bool Tracklet::isValid()
 double Tracklet::getProb() const
 {
   int ndf;
-  if(stationID == 6 && KMAG_ON == 1)
+  if(stationID == 6 && kmag_on)
     {
       ndf = getNHits() - 5;
     }
@@ -243,7 +250,7 @@ double Tracklet::getProb() const
 
 double Tracklet::getExpPositionX(double z) const
 {
-  if(KMAG_ON == 1 && stationID >= 5 && z < Z_KMAG_BEND - 1.)
+  if(kmag_on && stationID >= 5 && z < Z_KMAG_BEND - 1.)
     {
       double tx_st1 = tx + PT_KICK_KMAG*invP*getCharge();
       double x0_st1 = tx*Z_KMAG_BEND + x0 - tx_st1*Z_KMAG_BEND;
@@ -259,7 +266,7 @@ double Tracklet::getExpPositionX(double z) const
 double Tracklet::getExpPosErrorX(double z) const
 {
   double err_x;
-  if(KMAG_ON == 1 && stationID >= 5 && z < Z_KMAG_BEND - 1.)
+  if(kmag_on && stationID >= 5 && z < Z_KMAG_BEND - 1.)
     {
       double err_kick = err_invP*PT_KICK_KMAG;
       double err_tx_st1 = err_tx + err_kick;
@@ -291,7 +298,6 @@ double Tracklet::getExpPosErrorY(double z) const
 
 double Tracklet::getExpPositionW(int detectorID)
 {
-  GeomSvc* p_geomSvc = GeomSvc::instance();
   double z = p_geomSvc->getPlanePosition(detectorID);
 
   double x_exp = getExpPositionX(z);
@@ -375,7 +381,7 @@ double Tracklet::getMomentum() const
 
 void Tracklet::getXZInfoInSt1(double& tx_st1, double& x0_st1)
 {
-  if(KMAG_ON == 1)
+  if(kmag_on)
     {
       tx_st1 = tx + PT_KICK_KMAG*invP*getCharge();
       x0_st1 = tx*Z_KMAG_BEND + x0 - tx_st1*Z_KMAG_BEND;
@@ -389,7 +395,7 @@ void Tracklet::getXZInfoInSt1(double& tx_st1, double& x0_st1)
 
 void Tracklet::getXZErrorInSt1(double& err_tx_st1, double& err_x0_st1)
 {
-  if(KMAG_ON == 1)
+  if(kmag_on)
     {
       double err_kick = err_invP*PT_KICK_KMAG;
       err_tx_st1 = err_tx + err_kick;
@@ -518,11 +524,10 @@ void Tracklet::addDummyHits()
 
 double Tracklet::calcChisq()
 {
-  GeomSvc* p_geomSvc = GeomSvc::instance();
   chisq = 0.;
 
   double tx_st1, x0_st1;
-  if(stationID == 6 && KMAG_ON == 1)
+  if(stationID == 6 && kmag_on)
     {
       getXZInfoInSt1(tx_st1, x0_st1);
     }
@@ -544,7 +549,7 @@ double Tracklet::calcChisq()
       if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
       double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
-      if(KMAG_ON == 1 && stationID == 6 && detectorID <= 6)
+      if(kmag_on && stationID == 6 && detectorID <= 6)
 	{
     	  residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
 	}
@@ -580,7 +585,7 @@ double Tracklet::Eval(const double* par)
   ty = par[1];
   x0 = par[2];
   y0 = par[3];
-  if(KMAG_ON == 1) invP = par[4];
+  if(kmag_on) invP = par[4];
 
   //std::cout << tx << "  " << ty << "  " << x0 << "  " << y0 << "  " << 1./invP << std::endl;
   return calcChisq();
@@ -588,8 +593,6 @@ double Tracklet::Eval(const double* par)
 
 SRecTrack Tracklet::getSRecTrack()
 {
-  GeomSvc* p_geomSvc = GeomSvc::instance();
-
   SRecTrack strack;
   strack.setChisq(chisq);
   for(std::list<SignedHit>::iterator iter = hits.begin(); iter != hits.end(); ++iter)

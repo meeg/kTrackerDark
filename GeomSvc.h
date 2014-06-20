@@ -38,12 +38,12 @@ public:
   Plane();
 
   //Get interception with track
-  double intercept(double tx, double ty, double x0_track, double y0_track);
+  double intercept(double tx, double ty, double x0_track, double y0_track) const;
 
   //X, Y, U, V conversion
-  double getX(double w, double y) { return w/costheta - y*tantheta; } 
-  double getY(double x, double w) { return w/sintheta - x/tantheta; }
-  double getW(double x, double y) { return x*costheta + y*sintheta; }
+  double getX(double w, double y) const { return w/costheta - y*tantheta; } 
+  double getY(double x, double w) const { return w/sintheta - x/tantheta; }
+  double getW(double x, double y) const { return x*costheta + y*sintheta; }
 
   //Calculate the internal variables
   void update();
@@ -137,16 +137,16 @@ public:
   std::vector<int> getDetectorIDs(std::string pattern);
   bool findPatternInDetector(int detectorID, std::string pattern);
 
-  double getPlanePosition(int detectorID) { return planes[detectorID].zc; }
-  double getPlaneSpacing(int detectorID)  { return planes[detectorID].spacing; }
+  double getPlanePosition(int detectorID) const { return planes[detectorID].zc; }
+  double getPlaneSpacing(int detectorID) const  { return planes[detectorID].spacing; }
   double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
-  double getCostheta(int detectorID)      { return planes[detectorID].costheta; }
-  double getSintheta(int detectorID)      { return planes[detectorID].sintheta; }
-  double getTantheta(int detectorID)      { return planes[detectorID].tantheta; }
+  double getCostheta(int detectorID) const  { return planes[detectorID].costheta; }
+  double getSintheta(int detectorID) const  { return planes[detectorID].sintheta; }
+  double getTantheta(int detectorID) const  { return planes[detectorID].tantheta; }
   double getPlaneScaleX(int detectorID)   { return planes[detectorID].x2 - planes[detectorID].x1; }
   double getPlaneScaleY(int detectorID)   { return planes[detectorID].y2 - planes[detectorID].y1; }
   int getPlaneNElements(int detectorID)   { return planes[detectorID].nElements; }
-  double getPlaneResolution(int detectorID) { return planes[detectorID].resolution; }
+  double getPlaneResolution(int detectorID) const { return planes[detectorID].resolution; }
  
   double getPlaneCenterX(int detectorID)  { return planes[detectorID].xc; }
   double getPlaneCenterY(int detectorID)  { return planes[detectorID].yc; }
@@ -167,9 +167,9 @@ public:
   double getKMAGDownstream() { return zmax_kmag; }
 
   ///Get the interception of a line an a plane
-  double getInterception(int detectorID, double tx, double ty, double x0, double y0) { return planes[detectorID].intercept(tx, ty, x0, y0); }
-  double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0);
-  double getInterceptionFast(int detectorID, double x_exp, double y_exp) { return planes[detectorID].getW(x_exp, y_exp); }
+  double getInterception(int detectorID, double tx, double ty, double x0, double y0) const { return planes[detectorID].intercept(tx, ty, x0, y0); }
+  double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0) const;
+  double getInterceptionFast(int detectorID, double x_exp, double y_exp) const { return planes[detectorID].getW(x_exp, y_exp); }
   
   ///Convert the detectorID and elementID to the actual hit position
   void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);

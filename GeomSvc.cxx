@@ -130,7 +130,7 @@ void Plane::update()
   nVec[2] = uVec[0]*vVec[1] - vVec[0]*uVec[1];
 }
 
-double Plane::intercept(double tx, double ty, double x0_track, double y0_track)
+double Plane::intercept(double tx, double ty, double x0_track, double y0_track) const
 {
   //double mom[3] = {tx, ty, 1.};
   //double pos[3] = {x0_track, y0_track, 0.};
@@ -607,7 +607,7 @@ double GeomSvc::getDriftDistance(int detectorID, double tdcTime)
   return 0.;
 }
 
-double GeomSvc::getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0)
+double GeomSvc::getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0) const
 {
   return (tx*planes[detectorID].zc + x0)*planes[detectorID].costheta + (ty*planes[detectorID].zc + y0)*planes[detectorID].sintheta;
 }

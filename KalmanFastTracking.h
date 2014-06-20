@@ -19,6 +19,7 @@ Created: 05-24-2013
 #include <Math/Minimizer.h>
 #include <Math/Functor.h>
 
+#include "JobOptsSvc.h"
 #include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "KalmanTrack.h"
@@ -28,7 +29,7 @@ Created: 05-24-2013
 class KalmanFastTracking
 {
 public:
-  KalmanFastTracking(bool flag = true);
+  explicit KalmanFastTracking(bool flag = true);
   ~KalmanFastTracking();
 
   //Set the input event
@@ -168,8 +169,11 @@ private:
   //Geometry service
   GeomSvc* p_geomSvc;
 
+  //Job option service
+  JobOptsSvc* p_jobOptsSvc;
+
   //Flag for enable Kalman fitting
-  bool enable_KF;
+  const bool enable_KF;
 };
 
 #endif

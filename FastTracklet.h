@@ -26,7 +26,7 @@ class SignedHit : public TObject
 {
 public:
   SignedHit();
-  SignedHit(int detectorID);
+  explicit SignedHit(int detectorID);
   SignedHit(Hit hit_input, int sign_input);
   
   //comparision operators for sorting
@@ -72,6 +72,9 @@ public:
 
   //Hit list -- only 4 hits at most
   SignedHit hits[4];
+
+  //static pointer to geometry
+  static const GeomSvc* p_geomSvc;
 
   ClassDef(PropSegment, 1)
 };
@@ -178,6 +181,12 @@ public:
 
   //Residuals of all pos
   double residual[24];
+
+  //static pointer to geomtry service
+  static const GeomSvc* p_geomSvc;
+  
+  //static flag of kmag on/off
+  static const bool kmag_on;
 
   ClassDef(Tracklet, 3)
 };
