@@ -50,12 +50,12 @@ kMagFile  $KTRACKER_ROOT/TrackExtrapolator/tab.Kmag
 Geometry_Version geometry_G3_run2
 
 #choices are localhost, e906-db1.fnal.gov, seaquel.physics.illinois.edu
-MySQL_Server e906-db1.fnal.gov
+MySQL_Server seaquel.physics.illinois.edu
 
 #Int switches
 
-#choices are 3306 (e906-db1), 3282 (seaquel)
-MySQL_Port 3306
+#choices are 3306 (e906-db1), 3283 (seaquel)
+MySQL_Port 3283
 
 #number of events to process (-1 for all)
 N_Events -1
