@@ -13,6 +13,7 @@
 #include <TSQLResult.h>
 #include <TSQLRow.h>
 #include <TLorentzVector.h>
+#include <TStopwatch.h>
 
 #include "SRawEvent.h"
 #include "GeomSvc.h"
@@ -21,9 +22,16 @@
 
 using namespace std;
 
+namespace
+{
+  const bool do_verbose = false; ///< true=print progress to stdout every event, false=print progress at 1% intervals.
+}
+
 int main(int argc, char **argv)
 {
   cout << "Exporting Run: " << argv[1] << " to ROOT file: " << argv[2] << endl;
+  TStopwatch timer;
+  timer.Start();
 
   ///Initialize the job option service
   JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
@@ -57,7 +65,15 @@ int main(int argc, char **argv)
   for(int i = 0; i < nEvents; ++i)
     {
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-      cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished." << flush;
+
+      //print progress every event or every 1%
+      const int fracDone = (i+1)*100/nEvents;
+      if( do_verbose ) cout << "\r Converting event " << rawEvent->getEventID() << ", " << fracDone << "% finished." << flush;
+      else if( 0 == i % (nEvents/100) ) 
+        {
+          timer.Print();
+          cout << Form( "Converting Event %d, %d%% finished.", rawEvent->getEventID(), fracDone ) << endl;
+        }
 
       saveTree->Fill();
     }
