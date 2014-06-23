@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   TTree* dataTree = (TTree *)dataFile->Get("save");
 
   dataTree->SetBranchAddress("rawEvent", &rawEvent);
- 
+
   //Output definition
   int nTracklets;
   TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	{
 	  //iter->print();
 	  SRecTrack recTrack = iter->getSRecTrack();
-          recEvent->insertTrack(recTrack);
+	  recEvent->insertTrack(recTrack);
 	}
 #endif
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
       recEvent->reIndex();
       saveTree->Fill();
-      
+
       recEvent->clear();
       rawEvent->clear();
     }
