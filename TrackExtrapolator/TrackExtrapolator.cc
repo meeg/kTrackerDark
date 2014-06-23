@@ -237,7 +237,7 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
 
   if(ierr != 0)
     {
-      LogDebug("Error code for this run from " << pos_i[2] << " to " << z_out << " is " << ierr);
+      //LogDebug("Error code for this run from " << pos_i[2] << " to " << z_out << " is " << ierr);
       return false;
     }
 
