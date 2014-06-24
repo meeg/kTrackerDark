@@ -97,7 +97,7 @@ bool TriggerAnalyzer::init()
 
   JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
 
-  std::string fileNames[4] = {p_jobOptsSvc->m_roadFile_pt, p_jobOptsSvc->m_roadFile_pb, p_jobOptsSvc->m_roadFile_mt, p_jobOptsSvc->m_roadFile_mb};
+  std::string fileNames[4] = {p_jobOptsSvc->GetRoadsFilePlusTop(), p_jobOptsSvc->GetRoadsFilePlusBottom(), p_jobOptsSvc->GetRoadsFileMinusTop(), p_jobOptsSvc->GetRoadsFileMinusBottom()};
   char buffer[300];
   int pRoads = 0;
   int mRoads = 0;

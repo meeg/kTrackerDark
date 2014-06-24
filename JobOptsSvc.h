@@ -17,7 +17,7 @@ public:
   static JobOptsSvc* instance();
 
   ///Initialization with defaults
-  bool init();
+  bool init( bool forceInit = false );
   ///Initialization using this config file
   bool init(const char* filename);
   ///Close the service and cleanup
@@ -26,6 +26,15 @@ public:
 
   ///Return a string with environmental variables expanded
   std::string ExpandEnvironmentals( const std::string& input ) const;
+
+  ///Return the location of PlusTop roads file
+  std::string GetRoadsFilePlusTop() const;
+  ///Return the location of PlusBottom roads file
+  std::string GetRoadsFilePlusBottom() const;
+  ///Return the location of MinusTop roads file
+  std::string GetRoadsFileMinusTop() const;
+  ///Return the location of MinusBottom roads file
+  std::string GetRoadsFileMinusBottom() const;
 
   //@todo should store smart pointers instead of variable length variables
 
@@ -42,6 +51,8 @@ public:
   int m_nEvents;      ///< number of events to process
   int m_firstEvent;   ///< first event to process
 
+  int m_triggerL1;    ///< L1 firmware version (trigger roads)
+
   std::string m_inputFile;  ///< Name of the input file
   std::string m_outputFile; ///< Name of the output file
 
@@ -50,10 +61,7 @@ public:
   std::string m_alignmentFileProp; ///< Name of prop tune alignment file
   std::string m_alignmentFileMille; ///< Name of mille alignment file
 
-  std::string m_roadFile_pt;  ///< road file of mu+ top
-  std::string m_roadFile_pb;  ///< road file of mu+ bottom
-  std::string m_roadFile_mt;  ///< road file of mu- top
-  std::string m_roadFile_mb;  ///< road file of mu- bottom
+  std::string m_triggerRepo;  ///< Location of the trigger repository on local disk
 
   std::string m_calibrationsFile; ///< Name of calibrations file
 
@@ -66,7 +74,8 @@ public:
   std::string m_mySQLurl;  ///< url of MySQL 
 
 private:
-  static JobOptsSvc* p_jobOptsSvc;
+  int m_isInit; ///< Has this service been initialized?
+  static JobOptsSvc* p_jobOptsSvc; ///< Singleton pointer
 };
 
 #endif

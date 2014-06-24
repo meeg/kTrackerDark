@@ -3,7 +3,7 @@ CXXFLAGS = -g -Wall -fPIC
 ROOTFLAGS = `root-config --cflags --glibs`
 
 INCLUDE += -I$(KTRACKER_ROOT)/ 
-LDLIBS += -L$(KTRACKER_LIB) -lkTracker -lkTrackerSvc
+LDLIBS += -L$(KTRACKER_LIB) -lkTracker
 
 
 BINARIES = TestJobOpts.o

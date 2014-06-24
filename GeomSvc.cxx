@@ -665,6 +665,10 @@ void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std:
 	}	  
       cout << "GeomSvc: loaded hodoscope alignment parameters from " << alignmentFile_hodo << endl; 
     }
+  else
+    {
+      cout << "GeomSvc: failed to load hodoscope alignment parameters from " << alignmentFile_hodo << endl;
+    }
   _align_hodo.close();
 
   //load alignment numbers for prop. tubes
@@ -699,6 +703,11 @@ void GeomSvc::loadAlignment(const std::string& alignmentFile_chamber, const std:
 	}
       cout << "GeomSvc: loaded prop. tube alignment parameters from " << alignmentFile_prop << endl; 
     }
+  else
+    {
+      cout << "GeomSvc: failed to load prop. tube alignment parameters from " << alignmentFile_prop << endl;
+    } 
+
 }
 
 void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
@@ -732,6 +741,11 @@ void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
 	  planes[i+1].resolution = planes[i].resolution;
        	}
     }
+  else
+    {
+      cout << "GeomSvc: failed to load mullepede-based alignment parameters from " << alignmentFile_mille << endl;
+    } 
+
   _align_mille.close();
 }
 

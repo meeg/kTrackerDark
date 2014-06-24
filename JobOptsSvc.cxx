@@ -1,5 +1,7 @@
 #include "JobOptsSvc.h"
 
+#include <TString.h>
+
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -53,9 +55,13 @@ void JobOptsSvc::close()
     }
 }
 
-bool JobOptsSvc::init()
+bool JobOptsSvc::init( bool forceInit /* = false */ )
 {
   if(debug()) cout << "JobOptsSvc::init()" << endl;
+
+  //don't accidentally load defaults over other settings
+  if( m_isInit && !forceInit )
+    return true;
 
   //hardcoded default standard job options file
   return init("$KTRACKER_ROOT/opts/default.opts");
@@ -64,6 +70,7 @@ bool JobOptsSvc::init()
 bool JobOptsSvc::init(const char* configfile)
 {
   if(debug()) cout << "JobOptsSvc::init( " << configfile << " )" << endl;
+
 
   // expand any environment variables in the file name
   m_configFile = ExpandEnvironmentals( configfile );
@@ -87,10 +94,7 @@ bool JobOptsSvc::init(const char* configfile)
   stringOpts["AlignmentFile_Prop"] = &m_alignmentFileProp;
   stringOpts["AlignmentFile_Chamber"] = &m_alignmentFileChamber;
 
-  stringOpts["RoadFile_plus_top"] = &m_roadFile_pt;
-  stringOpts["RoadFile_plus_bottom"] = &m_roadFile_pb;
-  stringOpts["RoadFile_minus_top"] = &m_roadFile_mt;
-  stringOpts["RoadFile_minus_bottom"] = &m_roadFile_mb;
+  stringOpts["Trigger_Repository"] = &m_triggerRepo;
 
   stringOpts["CalibrationsFile"] = &m_calibrationsFile;
 
@@ -104,6 +108,7 @@ bool JobOptsSvc::init(const char* configfile)
   intOpts["MySQL_Port"] = &m_mySQLPort;
   intOpts["N_Events"] = &m_nEvents;
   intOpts["FirstEvent"] = &m_firstEvent;
+  intOpts["Trigger_L1"] = &m_triggerL1;
 
   map<string,bool*> boolOpts;
   boolOpts["MCMode_enable"] = &m_mcMode;
@@ -173,6 +178,9 @@ bool JobOptsSvc::init(const char* configfile)
     }
 
   m_mySQLurl = "mysql://" + m_mySQLServer + ":" + boost::lexical_cast<string>(m_mySQLPort);
+
+  m_isInit = true;
+
   return true;
 }
 
@@ -195,3 +203,28 @@ std::string JobOptsSvc::ExpandEnvironmentals( const std::string& input ) const
   return output;
 }
 
+std::string JobOptsSvc::GetRoadsFilePlusTop() const
+{
+  if(debug()) cout << "JobOptsSvc::GetRoadsFilePlusTop" << endl;
+  return Form( "%s/firmware/roads/L1/%d/roads_plus_top.txt", m_triggerRepo.c_str(), m_triggerL1 );
+}
+
+std::string JobOptsSvc::GetRoadsFilePlusBottom() const
+{
+  if(debug()) cout << "JobOptsSvc::GetRoadsFilePlusBottom" << endl;
+  return Form( "%s/firmware/roads/L1/%d/roads_plus_bottom.txt", m_triggerRepo.c_str(), m_triggerL1 );
+}
+
+
+std::string JobOptsSvc::GetRoadsFileMinusTop() const
+{
+  if(debug()) cout << "JobOptsSvc::GetRoadsFileMinusTop" << endl;
+  return Form( "%s/firmware/roads/L1/%d/roads_minus_top.txt", m_triggerRepo.c_str(), m_triggerL1 );
+}
+
+
+std::string JobOptsSvc::GetRoadsFileMinusBottom() const
+{
+  if(debug()) cout << "JobOptsSvc::GetRoadsFileMinusBottom" << endl;
+  return Form( "%s/firmware/roads/L1/%d/roads_minus_bottom.txt", m_triggerRepo.c_str(), m_triggerL1 );
+}
