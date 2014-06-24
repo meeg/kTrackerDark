@@ -65,5 +65,5 @@ int main(int argc, char **argv)
   delete p_mysqlSvc;
   delete p_geomSvc;
 
-  return 1;
+  return EXIT_SUCCESS;
 }

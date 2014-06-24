@@ -75,5 +75,5 @@ int main(int argc, char *argv[])
       system(cmd);
     }
 
-  return 1;
+  return EXIT_SUCCESS;
 }

@@ -61,5 +61,5 @@ int main(int argc, char* argv[])
   saveTree->Write();
   saveFile->Close();
 
-  return 1;
+  return EXIT_SUCCESS;
 }

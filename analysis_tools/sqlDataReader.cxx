@@ -88,5 +88,5 @@ int main(int argc, char **argv)
   delete p_geomSvc;
   delete p_jobOptsSvc;
 
-  return 1;
+  return EXIT_SUCCESS;
 }

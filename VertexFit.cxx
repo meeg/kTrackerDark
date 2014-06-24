@@ -53,6 +53,7 @@ VertexFit::VertexFit()
   ///disable evaluation by default
   evalFile = NULL;
   evalTree = NULL;
+
 }
 
 VertexFit::~VertexFit()

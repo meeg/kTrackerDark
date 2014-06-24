@@ -157,5 +157,5 @@ int main(int argc, char *argv[])
   delete vtxfit;
   delete triggerAna;
 
-  return 1;
+  return EXIT_SUCCESS;
 }

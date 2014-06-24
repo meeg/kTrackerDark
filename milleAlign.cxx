@@ -90,5 +90,5 @@ int main(int argc, char *argv[])
 
   delete mille;
 
-  return 1;
+  return EXIT_SUCCESS;
 }

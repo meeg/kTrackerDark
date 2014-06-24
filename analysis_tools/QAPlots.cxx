@@ -91,5 +91,5 @@ int main(int argc, char *argv[])
 
   c1->SaveAs(argv[2]);
 
-  return 1;
+  return EXIT_SUCCESS;
 }

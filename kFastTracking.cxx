@@ -154,5 +154,5 @@ int main(int argc, char *argv[])
   filter->close();
 #endif
 
-  return 1;
+  return EXIT_SUCCESS;
 }

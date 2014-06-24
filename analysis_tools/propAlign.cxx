@@ -280,5 +280,5 @@ int main(int argc, char *argv[])
   saveFile->Close();
   */
 
-  return 1;
+  return EXIT_SUCCESS;
 }

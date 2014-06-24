@@ -155,5 +155,5 @@ int main(int argc, char* argv[])
 
   delete triggerAna;
 
-  return 1;
+  return EXIT_SUCCESS;
 }
