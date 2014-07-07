@@ -1,4 +1,5 @@
 #include "JobOptsSvc.h"
+#include "ThresholdSvc.h"
 
 #include <TString.h>
 
@@ -71,6 +72,10 @@ bool JobOptsSvc::init(const char* configfile)
 {
   if(debug()) cout << "JobOptsSvc::init( " << configfile << " )" << endl;
 
+  //hardocded defaults, just in case not all options are listed in file
+  //default threshold settings are info with live on
+  m_thresholdLive = true;
+  m_thresholdLevel = Threshold::kInfo;
 
   // expand any environment variables in the file name
   m_configFile = ExpandEnvironmentals( configfile );
@@ -109,6 +114,7 @@ bool JobOptsSvc::init(const char* configfile)
   intOpts["N_Events"] = &m_nEvents;
   intOpts["FirstEvent"] = &m_firstEvent;
   intOpts["Trigger_L1"] = &m_triggerL1;
+  intOpts["Threshold_Level"] = &m_thresholdLevel;
 
   map<string,bool*> boolOpts;
   boolOpts["MCMode_enable"] = &m_mcMode;
@@ -117,6 +123,7 @@ bool JobOptsSvc::init(const char* configfile)
   boolOpts["kMag_enable"] = &m_enableKMag;
   boolOpts["Evaluation_enable"] = &m_enableEvaluation;
   boolOpts["OnlineAlignment_enable"] = &m_enableOnlineAlignment;
+  boolOpts["Threshold_Live"] = &m_thresholdLive;
 
   //read the file and find matching options
   string line;
@@ -178,6 +185,10 @@ bool JobOptsSvc::init(const char* configfile)
     }
 
   m_mySQLurl = "mysql://" + m_mySQLServer + ":" + boost::lexical_cast<string>(m_mySQLPort);
+
+  //apply threshold settings
+  Threshold::ThresholdSvc::Get().SetLevel( Threshold::Level(m_thresholdLevel) );
+  Threshold::ThresholdSvc::Get().SetLive(  m_thresholdLive );
 
   m_isInit = true;
 

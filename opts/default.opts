@@ -26,6 +26,12 @@ InputFile NEED_ME
 #if not set, output file name is derived from input for most programs
 OutputFile
 
+#settings for threshold service
+# Higher number means more printing
+# kNone = 0, kError = 1, kWarning = 2, kInfo = 3, kDebug = 4, kVerbose = 5
+Threshold_Level 3
+#Boolean setting for live mode
+Threshold_Live 1
 
 #Alginment files
 AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/alignment_hodo.txt

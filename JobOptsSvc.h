@@ -46,12 +46,15 @@ public:
   bool m_enableKMag;       ///< Turn kMag on
   bool m_enableOnlineAlignment;   ///< Turn kMag on
   bool m_enableEvaluation; ///< Enable evaluation output
+  bool m_thresholdLive;    ///< Live setting for ThresholdSvc
 
   int m_mySQLPort;    ///< mysql database port
   int m_nEvents;      ///< number of events to process
   int m_firstEvent;   ///< first event to process
 
   int m_triggerL1;    ///< L1 firmware version (trigger roads)
+
+  int m_thresholdLevel; ///< Level setting for ThresholdSvc
 
   std::string m_inputFile;  ///< Name of the input file
   std::string m_outputFile; ///< Name of the output file

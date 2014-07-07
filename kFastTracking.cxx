@@ -11,8 +11,10 @@
 #include <TMatrixD.h>
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
+#include <TStopwatch.h>
 
 #include "GeomSvc.h"
+#include "ThresholdSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
@@ -24,6 +26,7 @@
 #include "MODE_SWITCH.h"
 
 using namespace std;
+using Threshold::live;
 
 int main(int argc, char *argv[])
 {
@@ -78,27 +81,42 @@ int main(int argc, char *argv[])
       triggerAna->buildTriggerTree();
     }
 
+  TStopwatch timer;
+
   const int offset = jobOptsSvc->m_firstEvent;
   int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
   if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
+  const int printFreq = (nEvtMax - offset)/100;
   LogInfo("Running from event " << offset << " through to event " << nEvtMax);
   for(int i = offset; i < nEvtMax; ++i)
     {
       dataTree->GetEntry(i);
-      cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
-      cout << (i - offset + 1)*100/(nEvtMax - offset) << "% finished .. ";
+
+      const double fracDone = (i - offset + 1)*100/(nEvtMax - offset);
+      if( live() )
+        {
+          cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
+          cout << fracDone << "% finished .. ";
+        }
+      else if( 0 == i % printFreq )
+        {
+          timer.Stop();
+          cout << Form( "Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq ) << endl;
+          timer.Print();
+          timer.Start();
+        }
 
       clock_t time_single = clock();
 
       if(jobOptsSvc->m_enableTriggerMask)
-	{
-	  triggerAna->trimEvent(rawEvent);
-	  rawEvent->reIndex("aoct");
-	}
+        {
+          triggerAna->trimEvent(rawEvent);
+          rawEvent->reIndex("aoct");
+        }
       else
-	{
-	  rawEvent->reIndex("aoc");
-	}
+        {
+          rawEvent->reIndex("aoc");
+        }
       if(!fastfinder->setRawEvent(rawEvent)) continue;
 
       //Fill the TClonesArray
@@ -109,32 +127,34 @@ int main(int argc, char *argv[])
       nTracklets = 0;
       recEvent->setRawEvent(rawEvent);
       for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
-	{
-	  iter->calcChisq();
-	  //iter->print();
-	  new(arr_tracklets[nTracklets]) Tracklet(*iter);
-	  ++nTracklets;
+        {
+          iter->calcChisq();
+          //iter->print();
+          new(arr_tracklets[nTracklets]) Tracklet(*iter);
+          ++nTracklets;
 
 #ifndef _ENABLE_KF
-	  SRecTrack recTrack = iter->getSRecTrack();
-	  recEvent->insertTrack(recTrack);
+          SRecTrack recTrack = iter->getSRecTrack();
+          recEvent->insertTrack(recTrack);
 #endif
-	}
+        }
 
 #ifdef _ENABLE_KF
       std::list<KalmanTrack>& rec_tracks = fastfinder->getKalmanTracks();
       for(std::list<KalmanTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
-	{
-	  //iter->print();
-	  SRecTrack recTrack = iter->getSRecTrack();
-	  recEvent->insertTrack(recTrack);
-	}
+        {
+          //iter->print();
+          SRecTrack recTrack = iter->getSRecTrack();
+          recEvent->insertTrack(recTrack);
+        }
 #endif
 
-      time_single = clock() - time_single;
-      time = double(time_single)/CLOCKS_PER_SEC;
-      cout << "it takes " << time << " seconds for this event." << flush;
-
+      if(live())
+        {
+          time_single = clock() - time_single;
+          time = double(time_single)/CLOCKS_PER_SEC;
+          cout << "it takes " << time << " seconds for this event." << flush;
+        }
       recEvent->reIndex();
       saveTree->Fill();
 
