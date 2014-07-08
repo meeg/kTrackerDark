@@ -2,7 +2,7 @@ ROOTCONFIG   := root-config
 ROOTCINT     := rootcint
 ARCH         := $(shell $(ROOTCONFIG) --arch)
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLDFLAGS  := $(shell $(ROOTCONFIG) --ldflags)
+ROOTLDFLAGS  := $(shell $(ROOTCONFIG) --ldflags) -lRMySQL
 ROOTGLIBS    := $(shell $(ROOTCONFIG) --libs)
 
 G4CONFIG     := geant4-config
