@@ -113,6 +113,17 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
   detectorIDs_muid[1][2] = 47;
   detectorIDs_muid[1][3] = 48;
 
+  //Reference z_ref for mu id
+  z_ref_muid[0][0] = MUID_Z_REF;
+  z_ref_muid[0][1] = MUID_Z_REF;
+  z_ref_muid[0][2] = 0.5*(p_geomSvc->getPlanePosition(detectorIDs_muid[0][0]) + p_geomSvc->getPlanePosition(detectorIDs_muid[0][1]));
+  z_ref_muid[0][3] = z_ref_muid[0][2];
+
+  z_ref_muid[1][0] = MUID_Z_REF;
+  z_ref_muid[1][1] = MUID_Z_REF;
+  z_ref_muid[1][2] = 0.5*(p_geomSvc->getPlanePosition(detectorIDs_muid[1][0]) + p_geomSvc->getPlanePosition(detectorIDs_muid[1][1]));
+  z_ref_muid[1][3] = z_ref_muid[1][2];
+
   //Initialize masking window sizes, with 15% contingency, for station-2, increase that to 20%
   for(int i = 25; i <= 48; i++)
     {
@@ -976,11 +987,12 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 	  int idx1 = detectorID - 25;
 	  int idx2 = elementID - 1;
   
+          double factor = tracklet.stationID == 2 ? 5. : 3.;
 	  double z_hodo = z_mask[idx1];
     	  double x_hodo = tracklet.getExpPositionX(z_hodo);
 	  double y_hodo = tracklet.getExpPositionY(z_hodo);
-    	  double err_x = 3.*tracklet.getExpPosErrorX(z_hodo);
-	  double err_y = 3.*tracklet.getExpPosErrorY(z_hodo);
+    	  double err_x = factor*tracklet.getExpPosErrorX(z_hodo);
+	  double err_y = factor*tracklet.getExpPosErrorY(z_hodo);
 
 	  double x_min = x_mask_min[idx1][idx2] - err_x;
 	  double x_max = x_mask_max[idx1][idx2] + err_x;
@@ -990,7 +1002,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 #ifdef _DEBUG_ON
 	  LogInfo(*iter);
 	  hitAll[*iter].print();
-	  LogInfo(nHodoHits << "/" << nMinimum << ":  " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
+	  LogInfo(nHodoHits << "/" << stationIDs_mask[tracklet.stationID-1].size() << ":  " << z_hodo << "  " << x_hodo << " +/- " << err_x << "  " << y_hodo << " +/-" << err_y << " : " << x_min << "  " << x_max << "  " << y_min << "  " << y_max);
 #endif
 	  if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
     	    {
@@ -1025,6 +1037,7 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
   double cut = tracklet.stationID == 6 ? MUID_REJECT*(MUID_P0 + MUID_P1/tracklet.invP + MUID_P2/tracklet.invP/tracklet.invP) : 0.03; 
 
   double slope[2] = {tracklet.tx, tracklet.ty};
+  double pos_absorb[2] = {tracklet.getExpPositionX(MUID_Z_REF), tracklet.getExpPositionY(MUID_Z_REF)};
   PropSegment* segs[2] = {&(tracklet.seg_x), &(tracklet.seg_y)};
   for(int i = 0; i < 2; ++i)
     {
@@ -1032,17 +1045,19 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
       for(int j = 0; j < 4; ++j)
 	{
 	  int index = detectorIDs_muid[i][j] - 25;
-	  double x_exp = tracklet.getExpPositionX(z_mask[index]);
-	  double y_exp = tracklet.getExpPositionY(z_mask[index]);
-	  double pos_exp = p_geomSvc->getInterceptionFast(detectorIDs_muid[i][j], x_exp, y_exp);
+	  double pos_ref = j < 2 ? pos_absorb[i] : segs[i]->getPosRef();
+	  double pos_exp = slope[i]*(z_mask[index] - z_ref_muid[i][j]) + pos_ref;
 
-	  if(!p_geomSvc->isInPlane(detectorIDs_muid[i][j], x_exp, y_exp)) continue;
+	  if(!p_geomSvc->isInPlane(detectorIDs_muid[i][j], tracklet.getExpPositionX(z_mask[index]), tracklet.getExpPositionY(z_mask[index]))) continue;
 
+	  double win_tight = cut*(z_mask[index] - z_ref_muid[i][j]);
+	  win_tight = win_tight > 2.54 ? win_tight : 2.54;
+	  double win_loose = win_tight*2;
 	  double dist_min = 1E6;
 	  for(std::list<int>::iterator iter = hitIDs_muid[i][j].begin(); iter != hitIDs_muid[i][j].end(); ++iter)
 	    {
 	      double pos = hitAll[*iter].pos;
-	      if(fabs(pos - pos_exp) > 5.08) continue;
+	      if(fabs(pos - pos_exp) > win_loose) continue;
 
 	      double dist_l = fabs(pos - hitAll[*iter].driftDistance - pos_exp);
 	      double dist_r = fabs(pos + hitAll[*iter].driftDistance - pos_exp);
@@ -1050,7 +1065,7 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
 	      if(dist < dist_min)
 		{
 		  dist_min = dist;
-		  if(dist < 2.54)
+		  if(dist < win_tight)
 		    {
 		      segs[i]->hits[j].hit = hitAll[*iter];
 		      segs[i]->hits[j].sign = fabs(pos - hitAll[*iter].driftDistance - pos_exp) < fabs(pos + hitAll[*iter].driftDistance - pos_exp) ? -1 : 1;

@@ -105,42 +105,23 @@ Int_t SRawEvent::findHit(Int_t detectorID, Int_t elementID)
   if(detectorID < 1 || detectorID > 48) return -1;
   if(elementID < 0) return -1;
 
-  Hit h_dummy;
-  h_dummy.detectorID = detectorID;
-  h_dummy.elementID = elementID;
-
   /*
   This method produces problems in case of duplicate channels and thus people need to be cautious;
   It's okay here for two reasons:
      1. inTime is required when searching for trigger roads;
      2. hodoscope hit doesn't need tdcTime information as long as it's in-time;
   */
-  Int_t idx_start;
-  Int_t idx_end;
-  if(detectorID <= 24)
-    {
-      idx_start = 0;
-      idx_end = getNChamberHitsAll() - 1;
-    }
-  else if(detectorID <= 40)
-    {
-      idx_start = getNChamberHitsAll();
-      idx_end = idx_start + getNHodoHitsAll();
-    }
-  else
-    {
-      idx_start = getNChamberHitsAll() + getNHodoHitsAll();
-      idx_end = fNHits[0] - 1;
-    }
-
+  Int_t idx_start = 0;
+  for(int i = 1; i < detectorID; ++i) idx_start += fNHits[i];
+  Int_t idx_end = idx_start + fNHits[detectorID];;
   while(idx_start <= idx_end)
     {
       Int_t idx_mid = Int_t((idx_start + idx_end)/2);
-      if(fAllHits[idx_mid] == h_dummy)
+      if(fAllHits[idx_mid].elementID == elementID)
 	{
 	  return idx_mid;
 	}
-      else if(fAllHits[idx_mid] < h_dummy)
+      else if(fAllHits[idx_mid].elementID < elementID)
 	{
 	  idx_start = idx_mid + 1;
 	}
@@ -518,7 +499,7 @@ void SRawEvent::reIndex(std::string option)
       if(_outoftime && iter->inTime == 0) continue;
       if(_hodomask && iter->hodoMask == 0) continue;
       if(_nonchamber && iter->detectorID > 24) continue;
-      if(_triggermask && iter->detectorID >= 24 && iter->detectorID <= 40 && iter->inTime != 2) continue;
+      if(_triggermask && iter->detectorID > 24 && iter->detectorID <= 40 && iter->inTime != 2) continue;
 
       hitlist_temp.push_back(*iter);
     }

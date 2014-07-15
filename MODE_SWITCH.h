@@ -39,9 +39,10 @@
 
 //--------------- Muon identification -----------
 #define MUID_REJECT 4.
-#define MUID_P0 6.43
-#define MUID_P1 -0.09
-#define MUID_P2 0.00046
+#define MUID_P0 0.00643
+#define MUID_P1 -0.00009
+#define MUID_P2 0.00000046
+#define MUID_Z_REF 2028.19
 
 //--------------- Geometry setup -----------------
 #define nChamberPlanes 24

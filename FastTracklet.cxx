@@ -88,6 +88,23 @@ bool PropSegment::isValid()
   return true;
 }
 
+double PropSegment::getPosRef()
+{
+  if(hits[0].hit.index < 0 && hits[1].hit.index < 0) return -9999.; 
+
+  int nRefPoints = 0;
+  double pos_exp = 0.; 
+  for(int i = 0; i < 2; ++i)   
+    {
+      if(hits[i].hit.index < 0) continue;
+
+      pos_exp += hits[i].hit.pos;
+      ++nRefPoints;
+    }
+
+  return pos_exp/nRefPoints;
+}
+
 void PropSegment::fit()
 {
   if(getNHits() < 3) return;
@@ -106,6 +123,11 @@ void PropSegment::fit()
 	  hits[1].sign = -1;
 	}
     }
+  else
+    {
+      hits[0].sign = 0;
+      hits[1].sign = 0;
+    }
 
   //Sign assignment for 3rd and 4th hits
   if(hits[2].hit.index > 0 && hits[3].hit.index > 0)
@@ -121,8 +143,56 @@ void PropSegment::fit()
 	  hits[3].sign = -1;
 	}
     }
+  else
+    {
+      hits[2].sign = 0;
+      hits[3].sign = 0;
+    }
 
   //A linear fit
+  linearFit();
+
+  //remove one bad hits if possible/needed
+  if(getNHits() == 4 && chisq > 5.)
+    {
+      int index = 0;
+      double res_max = fabs(hits[0].pos() - a*p_geomSvc->getPlanePosition(hits[0].hit.detectorID) - b);
+      for(int i = 1; i < 4; ++i)
+	{
+	  double res = fabs(hits[1].pos() - a*p_geomSvc->getPlanePosition(hits[i].hit.detectorID) - b);
+	  if(res > res_max)
+	    {
+	      index = i;
+	      res_max = res;
+	    }
+	}
+
+#ifdef _DEBUG_ON
+      LogInfo("Invoking prop segment re-fitting...");
+      LogInfo("Removing hit " << index << " with residual = " << res_max);
+      LogInfo("Before removing a = " << a << ", b = " << b << ", chisq = " << chisq);
+#endif
+
+      //remove the bad hit
+      hits[index].hit.index = -1;
+      if(index < 2)	
+	{
+	  hits[0].sign = 0;
+	  hits[1].sign = 0;					
+	}					  
+      else					  
+	{		  
+	  hits[2].sign = 0;
+	  hits[3].sign = 0;
+	}
+
+      //fit again
+      linearFit();
+    }
+}
+
+void PropSegment::linearFit()
+{
   double sum = 0.;
   double sx = 0.;
   double sy = 0.;

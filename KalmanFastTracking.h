@@ -113,6 +113,7 @@ private:
 
   //prop. tube IDs for MUID -- 0 for x-z, 1 for y-z
   int detectorIDs_muid[2][4];
+  double z_ref_muid[2][4];
   std::list<int> hitIDs_muid[2][4];
 
   //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID

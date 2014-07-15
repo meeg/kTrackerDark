@@ -58,8 +58,14 @@ public:
   //Number of hits
   int getNHits();
 
+  //Get reference pos at first two planes
+  double getPosRef();
+
   //Fit the segment -- naive linear fit
   void fit();
+
+  //a simplified version of chisq fit
+  void linearFit();
 
   //track slope the interception
   double a;
