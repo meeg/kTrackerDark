@@ -10,12 +10,17 @@
 #include <TROOT.h>
 #include <TH1D.h>
 
+#include "FastTracklet.h"
+#include "SRecEvent.h"
+
 class TriggerRoad : public TObject
 {
 public:
   TriggerRoad();
   TriggerRoad(std::list<int> uniqueIDs);
-
+  TriggerRoad(Tracklet& track);
+  TriggerRoad(SRecTrack& track);
+  
   //Flag
   bool isValid();
   bool isEnabled() { return enabled; }
@@ -36,6 +41,8 @@ public:
   int getDetectorID(int i) { return detectorIDs[i]; } 
   int getElementID(int i) { return elementIDs[i]; }
   int getUniqueID(int i) { return detectorIDs[i]*100 + elementIDs[i]; }
+
+  int getRoadID();
 
   //The total weight and ratio of target weight
   double weight() const { return targetWeight + dumpWeight; }

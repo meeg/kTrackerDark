@@ -38,14 +38,7 @@ SRecTrack::SRecTrack()
 
 bool SRecTrack::operator<(const SRecTrack& elem) const
 {
-  if((Double_t)fHitIndex.size() - 0.4*fChisq > (Double_t)elem.fHitIndex.size() - 0.4*elem.fChisq)
-    {
-      return true;
-    }
-  else
-    {
-      return false;
-    }
+  return getNHits() == elem.getNHits() ? fChisq < elem.fChisq : getProb() > elem.getProb();
 }
 
 void SRecTrack::setZVertex(Double_t z)

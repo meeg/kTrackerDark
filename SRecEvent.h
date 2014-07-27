@@ -38,10 +38,11 @@ public:
   SRecTrack();
 
   ///Gets
-  Int_t getCharge() { return (fState[0])[0][0] > 0 ? 1 : -1; }
-  Int_t getNHits() { return fHitIndex.size(); }
-  Double_t getChisq() { return fChisq; }
-  Double_t getQuality() { return (Double_t)getNHits() - 0.4*getChisq(); }
+  Int_t getCharge() const { return (fState[0])[0][0] > 0 ? 1 : -1; }
+  Int_t getNHits() const { return fHitIndex.size(); }
+  Double_t getChisq() const { return fChisq; }
+  Double_t getProb() const { return KMAG_ON == 1 ? TMath::Prob(fChisq, getNHits() - 5) : TMath::Prob(fChisq, getNHits() - 4); }
+  Double_t getQuality() const { return (Double_t)getNHits() - 0.4*getChisq(); }
 
   Int_t getHitIndex(Int_t i) { return fHitIndex[i]; }
   TMatrixD getStateVector(Int_t i) { return fState[i]; }

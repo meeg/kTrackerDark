@@ -510,6 +510,13 @@ double GeomSvc::getMeasurement(int detectorID, int elementID)
 
 int GeomSvc::getExpElementID(int detectorID, double pos_exp)
 {
+  if(detectorID <= 40)  
+    {
+      int elementID_lo = int((pos_exp - planes[detectorID].xoffset - planes[detectorID].x0*planes[detectorID].costheta - planes[detectorID].y0*planes[detectorID].sintheta - planes[detectorID].deltaW + 0.5*(planes[detectorID].nElements + 1.)*planes[detectorID].spacing)/planes[detectorID].spacing);
+
+      return fabs(pos_exp - map_wirePosition[std::make_pair(detectorID, elementID_lo)]) < 0.5*planes[detectorID].spacing ? elementID_lo : elementID_lo + 1;	    
+    }
+
   int elementID = -1;
   for(int i = 1; i < planes[detectorID].nElements; i++)
     {

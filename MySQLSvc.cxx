@@ -41,18 +41,6 @@ MySQLSvc::MySQLSvc()
   readTriggerHits = true;
   readTargetPos = true;
 
-  //Initialize trigger analyzer
-  p_triggerAna = new TriggerAnalyzer();
-  setTriggerEmu = p_triggerAna->init();
-  if(setTriggerEmu)
-    {
-      p_triggerAna->buildTriggerTree();
-    }
-  else
-    {
-      std::cout << "MySQLSvc: Trigger emulation is disabled." << std::endl;
-    }
-
   rndm.SetSeed(0);
 }
 
@@ -104,14 +92,30 @@ void MySQLSvc::setWorkingSchema(std::string schema)
 
   server->Exec(query);
   eventIDs.clear();
-  eventIDs.push_back(0);
+ 
+  index_eventID = 0;
+}
 
+void MySQLSvc::initReader()
+{
   if(!server->HasTable("QIE")) readQIE = false;
   if(!server->HasTable("TriggerHit")) readTriggerHits = false;
 
   if(!readQIE) std::cout << "MySQLSvc: QIE information readout is disabled." << std::endl; 
   if(!readTriggerHits) std::cout << "MySQLSvc: TriggerHits table readout is disabled." << std::endl;
   if(!readTargetPos) std::cout << "MySQLSvc: Target position readout is disabled." << std::endl;
+
+  //Initialize trigger analyzer
+  p_triggerAna = new TriggerAnalyzer();
+  setTriggerEmu = p_triggerAna->init();
+  if(setTriggerEmu)
+    {
+      p_triggerAna->buildTriggerTree();
+    }
+  else
+    {
+      std::cout << "MySQLSvc: Trigger emulation is disabled." << std::endl;
+    }
 
   //Enable index if not enabled already
   bool indexEnabled = true;
@@ -166,22 +170,24 @@ bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
   return getEvent(rawEvent, eventID);
 }
 
+//Cannot be used for now
 bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 {
-  int eventID = int(rndm.Rndm()*getNEvents() - 1);
-  if(isEventLoaded(eventID)) return false;
-  
+  /* 
   rawEvent->clear();
   if(!getEventHeader(rawEvent, eventID))
     {
       return false;
     }
   return getEvent(rawEvent, eventID);
+  */
+
+  return false; 
 }
 
 bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 {
-  int eventID = eventIDs.back() + 1;
+  int eventID = eventIDs[index_eventID++];
   
   rawEvent->clear();
   if(!getEventHeader(rawEvent, eventID))
@@ -193,7 +199,7 @@ bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 
 bool MySQLSvc::getNextEvent(SRawMCEvent* mcEvent)
 {
-  int eventID = eventIDs.back() + 1;
+  int eventID = eventIDs[index_eventID++];
 
   mcEvent->clear();
   if(!getEventHeader(mcEvent, eventID) || !getMCGenInfo(mcEvent, eventID))
@@ -239,10 +245,10 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 #endif
   */
 #ifdef USE_M_TABLES
-  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
+  sprintf(query, "SELECT hitID,elementID,tdcTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
 	  "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
 #else
-  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%' "
+  sprintf(query, "SELECT hitID,elementID,tdcTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%' "
 	  "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
 #endif
   int nHits = makeQuery();
@@ -252,7 +258,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
     {
       nextEntry();
 
-      std::string detectorName(row->GetField(5));
+      std::string detectorName(row->GetField(4));
       int elementID = getInt(1);
       p_geomSvc->toLocalDetectorName(detectorName, elementID);
        
@@ -260,19 +266,18 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       h.index = getInt(0);
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
       h.elementID = elementID;
-      h.tdcTime = getDouble(2);
-      h.inTime = getInt(6, 1);
+      h.tdcTime = getFloat(2);
+      h.driftDistance = getFloat(3);
       h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-      h.driftTime = getDouble(3);
-      h.driftDistance = getDouble(4);
-      h.hodoMask = getInt(7, 1);
-      
+      if(getInt(5, 0) > 0) h.setInTime();
+      if(getInt(6, 0) > 0) h.setHodoMask();
+
       if(p_geomSvc->isCalibrationLoaded())
 	{
 	  if((h.detectorID >= 1 && h.detectorID <= 24) || (h.detectorID >= 41))
 	    {
-	      h.inTime = p_geomSvc->isInTime(h.detectorID, h.tdcTime) ? 1 : 0;
-	      if(h.inTime > 0) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
+	      h.setInTime(p_geomSvc->isInTime(h.detectorID, h.tdcTime));
+	      if(h.isInTime()) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
 	    }	  
 	}
       rawEvent->insertHit(h);
@@ -307,17 +312,31 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 
 int MySQLSvc::getNEvents()
 {
-  sprintf(query, "SELECT MAX(eventID) FROM Event");
-  if(makeQuery() != 1) return 0;
+#ifndef MC_MODE
+  //More cuts should apply, say spill quality cuts, event quality cuts, etc.
+  sprintf(query, "SELECT eventID FROM Event");
+#else
+  sprintf(query, "SELECT eventID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1");
+#endif
+  int nTotal = makeQuery();
+  if(nTotal == 1) return 0;
 
-  nextEntry();
-  int nTotal = getInt(0);
+  eventIDs.clear();
+  eventIDs_loaded.clear();
+
+  eventIDs.reserve(nTotal);
+  eventIDs_loaded.reserve(nTotal);
+  for(int i = 0; i < nTotal; ++i)
+    {
+      nextEntry();
+      eventIDs.push_back(getInt(0));
+    }
   return nTotal;
 }
 
 bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 {
-  eventIDs.push_back(eventID);
+  eventIDs_loaded.push_back(eventID);
   
   //Get the event header
   sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
@@ -387,12 +406,10 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 	  Hit h;
 	  h.index = getInt(0);
 	  h.elementID = getInt(2);
-	  h.tdcTime = getDouble(3);
-	  h.inTime = getInt(4);
-       	  h.driftTime = 0.;
+	  h.tdcTime = getFloat(3);
       	  h.driftDistance = 0.;
-	  h.hodoMask = 0;
-      
+          if(getInt(4, 0) > 0) h.setInTime();
+
 	  std::string detectorName(row->GetField(1));
 	  if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
     	    {
@@ -496,7 +513,7 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
   return true;
 }
 
-void MySQLSvc::bookOutputTables()
+void MySQLSvc::initWriter()
 {
   //Clear all the tables if exist
   std::string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kInfo"};
@@ -748,6 +765,16 @@ int MySQLSvc::getInt(int id, int default_val)
     }
 
   return boost::lexical_cast<int>(row->GetField(id));
+}
+
+float MySQLSvc::getFloat(int id, float default_val)
+{
+  if(row->GetField(id) == NULL)
+    {
+      return default_val;
+    }
+
+  return boost::lexical_cast<float>(row->GetField(id));
 }
 
 double MySQLSvc::getDouble(int id, double default_val)

@@ -24,33 +24,55 @@ Created: 07-02-2012
 #include <TVector3.h>
 
 #define triggerBit(n) (1 << (n))
+#define hitFlagBit(n) (1 << (n))
 
 ///Definition of hit structure
 class Hit: public TObject
 {
 public:
-  Int_t index;         //unique index for identification
-  Int_t detectorID;    //assigned for each detector plane
-  Int_t elementID;     
-  Double_t tdcTime;    //raw TDC time
-  Double_t driftTime;
-  Double_t driftDistance; 
-  Double_t pos;        //actual measurement in either X, Y, U or V direction
+  //Constructor
+  Hit();
+ 
+  //Decompose the data quality flag
+  bool isInTime() { return (flag & Hit::inTime) != 0; } 
+  bool isHodoMask() { return (flag & Hit::hodoMask) != 0; } 
+  bool isTriggerMask() { return (flag & Hit::triggerMask) != 0; } 
 
-  Int_t inTime;        //In-time flag
-  Int_t hodoMask;      //Hodo-mask flag
-
+  //Set the flag
+  void setFlag(UShort_t flag_input) { flag |= flag_input; }
+  void resetFlag(UShort_t flag_input) { flag &= ~flag_input; }
+  void setInTime(bool f = true) { f ? (flag |= inTime) : (flag &= ~inTime); }
+  void setHodoMask(bool f = true) { f ? (flag |= hodoMask) : (f &= ~hodoMask); }
+  void setTriggerMask(bool f = true) { f ? (flag |= triggerMask) : (flag &= ~triggerMask); }
+  
   //Sign of this hit
-  int getSign() { return driftDistance > 0 ? 1 : -1; }
+  Int_t getSign() { return driftDistance > 0 ? 1 : -1; }
 
   //overiden comparison operator for track seeding 
   bool operator<(const Hit& elem) const;
   bool operator==(const Hit& elem) const;
 
   //Debugging output
-  void print() { std::cout << index << " : " << detectorID << " : " << elementID << " : " << pos << " : " << driftDistance << " : " << inTime << " : " << hodoMask << std::endl; }
+  void print() { std::cout << index << " : " << detectorID << " : " << elementID << " : " << pos << " : " << driftDistance << " : " << isInTime() << " : " << isHodoMask() << " : " << isTriggerMask() << std::endl; }
+ 
+  //Data members
+  Int_t index;             //unique index for identification
+  Short_t detectorID;      //assigned for each detector plane
+  Short_t elementID;     
+  Float_t tdcTime;         //raw TDC time
+  Float_t driftDistance;
+  Float_t pos;             //actual measurement in either X, Y, U or V direction
 
-  ClassDef(Hit, 2)
+  //hit quality flag
+  enum hitQuality
+    {
+      inTime = hitFlagBit(1),
+      hodoMask = hitFlagBit(2),
+      triggerMask = hitFlagBit(3)
+    };
+  UShort_t flag;
+
+  ClassDef(Hit, 3)
 };
 
 class SRawEvent: public TObject
@@ -59,13 +81,11 @@ public:
   SRawEvent();
   ~SRawEvent();
 
-  ///Mix events for MC study
-  void mixEvent(SRawEvent* event, int nBkgHits = -1);
-
   ///Gets
-  std::list<Int_t> getHitsIndexInDetector(Int_t detectorID);
-  std::list<Int_t> getHitsIndexInDetector(Int_t detectorID, Double_t x_exp, Double_t win);
-  std::list<Int_t> getHitsIndexInSuperDetector(Int_t detectorID);
+  //Hit lists
+  std::list<Int_t> getHitsIndexInDetector(Short_t detectorID);
+  std::list<Int_t> getHitsIndexInDetector(Short_t detectorID, Double_t x_exp, Double_t win);
+  std::list<Int_t> getHitsIndexInSuperDetector(Short_t detectorID);
   std::list<Int_t> getHitsIndexInDetectors(std::vector<Int_t>& detectorIDs);
   std::list<Int_t> getAdjacentHitsIndex(Hit& _hit);
 
@@ -79,20 +99,17 @@ public:
   Int_t getNHitsInD3p();
   Int_t getNHitsInD3m();
 
-  Int_t getNHitsInDetector(Int_t detectorID) { return fNHits[detectorID]; }
-  Int_t getNHitsInSuperDetector(Int_t detectorID) { return fNHits[2*detectorID-1] + fNHits[2*detectorID]; }
+  Int_t getNHitsInDetector(Short_t detectorID) { return fNHits[detectorID]; }
+  Int_t getNHitsInSuperDetector(Short_t detectorID) { return fNHits[2*detectorID-1] + fNHits[2*detectorID]; }
   Int_t getNHitsInDetectors(std::vector<Int_t>& detectorIDs);
   
   std::vector<Hit> getAllHits() { return fAllHits; }
   std::vector<Hit> getTriggerHits() { return fTriggerHits; }
   Hit getTriggerHit(Int_t index) { return fTriggerHits[index]; } 
-
   Hit getHit(Int_t index) { return fAllHits[index]; } 
-  Hit getHit(Int_t detectorID, Int_t elementID); 
-  void setHit(Int_t index, Hit hit) { fAllHits[index] = hit; }
-  void setTriggerHit(Int_t index, Hit hit) { fTriggerHits[index] = hit; }
-  void setHitFlag(Int_t index, Int_t flag) { if(index < 0) return; fAllHits[index].inTime = flag; }
-  void setHitFlag(Int_t detectorID, Int_t elementID, Int_t flag) { setHitFlag(findHit(detectorID, elementID), flag); }
+  Hit getHit(Short_t detectorID, Short_t elementID); 
+  void setHitFlag(Int_t index, Short_t flag) { if(index < 0) return; fAllHits[index].setFlag(flag); }
+  void setHitFlag(Short_t detectorID, Short_t elementID, Short_t flag) { setHitFlag(findHit(detectorID, elementID), flag); }
 
   Int_t getRunID() { return fRunID; }
   Int_t getEventID() { return fEventID; }
@@ -100,25 +117,27 @@ public:
 
   ///Sets
   void setEventInfo(Int_t runID, Int_t spillID, Int_t eventID);
+  void setHit(Int_t index, Hit h) { fAllHits[index] = h; }
+  void setTriggerHit(Int_t index, Hit h) { fTriggerHits[index] = h; }
 
   ///Insert a new hit
   void insertHit(Hit h);
   void insertTriggerHit(Hit h) { fTriggerHits.push_back(h); }
   
   ///Find a hit -- binary search since hit list is sorted
-  Int_t findHit(Int_t detectorID, Int_t elementID);
+  Int_t findHit(Short_t detectorID, Short_t elementID);
 
   ///Manipulation/reduction of hit list
   void reIndex(std::string option = "");
   void deClusterize(std::list<Hit>& hits);
   void processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>::iterator>& cluster);
 
-  ///Type of pair with two adjacent wiree
+  ///Type of pair with two adjacent wires
   typedef std::pair<Int_t, Int_t> hit_pair;
-  std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Int_t detectorID);
-  std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID);  
-  std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);
-  std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Int_t detectorID, Double_t x_exp, Double_t wind);  
+  std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Short_t detectorID);
+  std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Short_t detectorID);  
+  std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Short_t detectorID, Double_t x_exp, Double_t wind);
+  std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Short_t detectorID, Double_t x_exp, Double_t wind);  
   
   ///Set/get the trigger types
   Int_t getTriggerBits() { return fTriggerBits; }
@@ -134,13 +153,14 @@ public:
   Int_t getNRoadsPosBot() { return fNRoads[1]; } 
   Int_t getNRoadsNegTop() { return fNRoads[2]; } 
   Int_t getNRoadsNegBot() { return fNRoads[3]; } 
-  Int_t* getNRoads() { return fNRoads; }
+  Short_t* getNRoads() { return fNRoads; }
   void setTriggerEmu(bool flag) { fTriggerEmu = flag ? 1 : -1; }
+  void setNRoads(Short_t nRoads[]) { for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i]; }
   void setNRoads(Int_t nRoads[]) { for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i]; }
 
   //Set/get the target position
   Int_t getTargetPos() { return fTargetPos; }
-  void setTargetPos(Int_t targetPos) { fTargetPos = targetPos; }
+  void setTargetPos(Short_t targetPos) { fTargetPos = targetPos; }
 
   //Set/get the beam info
   Int_t getTurnID() { return fTurnID; }
@@ -192,7 +212,7 @@ private:
   Int_t fTriggerBits;
 
   //Target pos
-  Int_t fTargetPos;
+  Short_t fTargetPos;
 
   //Beam intensity information
   Int_t fTurnID;
@@ -200,15 +220,15 @@ private:
   Int_t fIntensity[33];   //16 before, one onset, and 16 after
 
   //Offline trigger simulation res
-  Int_t fTriggerEmu;
-  Int_t fNRoads[4];       //0, positive top; 1, positive bottom; 2, negative top; 3, negative bottom
+  Short_t fTriggerEmu;
+  Short_t fNRoads[4];       //0, positive top; 1, positive bottom; 2, negative top; 3, negative bottom
 
   ///Hits of this event
   Int_t fNHits[nChamberPlanes+nHodoPlanes+nPropPlanes+1];  //0 for all hits, 1, 2, ..., 24 for number of hits in plane 1, 2, ..., 24
   std::vector<Hit> fAllHits;
   std::vector<Hit> fTriggerHits;
 
-  ClassDef(SRawEvent, 7)
+  ClassDef(SRawEvent, 8)
 };
 
 class SRawMCEvent: public SRawEvent
