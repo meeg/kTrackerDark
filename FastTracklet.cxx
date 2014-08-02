@@ -15,6 +15,7 @@ Created: 05-28-2013
 #include <TMatrixD.h>
 
 #include "FastTracklet.h"
+#include "TriggerRoad.h"
 
 ClassImp(SignedHit)
 ClassImp(PropSegment)
@@ -674,7 +675,17 @@ SRecTrack Tracklet::getSRecTrack()
       strack.insertZ(z);
     }
 
+  //Set single vertex swimming
   strack.swimToVertex();
+
+  //Set trigger road info
+  TriggerRoad road(*this); 
+  strack.setTriggerRoad(road.getRoadID());
+
+  //Set prop tube slopes
+  strack.setNHitsInPT(seg_x.getNHits(), seg_y.getNHits());
+  strack.setPTSlope(seg_x.a, seg_y.a);
+
   return strack;
 }
 

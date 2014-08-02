@@ -141,6 +141,11 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  dimuon.chisq_vx = getVXChisq();
 	  dimuon.vtx.SetXYZ(_vtxpar_curr._r[0][0], _vtxpar_curr._r[1][0], _vtxpar_curr._r[2][0]);
 
+	  dimuon.proj_target_pos = track_pos.getTargetPos();
+	  dimuon.proj_dump_pos = track_pos.getDumpPos();
+	  dimuon.proj_target_neg = track_neg.getTargetPos();
+	  dimuon.proj_dump_neg = track_neg.getDumpPos();
+
 	  //If we are running in the like-sign mode, reverse one sign of px
 	  if(sign1 + sign2 != 0)
 	    {

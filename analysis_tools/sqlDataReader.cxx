@@ -27,34 +27,29 @@ using Threshold::live;
 int main(int argc, char **argv)
 {
   cout << "Exporting Run: " << argv[1] << " to ROOT file: " << argv[2] << endl;
+
   TStopwatch timer;
   timer.Start();
-
 
   //NOTE:
   //Comment out this line if you want this to print at every event.
   //This is a hack until this program takes a job options file as the argument
-  Threshold::ThresholdSvc::Get().SetLive( false );
+  Threshold::ThresholdSvc::Get().SetLive(false);
 
   ///Initialize the job option service
   JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
 
-  ///Initialize the geometry service and output file 
+  ///Initialize the geometry service 
   GeomSvc* p_geomSvc = GeomSvc::instance();
   p_geomSvc->loadCalibration(p_jobOptsSvc->m_calibrationsFile);
 
+  ///Initialize the mysql service
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  if(argc > 4)
-    {
-      p_mysqlSvc->connect(argv[3], atoi(argv[4]));
-    }
-  else
-    {
-      p_mysqlSvc->connect();
-    }
+  p_mysqlSvc->connect();
   p_mysqlSvc->setWorkingSchema(argv[1]);
-  p_mysqlSvc->initReader();
+  if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
 
+  ///Definition of the output structure
   SRawEvent* rawEvent = new SRawEvent();
 
   TFile *saveFile = new TFile(argv[2], "recreate");
@@ -70,7 +65,7 @@ int main(int argc, char **argv)
   
   //if user specified number of events, then do that many
   //   but make sure they can't request more than exist
-  if(argc > 5) nEvents = std::min( nEvents, atoi(argv[5]) );
+  if(argc > 3) nEvents = std::min( nEvents, atoi(argv[3]) );
 
   //plan to print progress at each %1 (unless in live mode)
   const int printFreq = (nEvents/100);
@@ -82,12 +77,14 @@ int main(int argc, char **argv)
 
       //print progress every event or every 1%
       const int fracDone = (i+1)*100/nEvents;
-      if( live() ) 
-        cout << "\r Converting event " << rawEvent->getEventID() << ", " << fracDone << "% finished." << flush;
-      else if( 0 == i % printFreq ) 
+      if(live()) 
+	{
+	  cout << "\r Converting event " << rawEvent->getEventID() << ", " << fracDone << "% finished." << flush;
+	}
+      else if(0 == i % printFreq) 
         {
           timer.Stop();
-          cout << Form( "Converting Event %d, %d%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq ) << endl;
+          cout << Form("Converting Event %d, %d%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq) << endl;
           timer.Print();
           timer.Start();
         }
@@ -95,8 +92,7 @@ int main(int argc, char **argv)
       saveTree->Fill();
 
       //save every n events to avoid large losses
-      if(0 == i % saveFreq)
-        saveTree->AutoSave("SaveSelf");
+      if(0 == i % saveFreq) saveTree->AutoSave("SaveSelf");
     }
   cout << endl;
   cout << "sqlDataReader ends successfully." << endl;

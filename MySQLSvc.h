@@ -66,10 +66,10 @@ public:
   bool getMCGenInfo(SRawMCEvent* mcEvent, int eventID);
 
   //initialize reader -- check the indexing, table existence
-  void initReader();
+  bool initReader();
 
   //Output to database/txt file/screen
-  void initWriter();
+  bool initWriter();
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
   void writeTrackTable(int trackID, SRecTrack* recTrack);
   void writeTrackHitTable(int trackID, Tracklet* tracklet);

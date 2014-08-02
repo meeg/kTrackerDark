@@ -452,7 +452,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 	  
 	  //Apply a simple linear fit to get rough estimation of X-Z slope and intersection
 	  chi2fit(nHitsX2, z_fit, x_fit, a, b);
-	  if(fabs(a) > TX_MAX || fabs(b) > X0_MAX) continue;
+	  if(fabs(a) > 2.*TX_MAX || fabs(b) > 2.*X0_MAX) continue;
 
 	  //Project to proportional tubes to see if there is enough
 	  int nPropHits = 0;
@@ -461,7 +461,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 	      double x_exp = a*z_mask[detectorIDs_muid[0][i] - 25] + b;
 	      for(std::list<int>::iterator iter = hitIDs_muid[0][i].begin(); iter != hitIDs_muid[0][i].end(); ++iter)
 		{
-		  if(fabs(hitAll[*iter].pos - x_exp) < 2.54)
+		  if(fabs(hitAll[*iter].pos - x_exp) < 5.08)
 		    {
 		      ++nPropHits;
 		      break;

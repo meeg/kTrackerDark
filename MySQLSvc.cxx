@@ -88,16 +88,27 @@ bool MySQLSvc::connect(std::string mysqlServer, int mysqlPort)
 void MySQLSvc::setWorkingSchema(std::string schema)
 {
   dataSchema = schema;
-  sprintf(query, "USE %s", dataSchema.c_str());
-
-  server->Exec(query);
   eventIDs.clear();
- 
   index_eventID = 0;
 }
 
-void MySQLSvc::initReader()
+bool MySQLSvc::initReader()
 {
+  //check the essential info
+  sprintf(query, "USE %s", dataSchema.c_str());
+  if(!server->Exec(query))
+    {
+      std::cout << "MySQLSvc: working schema does not exist! Will exit..." << std::endl;
+      return false;
+    }
+
+  if(!(server->HasTable("Hit") && server->HasTable("Spill")))
+    {
+      std::cout << "MySQLSvc: essential information is missing in this schema. Will exit..." << std::endl;
+      return false;
+    }
+
+  //check additional information
   if(!server->HasTable("QIE")) readQIE = false;
   if(!server->HasTable("TriggerHit")) readTriggerHits = false;
 
@@ -134,10 +145,19 @@ void MySQLSvc::initReader()
     {
       std::cout << "MySQLSvc: Index is not enabled for this schema, enable it now." << std::endl;
 
-      sprintf(query, "ALTER TABLE Hit ENABLE KEYS"); server->Exec(query);
-      if(readTriggerHits) sprintf(query, "ALTER TABLE TriggerHit ENABLE KEYS"); server->Exec(query);
-      sprintf(query, "OPTIMIZE LOCAL TABLE `Run`, `Spill`, `Event`, `Hit`, `TriggerHit`, `Scaler`"); server->Exec(query);
+      //Temporarily connect as production user
+      char address[200];
+      sprintf(address, "mysql://%s:%d", server->GetHost(), server->GetPort()); 
+      TSQLServer* server_temp = TSQLServer::Connect(address, "production", "qqbar2mu+mu-");
+
+      sprintf(query, "ALTER TABLE Hit ENABLE KEYS"); server_temp->Exec(query);
+      if(readTriggerHits) sprintf(query, "ALTER TABLE TriggerHit ENABLE KEYS"); server_temp->Exec(query);
+      sprintf(query, "OPTIMIZE LOCAL TABLE `Run`, `Spill`, `Event`, `Hit`, `TriggerHit`, `Scaler`"); server_temp->Exec(query);
+
+      server_temp->Close();
     }
+
+  return true;
 }
 
 bool MySQLSvc::isRunStopped()
@@ -314,7 +334,7 @@ int MySQLSvc::getNEvents()
 {
 #ifndef MC_MODE
   //More cuts should apply, say spill quality cuts, event quality cuts, etc.
-  sprintf(query, "SELECT eventID FROM Event");
+  sprintf(query, "SELECT eventID FROM Event,Spill WHERE Event.spillID=Spill.spillID AND Spill.targetPos!=0 AND Spill.spillID!=0 AND Spill.beamIntensity>1000 AND Spill.targetPos>=1 AND Spill.targetPos<=7");
 #else
   sprintf(query, "SELECT eventID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1");
 #endif
@@ -513,8 +533,19 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
   return true;
 }
 
-void MySQLSvc::initWriter()
+bool MySQLSvc::initWriter()
 {
+  //check the essential info
+  sprintf(query, "CREATE DATABASE IF NOT EXISTS %s", dataSchema.c_str());
+  if(!server->Exec(query))
+    {
+      std::cout << "MySQLSvc: working schema does not exist and cannot be created! Will exit..." << std::endl;
+      return false;
+    }
+
+  sprintf(query, "USE %s", dataSchema.c_str());
+  server->Exec(query);
+
   //Clear all the tables if exist
   std::string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kInfo"};
   for(int i = 0; i < 4; ++i)
@@ -622,10 +653,23 @@ void MySQLSvc::initWriter()
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
+
+  return true;
 }
 
 void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
 {
+  runID = recEvent->getRunID();
+  spillID = recEvent->getSpillID();
+  if(!eventIDs_loaded.empty())
+    {
+      if(eventIDs_loaded.back() != recEvent->getEventID()) eventIDs_loaded.push_back(recEvent->getEventID());
+    }
+  else
+    {
+      eventIDs_loaded.push_back(recEvent->getEventID());
+    }
+
   //Fill Track table/TrackHit table
   int nTracks_local = recEvent->getNTracks();
   for(int i = 0; i < nTracks_local; ++i)
@@ -695,7 +739,7 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
       if(iter->hit.index < 0) continue;
 
       sprintf(query, "INSERT INTO kTrackHit(runID,eventID,trackID,hitID,driftSign,residual) VALUES(%d,%d,%d,%d,%d,%f)",
-	      runID, eventIDs.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
+	      runID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
 #ifndef OUT_TO_SCREEN
       server->Exec(query);
 #else
@@ -719,7 +763,7 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
 
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
 	  "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
-	  dimuonID, runID, spillID, eventIDs.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
+	  dimuonID, runID, spillID, eventIDs_loaded.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
 	  x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf);
 #ifndef OUT_TO_SCREEN
   server->Exec(query);

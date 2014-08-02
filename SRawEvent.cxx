@@ -495,7 +495,7 @@ void SRawEvent::reIndex(std::string option)
   for(std::vector<Hit>::iterator iter = fAllHits.begin(); iter != fAllHits.end(); ++iter)
     {
       if(_outoftime && (!iter->isInTime())) continue;
-      if(_hodomask && (!iter->isHodoMask())) continue;
+      if(_hodomask && iter->detectorID <= 24 && (!iter->isHodoMask())) continue;
       if(_nonchamber && iter->detectorID > 24) continue;
       if(_triggermask && iter->detectorID > 24 && iter->detectorID <= 40 && (!iter->isTriggerMask())) continue;
 
@@ -571,41 +571,59 @@ void SRawEvent::deClusterize(std::list<Hit>& hits)
 
 void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>::iterator>& cluster)
 {
+  unsigned int clusterSize = cluster.size();
+
   //size-2 clusters, retain the hit with smaller driftDistance
-  if(cluster.size() == 2)
+  if(clusterSize == 2)
     {
       double w_max = 0.9*0.5*(cluster.back()->pos - cluster.front()->pos);
-      double w_min = 0.4*0.5*(cluster.back()->pos - cluster.front()->pos);
+      double w_min = w_max/9.*6.; //double w_min = 0.6*0.5*(cluster.back()->pos - cluster.front()->pos);
       if((cluster.front()->driftDistance > w_max && cluster.back()->driftDistance > w_min) || (cluster.front()->driftDistance > w_min && cluster.back()->driftDistance > w_max))
 	{
 	  cluster.front()->driftDistance > cluster.front()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
 	}
+      else if(fabs(cluster.front()->tdcTime - cluster.back()->tdcTime) < 8. && cluster.front()->detectorID >= 13 && cluster.front()->detectorID <= 18)
+	{
+	  hits.erase(cluster.front());
+	  hits.erase(cluster.back());
+	}
     }
 
   //size-larger-than-3, discard entirely
-  if(cluster.size() >= 3)
+  if(clusterSize >= 3)
     {
       double dt_mean = 0.;
-      for(unsigned int i = 1; i < cluster.size(); ++i)
+      for(unsigned int i = 1; i < clusterSize; ++i)
 	{
 	  dt_mean += fabs(cluster[i]->tdcTime - cluster[i-1]->tdcTime);
 	}
-      dt_mean = dt_mean/(cluster.size() - 1);
+      dt_mean = dt_mean/(clusterSize - 1);
 
       if(dt_mean < 10.)
 	{
 	  //electric noise, discard them all
-	  for(unsigned int i = 0; i < cluster.size(); ++i)
+	  for(unsigned int i = 0; i < clusterSize; ++i)
 	    {
 	      hits.erase(cluster[i]);
 	    }
 	}
       else
 	{
-	  //delta ray, keep the first and last
-	  for(unsigned int i = 1; i < cluster.size() - 1; ++i)
+	  double dt_rms = 0.;
+	  for(unsigned int i = 1; i < clusterSize; ++i)
 	    {
-	      hits.erase(cluster[i]);
+	      double dt = fabs(cluster[i]->tdcTime - cluster[i-1]->tdcTime);
+	      dt_rms += ((dt - dt_mean)*(dt - dt_mean));
+	    }
+	  dt_rms = sqrt(dt_rms/(clusterSize - 1));
+
+	  //delta ray, keep the first and last
+	  if(dt_rms < 5.)
+	    {
+	      for(unsigned int i = 1; i < clusterSize - 1; ++i)
+		{
+		  hits.erase(cluster[i]);
+		}
 	    }
 	}
     }
