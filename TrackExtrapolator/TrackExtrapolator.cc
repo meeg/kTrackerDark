@@ -158,7 +158,7 @@ bool TrackExtrapolator::extrapolateTo(double z_out)
   //LogDebug("Extrapolating from " << pos_i[2] << " to " << z_out);
 
   ///If the initial or final position is out of the reasonable world
-  if(pos_i[2] > 24000 || pos_i[2] < -2500 || z_out > 24000 || z_out < -2500)
+  if(pos_i[2] > 24000 || pos_i[2] < Z_UPSTREAM*cm || z_out > 24000 || z_out < Z_UPSTREAM*cm)
     {
       return false;
     }
