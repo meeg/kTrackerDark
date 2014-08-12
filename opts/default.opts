@@ -33,18 +33,19 @@ Threshold_Level 3
 #Boolean setting for live mode
 Threshold_Live 1
 
-#Alginment files
+#Alginment files (only used when online alignment is turned off)
 AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/alignment_hodo.txt
 AlignmentFile_Chamber $KTRACKER_ROOT/alignment/alignment_chamber.txt
 AlignmentFile_Prop    $KTRACKER_ROOT/alignment/alignment_prop.txt
 AlignmentFile_Mille   $KTRACKER_ROOT/alignment/align_mille.txt
+OnlineAlignment_enable 1
 
 #Calibration
 CalibrationsFile $KTRACKER_ROOT/alignment/calibration.txt
 
 #Trigger roads
 Trigger_Repository      $TRIGGER_ROOT
-Trigger_L1              49
+Trigger_L1              57
 
 #Magnet field maps
 fMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Fmag
@@ -73,4 +74,3 @@ AlignmentMode_enable 0
 TriggerMask_enable 0
 kMag_enable 1
 Evaluation_enable 0
-OnlineAlignment_enable 0
