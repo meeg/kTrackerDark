@@ -14,6 +14,7 @@
 #include <TMath.h>
 
 #include "GeomSvc.h"
+#include "ThresholdSvc.h"
 #include "SRawEvent.h"
 #include "KalmanUtil.h"
 #include "KalmanTrack.h"
@@ -26,6 +27,7 @@
 #include "MODE_SWITCH.h"
 
 using namespace std;
+using Threshold::live;
 
 int main(int argc, char *argv[])
 {
@@ -67,8 +69,11 @@ int main(int argc, char *argv[])
   for(int i = offset; i < nEvtMax; ++i)
     {
       dataTree->GetEntry(i);
-      cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
-      cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;
+      if(live())
+        {
+          cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
+          cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;
+        }
 
       vtxfit->setRecEvent(recEvent);
 

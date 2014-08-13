@@ -263,7 +263,7 @@ void GeomSvc::init()
   ///Initialize the geometrical variables which should be from MySQL database
   //Connect server
   p_jobOptsSvc = JobOptsSvc::instance();
-  TSQLServer* con = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), "seaguest","qqbar2mu+mu-");
+  TSQLServer* con = TSQLServer::Connect(p_jobOptsSvc->GetInputMySQLURL().c_str(), "seaguest","qqbar2mu+mu-");
   
   //Make query to Planes table
   char query[300];

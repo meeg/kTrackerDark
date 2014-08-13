@@ -21,11 +21,18 @@
 #  string - assumes no whitespace for now
 
 
-#must define input file
+#--------------------------
+# Input/Output selection
+#must define input file usually
 InputFile NEED_ME
 #if not set, output file name is derived from input for most programs
 OutputFile
 
+# MySQL input/output schema
+InputSchema "Run_123456_R004"
+OutputSchema "Run_123456_R004_tracked_1"
+
+#------------------------------
 #settings for threshold service
 # Higher number means more printing
 # kNone = 0, kError = 1, kWarning = 2, kInfo = 3, kDebug = 4, kVerbose = 5
@@ -33,6 +40,8 @@ Threshold_Level 3
 #Boolean setting for live mode
 Threshold_Live 1
 
+#------------------------------
+#Calibrations
 #Alginment files (only used when online alignment is turned off)
 AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/alignment_hodo.txt
 AlignmentFile_Chamber $KTRACKER_ROOT/alignment/alignment_chamber.txt
@@ -54,20 +63,26 @@ kMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Kmag
 #Geometry schema
 Geometry_Version $SEAQUEST_GEOMETRY_V
 
-#choices are localhost, e906-db1.fnal.gov, seaquel.physics.illinois.edu
-MySQL_Server seaquel.physics.illinois.edu
 
-#Int switches
+#-----------------------
+# MySQL connection
+#choices are localhost, e906-db1.fnal.gov, seaquel.physics.illinois.edu
+MySQL_InputServer seaquel.physics.illinois.edu
+MySQL_OutputServer seaquel.physics.illinois.edu
 
 #choices are 3306 (e906-db1), 3283 (seaquel)
-MySQL_Port 3283
+MySQL_InputPort 3283
+MySQL_OutputPort 3283
 
+#------------------
+#Event selection
 #number of events to process (-1 for all)
 N_Events -1
 
 #first of events to process
 FirstEvent 0
 
+#-------------------
 #Boolean switches
 MCMode_enable 0
 AlignmentMode_enable 0

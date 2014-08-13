@@ -21,13 +21,17 @@ MySQLSvc::MySQLSvc()
   spillID = -1;
   eventIDs.clear();
   
-  server = NULL;
+  inputServer = NULL;
+  outputServer = NULL;
   res = NULL;
   row = NULL;
 
   p_geomSvc = GeomSvc::instance();
+    
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
 
-  dataSchema = "run_002173_R003";
+  inputSchema  = jobOptsSvc->m_inputSchema;
+  outputSchema = jobOptsSvc->m_outputSchema;
   logSchema = "log";
 
   user = "seaguest";
@@ -46,7 +50,8 @@ MySQLSvc::MySQLSvc()
 
 MySQLSvc::~MySQLSvc()
 {
-  if(server != NULL) delete server;
+  if(inputServer != NULL) delete inputServer;
+  if(outputServer != NULL) delete outputServer;
   if(res != NULL) delete res;
   if(row != NULL) delete row;
 
@@ -63,21 +68,27 @@ MySQLSvc* MySQLSvc::instance()
   return p_mysqlSvc;
 }
 
-bool MySQLSvc::connect(std::string mysqlServer, int mysqlPort)
+bool MySQLSvc::connectInput(std::string mysqlServer, int mysqlPort)
 {
+  if( inputServer )
+    {
+      delete inputServer;
+      inputServer = NULL;
+    }
+
   if(mysqlPort < 0)
     {
       JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-      server = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), user.c_str(), passwd.c_str());
+      inputServer = TSQLServer::Connect(p_jobOptsSvc->GetInputMySQLURL().c_str(), user.c_str(), passwd.c_str());
     }
   else
     {
       char serverUrl[200];
       sprintf(serverUrl, "mysql://%s/%d", mysqlServer.c_str(), mysqlPort);
-      server = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
+      inputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
     }
 
-  if(server == NULL)
+  if(inputServer == NULL)
     {
       LogInfo("Connection to database failed!");
       return false;
@@ -85,9 +96,39 @@ bool MySQLSvc::connect(std::string mysqlServer, int mysqlPort)
   return true;
 }
 
-void MySQLSvc::setWorkingSchema(std::string schema)
+bool MySQLSvc::connectOutput(std::string mysqlServer, int mysqlPort)
 {
-  dataSchema = schema;
+  if( outputServer )
+    {
+      delete outputServer;
+      inputServer = NULL;
+    } 
+
+
+  if(mysqlPort < 0)
+    {
+      JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+      outputServer = TSQLServer::Connect(p_jobOptsSvc->GetOutputMySQLURL().c_str(), user.c_str(), passwd.c_str());
+    }
+  else
+    {
+      char serverUrl[200];
+      sprintf(serverUrl, "mysql://%s/%d", mysqlServer.c_str(), mysqlPort);
+      outputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
+    }
+
+  if(outputServer == NULL)
+    {
+      LogInfo("Connection to database failed!");
+      return false;
+    }
+  return true;
+}
+
+
+void MySQLSvc::setInputSchema(std::string schema)
+{
+  inputSchema = schema;
   eventIDs.clear();
   index_eventID = 0;
 }
@@ -95,22 +136,22 @@ void MySQLSvc::setWorkingSchema(std::string schema)
 bool MySQLSvc::initReader()
 {
   //check the essential info
-  sprintf(query, "USE %s", dataSchema.c_str());
-  if(!server->Exec(query))
+  sprintf(query, "USE %s", inputSchema.c_str());
+  if(!inputServer->Exec(query))
     {
       std::cout << "MySQLSvc: working schema does not exist! Will exit..." << std::endl;
       return false;
     }
 
-  if(!(server->HasTable("Hit") && server->HasTable("Spill")))
+  if(!(inputServer->HasTable("Hit") && inputServer->HasTable("Spill")))
     {
       std::cout << "MySQLSvc: essential information is missing in this schema. Will exit..." << std::endl;
       return false;
     }
 
   //check additional information
-  if(!server->HasTable("QIE")) readQIE = false;
-  if(!server->HasTable("TriggerHit")) readTriggerHits = false;
+  if(!inputServer->HasTable("QIE")) readQIE = false;
+  if(!inputServer->HasTable("TriggerHit")) readTriggerHits = false;
 
   if(!readQIE) std::cout << "MySQLSvc: QIE information readout is disabled." << std::endl; 
   if(!readTriggerHits) std::cout << "MySQLSvc: TriggerHits table readout is disabled." << std::endl;
@@ -130,8 +171,8 @@ bool MySQLSvc::initReader()
 
   //Enable index if not enabled already
   bool indexEnabled = true;
-  sprintf(query, "SELECT COMMENT FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA='%s' AND TABLE_NAME='Hit' AND Column_name='detectorName'", dataSchema.c_str());
-  if(makeQuery() == 0)
+  sprintf(query, "SELECT COMMENT FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA='%s' AND TABLE_NAME='Hit' AND Column_name='detectorName'", inputSchema.c_str());
+  if(makeQueryInput() == 0)
     { 
       indexEnabled = false;
     }
@@ -147,7 +188,7 @@ bool MySQLSvc::initReader()
 
       //Temporarily connect as production user
       char address[200];
-      sprintf(address, "mysql://%s:%d", server->GetHost(), server->GetPort()); 
+      sprintf(address, "mysql://%s:%d", inputServer->GetHost(), inputServer->GetPort()); 
       TSQLServer* server_temp = TSQLServer::Connect(address, "production", "qqbar2mu+mu-");
 
       sprintf(query, "ALTER TABLE Hit ENABLE KEYS"); server_temp->Exec(query);
@@ -163,7 +204,7 @@ bool MySQLSvc::initReader()
 bool MySQLSvc::isRunStopped()
 {
   sprintf(query, "SELECT productionEnd from %s.production WHERE runID=%d", logSchema.c_str(), runID);
-  if(makeQuery() != 1) return false;
+  if(makeQueryOutput() != 1) return false;
 
   nextEntry();
   if(row->GetField(0) == NULL)
@@ -176,7 +217,7 @@ bool MySQLSvc::isRunStopped()
 bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
 {
   sprintf(query, "SELECT eventID FROM Event ORDER BY eventID DESC LIMIT 2");
-  if(makeQuery() != 2) return false;
+  if(makeQueryInput() != 2) return false;
 
   nextEntry(); nextEntry();
   int eventID = getInt(0);
@@ -194,13 +235,13 @@ bool MySQLSvc::getLatestEvt(SRawEvent* rawEvent)
 bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 {
   /* 
-  rawEvent->clear();
-  if(!getEventHeader(rawEvent, eventID))
-    {
-      return false;
-    }
-  return getEvent(rawEvent, eventID);
-  */
+     rawEvent->clear();
+     if(!getEventHeader(rawEvent, eventID))
+     {
+     return false;
+     }
+     return getEvent(rawEvent, eventID);
+     */
 
   return false; 
 }
@@ -208,7 +249,7 @@ bool MySQLSvc::getRandomEvt(SRawEvent* rawEvent)
 bool MySQLSvc::getNextEvent(SRawEvent* rawEvent)
 {
   int eventID = eventIDs[index_eventID++];
-  
+
   rawEvent->clear();
   if(!getEventHeader(rawEvent, eventID))
     {
@@ -234,46 +275,46 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   //All hits but in station 4
   /* This query will enforce paired hits in station-4 hodo
 #ifdef USE_M_TABLES
-  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
-	  "OR detectorName LIKE 'H__' OR detectorName LIKE 'P%%') AND eventID=%d "
-	  "UNION "
-	  "SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),0.,0.,substr(h1.detectorName,1,3),h1.inTime AND h2.inTime,1 FROM "
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4_u') AS h1,"
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4_d') AS h2 "
-	  "WHERE substr(h1.detectorName,1,3) LIKE substr(h2.detectorName,1,3) AND Abs(h1.tdcTime-h2.tdcTime)<15. AND h1.elementID=h2.elementID "
-	  "UNION "
-	  "SELECT h3.hitID,h3.elementID,0.5*(h3.tdcTime+h4.tdcTime),0.,0.,substr(h3.detectorName,1,5),h3.inTime AND h4.inTime,1 FROM "
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4Y__l') AS h3,"
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4Y__r') AS h4 "
-	  "WHERE substr(h3.detectorName,1,3) LIKE substr(h4.detectorName,1,3) AND Abs(h3.tdcTime-h4.tdcTime)<15. AND h3.elementID=h4.elementID",
-	  eventID, eventID, eventID, eventID, eventID);
+sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
+"OR detectorName LIKE 'H__' OR detectorName LIKE 'P%%') AND eventID=%d "
+"UNION "
+"SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),0.,0.,substr(h1.detectorName,1,3),h1.inTime AND h2.inTime,1 FROM "
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4_u') AS h1,"
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4_d') AS h2 "
+"WHERE substr(h1.detectorName,1,3) LIKE substr(h2.detectorName,1,3) AND Abs(h1.tdcTime-h2.tdcTime)<15. AND h1.elementID=h2.elementID "
+"UNION "
+"SELECT h3.hitID,h3.elementID,0.5*(h3.tdcTime+h4.tdcTime),0.,0.,substr(h3.detectorName,1,5),h3.inTime AND h4.inTime,1 FROM "
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4Y__l') AS h3,"
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM mHit WHERE eventID=%d AND detectorName LIKE 'H4Y__r') AS h4 "
+"WHERE substr(h3.detectorName,1,3) LIKE substr(h4.detectorName,1,3) AND Abs(h3.tdcTime-h4.tdcTime)<15. AND h3.elementID=h4.elementID",
+eventID, eventID, eventID, eventID, eventID);
 
 #else
-  sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%' "
-	  "OR detectorName LIKE 'H__' OR detectorName LIKE 'P%%') AND eventID=%d "
-	  "UNION "
-	  "SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),0.,0.,substr(h1.detectorName,1,3),h1.inTime AND h2.inTime,1 FROM "
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4_u') AS h1,"
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4_d') AS h2 "
-	  "WHERE substr(h1.detectorName,1,3) LIKE substr(h2.detectorName,1,3) AND Abs(h1.tdcTime-h2.tdcTime)<15. AND h1.elementID=h2.elementID "
-	  "UNION "
-	  "SELECT h3.hitID,h3.elementID,0.5*(h3.tdcTime+h4.tdcTime),0.,0.,substr(h3.detectorName,1,5),h3.inTime AND h4.inTime,1 FROM "
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4Y__l') AS h3,"
-	  "(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4Y__r') AS h4 "
-	  "WHERE substr(h3.detectorName,1,3) LIKE substr(h4.detectorName,1,3) AND Abs(h3.tdcTime-h4.tdcTime)<15. AND h3.elementID=h4.elementID",
-	  eventID, eventID, eventID, eventID, eventID);
+sprintf(query, "SELECT hitID,elementID,tdcTime,driftTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%' "
+"OR detectorName LIKE 'H__' OR detectorName LIKE 'P%%') AND eventID=%d "
+"UNION "
+"SELECT h1.hitID,h1.elementID,0.5*(h1.tdcTime+h2.tdcTime),0.,0.,substr(h1.detectorName,1,3),h1.inTime AND h2.inTime,1 FROM "
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4_u') AS h1,"
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4_d') AS h2 "
+"WHERE substr(h1.detectorName,1,3) LIKE substr(h2.detectorName,1,3) AND Abs(h1.tdcTime-h2.tdcTime)<15. AND h1.elementID=h2.elementID "
+"UNION "
+"SELECT h3.hitID,h3.elementID,0.5*(h3.tdcTime+h4.tdcTime),0.,0.,substr(h3.detectorName,1,5),h3.inTime AND h4.inTime,1 FROM "
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4Y__l') AS h3,"
+"(SELECT hitID,elementID,tdcTime,detectorName,inTime FROM Hit WHERE eventID=%d AND detectorName LIKE 'H4Y__r') AS h4 "
+"WHERE substr(h3.detectorName,1,3) LIKE substr(h4.detectorName,1,3) AND Abs(h3.tdcTime-h4.tdcTime)<15. AND h3.elementID=h4.elementID",
+eventID, eventID, eventID, eventID, eventID);
 #endif
-  */
+*/
 #ifdef USE_M_TABLES
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftDistance,detectorName,inTime,masked FROM mHit WHERE (detectorName LIKE 'D%%' "
-	  "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
+          "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
 #else
   sprintf(query, "SELECT hitID,elementID,tdcTime,driftDistance,detectorName,inTime,masked FROM Hit WHERE (detectorName LIKE 'D%%' "
-	  "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
+          "OR detectorName LIKE 'H%%' OR detectorName LIKE 'P%%') AND eventID=%d", eventID);
 #endif
-  int nHits = makeQuery();
+  int nHits = makeQueryInput();
   if(nHits < 1) return false;
-  
+
   for(int i = 0; i < nHits; ++i)
     {
       nextEntry();
@@ -281,7 +322,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       std::string detectorName(row->GetField(4));
       int elementID = getInt(1);
       p_geomSvc->toLocalDetectorName(detectorName, elementID);
-       
+
       Hit h;
       h.index = getInt(0);
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
@@ -293,13 +334,13 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
       if(getInt(6, 0) > 0) h.setHodoMask();
 
       if(p_geomSvc->isCalibrationLoaded())
-	{
-	  if((h.detectorID >= 1 && h.detectorID <= 24) || (h.detectorID >= 41))
-	    {
-	      h.setInTime(p_geomSvc->isInTime(h.detectorID, h.tdcTime));
-	      if(h.isInTime()) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
-	    }	  
-	}
+        {
+          if((h.detectorID >= 1 && h.detectorID <= 24) || (h.detectorID >= 41))
+            {
+              h.setInTime(p_geomSvc->isInTime(h.detectorID, h.tdcTime));
+              if(h.isInTime()) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
+            }	  
+        }
       rawEvent->insertHit(h);
     }
   rawEvent->reIndex();
@@ -308,13 +349,13 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
   if(setTriggerEmu)
     {
       if(readTriggerHits)
-	{
-	  rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 1));
-	}
+        {
+          rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 1));
+        }
       else
-	{
-	  rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 2));
-	}
+        {
+          rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 2));
+        }
 
       int nRoads[4] = {p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsPosBot(), p_triggerAna->getNRoadsNegTop(), p_triggerAna->getNRoadsNegBot()};
       rawEvent->setNRoads(nRoads);
@@ -338,7 +379,7 @@ int MySQLSvc::getNEvents()
 #else
   sprintf(query, "SELECT eventID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1");
 #endif
-  int nTotal = makeQuery();
+  int nTotal = makeQueryInput();
   if(nTotal == 1) return 0;
 
   eventIDs.clear();
@@ -357,10 +398,10 @@ int MySQLSvc::getNEvents()
 bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 {
   eventIDs_loaded.push_back(eventID);
-  
+
   //Get the event header
   sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
-  if(makeQuery() != 1) return false;
+  if(makeQueryInput() != 1) return false;
 
   nextEntry();
   runID = getInt(0);
@@ -379,67 +420,67 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
   if(readTargetPos)
     {
       sprintf(query, "SELECT targetPos FROM Spill WHERE spillID=%d", spillID);
-      if(makeQuery() == 1)
-      	{
-	  nextEntry();
-     	  rawEvent->setTargetPos(getInt(0));
-	}
+      if(makeQueryInput() == 1)
+        {
+          nextEntry();
+          rawEvent->setTargetPos(getInt(0));
+        }
       else
-	{
-	  rawEvent->setTargetPos(99);
-       	}
+        {
+          rawEvent->setTargetPos(99);
+        }
     }
 
   //Get beam information
   if(readQIE)
     {
       sprintf(query, "SELECT turnOnset,rfOnSet,`RF-16`,`RF-15`,`RF-14`,`RF-13`,`RF-12`,`RF-11`,`RF-10`,`RF-09`,"
-         	     "`RF-08`,`RF-07`,`RF-06`,`RF-05`,`RF-04`,`RF-03`,`RF-02`,`RF-01`,`RF+00`,`RF+01`,`RF+02`,"
-		     "`RF+03`,`RF+04`,`RF+05`,`RF+06`,`RF+07`,`RF+08`,`RF+09`,`RF+10`,`RF+11`,`RF+12`,`RF+13`,"
-		     "`RF+14`,`RF+15`,`RF+16` FROM QIE WHERE eventID=%d", eventID);
-      if(makeQuery() == 1)
-	{
-	  nextEntry();
-      
-	  rawEvent->setTurnID(getInt(0, -1));
-	  rawEvent->setRFID(getInt(1, -1));
-	  for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, getInt(i+2));
-       	}
+              "`RF-08`,`RF-07`,`RF-06`,`RF-05`,`RF-04`,`RF-03`,`RF-02`,`RF-01`,`RF+00`,`RF+01`,`RF+02`,"
+              "`RF+03`,`RF+04`,`RF+05`,`RF+06`,`RF+07`,`RF+08`,`RF+09`,`RF+10`,`RF+11`,`RF+12`,`RF+13`,"
+              "`RF+14`,`RF+15`,`RF+16` FROM QIE WHERE eventID=%d", eventID);
+      if(makeQueryInput() == 1)
+        {
+          nextEntry();
+
+          rawEvent->setTurnID(getInt(0, -1));
+          rawEvent->setRFID(getInt(1, -1));
+          for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, getInt(i+2));
+        }
       else
-       	{
-	  rawEvent->setTurnID(-2);
-	  rawEvent->setRFID(-2);
-	  for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, -1);
-       	}
+        {
+          rawEvent->setTurnID(-2);
+          rawEvent->setRFID(-2);
+          for(int i = 0; i < 33; ++i) rawEvent->setIntensity(i, -1);
+        }
     }
 
   //Get trigger hits
   if(readTriggerHits)
     {
       sprintf(query, "SELECT hitID,detectorName,elementID,tdcTime,inTime FROM TriggerHit WHERE detectorName LIKE 'H%%' AND eventID=%d", eventID);
-      int nTriggerHits = makeQuery();
+      int nTriggerHits = makeQueryInput();
 
       for(int i = 0; i < nTriggerHits; ++i)
-	{
-	  nextEntry();
-      
-	  Hit h;
-	  h.index = getInt(0);
-	  h.elementID = getInt(2);
-	  h.tdcTime = getFloat(3);
-      	  h.driftDistance = 0.;
+        {
+          nextEntry();
+
+          Hit h;
+          h.index = getInt(0);
+          h.elementID = getInt(2);
+          h.tdcTime = getFloat(3);
+          h.driftDistance = 0.;
           if(getInt(4, 0) > 0) h.setInTime();
 
-	  std::string detectorName(row->GetField(1));
-	  if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
-    	    {
-    	      detectorName.replace(3, detectorName.length(), "");
-    	    }
-	  h.detectorID = p_geomSvc->getDetectorID(detectorName);
-	  h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-     
-	  rawEvent->insertTriggerHit(h);
-       	}
+          std::string detectorName(row->GetField(1));
+          if(detectorName.find("H4T") != std::string::npos || detectorName.find("H4B") != std::string::npos)
+            {
+              detectorName.replace(3, detectorName.length(), "");
+            }
+          h.detectorID = p_geomSvc->getDetectorID(detectorName);
+          h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
+
+          rawEvent->insertTriggerHit(h);
+        }
     }
 
   return true;
@@ -448,7 +489,7 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
 bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
 {
   sprintf(query, "SELECT mTrackID1,mTrackID2,sigWeight,mass,xF,xB,xT,dx,dy,dz,dpx,dpy,runID,spillID,theta_mu FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1 AND eventID=%d", eventID);
-  if(makeQuery() != 1) return false;
+  if(makeQueryInput() != 1) return false;
   nextEntry();
 
   runID = getInt(12);
@@ -463,7 +504,7 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
   mcEvent->x2 = getDouble(6);
   mcEvent->costh = cos(getDouble(14));
   mcEvent->vtx.SetXYZ(getDouble(7), getDouble(8), getDouble(9));
-  
+
   double px = getDouble(10);
   double py = getDouble(11);
   mcEvent->pT = sqrt(px*px + py*py);
@@ -472,35 +513,35 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
     {
       //At vertex
       sprintf(query, "SELECT px0,py0,pz0 FROM mTrack WHERE mTrackID=%d", trackID[i]);
-      if(makeQuery() != 1) return false;
-      
+      if(makeQueryInput() != 1) return false;
+
       nextEntry();
       mcEvent->p_vertex[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
-   
+
       //Number of chamber hits in one track
       sprintf(query, "SELECT COUNT(*) FROM mHit WHERE detectorName LIKE 'D%%' AND mTrackID=%d", trackID[i]);
-      if(makeQuery() != 1) return false;
+      if(makeQueryInput() != 1) return false;
 
       nextEntry();
       mcEvent->nHits[i] = getInt(0);
-       
+
       //At station 1,2,3,4
       sprintf(query, "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D1%%' AND mTrackID=%d LIMIT 1)"
-	      " UNION "
-	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D2%%' AND mTrackID=%d LIMIT 1)"
-	      " UNION "
-	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D3%%' AND mTrackID=%d LIMIT 1)"
-	      " UNION "
-	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'P%%' AND mTrackID=%d LIMIT 1)"
-	      " UNION "
-	      "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName RLIKE '^H[1-4][TB]$' AND mTrackID=%d)",
-	      trackID[i], trackID[i], trackID[i], trackID[i], trackID[i]);
-      if(makeQuery() != 8) return false;
+              " UNION "
+              "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D2%%' AND mTrackID=%d LIMIT 1)"
+              " UNION "
+              "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'D3%%' AND mTrackID=%d LIMIT 1)"
+              " UNION "
+              "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName LIKE 'P%%' AND mTrackID=%d LIMIT 1)"
+              " UNION "
+              "(SELECT hpx,hpy,hpz,hx,hy,hz FROM mHit WHERE detectorName RLIKE '^H[1-4][TB]$' AND mTrackID=%d)",
+              trackID[i], trackID[i], trackID[i], trackID[i], trackID[i]);
+      if(makeQueryInput() != 8) return false;
 
       nextEntry();
       mcEvent->p_station1[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
       mcEvent->v_station1[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
-    
+
       nextEntry();
       mcEvent->p_station2[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
       mcEvent->v_station2[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
@@ -512,11 +553,11 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
       nextEntry();
       mcEvent->p_station4[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
       mcEvent->v_station4[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
-   
+
       nextEntry();
       mcEvent->p_stationH1[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
       mcEvent->v_stationH1[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
-    
+
       nextEntry();
       mcEvent->p_stationH2[i].SetXYZ(getDouble(0), getDouble(1), getDouble(2));
       mcEvent->v_stationH2[i].SetXYZ(getDouble(3), getDouble(4), getDouble(5));
@@ -536,23 +577,24 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
 bool MySQLSvc::initWriter()
 {
   //check the essential info
-  sprintf(query, "CREATE DATABASE IF NOT EXISTS %s", dataSchema.c_str());
-  if(!server->Exec(query))
+  sprintf(query, "CREATE DATABASE IF NOT EXISTS %s", outputSchema.c_str());
+  if(!outputServer->Exec(query))
     {
       std::cout << "MySQLSvc: working schema does not exist and cannot be created! Will exit..." << std::endl;
       return false;
     }
 
-  sprintf(query, "USE %s", dataSchema.c_str());
-  server->Exec(query);
+  sprintf(query, "USE %s", outputSchema.c_str());
+  outputServer->Exec(query);
 
   //Clear all the tables if exist
+  //todo: will want to reuse info from upstream processes probably
   std::string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kInfo"};
   for(int i = 0; i < 4; ++i)
     {
       sprintf(query, "DROP TABLE IF EXISTS %s", tableNames[i].c_str());
 #ifndef OUT_TO_SCREEN
-      server->Exec(query);
+      outputServer->Exec(query);
 #else
       std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
@@ -560,99 +602,108 @@ bool MySQLSvc::initWriter()
 
   //Book kTrack table
   sprintf(query, "CREATE TABLE kTrack ("
-	  "trackID     INTEGER,"
-	  "runID       INTEGER,"
-	  "spillID     INTEGER,"
-	  "eventID     INTEGER,"
-	  "charge      INTEGER,"
-	  "numHits     INTEGER,"
-	  "chisq       DOUBLE, "
-	  "x0          DOUBLE, "
-	  "y0          DOUBLE, "
-	  "z0          DOUBLE, "
-	  "px0         DOUBLE, "
-	  "py0         DOUBLE, "
-	  "pz0         DOUBLE, "
-	  "x1          DOUBLE, "
-	  "y1          DOUBLE, "
-	  "z1          DOUBLE, "
-	  "px1         DOUBLE, "
-	  "py1         DOUBLE, "
-	  "pz1         DOUBLE, "
-	  "x3          DOUBLE, "
-	  "y3          DOUBLE, "
-	  "z3          DOUBLE, "
-	  "px3         DOUBLE, "
-	  "py3         DOUBLE, "
-	  "pz3         DOUBLE, "
+          "trackID     INTEGER,"
+          "runID       INTEGER,"
+          "spillID     INTEGER,"
+          "eventID     INTEGER,"
+          "charge      INTEGER,"
+          "numHits     INTEGER,"
+          "chisq       DOUBLE, "
+          "x0          DOUBLE, "
+          "y0          DOUBLE, "
+          "z0          DOUBLE, "
+          "px0         DOUBLE, "
+          "py0         DOUBLE, "
+          "pz0         DOUBLE, "
+          "x1          DOUBLE, "
+          "y1          DOUBLE, "
+          "z1          DOUBLE, "
+          "px1         DOUBLE, "
+          "py1         DOUBLE, "
+          "pz1         DOUBLE, "
+          "x3          DOUBLE, "
+          "y3          DOUBLE, "
+          "z3          DOUBLE, "
+          "px3         DOUBLE, "
+          "py3         DOUBLE, "
+          "pz3         DOUBLE, "
           "PRIMARY KEY(runID, trackID, eventID), "
-	  "INDEX(eventID), INDEX(charge))");
+          "INDEX(eventID), INDEX(charge))");
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
   //Book kHit table
   sprintf(query, "CREATE TABLE kTrackHit ("
-	  "runID       SMALLINT,"
-	  "eventID     INTEGER, "
-	  "trackID     INTEGER, "
-	  "hitID       BIGINT,  "
-	  "driftSign   SMALLINT,"
-	  "residual    DOUBLE,  "
-	  "PRIMARY KEY(runID, trackID, hitID))");
+          "runID       SMALLINT,"
+          "eventID     INTEGER, "
+          "trackID     INTEGER, "
+          "hitID       BIGINT,  "
+          "driftSign   SMALLINT,"
+          "residual    DOUBLE,  "
+          "PRIMARY KEY(runID, trackID, hitID))");
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
   //Bool kDimuon table
   sprintf(query, "CREATE TABLE kDimuon ("
-	  "dimuonID    INTEGER,"
-	  "runID       INTEGER,"
-	  "spillID     INTEGER,"
-	  "eventID     INTEGER,"
-	  "posTrackID  INTEGER,"
-	  "negTrackID  INTEGER,"
-	  "dx          DOUBLE, "
-	  "dy          DOUBLE, "
-	  "dz          DOUBLE, "
-	  "dpx         DOUBLE, "
-	  "dpy         DOUBLE, "
-	  "dpz         DOUBLE, "
-	  "mass        DOUBLE, "
-	  "xF          DOUBLE, "
-	  "xB          DOUBLE, "
-	  "xT          DOUBLE, "
-	  "trackSeparation DOUBLE,"
-	  "chisq_dimuon    DOUBLE,"
-	  "PRIMARY KEY(runID, dimuonID, eventID))");
+          "dimuonID    INTEGER,"
+          "runID       INTEGER,"
+          "spillID     INTEGER,"
+          "eventID     INTEGER,"
+          "posTrackID  INTEGER,"
+          "negTrackID  INTEGER,"
+          "dx          DOUBLE, "
+          "dy          DOUBLE, "
+          "dz          DOUBLE, "
+          "dpx         DOUBLE, "
+          "dpy         DOUBLE, "
+          "dpz         DOUBLE, "
+          "mass        DOUBLE, "
+          "xF          DOUBLE, "
+          "xB          DOUBLE, "
+          "xT          DOUBLE, "
+          "trackSeparation DOUBLE,"
+          "chisq_dimuon    DOUBLE,"
+          "PRIMARY KEY(runID, dimuonID, eventID))");
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
   //Book and fill kInfo table
   sprintf(query, "CREATE TABLE kInfo ("
-	  "infoKey     VARCHAR(100),"
-	  "infoValue   TEXT,"
-	  "PRIMARY KEY(infoKey))");
+          "infoKey     VARCHAR(100),"
+          "infoValue   TEXT,"
+          "PRIMARY KEY(infoKey))");
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
   sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-	  "VALUES('%s','%s')", "sourceSchema", dataSchema.c_str());
+          "VALUES('%s','%s')", "sourceSchema", inputSchema.c_str());
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
+
+  sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
+          "VALUES('%s','%s')", "outputSchema", outputSchema.c_str());
+#ifndef OUT_TO_SCREEN
+  outputServer->Exec(query);
+#else
+  std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
 
   return true;
 }
@@ -722,11 +773,11 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
 
   //Database output
   sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
-	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
-	  "%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
-	  z0, px0, py0, pz0, x1, y1, z1, px1, py1, pz1, x3, y3, z3, px3, py3, pz3);
+          "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
+          "%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
+          z0, px0, py0, pz0, x1, y1, z1, px1, py1, pz1, x3, y3, z3, px3, py3, pz3);
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
@@ -739,9 +790,9 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
       if(iter->hit.index < 0) continue;
 
       sprintf(query, "INSERT INTO kTrackHit(runID,eventID,trackID,hitID,driftSign,residual) VALUES(%d,%d,%d,%d,%d,%f)",
-	      runID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
+              runID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
 #ifndef OUT_TO_SCREEN
-      server->Exec(query);
+      outputServer->Exec(query);
 #else
       std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
@@ -762,11 +813,11 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
   double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
-	  "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
-	  dimuonID, runID, spillID, eventIDs_loaded.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
-	  x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf);
+          "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
+          dimuonID, runID, spillID, eventIDs_loaded.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
+          x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf);
 #ifndef OUT_TO_SCREEN
-  server->Exec(query);
+  outputServer->Exec(query);
 #else
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
@@ -778,17 +829,30 @@ int MySQLSvc::getNEventsFast()
   return nEvents;
 }
 
-int MySQLSvc::makeQuery()
+int MySQLSvc::makeQueryInput()
 {
   //std::cout << query << std::endl;
-  if(server == NULL) return 0;
+  if(inputServer == NULL) return 0;
 
   if(res != NULL) delete res;
-  res = server->Query(query);
+  res = inputServer->Query(query);
 
   if(res != NULL) return res->GetRowCount();
   return 0;
 }
+
+int MySQLSvc::makeQueryOutput()
+{
+  //std::cout << query << std::endl;
+  if(outputServer == NULL) return 0;
+
+  if(res != NULL) delete res;
+  res = outputServer->Query(query);
+
+  if(res != NULL) return res->GetRowCount();
+  return 0;
+}
+
 
 bool MySQLSvc::nextEntry()
 {

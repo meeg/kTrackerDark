@@ -36,6 +36,11 @@ public:
   ///Return the location of MinusBottom roads file
   std::string GetRoadsFileMinusBottom() const;
 
+  ///Return the URL for the input MySQL server
+  std::string GetInputMySQLURL() const;
+  ///Return the URL for the output MySQL server
+  std::string GetOutputMySQLURL() const;
+
   //@todo should store smart pointers instead of variable length variables
 
   std::string m_configFile; ///< Name of the config file loaded
@@ -44,11 +49,12 @@ public:
   bool m_alignmentMode;    ///< Running in alignment mode?
   bool m_enableTriggerMask;///< Enable hodo masking with trigger road info
   bool m_enableKMag;       ///< Turn kMag on
-  bool m_enableOnlineAlignment;   ///< Turn kMag on
+  bool m_enableOnlineAlignment;   ///< Get alignment params from database?
   bool m_enableEvaluation; ///< Enable evaluation output
   bool m_thresholdLive;    ///< Live setting for ThresholdSvc
 
-  int m_mySQLPort;    ///< mysql database port
+  int m_mySQLInputPort;    ///< mysql database input port
+  int m_mySQLOutputPort;    ///< mysql database output port
   int m_nEvents;      ///< number of events to process
   int m_firstEvent;   ///< first event to process
 
@@ -58,6 +64,9 @@ public:
 
   std::string m_inputFile;  ///< Name of the input file
   std::string m_outputFile; ///< Name of the output file
+  std::string m_inputSchema; ///< Name of the input schema
+  std::string m_outputSchema; ///< Name of the output schema
+
 
   std::string m_alignmentFileHodo; ///< Name of hodoscope alignment file
   std::string m_alignmentFileChamber; ///< Name of chamber alignment file
@@ -72,9 +81,8 @@ public:
   std::string m_kMagFile; ///< Name of kMag ascii file
 
   std::string m_geomVersion; ///< Name of geometry version
-  std::string m_mySQLServer;  ///< Name of mysql database
-
-  std::string m_mySQLurl;  ///< url of MySQL 
+  std::string m_mySQLInputServer;  ///< Name of input MySQL server
+  std::string m_mySQLOutputServer;  ///< Name of output MySQL server
 
 private:
   int m_isInit; ///< Has this service been initialized?

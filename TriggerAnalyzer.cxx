@@ -54,7 +54,7 @@ bool TriggerAnalyzer::init(std::string schemaName)
   sprintf(query, "SELECT charge,St1DetectorName,St1ElementID,St2DetectorName,St2ElementID,"
 	  "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
   
-  TSQLServer* server = TSQLServer::Connect(p_jobOptsSvc->m_mySQLurl.c_str(), "seaguest","qqbar2mu+mu-");
+  TSQLServer* server = TSQLServer::Connect(p_jobOptsSvc->GetInputMySQLURL().c_str(), "seaguest","qqbar2mu+mu-");
   if(server == NULL) return false;
 
   TSQLResult* res = server->Query(query);

@@ -22,8 +22,8 @@ Settings::Settings()
   password = "qqbar2mu+mu-";
   fMagName = p_jobOptsSvc->m_fMagFile;
   kMagName = p_jobOptsSvc->m_kMagFile;
-  sqlServer = p_jobOptsSvc->m_mySQLServer;
-  sqlPort = p_jobOptsSvc->m_mySQLPort;
+  sqlServer = p_jobOptsSvc->m_mySQLInputServer;
+  sqlPort = p_jobOptsSvc->m_mySQLInputPort;
   dimuonRepeat = 1;
   ironOn = true;
   trackingZCut = 400*cm;
@@ -49,8 +49,4 @@ Settings::Settings()
   target = 1;
   pythia_shower = true;
   bucket_size = 40000;
-}
-
-Settings::~Settings()
-{
 }
