@@ -13,6 +13,7 @@
 #include <TClonesArray.h>
 
 #include "GeomSvc.h"
+#include "ThresholdSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
@@ -26,6 +27,7 @@
 #include "MODE_SWITCH.h"
 
 using namespace std;
+using Threshold::live;
 
 int main(int argc, char *argv[])
 {
@@ -95,19 +97,22 @@ int main(int argc, char *argv[])
       ++nEvents_loaded;
 
       //Do the tracking
-      cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/(nEvtMax - offset) << "% finished. ";
-      cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
-      cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
+      if(live())
+        {
+          cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/(nEvtMax - offset) << "% finished. ";
+          cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
+          cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
+        }
 
       if(jobOptsSvc->m_enableTriggerMask)
-	{
-	  triggerAna->trimEvent(rawEvent);
-	  rawEvent->reIndex("aoct");
-	}
+        {
+          triggerAna->trimEvent(rawEvent);
+          rawEvent->reIndex("aoct");
+        }
       else
-	{
-	  rawEvent->reIndex("oac");
-	}
+        {
+          rawEvent->reIndex("oac");
+        }
       if(!fastfinder->setRawEvent(rawEvent)) continue;
       ++nEvents_tracked;
 
@@ -121,25 +126,25 @@ int main(int argc, char *argv[])
       int nPos = 0;
       int nNeg = 0;
       for(std::list<Tracklet>::iterator iter = rec_tracklets.begin(); iter != rec_tracklets.end(); ++iter)
-	{
-	  //iter->print();
-	  iter->calcChisq();
-	  new(arr_tracklets[nTracklets++]) Tracklet(*iter);
+        {
+          //iter->print();
+          iter->calcChisq();
+          new(arr_tracklets[nTracklets++]) Tracklet(*iter);
 
-	  SRecTrack recTrack = iter->getSRecTrack();
-	  recEvent->insertTrack(recTrack);
+          SRecTrack recTrack = iter->getSRecTrack();
+          recEvent->insertTrack(recTrack);
 
-	  iter->getCharge() > 0 ? ++nPos : ++nNeg;
-	}
+          iter->getCharge() > 0 ? ++nPos : ++nNeg;
+        }
       if(nPos > 0 && nNeg > 0) ++nEvents_dimuon;
- 
+
       //Perform dimuon vertex fit 
       if(vtxfit->setRecEvent(recEvent)) ++nEvents_dimuon_real;
 
       if(nTracklets > 0)
-	{
-  	  saveTree->Fill();
-	}	 
+        {
+          saveTree->Fill();
+        }	 
       rawEvent->clear();
       recEvent->clear();
     }

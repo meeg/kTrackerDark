@@ -19,6 +19,8 @@
 class Settings
 {
 public:
+  Settings();
+
   int seed;			// The seed for the random number generator
   double beamMomentum;		// The momentum of the beam
   double beamCurrent;		// protons/sec of the beam
@@ -48,7 +50,5 @@ public:
   bool pythia_shower;		// If set to false, Pythia doesn't simulate QCD showers
   int bucket_size;
 
-  Settings();
-  ~Settings();
 };
 #endif

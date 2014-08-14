@@ -38,8 +38,9 @@ public:
   ~MySQLSvc();
   static MySQLSvc* instance();
   
-  //Connect to the server
-  bool connect(std::string mysqlServer = "", int mysqlPort = -1);
+  //Connect to the input server
+  bool connectInput( std::string mysqlServer = "", int mysqlPort = -1);
+  bool connectOutput(std::string mysqlServer = "", int mysqlPort = -1);
 
   //Set username/password
   void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }
@@ -76,14 +77,16 @@ public:
   void writeDimuonTable(int dimuonID, SRecDimuon dimuon);
 
   //Set the data schema
-  void setWorkingSchema(std::string schema);
+  void setInputSchema(std::string schema);
+  void setOutputSchema(std::string schema)  { outputSchema = schema; }
   void setLoggingSchema(std::string schema) { logSchema = schema; } 
   void enableQIE(bool opt) { readQIE = opt; }
   void enableTargetPos(bool opt) { readTargetPos = opt; }
   void enableTriggerHits(bool opt) { readTriggerHits = opt; }
 
   //Memory-safe sql queries
-  int makeQuery();
+  int makeQueryInput();
+  int makeQueryOutput();
   bool nextEntry();
   
   int getInt(int id, int default_val = 0);
@@ -106,7 +109,8 @@ private:
   TriggerAnalyzer* p_triggerAna;
 
   //SQL server
-  TSQLServer* server;
+  TSQLServer* inputServer;  ///< Fetch input from this server
+  TSQLServer* outputServer; ///< Write output to this server
   TSQLResult* res;
   TSQLRow* row;
 
@@ -133,7 +137,8 @@ private:
   char query[2000];
 
   //name of the production schema working on
-  std::string dataSchema;
+  std::string inputSchema;
+  std::string outputSchema;
   std::string logSchema;
 
   //Internal counter of tracks and dimuons

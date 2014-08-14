@@ -93,6 +93,8 @@ bool JobOptsSvc::init(const char* configfile)
   map<string,string*> stringOpts;
   stringOpts["InputFile"] = &m_inputFile;
   stringOpts["OutputFile"] = &m_outputFile;
+  stringOpts["InputSchema"] = &m_inputSchema;
+  stringOpts["OutputSchema"] = &m_outputSchema;
 
   stringOpts["AlignmentFile_Hodo"] = &m_alignmentFileHodo;
   stringOpts["AlignmentFile_Mille"] = &m_alignmentFileMille;
@@ -106,11 +108,13 @@ bool JobOptsSvc::init(const char* configfile)
   stringOpts["fMagFile"] = &m_fMagFile;
   stringOpts["kMagFile"] = &m_kMagFile;
 
-  stringOpts["MySQL_Server"] = &m_mySQLServer;
+  stringOpts["MySQL_InputServer"] = &m_mySQLInputServer;
+  stringOpts["MySQL_OutputServer"] = &m_mySQLOutputServer;
   stringOpts["Geometry_Version"] = &m_geomVersion;
 
   map<string,int*> intOpts;
-  intOpts["MySQL_Port"] = &m_mySQLPort;
+  intOpts["MySQL_InputPort"] = &m_mySQLInputPort;
+  intOpts["MySQL_OutputPort"] = &m_mySQLOutputPort;
   intOpts["N_Events"] = &m_nEvents;
   intOpts["FirstEvent"] = &m_firstEvent;
   intOpts["Trigger_L1"] = &m_triggerL1;
@@ -184,8 +188,6 @@ bool JobOptsSvc::init(const char* configfile)
       if(debug()) cout << " ... key not found.  handle error?" << endl;
     }
 
-  m_mySQLurl = "mysql://" + m_mySQLServer + ":" + boost::lexical_cast<string>(m_mySQLPort);
-
   //apply threshold settings
   Threshold::ThresholdSvc::Get().SetLevel( Threshold::Level(m_thresholdLevel) );
   Threshold::ThresholdSvc::Get().SetLive(  m_thresholdLive );
@@ -239,3 +241,15 @@ std::string JobOptsSvc::GetRoadsFileMinusBottom() const
   if(debug()) cout << "JobOptsSvc::GetRoadsFileMinusBottom" << endl;
   return Form( "%s/firmware/roads/L1/%d/roads_minus_bottom.txt", m_triggerRepo.c_str(), m_triggerL1 );
 }
+
+std::string JobOptsSvc::GetInputMySQLURL() const
+{
+  return Form( "mysql://%s:%d", m_mySQLInputServer.c_str(), m_mySQLInputPort);
+}
+
+std::string JobOptsSvc::GetOutputMySQLURL() const
+{
+  return Form( "mysql://%s:%d", m_mySQLOutputServer.c_str(), m_mySQLOutputPort);
+} 
+
+
