@@ -577,7 +577,7 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
   if(clusterSize == 2)
     {
       double w_max = 0.9*0.5*(cluster.back()->pos - cluster.front()->pos);
-      double w_min = w_max/9.*6.; //double w_min = 0.6*0.5*(cluster.back()->pos - cluster.front()->pos);
+      double w_min = w_max/9.*4.; //double w_min = 0.6*0.5*(cluster.back()->pos - cluster.front()->pos);
       if((cluster.front()->driftDistance > w_max && cluster.back()->driftDistance > w_min) || (cluster.front()->driftDistance > w_min && cluster.back()->driftDistance > w_max))
 	{
 	  cluster.front()->driftDistance > cluster.front()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
@@ -609,6 +609,7 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
 	}
       else
 	{
+	  /*
 	  double dt_rms = 0.;
 	  for(unsigned int i = 1; i < clusterSize; ++i)
 	    {
@@ -618,7 +619,7 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
 	  dt_rms = sqrt(dt_rms/(clusterSize - 1));
 
 	  //delta ray, keep the first and last
-	  if(dt_rms < 5.)
+	  if(dt_rms < 5.)*/
 	    {
 	      for(unsigned int i = 1; i < clusterSize - 1; ++i)
 		{

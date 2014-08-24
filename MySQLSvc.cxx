@@ -191,7 +191,7 @@ bool MySQLSvc::initReader()
       sprintf(address, "mysql://%s:%d", inputServer->GetHost(), inputServer->GetPort()); 
       TSQLServer* server_temp = TSQLServer::Connect(address, "production", "qqbar2mu+mu-");
 
-      sprintf(query, "USE %s", dataSchema.c_str()); server_temp->Exec(query);
+      sprintf(query, "USE %s", inputSchema.c_str()); server_temp->Exec(query);
       sprintf(query, "ALTER TABLE Hit ENABLE KEYS"); server_temp->Exec(query);
       if(readTriggerHits) sprintf(query, "ALTER TABLE TriggerHit ENABLE KEYS"); server_temp->Exec(query);
       sprintf(query, "OPTIMIZE LOCAL TABLE `Run`, `Spill`, `Event`, `Hit`, `TriggerHit`, `Scaler`"); server_temp->Exec(query);
