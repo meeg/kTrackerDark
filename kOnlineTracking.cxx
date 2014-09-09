@@ -79,8 +79,9 @@ int main(int argc, char *argv[])
 
   //Start tracking
   int nEvents = p_mysqlSvc->getNEvents();
+  nEvents = nEvents < jobOptsSvc->m_firstEvent + jobOptsSvc->m_nEvents ? nEvents : jobOptsSvc->m_firstEvent + jobOptsSvc->m_nEvents;
   cout << "There are " << nEvents << " events in " << jobOptsSvc->m_inputFile << endl;
-  for(int i = 0; i < nEvents; ++i) 
+  for(int i = jobOptsSvc->m_firstEvent; i < nEvents; ++i) 
     {
       //Read data
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;

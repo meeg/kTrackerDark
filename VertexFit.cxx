@@ -104,10 +104,11 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	{
 	  //Only needed for like-sign muons
 	  if(idx_pos[i] == idx_neg[j]) continue;
-
+           
 	  SRecTrack track_neg = recEvent->getTrack(idx_neg[j]);
+	  if(track_pos.getTriggerRoad()*track_neg.getTriggerRoad() >= 0) continue;
 	  if(!track_neg.isValid()) continue;
-
+          
 	  SRecDimuon dimuon;
 	  dimuon.trackID_pos = idx_pos[i];
 	  dimuon.trackID_neg = idx_neg[j];

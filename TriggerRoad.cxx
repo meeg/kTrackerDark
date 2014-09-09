@@ -54,9 +54,13 @@ TriggerRoad::TriggerRoad(Tracklet& tracklet) : detectorIDs(4), elementIDs(4)
       //std::cout << i << " " << tb << " " << p_geomSvc->getPlanePosition(hodoIDs[0][i]) << " " << tracklet.getExpPositionY(p_geomSvc->getPlanePosition(hodoIDs[0][i])) << std::endl;
     }
 
-  if(tb == 0) return;
-  tb = tb > 0 ? 0 : 1;
+  if(tb == 0) 
+    {
+      detectorIDs.clear();
+      return;
+    }
 
+  tb = tb > 0 ? 0 : 1;
   for(int i = 0; i < 4; ++i)
     {
       detectorIDs[i] = hodoIDs[tb][i];
@@ -82,9 +86,13 @@ TriggerRoad::TriggerRoad(SRecTrack& track) : detectorIDs(4), elementIDs(4)
       tb += (p_geomSvc->isInPlane(hodoIDs[0][i], 0., y_exp[i]) ? 1 : -1);
     }
 
-  if(tb == 0) return;
-  tb = tb > 0 ? 0 : 1;
+  if(tb == 0) 
+    {
+      detectorIDs.clear();
+      return;
+    }
 
+  tb = tb > 0 ? 0 : 1;
   for(int i = 0; i < 4; ++i)
     {
       detectorIDs[i] = hodoIDs[tb][i];
