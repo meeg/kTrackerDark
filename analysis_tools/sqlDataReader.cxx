@@ -45,8 +45,8 @@ int main(int argc, char **argv)
 
   ///Initialize the mysql service
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  p_mysqlSvc->connect();
-  p_mysqlSvc->setWorkingSchema(argv[1]);
+  p_mysqlSvc->connectInput();
+  p_mysqlSvc->setInputSchema(argv[1]);
   if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
 
   ///Definition of the output structure
