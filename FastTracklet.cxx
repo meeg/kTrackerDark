@@ -261,8 +261,26 @@ bool Tracklet::isValid()
   //Global tracks
   if(stationID == 6)
     {
-      if(nXHits < 3 || nUHits < 3 || nVHits < 3) return false;
-      if(nHits < 12) return false;
+      //Number of hits cuts, second index is X, U, V, second index is station-1, 2, 3
+      int nRealHits[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+      for(std::list<SignedHit>::iterator iter = hits.begin(); iter != hits.end(); ++iter)
+	{
+	  if(iter->hit.index < 0) continue;
+
+	  int idx1 = iter->hit.detectorID/6;
+	  int idx2 = p_geomSvc->getPlaneType(iter->hit.detectorID) - 1;
+	  if(idx1 > 2) idx1 = 2;
+
+	  ++nRealHits[idx1][idx2];
+	}
+
+      //Number of hits cut after removing bad hits
+      for(int i = 0; i < 3; ++i)
+	{
+	  if(nRealHits[i][0] < 1 || nRealHits[i][1] < 1 || nRealHits[i][2] < 1) return false;
+	  if(nRealHits[i][0] + nRealHits[i][1] + nRealHits[i][2] < 4) return false;
+	}
+
       if(prob < PROB_TIGHT) return false;
       
       if(kmag_on)

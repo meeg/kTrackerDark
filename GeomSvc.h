@@ -160,7 +160,7 @@ public:
   double getPlaneWOffset(int detectorID)   { return planes[detectorID].deltaW; }
   double getPlaneWOffset(int detectorID, int moduleID) { return planes[detectorID].deltaW_module[moduleID]; }
 
-  int getPlaneType(int detectorID) { return planes[detectorID].planeType; }
+  int getPlaneType(int detectorID) const { return planes[detectorID].planeType; }
 
   double getKMAGCenter()     { return (zmin_kmag + zmax_kmag)/2.; }
   double getKMAGUpstream()   { return zmin_kmag; }
