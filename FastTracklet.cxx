@@ -267,7 +267,7 @@ bool Tracklet::isValid()
 	{
 	  if(iter->hit.index < 0) continue;
 
-	  int idx1 = iter->hit.detectorID/6;
+	  int idx1 = (iter->hit.detectorID - 1)/6;
 	  int idx2 = p_geomSvc->getPlaneType(iter->hit.detectorID) - 1;
 	  if(idx1 > 2) idx1 = 2;
 
