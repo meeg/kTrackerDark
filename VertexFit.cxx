@@ -106,7 +106,6 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  if(idx_pos[i] == idx_neg[j]) continue;
            
 	  SRecTrack track_neg = recEvent->getTrack(idx_neg[j]);
-	  //if(track_pos.getTriggerRoad()*track_neg.getTriggerRoad() >= 0) continue;
 	  if(!track_neg.isValid()) continue;
           
 	  SRecDimuon dimuon;
@@ -127,18 +126,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  addHypothesis(findDimuonVertexFast(track_pos, track_neg), 50.);
 	  choice_eval = processOnePair();
 
-	  //Retrieve the results
-	  double z_vertex_opt = getVertexZ0();
-	  if(optimize)
-	    {
-	      if(z_vertex_opt < -80. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
-	    }
-
-	  track_pos.setZVertex(z_vertex_opt);
-	  track_neg.setZVertex(z_vertex_opt);
-	  dimuon.p_pos = track_pos.getMomentumVertex();
-	  dimuon.p_neg = track_neg.getMomentumVertex();
-	  dimuon.chisq_kf = track_pos.getChisqVertex() + track_neg.getChisqVertex();
+	  //Fill the dimuon info which are not related to track refitting first
 	  dimuon.chisq_vx = getVXChisq();
 	  dimuon.vtx.SetXYZ(_vtxpar_curr._r[0][0], _vtxpar_curr._r[1][0], _vtxpar_curr._r[2][0]);
 
@@ -147,6 +135,36 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  dimuon.proj_target_neg = track_neg.getTargetPos();
 	  dimuon.proj_dump_neg = track_neg.getDumpPos();
 
+	  //Retrieve the results
+	  double z_vertex_opt = getVertexZ0();
+	  if(optimize)
+	    {
+	      //if(z_vertex_opt < -80. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
+	      if(dimuon.isTarget())
+		{
+		  int nTry = 0;
+		  double z_curr = 9999.;
+		  while(fabs(z_curr - z_vertex_opt) > 0.5 && nTry < 100)
+		    {
+		      z_curr = z_vertex_opt;
+	    	      ++nTry;
+
+    		      track_pos.setZVertex(z_vertex_opt);
+		      track_neg.setZVertex(z_vertex_opt);
+
+		      double m = (track_pos.getMomentumVertex() + track_neg.getMomentumVertex()).M();
+		      z_vertex_opt = -189.6 + 17.71*m - 1.159*m*m;
+
+		      //std::cout << nTry << "  " << z_curr << "  " << z_vertex_opt << "  " << (track_pos.getMomentumVertex() + track_neg.getMomentumVertex()).M() << std::endl; 
+		    }
+		}
+	    }
+
+	  track_pos.setZVertex(z_vertex_opt);
+	  track_neg.setZVertex(z_vertex_opt);
+	  dimuon.p_pos = track_pos.getMomentumVertex();
+	  dimuon.p_neg = track_neg.getMomentumVertex();
+	  dimuon.chisq_kf = track_pos.getChisqVertex() + track_neg.getChisqVertex();
 	  //If we are running in the like-sign mode, reverse one sign of px
 	  if(sign1 + sign2 != 0)
 	    {

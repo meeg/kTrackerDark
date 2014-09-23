@@ -253,8 +253,11 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
     }
 
   //E-loss and pT-kick per length, note the eloss is done in half-slices
-  double eloss_unit_0 = ELOSS_FMAG/FMAG_LENGTH;
-  double eloss_unit_1 = ELOSS_FMAG_RAD/FMAG_LENGTH;
+  double eloss_unit_0 = ELOSS_FMAG_P0/FMAG_LENGTH;
+  double eloss_unit_1 = ELOSS_FMAG_P1/FMAG_LENGTH;
+  double eloss_unit_2 = ELOSS_FMAG_P2/FMAG_LENGTH;
+  double eloss_unit_3 = ELOSS_FMAG_P3/FMAG_LENGTH;
+  double eloss_unit_4 = ELOSS_FMAG_P4/FMAG_LENGTH;
   double ptkick_unit = PT_KICK_FMAG/FMAG_LENGTH;
 
   //Step size in FMAG/target area
@@ -291,7 +294,7 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
       double p_tot_b;
       if(pos_b[2] > FMAG_HOLE_LENGTH || pos_b.Perp() > FMAG_HOLE_RADIUS)
 	{
-  	  p_tot_b = p_tot_i + (eloss_unit_0 + p_tot_i*eloss_unit_1)*trajVec1.Mag();
+  	  p_tot_b = p_tot_i + (eloss_unit_0 + p_tot_i*eloss_unit_1 + p_tot_i*p_tot_i*eloss_unit_2 + p_tot_i*p_tot_i*p_tot_i*eloss_unit_3 + p_tot_i*p_tot_i*p_tot_i*p_tot_i*eloss_unit_4)*trajVec1.Mag();
 	}
       else
 	{
@@ -304,7 +307,7 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
       double p_tot_f;
       if(pos[iStep][2] > FMAG_HOLE_LENGTH || pos[iStep].Perp() > FMAG_HOLE_RADIUS)
 	{
-  	  p_tot_f = p_tot_b + (eloss_unit_0 + p_tot_b*eloss_unit_1)*trajVec2.Mag();
+  	  p_tot_f = p_tot_b + (eloss_unit_0 + p_tot_b*eloss_unit_1 + p_tot_b*p_tot_b*eloss_unit_2 + p_tot_b*p_tot_b*p_tot_b*eloss_unit_3 + p_tot_b*p_tot_b*p_tot_b*p_tot_b*eloss_unit_4)*trajVec2.Mag();
 	}
       else
 	{

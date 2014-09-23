@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
         }
       recEvent->reIndex();
       saveTree->Fill();
+      if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
 
       recEvent->clear();
       rawEvent->clear();
