@@ -67,12 +67,12 @@ Geometry_Version $SEAQUEST_GEOMETRY_V
 #-----------------------
 # MySQL connection
 #choices are localhost, e906-db1.fnal.gov, seaquel.physics.illinois.edu
-MySQL_InputServer seaquel.physics.illinois.edu
-MySQL_OutputServer seaquel.physics.illinois.edu
+MySQL_InputServer e906-db1.fnal.gov
+MySQL_OutputServer e906-db1.fnal.gov
 
 #choices are 3306 (e906-db1), 3283 (seaquel)
-MySQL_InputPort 3283
-MySQL_OutputPort 3283
+MySQL_InputPort 3306
+MySQL_OutputPort 3306
 
 #------------------
 #Event selection
@@ -86,6 +86,6 @@ FirstEvent 0
 #Boolean switches
 MCMode_enable 0
 AlignmentMode_enable 0
-TriggerMask_enable 0
+TriggerMask_enable 1
 kMag_enable 1
 Evaluation_enable 0
