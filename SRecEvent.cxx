@@ -228,10 +228,11 @@ bool SRecTrack::isValid()
   if(!isVertexValid()) return false;
 
   //Number of hits cut
-  if(getNHits() < 15) return false;
+  Int_t nHits = getNHits();
+  if(nHits < 15) return false;
 
   //Total chisq, may change to cut on prob
-  if(getChisq() > 20.) return false;
+  if(getChisq()/(nHits - 5) > 2.) return false;
 
   return true;
 }
