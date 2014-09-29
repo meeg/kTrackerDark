@@ -76,6 +76,9 @@ public:
   Double_t getMomentum(TMatrixD& state, Double_t& px, Double_t& py, Double_t& pz);
   Double_t getPosition(TMatrixD& state, Double_t& x, Double_t& y);
 
+  ///Fit status
+  Bool_t isKalmanFitted() { return fKalmanStatus > 0; }
+  void setKalmanStatus(Int_t status) { fKalmanStatus = status; }
 
   ///Comparitor
   bool operator<(const SRecTrack& elem) const;
@@ -172,6 +175,9 @@ private:
   TMatrixD fStateVertex;
   TMatrixD fCovarVertex;
 
+  ///Kalman Fitted
+  Int_t fKalmanStatus;
+
   ///Corresponding trigger road
   Int_t fTriggerID;
 
@@ -181,7 +187,7 @@ private:
   Double_t fPropSlopeX;
   Double_t fPropSlopeY;
 
-  ClassDef(SRecTrack, 7)
+  ClassDef(SRecTrack, 8)
 };
 
 class SRecDimuon: public TObject

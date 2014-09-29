@@ -140,12 +140,11 @@ int main(int argc, char *argv[])
         }
 
 #ifdef _ENABLE_KF
-      std::list<KalmanTrack>& rec_tracks = fastfinder->getKalmanTracks();
-      for(std::list<KalmanTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
+      std::list<SRecTrack>& rec_tracks = fastfinder->getSRecTracks();
+      for(std::list<SRecTrack>::iterator iter = rec_tracks.begin(); iter != rec_tracks.end(); ++iter)
         {
           //iter->print();
-          SRecTrack recTrack = iter->getSRecTrack();
-          recEvent->insertTrack(recTrack);
+          recEvent->insertTrack(*iter);
         }
 #endif
 

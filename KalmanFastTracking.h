@@ -86,7 +86,7 @@ public:
   ///Final output
   std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
   std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
-  std::list<KalmanTrack>& getKalmanTracks() { return tracks; }
+  std::list<SRecTrack>& getSRecTracks() { return stracks; }
 
   ///Tool, a simple-minded chi square fit
   void chi2fit(int n, double x[], double y[], double& a, double& b);
@@ -100,8 +100,8 @@ private:
   //Likewise for the next part
   std::list<Tracklet> trackletsInSt[5];
 
-  //Final kalman tracks
-  std::list<KalmanTrack> tracks;
+  //Final SRecTrack list
+  std::list<SRecTrack> stracks;
 
   ///Configurations of tracklet finding
   //Hodo. IDs for masking

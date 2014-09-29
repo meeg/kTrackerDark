@@ -216,7 +216,7 @@ bool KalmanTrack::isValid()
 {
   if(_chisq < 0 || _chisq > 150) return false;
   if(_nodes.empty()) return false;
-  if(getMomentumUpstream() < 15. || getMomentumUpstream() > 105.) return false;
+  if(getMomentumUpstream() < 1./INVP_MAX || getMomentumUpstream() > 1./INVP_MIN) return false;
 
   return true;
 }
