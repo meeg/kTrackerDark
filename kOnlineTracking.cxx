@@ -77,10 +77,16 @@ int main(int argc, char *argv[])
   int nEvents_dimuon = 0;
   int nEvents_dimuon_real = 0;
 
+  //the number of events available in DB
+  const int nEventsInDB = p_mysqlSvc->getNEvents();
+  //number of events to do is number available minus first
+  int nEvents = nEventsInDB - jobOptsSvc->m_firstEvent;
+  //unless the user restricted the number
+  if( 0 < jobOptsSvc->m_nEvents )
+    nEvents = std::min( jobOptsSvc->m_nEvents, nEvents );
+  cout << Form( "Out of %d available events in DB, I will process %d, starting with event %d", nEventsInDB, nEvents, jobOptsSvc->m_firstEvent ) << endl;
+
   //Start tracking
-  int nEvents = p_mysqlSvc->getNEvents();
-  nEvents = nEvents < jobOptsSvc->m_firstEvent + jobOptsSvc->m_nEvents ? nEvents : jobOptsSvc->m_firstEvent + jobOptsSvc->m_nEvents;
-  cout << "There are " << nEvents << " events in " << jobOptsSvc->m_inputFile << endl;
   for(int i = jobOptsSvc->m_firstEvent; i < nEvents; ++i) 
     {
       //Read data
