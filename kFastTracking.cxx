@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   SRecEvent* recEvent = new SRecEvent();
 
   TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
-  TTree* saveTree = jobOptsSvc->m_attachRaw ? dataTree->CloneTree(0) : new TTree("save", "save");
+  TTree* saveTree = jobOptsSvc->m_attachRawEvent ? dataTree->CloneTree(0) : new TTree("save", "save");
 
   saveTree->Branch("recEvent", &recEvent, 256000, 99);
   saveTree->Branch("time", &time, "time/D");
