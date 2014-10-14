@@ -89,3 +89,4 @@ AlignmentMode_enable 0
 TriggerMask_enable 1
 kMag_enable 1
 Evaluation_enable 0
+AttachRawEvent 1

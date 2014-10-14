@@ -52,6 +52,7 @@ public:
   bool m_enableOnlineAlignment;   ///< Get alignment params from database?
   bool m_enableEvaluation; ///< Enable evaluation output
   bool m_thresholdLive;    ///< Live setting for ThresholdSvc
+  bool m_attachRawEvent;   ///< Attach the raw event in the reconstructed data
 
   int m_mySQLInputPort;    ///< mysql database input port
   int m_mySQLOutputPort;    ///< mysql database output port

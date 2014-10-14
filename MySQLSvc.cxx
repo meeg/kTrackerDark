@@ -742,18 +742,31 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
 }
 
 void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
-{      
+{
   double px0, py0, pz0, x0, y0, z0; 
   double px1, py1, pz1, x1, y1, z1;
   double px3, py3, pz3, x3, y3, z3;
 
   int charge;
-  int numHits;
+  int roadID;
+  int numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V;
   double chisq;
+
+  TVector3 proj_target = recTrack->getTargetPos();
+  TVector3 proj_dump = recTrack->getDumpPos();
+
+  double tx_prop = recTrack->getPTSlopeX();
+  double ty_prop = recTrack->getPTSlopeY();
 
   //Track related
   charge = recTrack->getCharge();
+  roadID = recTrack->getTriggerRoad();
   numHits = recTrack->getNHits();
+  numHitsSt1 = recTrack->getNHitsInStation(1);
+  numHitsSt2 = recTrack->getNHitsInStation(2);
+  numHitsSt3 = recTrack->getNHitsInStation(3);
+  numHitsSt4H = recTrack->getNHitsInPTY();
+  numHitsSt4V = recTrack->getNHitsInPTX();
   chisq = recTrack->getChisq();
 
   //Vertex point
@@ -761,26 +774,32 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   y0 = recTrack->getVtxPar(1);
   z0 = recTrack->getVtxPar(2);
   recTrack->getMomentumVertex(px0, py0, pz0);
+  if(boost::math::isnan(px0) || boost::math::isnan(py0) || boost::math::isnan(pz0)) return;
 
   //At station 1
   z1 = 600.;
   recTrack->getExpPositionFast(z1, x1, y1);
   recTrack->getExpMomentumFast(z1, px1, py1, pz1);
+  if(boost::math::isnan(px1) || boost::math::isnan(py1) || boost::math::isnan(pz1)) return;
 
   //At station 3
   z3 = 1900.;
   recTrack->getExpPositionFast(z3, x3, y3);
   recTrack->getExpMomentumFast(z3, px3, py3, pz3);
+  if(boost::math::isnan(px3) || boost::math::isnan(py3) || boost::math::isnan(pz3)) return;
 
   //Database output
-  sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,numHits,chisq,x0,y0,z0,px0,py0,pz0," 
-          "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
-          "%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs.back(), charge, numHits, chisq, x0, y0, 
-          z0, px0, py0, pz0, x1, y1, z1, px1, py1, pz1, x3, y3, z3, px3, py3, pz3);
+  sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,roadID,numHits,numHitsSt1,numHitsSt2,numHitsSt3,"
+	  "numHitsSt4H,numHitsSt4V,chisq,x0,y0,z0,px0,py0,pz0,x_target,y_target,z_target,x_dump,y_dump,z_dump," 
+	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3,tx_PT,ty_PT) VALUES(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,"
+	  "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs_loaded.back(), 
+	  charge, roadID, numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V, chisq, x0, y0, z0, px0, py0, pz0, 
+	  proj_target.X(), proj_target.Y(), proj_target.Z(), proj_dump.X(), proj_dump.Y(), proj_dump.Z(), x1, y1, z1, px1, py1, pz1,
+	  x3, y3, z3, px3, py3, pz3, tx_prop, ty_prop);
 #ifndef OUT_TO_SCREEN
-  outputServer->Exec(query);
+      outputServer->Exec(query);
 #else
-  std::cout << __FUNCTION__ << ": " << query << std::endl;
+      std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 }
 
