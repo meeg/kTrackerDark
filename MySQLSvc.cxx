@@ -8,6 +8,7 @@ Created: 9-29-2013
 */
 
 #include <boost/lexical_cast.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <TLorentzVector.h>
 
 #include "FastTracklet.h"
