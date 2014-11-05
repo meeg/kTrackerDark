@@ -17,7 +17,7 @@ parser.add_option( "-k", "--k-clean", dest="kclean", default=False, action="stor
 
 
 #list of analysis tools that we usually want
-analysisTools = ["sqlDataReader"]
+analysisTools = ["sqlDataReader", "sqlResWriter"]
 
 if len(sys.argv) == 1:
   os.chdir('TrackExtrapolator')
