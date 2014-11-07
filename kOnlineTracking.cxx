@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
   cout << Form( "Out of %d available events in DB, I will process %d, starting with event %d", nEventsInDB, nEvents, jobOptsSvc->m_firstEvent ) << endl;
 
   //Start tracking
+  if(!jobOptsSvc->m_mcMode) p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackBegin=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str())); 
   for(int i = jobOptsSvc->m_firstEvent; i < nEvents; ++i) 
     {
       //Read data
@@ -144,6 +145,13 @@ int main(int argc, char *argv[])
         }	 
       rawEvent->clear();
       recEvent->clear();
+    }
+
+  //End tracking
+  if(!jobOptsSvc->m_mcMode)
+    {
+      p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1 WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str())); 
+      p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackEnd=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str())); 
     }
 
   cout << endl;

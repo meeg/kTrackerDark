@@ -42,6 +42,10 @@ public:
   bool connectInput( std::string mysqlServer = "", int mysqlPort = -1);
   bool connectOutput(std::string mysqlServer = "", int mysqlPort = -1);
 
+  //Get direct pointer to the mysql connection
+  TSQLServer* getInputServer() { return inputServer; } 
+  TSQLServer* getOutputServer() { return outputServer; } 
+
   //Set username/password
   void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }
 
