@@ -418,7 +418,7 @@ double Tracklet::getMomentum() const
   double c2 = Z_KMAG_BEND*PT_KICK_KMAG*charge;
   double c3 = -x0;
   double c4 = ELOSS_KFMAG;
-  double c5 = c4/2.;
+  double c5 = 2.*c4;
 
   double b = c1/c3 + c2/c3 - c4 - c5;
   double c = c4*c5 - c1*c5/c3 - c2*c4/c3;
