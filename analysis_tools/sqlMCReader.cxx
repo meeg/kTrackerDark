@@ -37,6 +37,7 @@ int main(int argc, char **argv)
       p_mysqlSvc->connect();
     }
   p_mysqlSvc->setWorkingSchema(argv[1]);
+  if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
 
   SRawMCEvent* rawEvent = new SRawMCEvent();
 

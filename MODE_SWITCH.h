@@ -27,10 +27,10 @@
 
 //---------------------FOLLOWING PART SHOULD NOT BE CHANGED FOR NO GOOD REASON -----------------------
 //--------------- Fast tracking configuration ----
-#define TX_MAX 0.1
-#define TY_MAX 0.12
-#define X0_MAX 80.
-#define Y0_MAX 150.
+#define TX_MAX 0.15
+#define TY_MAX 0.1
+#define X0_MAX 150.
+#define Y0_MAX 50.
 #define INVP_MIN 0.01
 #define INVP_MAX 0.2
 #define PROB_LOOSE 0.0
