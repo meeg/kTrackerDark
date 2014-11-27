@@ -53,6 +53,7 @@ public:
 
   //Check the quality of tracklet, number of hits
   bool acceptTracklet(Tracklet& tracklet);
+  bool hodoMask(Tracklet& tracklet);
   bool muonID(Tracklet& tracklet);
 
   //Resolve left-right when possible
