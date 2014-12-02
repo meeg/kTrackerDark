@@ -402,7 +402,7 @@ bool MySQLSvc::getEventHeader(SRawEvent* rawEvent, int eventID)
   eventIDs_loaded.push_back(eventID);
 
   //Get the event header
-  sprintf(query, "SELECT runID,spillID,NIM1,NIM2,NIM3,NIM4,NIM5,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5 FROM Event WHERE eventID=%d", eventID);
+  sprintf(query, "SELECT runID,spillID,MATRIX1,MATRIX2,MATRIX3,MATRIX4,MATRIX5,NIM1,NIM2,NIM3,NIM4,NIM5 FROM Event WHERE eventID=%d", eventID);
   if(makeQueryInput() != 1) return false;
 
   nextEntry();

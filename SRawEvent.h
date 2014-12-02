@@ -190,16 +190,16 @@ public:
   //Trigger type
   enum TriggerType 
     {
-      NIM1 = triggerBit(5),
-      NIM2 = triggerBit(6),
-      NIM3 = triggerBit(7),
-      NIM4 = triggerBit(8),
-      NIM5 = triggerBit(9),
       MATRIX1 = triggerBit(0),
       MATRIX2 = triggerBit(1),
       MATRIX3 = triggerBit(2),
       MATRIX4 = triggerBit(3),
-      MATRIX5 = triggerBit(4)
+      MATRIX5 = triggerBit(4),
+      NIM1 = triggerBit(5),
+      NIM2 = triggerBit(6),
+      NIM3 = triggerBit(7),
+      NIM4 = triggerBit(8),
+      NIM5 = triggerBit(9)
     };
 
 private:

@@ -673,7 +673,7 @@ void SRawEvent::setTriggerBits(Int_t triggers[])
   for(int i = 0; i < 10; ++i)
     {
       if(triggers[i] == 0) continue;
-      fTriggerBits |= triggerBit(i+1);
+      fTriggerBits |= triggerBit(i);
     }
 }
 
