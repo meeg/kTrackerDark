@@ -761,6 +761,7 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
       tracklet.calcChisq();
 
       SignedHit* hit_remove = NULL;
+      SignedHit* hit_neighbour = NULL;
       double res_remove = -1.;
       for(std::list<SignedHit>::iterator hit_sign = tracklet.hits.begin(); hit_sign != tracklet.hits.end(); ++hit_sign)
 	{
@@ -772,6 +773,9 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 	    {
 	      res_remove = res_curr;
 	      hit_remove = &(*hit_sign);
+
+	      std::list<SignedHit>::iterator iter = hit_sign;
+	      hit_neighbour = detectorID % 2 == 0 ? &(*(--iter)) : &(*(++iter));
 	    }
 	}
 
@@ -780,9 +784,13 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 #ifdef _DEBUG_ON
 	  LogInfo("Dropping this hit: " << res_remove << "  " << HIT_REJECT*resol_plane[hit_remove->hit.detectorID]);
 	  hit_remove->hit.print();
+	  hit_neighbour->hit.print();
 #endif
 
+	  //Set the index of the hit to be removed to -1 so it's not used anymore
+	  //also set the sign assignment of the neighbour hit to 0 (i.e. undecided)
 	  hit_remove->hit.index = -1;
+	  hit_neighbour->sign = 0;
 	  int planeType = p_geomSvc->getPlaneType(hit_remove->hit.detectorID);
 	  if(planeType == 1)
 	    {
@@ -797,10 +805,21 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 	      --tracklet.nVHits;
 	    }
 
+	  //If both hit pairs are not included, the track can be rejected
+	  if(hit_neighbour->hit.index < 0)
+	    {
+#ifdef _DEBUG_ON
+	      LogInfo("Both hits in a view are missing! Will exit the bad hit removal...");
+	      return;
+	    }
 	  isUpdated = true;
 	}
 
-      if(isUpdated) fitTracklet(tracklet);
+      if(isUpdated)
+	{
+  	  fitTracklet(tracklet);
+	  resolveSingleLeftRight(tracklet);
+	}
     }
 }
 
@@ -1084,7 +1103,9 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
 	  for(std::list<int>::iterator iter = hitIDs_muid[i][j].begin(); iter != hitIDs_muid[i][j].end(); ++iter)
 	    {
 	      double pos = hitAll[*iter].pos;
-	      if(fabs(pos - pos_exp) > win_loose) continue;
+	      double dist = pos - pos_exp;
+	      if(dist < -win_loose) continue;
+	      if(dist > win_loose) break;
 
 	      double dist_l = fabs(pos - hitAll[*iter].driftDistance - pos_exp);
 	      double dist_r = fabs(pos + hitAll[*iter].driftDistance - pos_exp);
