@@ -1110,7 +1110,7 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
 
 	      double dist_l = fabs(pos - hitAll[*iter].driftDistance - pos_exp);
 	      double dist_r = fabs(pos + hitAll[*iter].driftDistance - pos_exp);
-	      double dist = dist_l < dist_r ? dist_l : dist_r;
+	      dist = dist_l < dist_r ? dist_l : dist_r;
 	      if(dist < dist_min)
 		{
 		  dist_min = dist;
