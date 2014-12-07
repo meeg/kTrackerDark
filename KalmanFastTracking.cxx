@@ -810,6 +810,7 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 	    {
 #ifdef _DEBUG_ON
 	      LogInfo("Both hits in a view are missing! Will exit the bad hit removal...");
+#endif
 	      return;
 	    }
 	  isUpdated = true;
