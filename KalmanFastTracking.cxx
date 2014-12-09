@@ -1088,6 +1088,8 @@ bool KalmanFastTracking::muonID(Tracklet& tracklet)
   PropSegment* segs[2] = {&(tracklet.seg_x), &(tracklet.seg_y)};
   for(int i = 0; i < 2; ++i)
     {
+      if(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
+
       segs[i]->init();
       for(int j = 0; j < 4; ++j)
 	{
