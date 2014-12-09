@@ -145,7 +145,7 @@ void PropSegment::fit()
       double res_max = fabs(hits[0].pos() - a*p_geomSvc->getPlanePosition(hits[0].hit.detectorID) - b);
       for(int i = 1; i < 4; ++i)
 	{
-	  double res = fabs(hits[1].pos() - a*p_geomSvc->getPlanePosition(hits[i].hit.detectorID) - b);
+	  double res = fabs(hits[i].pos() - a*p_geomSvc->getPlanePosition(hits[i].hit.detectorID) - b);
 	  if(res > res_max)
 	    {
 	      index = i;
