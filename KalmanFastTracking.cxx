@@ -512,7 +512,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 	  resolveLeftRight(tracklet_23, 100.);
 #endif
 	  ///Remove bad hits if needed
-	  //removeBadHits(tracklet_23);
+	  removeBadHits(tracklet_23);
 
 
 #ifdef _DEBUG_ON
@@ -609,6 +609,7 @@ void KalmanFastTracking::buildGlobalTracks()
 	      tracklet_best = tracklet_global;
     	    }
 #ifdef _DEBUG_ON
+	  else
 	    {
 	      LogInfo("Rejected!!!");
 	    }
@@ -779,7 +780,8 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 	    }
 	}
 
-      if(hit_remove != NULL && res_remove > HIT_REJECT*resol_plane[hit_remove->hit.detectorID])
+      double cut = hit_remove->sign == 0 ? HIT_REJECT*resol_plane[hit_remove->hit.detectorID] + hit_remove->hit.driftDistance : HIT_REJECT*resol_plane[hit_remove->hit.detectorID];
+      if(hit_remove != NULL && res_remove > cut)
 	{
 #ifdef _DEBUG_ON
 	  LogInfo("Dropping this hit: " << res_remove << "  " << HIT_REJECT*resol_plane[hit_remove->hit.detectorID]);
