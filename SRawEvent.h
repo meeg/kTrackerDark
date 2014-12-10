@@ -134,9 +134,7 @@ public:
 
   ///Type of pair with two adjacent wires
   typedef std::pair<Int_t, Int_t> hit_pair;
-  std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Short_t detectorID);
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Short_t detectorID);  
-  std::list<SRawEvent::hit_pair> getHitPairsInSuperDetector(Short_t detectorID, Double_t x_exp, Double_t wind);
   std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Short_t detectorID, Double_t x_exp, Double_t wind);  
   
   ///Set/get the trigger types

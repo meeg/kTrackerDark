@@ -212,25 +212,6 @@ std::list<Int_t> SRawEvent::getHitsIndexInDetectors(std::vector<Int_t>& detector
   return hit_list;
 }
 
-std::list<SRawEvent::hit_pair> SRawEvent::getHitPairsInSuperDetector(Short_t detectorID)
-{
-  std::list<SRawEvent::hit_pair> _hitpairs;
-  std::list<int> _hitlist1 = getHitsIndexInDetector(2*detectorID);
-  std::list<int> _hitlist2 = getHitsIndexInDetector(2*detectorID - 1);
-
-  for(std::list<int>::iterator iter = _hitlist1.begin(); iter != _hitlist1.end(); ++iter)
-    {
-      for(std::list<int>::iterator jter = _hitlist2.begin(); jter != _hitlist2.end(); ++jter)
-	{
-	  if(abs(fAllHits[*iter].elementID - fAllHits[*jter].elementID) > 1) continue;
-	  //if((fAllHits[*iter].elementID == fAllHits[*jter].elementID) || (fAllHits[*iter].elementID + 1 == fAllHits[*jter].elementID)) continue;
-	  _hitpairs.push_back(std::make_pair(*iter, *jter));
-	}
-    }
-
-  return _hitpairs;
-}
-
 std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Short_t detectorID)
 {
   std::list<SRawEvent::hit_pair> _hitpairs;
@@ -323,27 +304,6 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
   return _hitpairs;
 }
 
-std::list<SRawEvent::hit_pair> SRawEvent::getHitPairsInSuperDetector(Short_t detectorID, Double_t x_exp, Double_t win)
-{
-  std::list<SRawEvent::hit_pair> _hitpairs;
-  std::list<int> _hitlist1 = getHitsIndexInDetector(2*detectorID, x_exp, win);
-  std::list<int> _hitlist2 = getHitsIndexInDetector(2*detectorID - 1, x_exp, win + 3.);
-
-  for(std::list<int>::iterator iter = _hitlist1.begin(); iter != _hitlist1.end(); ++iter)
-    {
-      for(std::list<int>::iterator jter = _hitlist2.begin(); jter != _hitlist2.end(); ++jter)
-	{
-	  if(abs(fAllHits[*iter].elementID - fAllHits[*jter].elementID) > 1) continue;
-	  //if((fAllHits[*iter].elementID == fAllHits[*jter].elementID) || (fAllHits[*iter].elementID + 1 == fAllHits[*jter].elementID)) continue;
-
-	  _hitpairs.push_back(std::make_pair(*iter, *jter));
-	}
-    }
-
-  return _hitpairs;
-}
-
-
 std::list<Int_t> SRawEvent::getAdjacentHitsIndex(Hit& _hit)
 {
   std::list<Int_t> hit_list;
@@ -370,8 +330,6 @@ std::list<Int_t> SRawEvent::getAdjacentHitsIndex(Hit& _hit)
 
   return hit_list;
 }
-
-
 
 Int_t SRawEvent::getNChamberHitsAll()
 {
