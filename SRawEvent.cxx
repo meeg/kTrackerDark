@@ -222,7 +222,9 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[13] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
+  double spacing[25] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
+                        4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
+                        3.0, 3.0, 3.0, 3.0};                                                //prop tubes
 
   int index1 = -1;
   int index2 = -1;
@@ -268,7 +270,9 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[13] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2};
+  double spacing[25] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
+                        4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
+                        3.0, 3.0, 3.0, 3.0};                                                //prop tubes
 
   int index1 = -1;
   int index2 = -1;

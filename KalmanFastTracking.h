@@ -34,6 +34,7 @@ public:
 
   //Set the input event
   bool setRawEvent(SRawEvent* event_input);
+  void setRawEventDebug(SRawEvent* event_input);
 
   //Event quality cut
   bool acceptEvent(SRawEvent* rawEvent);
@@ -54,7 +55,10 @@ public:
   //Check the quality of tracklet, number of hits
   bool acceptTracklet(Tracklet& tracklet);
   bool hodoMask(Tracklet& tracklet);
-  bool muonID(Tracklet& tracklet);
+  bool muonID_comp(Tracklet& tracklet);
+  bool muonID_search(Tracklet& tracklet);
+
+  void buildPropSegments();
 
   //Resolve left-right when possible
   void resolveLeftRight(SRawEvent::hit_pair hpair, int& LR1, int& LR2);
@@ -88,6 +92,7 @@ public:
   std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
   std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
   std::list<SRecTrack>& getSRecTracks() { return stracks; }
+  std::list<PropSegment>& getPropSegments(int i) { return propSegs[i]; }
 
   ///Tool, a simple-minded chi square fit
   void chi2fit(int n, double x[], double y[], double& a, double& b);
@@ -104,6 +109,9 @@ private:
   //Final SRecTrack list
   std::list<SRecTrack> stracks;
 
+  //Prop. tube segments for muon id purposes
+  // 0 for X-Z, 1 for Y-Z
+  std::list<PropSegment> propSegs[2];
   ///Configurations of tracklet finding
   //Hodo. IDs for masking
   std::vector<int> detectorIDs_mask[4];
@@ -123,10 +131,10 @@ private:
   double x_mask_max[24][72];
   double y_mask_min[24][72];
   double y_mask_max[24][72];
-  
-  ///For following part, id = 0, 1, 2, 3 stand for station 1, 2, 3+, 3-
+ 
+  ///For following part, id = 0, 1, 2, 3, 4, 5 stand for station 1, 2, 3+, 3-, and prop tubes X-Z and Y-Z 
   //Super plane IDs for DCs
-  std::vector<int> superIDs[4];
+  std::vector<int> superIDs[6];
   
   //Window sizes for X-U combination
   double u_win[4];

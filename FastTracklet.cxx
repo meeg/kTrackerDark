@@ -56,6 +56,24 @@ void PropSegment::init()
   chisq = 1E6;
 }
 
+void PropSegment::print()
+{
+  using namespace std;
+	   
+  cout << "a = " << a << ", b = " << b << ", chisq = " << chisq << endl;
+  cout << "Absorber projection: " << getExpPosition(MUID_Z_REF) << endl;
+  for(int i = 0; i < 4; ++i)
+    {
+      if(hits[i].sign > 0) cout << "L: ";
+      if(hits[i].sign < 0) cout << "R: ";
+      if(hits[i].sign == 0) cout << "U: ";
+
+      cout << hits[i].hit.index << "  " << hits[i].hit.detectorID << "  " << hits[i].hit.elementID << " === "; 
+    }
+
+  cout << endl;
+}
+
 int PropSegment::getNHits()
 {
   int nHits = 0;
@@ -70,6 +88,10 @@ bool PropSegment::isValid()
 {
   if(getNHits() < 3) return false;
   if(chisq > 5.) return false;
+
+  //May need optimization
+  if(fabs(a) > 0.15) return false;
+  if(fabs(b) > 150.) return false;
 
   return true;
 }
