@@ -542,7 +542,7 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
       double w_min = w_max/9.*4.; //double w_min = 0.6*0.5*(cluster.back()->pos - cluster.front()->pos);
       if((cluster.front()->driftDistance > w_max && cluster.back()->driftDistance > w_min) || (cluster.front()->driftDistance > w_min && cluster.back()->driftDistance > w_max))
 	{
-	  cluster.front()->driftDistance > cluster.front()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
+	  cluster.front()->driftDistance > cluster.back()->driftDistance ? hits.erase(cluster.front()) : hits.erase(cluster.back());
 	}
       else if(fabs(cluster.front()->tdcTime - cluster.back()->tdcTime) < 8. && cluster.front()->detectorID >= 13 && cluster.front()->detectorID <= 18)
 	{
