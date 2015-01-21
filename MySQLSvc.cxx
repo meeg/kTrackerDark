@@ -720,6 +720,10 @@ bool MySQLSvc::initWriter()
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
+  //Tracker version
+  sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
+	  "VALUES('%s','%s')", "version", "ROOT decoder/r1.2.0");
+  outputServer->Exec(query);
 
   return true;
 }
