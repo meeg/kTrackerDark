@@ -26,18 +26,44 @@ using Threshold::live;
 
 int main(int argc, char **argv)
 {
-  cout << "Exporting Run: " << argv[1] << " to ROOT file: " << argv[2] << endl;
+  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+
+  //parse options in both formats
+  string inputSchema, outputFilename;
+  int nEventsRequested = -1;
+
+  //if only one arg is give, use the options files
+  if( argc == 2 )
+  {
+    //Initialize job options
+    p_jobOptsSvc->init(argv[1]);
+    inputSchema = p_jobOptsSvc->m_inputSchema;
+    outputFilename = p_jobOptsSvc->m_inputFile;
+    nEventsRequested = p_jobOptsSvc->m_nEvents;
+  }
+  else if( argc == 3 )
+  {
+    inputSchema = argv[1];
+    outputFilename = argv[2];
+  }
+  else if( 4 == argc )
+  {
+    inputSchema = argv[1];
+    outputFilename = argv[2];
+    nEventsRequested = atoi(argv[3]);
+  }
+  else
+  {
+    cout << "Usage: " << argv[0] << "  <options file>" << endl;
+    cout << "  ---  OR ---" << endl;
+    cout << "     : " << argv[1] << " <input schema> <output file> [nEvents]" << endl;
+    exit(0);
+  }
+
+  cout << "Exporting Run: " << inputSchema << " to ROOT file: " << outputFilename << endl;
 
   TStopwatch timer;
   timer.Start();
-
-  //NOTE:
-  //Comment out this line if you want this to print at every event.
-  //This is a hack until this program takes a job options file as the argument
-  Threshold::ThresholdSvc::Get().SetLive(false);
-
-  ///Initialize the job option service
-  JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
 
   ///Initialize the geometry service 
   GeomSvc* p_geomSvc = GeomSvc::instance();
@@ -46,13 +72,13 @@ int main(int argc, char **argv)
   ///Initialize the mysql service
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
   p_mysqlSvc->connectInput();
-  p_mysqlSvc->setInputSchema(argv[1]);
+  p_mysqlSvc->setInputSchema( inputSchema.c_str() );
   if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
 
   ///Definition of the output structure
   SRawEvent* rawEvent = new SRawEvent();
 
-  TFile *saveFile = new TFile(argv[2], "recreate");
+  TFile *saveFile = new TFile(outputFilename.c_str(), "recreate");
   TTree *saveTree = new TTree("save", "save");
 
   saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
@@ -62,38 +88,39 @@ int main(int argc, char **argv)
 
   int nEvents = p_mysqlSvc->getNEventsFast();
   cout << "Totally " << nEvents << " events in this run" << endl;
-  
+
   //if user specified number of events, then do that many
   //   but make sure they can't request more than exist
-  if(argc > 3) nEvents = std::min( nEvents, atoi(argv[3]) );
+  if(nEventsRequested>0) nEvents = std::min( nEvents, nEventsRequested );
+  cout << "Will process " << nEvents << " events" << endl;
 
   //plan to print progress at each %1 (unless in live mode)
   const int printFreq = (nEvents/100);
 
   timer.Start();
   for(int i = 0; i < nEvents; ++i)
+  {
+    if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
+
+    //print progress every event or every 1%
+    const int fracDone = (i+1)*100/nEvents;
+    if(live()) 
     {
-      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-
-      //print progress every event or every 1%
-      const int fracDone = (i+1)*100/nEvents;
-      if(live()) 
-	{
-	  cout << "\r Converting event " << rawEvent->getEventID() << ", " << fracDone << "% finished." << flush;
-	}
-      else if(0 == i % printFreq) 
-        {
-          timer.Stop();
-          cout << Form("Converting Event %d, %d%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq) << endl;
-          timer.Print();
-          timer.Start();
-        }
-
-      saveTree->Fill();
-
-      //save every n events to avoid large losses
-      if(0 == i % saveFreq) saveTree->AutoSave("SaveSelf");
+      cout << "\r Converting event " << rawEvent->getEventID() << ", " << fracDone << "% finished." << flush;
     }
+    else if(0 == i % printFreq) 
+    {
+      timer.Stop();
+      cout << Form("Converting Event %d, %d%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq) << endl;
+      timer.Print();
+      timer.Start();
+    }
+
+    saveTree->Fill();
+
+    //save every n events to avoid large losses
+    if(0 == i % saveFreq) saveTree->AutoSave("SaveSelf");
+  }
   cout << endl;
   cout << "sqlDataReader ends successfully." << endl;
 
