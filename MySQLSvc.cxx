@@ -686,7 +686,13 @@ bool MySQLSvc::initWriter()
           "xT          DOUBLE, "
           "trackSeparation DOUBLE,"
           "chisq_dimuon    DOUBLE,"
-          "PRIMARY KEY(runID, dimuonID, eventID))");
+	  "px1         DOUBLE,"
+	  "py1         DOUBLE,"
+	  "pz1         DOUBLE,"
+	  "px2         DOUBLE,"
+	  "py2         DOUBLE,"
+	  "pz2         DOUBLE,"
+	  "PRIMARY KEY(runID, dimuonID, eventID))");
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
@@ -852,9 +858,11 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
   double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
   sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
-          "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon) VALUES(%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
+          "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon,px1,py1,pz1,px2,py2,pz2) VALUES(%d,%d,%d,%d,"
+	  "%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", 
           dimuonID, runID, spillID, eventIDs_loaded.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
-          x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf);
+          x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf,
+	  dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
