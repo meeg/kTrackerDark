@@ -420,19 +420,17 @@ void SRecDimuon::calcVariables()
 
   TLorentzVector p_sum = p_pos + p_neg;
   TVector3 bv_sum = p_sum.BoostVector();
-  TLorentzVector p_pos_cms = p_pos;
   mass = p_sum.M();
   pT = p_sum.Perp();
 
   p_sum.Boost(-bv_cms);
-  p_pos_cms.Boost(-bv_sum);
-  xF = 2.*p_sum.Pz()/TMath::Sqrt(s);
-  costh = p_pos_cms.CosTheta();
+  xF = 2.*p_sum.Pz()/TMath::Sqrt(s)/(1. - mass*mass/s);
   Double_t tau = p_sum.M2()/s;
   Double_t y = 0.5*TMath::Log((p_sum.E() + p_sum.Pz())/(p_sum.E() - p_sum.Pz()));
   x1 = TMath::Sqrt(tau)*TMath::Exp(y);
   x2 = TMath::Sqrt(tau)*TMath::Exp(-y);
 
+  costh = 2.*(p_neg.E()*p_pos.Pz() - p_pos.E()*p_neg.Pz())/mass/sqrt(mass*mass + pT*pT);
   mass_single = (p_pos_single + p_neg_single).M();
 }
 
