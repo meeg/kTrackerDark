@@ -437,7 +437,7 @@ void SRecDimuon::calcVariables()
 bool SRecDimuon::isValid()
 {
   //Chisq of vertex fit
-  if(chisq_kf > 10.) return false;
+  if(chisq_kf > 10. || chisq_kf < 0.) return false;
 
   //Kinematic cuts
   if(p_pos.Px() < p_neg.Px()) return false;
@@ -448,7 +448,7 @@ bool SRecDimuon::isValid()
   if(p_pos.Pz() + p_neg.Pz() > 120.) return false;
 
   //Track separation cuts
-  if(fabs(vtx_pos.Z() - vtx_neg.Z()) > 100.) return false;
+  if(fabs(vtx_pos.Z() - vtx_neg.Z()) > 175.) return false;
 
   //Everything is fine
   return true;
@@ -459,21 +459,32 @@ bool SRecDimuon::isTarget()
   //Vertex position cut
   if(vtx.Z() > -80.) return false;
 
+  //single muon vertex
+  if(vtx_pos.Z() > 0.) return false;
+  if(vtx_neg.Z() > 0.) return false;
+
   //Track projection comparison
-  if(proj_target_pos.Perp() > proj_dump_pos.Perp()) return false;
-  if(proj_target_neg.Perp() > proj_dump_neg.Perp()) return false;
+  double pzp = p_pos.Pz();
+  if(proj_dump_pos.Perp() - proj_target_pos.Perp() < 9.44301-0.356141*pzp+0.00566071*pzp*pzp-3.05556e-05*pzp*pzp*pzp) return false;
+
+  double pzm = p_neg.Pz();
+  if(proj_dump_neg.Perp() - proj_target_neg.Perp() < 9.44301-0.356141*pzm+0.00566071*pzm*pzm-3.05556e-05*pzm*pzm*pzm) return false;
 
   return true;
 }
 
 bool SRecDimuon::isDump()
 {
-  //Vertex position cut
-  if(vtx.Z() < 0.) return false;
+  //single muon vertex
+  if(vtx_pos.Z() > 150.) return false;
+  if(vtx_neg.Z() > 150.) return false;
 
   //Track projection comparison
-  if(proj_target_pos.Perp() < proj_dump_pos.Perp()) return false;
-  if(proj_target_neg.Perp() < proj_dump_neg.Perp()) return false;
+  double pzp = p_pos.Pz();
+  if(proj_target_pos.Perp() - proj_dump_pos.Perp() < 9.44301-0.356141*pzp+0.00566071*pzp*pzp-3.05556e-05*pzp*pzp*pzp) return false;
+
+  double pzm = p_neg.Pz();
+  if(proj_target_neg.Perp() - proj_dump_neg.Perp() < 9.44301-0.356141*pzm+0.00566071*pzm*pzm-3.05556e-05*pzm*pzm*pzm) return false;
 
   return true;
 }
