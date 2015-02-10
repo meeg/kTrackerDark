@@ -456,9 +456,6 @@ bool SRecDimuon::isValid()
 
 bool SRecDimuon::isTarget()
 {
-  //Vertex position cut
-  if(vtx.Z() > -80.) return false;
-
   //single muon vertex
   if(vtx_pos.Z() > 0.) return false;
   if(vtx_neg.Z() > 0.) return false;
