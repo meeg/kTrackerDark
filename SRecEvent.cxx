@@ -222,6 +222,14 @@ TLorentzVector SRecTrack::getMomentumVertex()
   return TLorentzVector(px, py, pz, E);
 }
 
+void SRecTrack::adjustKMag(double kmagStr)
+{
+  for(std::vector<TMatrixD>::iterator iter = fState.begin(); iter != fState.end(); ++iter)
+    {
+      (*iter)[0][0] = (*iter)[0][0]/kmagStr;
+    }
+}
+
 bool SRecTrack::isValid()
 {
   //Vertex valid

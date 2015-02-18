@@ -33,6 +33,7 @@ Created: 10-13-2011
 #include <TVector3.h>
 
 #include "DetectorConstruction.hh"
+#include "../MODE_SWITCH.h"
 
 #define LogDebug(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
 
@@ -43,7 +44,7 @@ public:
   ~TrackExtrapolator();
 
   ///Initialize geometry and physics
-  bool init(std::string geometrySchema);
+  bool init(std::string geometrySchema, double fMagStr = FMAGSTR, double kMagStr = KMAGSTR);
 
   ///Set input initial state parameters
   void setInitialStateWithCov(double z_in, TMatrixD& state_in, TMatrixD& cov_in);

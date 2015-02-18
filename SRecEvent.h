@@ -91,6 +91,9 @@ public:
   void insertZ(Double_t z) { fZ.push_back(z); }
   void insertChisq(Double_t chisq) { fChisqAtNode.push_back(chisq); }
 
+  ///Fast-adjust of kmag
+  void adjustKMag(double kmagStr);
+
   ///Vertex stuff
   bool isVertexValid();
   void setZVertex(Double_t z);

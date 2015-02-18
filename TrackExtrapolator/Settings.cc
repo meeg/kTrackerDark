@@ -40,8 +40,8 @@ Settings::Settings()
     }
   else
     {
-      kMagMultiplier = 1.;
-      fMagMultiplier = 1.;
+      kMagMultiplier = KMAGSTR;
+      fMagMultiplier = FMAGSTR;
     }
   
   geometrySchema = p_jobOptsSvc->m_geomVersion;

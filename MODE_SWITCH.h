@@ -51,11 +51,14 @@
 #define nHodoPlanes 16
 #define nPropPlanes 8
 
+#define FMAGSTR 1.
+#define KMAGSTR 1.
+
 #define Z_KMAG_BEND 1064.26
 #define Z_FMAG_BEND 251.4
 #define Z_KFMAG_BEND 375.
-#define PT_KICK_FMAG 2.909
-#define PT_KICK_KMAG 0.4016
+#define PT_KICK_FMAG 2.909*FMAGSTR
+#define PT_KICK_KMAG 0.4016*KMAGSTR
 #define ELOSS_KFMAG 8.12
 #define ELOSS_ABSORBER 1.81
 #define Z_ST2 1347.36

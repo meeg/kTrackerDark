@@ -37,7 +37,7 @@ TrackExtrapolator::~TrackExtrapolator()
   g4eMgr->CloseGeometry();
 }
 
-bool TrackExtrapolator::init(std::string geometrySchema)
+bool TrackExtrapolator::init(std::string geometrySchema, double fMagStr, double kMagStr)
 {
   //Initialize propagate manager and related stuff
   //G4VSteppingVerbose::SetInstance(new G4SteppingVerbose);
@@ -51,6 +51,9 @@ bool TrackExtrapolator::init(std::string geometrySchema)
       //Specify the geometry schema for the MySQL
       Settings *mySettings = new Settings();    
       mySettings->geometrySchema = geometrySchema.c_str();
+
+      if(fabs(fMagStr) < 10.) mySettings->fMagMultiplier = fMagStr;
+      if(fabs(kMagStr) < 10.) mySettings->kMagMultiplier = kMagStr;
 
       g4eMgr->SetUserInitialization(new DetectorConstruction(mySettings));
       g4eMgr->InitGeant4e();
