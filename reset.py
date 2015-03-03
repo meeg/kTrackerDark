@@ -15,20 +15,21 @@ parser.add_option( "-k", "--k-clean", dest="kclean", default=False, action="stor
 (opts,args) = parser.parse_args()
 
 
+setup = os.path.abspath( "setup.sh" )
 
 #list of analysis tools that we usually want
 analysisTools = ["sqlDataReader", "sqlResWriter"]
 
 if len(sys.argv) == 1:
   os.chdir('TrackExtrapolator')
-  os.system('make clean;make')
+  os.system('source %(setup)s; make clean; make' % locals() )
   os.chdir('..')
-  os.system('make clean;make')
+  os.system('source %(setup)s; make clean;make' % locals() )
   for tool in analysisTools:
     if os.path.isfile(tool):
       os.unlink(tool)
     print "Compiling analysis tool:",tool
-    os.system( "./compile analysis_tools/%s" % tool )
+    os.system( "source %(setup)s; ./compile analysis_tools/%(tool)s" % locals() )
 else:
   if opts.clean:
     os.chdir('TrackExtrapolator')
