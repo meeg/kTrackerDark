@@ -58,17 +58,27 @@ public:
   //Get expected position at a given Z
   double getExpPosition(double z) { return a*z + b; }
 
-  //Number of hits
-  int getNHits();
+  //Get the closest approach to a given space position/proptube wire
+  double getClosestApproach(double z, double pos);
 
   //Get reference pos at first two planes
   double getPosRef();
+  
+  //Number of hits
+  int getNHits();
 
   //Fit the segment -- naive linear fit
-  void fit();
+  void fit();   // external call
+  void fit_2hits();
+  void fit_34hits();
 
-  //a simplified version of chisq fit
-  void linearFit();
+  //linear chisq fitter
+  void linearFit_simple();
+  void linearFit_iterative();
+
+  //resolve left/right
+  void resolveLR();
+  void resolveLR(int setting);
 
   //track slope the interception
   double a;
@@ -196,7 +206,7 @@ public:
 
   //static pointer to geomtry service
   static const GeomSvc* p_geomSvc;
-  
+
   //static flag of kmag on/off
   static const bool kmag_on;
 

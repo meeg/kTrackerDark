@@ -129,6 +129,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
   for(int i = 25; i <= 48; i++)
     {
       double factor = 0.15;
+      if(i > 24 && i < 29) factor = 0.25; //for station-2
       if(i > 28 && i < 33) factor = 0.2; //for station-2
 
       z_mask[i-25] = p_geomSvc->getPlanePosition(i);
@@ -620,8 +621,8 @@ void KalmanFastTracking::buildGlobalTracks()
 
 #ifndef COARSE_MODE
 	  ///Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
+	  resolveLeftRight(tracklet_global, 50.);
 	  resolveLeftRight(tracklet_global, 100.);
-	  resolveLeftRight(tracklet_global, 1000.);
           resolveSingleLeftRight(tracklet_global);
 #endif
 	  ///Remove bad hits if needed
@@ -1136,7 +1137,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
   PropSegment* segs[2] = {&(tracklet.seg_x), &(tracklet.seg_y)};
   for(int i = 0; i < 2; ++i)
     {
-      if(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
+      if(segs[i]->getNHits() > 2 && segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
 
       segs[i]->init();
       for(int j = 0; j < 4; ++j)
@@ -1177,6 +1178,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
       if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
     }
 
+  if(segs[0]->getNHits() + segs[1]->getNHits() < 5) return false;
   return true;
 }
 
@@ -1206,7 +1208,7 @@ bool KalmanFastTracking::muonID_comp(Tracklet& tracklet)
 #endif
 
       double pos_ref = i == 0 ? tracklet.getExpPositionX(MUID_Z_REF) : tracklet.getExpPositionY(MUID_Z_REF);
-      if(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut && fabs(segs[i]->getExpPosition(MUID_Z_REF) - pos_ref) < MUID_R_CUT)
+      if(segs[i]->getNHits() > 2 && segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut && fabs(segs[i]->getExpPosition(MUID_Z_REF) - pos_ref) < MUID_R_CUT)
 	{
 #ifdef _DEBUG_ON
 	  LogInfo("Muon ID are already avaiable!");
@@ -1233,6 +1235,7 @@ bool KalmanFastTracking::muonID_comp(Tracklet& tracklet)
       if(!segs[i]->isValid()) return false;
     }
 
+  if(segs[0]->getNHits() + segs[1]->getNHits() < 5) return false;
   return true;
 }
 

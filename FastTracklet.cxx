@@ -59,7 +59,7 @@ void PropSegment::init()
 void PropSegment::print()
 {
   using namespace std;
-	   
+
   cout << "a = " << a << ", b = " << b << ", chisq = " << chisq << endl;
   cout << "Absorber projection: " << getExpPosition(MUID_Z_REF) << endl;
   for(int i = 0; i < 4; ++i)
@@ -70,8 +70,30 @@ void PropSegment::print()
 
       cout << hits[i].hit.index << "  " << hits[i].hit.detectorID << "  " << hits[i].hit.elementID << " === "; 
     }
-
   cout << endl;
+
+}
+
+double PropSegment::getClosestApproach(double z, double pos)
+{
+  return (a*z + b - pos)/sqrt(a*a + 1.);
+}
+
+double PropSegment::getPosRef()
+{
+  if(hits[0].hit.index < 0 && hits[1].hit.index < 0) return -9999.;
+
+  int nRefPoints = 0;
+  double pos_exp = 0.;
+  for(int i = 0; i < 2; ++i)
+    {
+      if(hits[i].hit.index < 0) continue;
+
+      pos_exp += hits[i].hit.pos;
+      ++nRefPoints;
+    }
+
+  return pos_exp/nRefPoints;
 }
 
 int PropSegment::getNHits()
@@ -86,37 +108,19 @@ int PropSegment::getNHits()
 
 bool PropSegment::isValid()
 {
-  if(getNHits() < 3) return false;
+  if(getNHits() < 2) return false;
+  if((hits[0].hit.index < 0 && hits[1].hit.index < 0) || (hits[2].hit.index < 0 && hits[3].hit.index < 0)) return false;
   if(chisq > 5.) return false;
 
   //May need optimization
-  if(fabs(a) > 0.15) return false;
-  if(fabs(b) > 150.) return false;
+  if(fabs(a) > TX_MAX) return false;
+  if(fabs(b) > X0_MAX) return false;
 
   return true;
 }
 
-double PropSegment::getPosRef()
+void PropSegment::resolveLR()
 {
-  if(hits[0].hit.index < 0 && hits[1].hit.index < 0) return -9999.; 
-
-  int nRefPoints = 0;
-  double pos_exp = 0.; 
-  for(int i = 0; i < 2; ++i)   
-    {
-      if(hits[i].hit.index < 0) continue;
-
-      pos_exp += hits[i].hit.pos;
-      ++nRefPoints;
-    }
-
-  return pos_exp/nRefPoints;
-}
-
-void PropSegment::fit()
-{
-  if(getNHits() < 3) return;
-
   //Sign assignment for 1st and 2nd hits
   if(hits[0].hit.index > 0 && hits[1].hit.index > 0)
     {
@@ -156,17 +160,37 @@ void PropSegment::fit()
       hits[2].sign = 0;
       hits[3].sign = 0;
     }
+}
 
-  //A linear fit
-  linearFit();
+void PropSegment::resolveLR(int settings)
+{
+  hits[0].sign = 2*(settings & 1) - 1;
+  hits[1].sign = 2*((settings & 2) >> 1) - 1;
+  hits[2].sign = 2*((settings & 4) >> 1) - 1;
+  hits[3].sign = 2*((settings & 8) >> 1) - 1;
+}
+
+void PropSegment::fit()
+{
+  int nHits = getNHits();
+  if(nHits == 2) 
+    {
+      fit_2hits();
+    }
+  else
+    {
+      fit_34hits();
+    }
 
   //remove one bad hits if possible/needed
-  if(getNHits() == 4 && chisq > 5.)
+  while(nHits > 2 && chisq > 5.)
     {
-      int index = 0;
-      double res_max = fabs(hits[0].pos() - a*p_geomSvc->getPlanePosition(hits[0].hit.detectorID) - b);
-      for(int i = 1; i < 4; ++i)
+      int index = -1;
+      double res_max = 0.;
+      for(int i = 0; i < 4; ++i)
 	{
+	  if(hits[i].hit.index < 0) continue;
+
 	  double res = fabs(hits[i].pos() - a*p_geomSvc->getPlanePosition(hits[i].hit.detectorID) - b);
 	  if(res > res_max)
 	    {
@@ -183,19 +207,17 @@ void PropSegment::fit()
 
       //remove the bad hit
       hits[index].hit.index = -1;
-      if(index < 2)
+
+      //fit again
+      --nHits;
+      if(nHits == 2)
 	{
-	  hits[0].sign = 0;
-	  hits[1].sign = 0;
+	  fit_2hits();
 	}
       else
 	{
-	  hits[2].sign = 0;
-	  hits[3].sign = 0;
+	  fit_34hits();
 	}
-
-      //fit again
-      linearFit();
 
 #ifdef _DEBUG_ON
       LogInfo("After removing a = " << a << ", b = " << b << ", chisq = " << chisq);
@@ -203,7 +225,57 @@ void PropSegment::fit()
     }
 }
 
-void PropSegment::linearFit()
+void PropSegment::fit_2hits()
+{
+  double z[2], pos[2];
+  
+  int idx = 0;
+  for(int i = 0; i < 4; ++i)
+    {
+      if(hits[i].hit.index < 0) continue;
+
+      z[idx] = p_geomSvc->getPlanePosition(hits[i].hit.detectorID);
+      pos[idx] = hits[i].hit.pos;
+
+      ++idx;
+    }
+
+  a = (pos[1] - pos[0])/(z[1] - z[0]);
+  b = pos[0] - a*z[0];
+  err_a = 1.5;
+  err_b = 1.5;
+  chisq = 0.;
+}
+
+/*
+void PropSegment::fit_34hits()
+{
+  int index_min = -1;
+  double chisq_min = 1E8;
+  for(int i = 0; i < 16; ++i)
+    {
+      resolveLR(i);
+
+      linearFit_iterative();
+      if(chisq < chisq_min)
+	{
+	  chisq_min = chisq;
+	  index_min = i;
+	}
+    }
+
+  resolveLR(index_min);
+  linearFit_iterative();
+}
+*/
+
+void PropSegment::fit_34hits()
+{
+  resolveLR();
+  linearFit_simple();
+}
+
+void PropSegment::linearFit_simple()
 {
   double sum = 0.;
   double sx = 0.;
@@ -244,6 +316,69 @@ void PropSegment::linearFit()
     }
 }
 
+void PropSegment::linearFit_iterative()
+{
+  //Algorithm refer to Kun's PhD thesis
+
+  //prepare the raw data
+  int len = 0;
+  double x[4], y[4], r[4];    //note r here is signed drift distance
+  for(int i = 0; i < 4; ++i)
+    {
+      if(hits[i].hit.index < 0) continue;
+
+      y[len] = hits[i].pos();
+      x[len] = p_geomSvc->getPlanePosition(hits[i].hit.detectorID);
+      r[len] = hits[i].sign*hits[i].hit.driftDistance;
+
+      ++len;
+    }
+
+  //while loop with less than 100 iterations
+  a = 0;
+  int iter = 0;
+  double a_prev = -999.;        // value of a in previous iteration
+  double _x[4], _y[4];      // corrected hit pos
+  while(fabs(a_prev - a) > 1E-4 && ++iter < 100)
+    {
+      a_prev = a;
+
+      //prepare corrected hit pos
+      double C, D, E, F, G, H;
+      C = 0.;
+      D = 0.;
+      E = 0.;
+      F = 0.;
+      G = 0.;
+      H = 0.;
+      
+      for(int i = 0; i < len; ++i)
+	{
+	  _x[i] = x[i] - r[i]*a/sqrt(a*a + 1.);
+	  _y[i] = y[i] + r[i]/sqrt(a*a + 1.);
+
+	  C += 1.;
+	  D += _x[i];
+	  E += _y[i];
+	  F += _x[i]*_x[i];
+	  G += _y[i]*_y[i];
+	  H += _x[i]*_y[i];
+	}
+
+      double alpha = H - D*E/C;
+      double beta = F - G -D*D/C + E*E/C;
+   
+      a = (-beta + sqrt(beta*beta + 4*alpha*alpha))/alpha/2.;
+      b = (E - a*D)/C;
+    
+      chisq = 0.;
+      for(int i = 0; i < len; ++i)
+	{
+	  chisq += (a*_x[i] + b - _y[i])*(a*_x[i] + b - _y[i])/(a*a + 1.);
+	}
+    }
+}
+
 //General tracklet part
 const GeomSvc* Tracklet::p_geomSvc = GeomSvc::instance();
 const bool Tracklet::kmag_on = JobOptsSvc::instance()->m_enableKMag;
@@ -272,16 +407,7 @@ bool Tracklet::isValid()
       if(nHits < 4) return false;
       if(chisq > 15.) return false;
     }
-
-  //Back partial
-  if(stationID == 5)
-    {
-      if(nXHits < 2 || nUHits < 2 || nVHits < 2) return false;
-      if(nHits < 8) return false; 
-    }
-
-  //Global tracks
-  if(stationID == 6)
+  else
     {
       //Number of hits cuts, second index is X, U, V, second index is station-1, 2, 3
       int nRealHits[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
@@ -297,18 +423,24 @@ bool Tracklet::isValid()
 	}
 
       //Number of hits cut after removing bad hits
-      for(int i = 0; i < 3; ++i)
+      for(int i = 1; i < 3; ++i)
 	{
 	  if(nRealHits[i][0] < 1 || nRealHits[i][1] < 1 || nRealHits[i][2] < 1) return false;
 	  if(nRealHits[i][0] + nRealHits[i][1] + nRealHits[i][2] < 4) return false;
 	}
 
-      if(prob < PROB_TIGHT) return false;
-      
-      if(kmag_on)
+      //for global tracks only
+      if(stationID == 6)
 	{
-	  if(invP < INVP_MIN || invP > INVP_MAX) return false;
-       	}
+	  if(nRealHits[0][0] < 1 || nRealHits[0][1] < 1 || nRealHits[0][2] < 1) return false;
+	  if(nRealHits[0][0] + nRealHits[0][1] + nRealHits[0][2] < 4) return false;
+	  
+	  if(prob < PROB_TIGHT) return false;
+	  if(kmag_on)
+    	    {
+    	      if(invP < INVP_MIN || invP > INVP_MAX) return false;
+    	    }
+	}
     }
 
   return true;
@@ -439,7 +571,7 @@ double Tracklet::getMomentum() const
   double c1 = Z_FMAG_BEND*PT_KICK_FMAG*charge;
   double c2 = Z_KMAG_BEND*PT_KICK_KMAG*charge;
   double c3 = -x0;
-  double c4 = ELOSS_KFMAG/2;
+  double c4 = ELOSS_KFMAG/2.;
   double c5 = ELOSS_KFMAG;
 
   double b = c1/c3 + c2/c3 - c4 - c5;
@@ -719,7 +851,7 @@ SRecTrack Tracklet::getSRecTrack()
   strack.swimToVertex();
 
   //Set trigger road info
-  TriggerRoad road(*this); 
+  TriggerRoad road(*this);
   strack.setTriggerRoad(road.getRoadID());
 
   //Set prop tube slopes
