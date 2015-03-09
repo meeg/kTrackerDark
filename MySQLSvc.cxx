@@ -644,7 +644,7 @@ bool MySQLSvc::initWriter()
 	  "tx_PT       DOUBLE, "
 	  "ty_PT       DOUBLE, "
 	  "PRIMARY KEY(runID, trackID, eventID), "
-	  "INDEX(eventID), INDEX(charge))");
+	  "INDEX(eventID), INDEX(charge), INDEX(spillID) )");
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
@@ -695,7 +695,8 @@ bool MySQLSvc::initWriter()
 	  "isValid     INTEGER,"
 	  "isTarget    INTEGER,"
 	  "isDump      INTEGER,"
-	  "PRIMARY KEY(runID, dimuonID, eventID))");
+	  "PRIMARY KEY(runID, dimuonID, eventID)), "
+	  "INDEX(eventID), INDEX(spillID) )");
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
