@@ -131,6 +131,7 @@ public:
   void reIndex(std::string option = "");
   void deClusterize(std::list<Hit>& hits);
   void processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>::iterator>& cluster);
+  void sagittaReduce(std::list<Hit>& hits);
 
   ///Type of pair with two adjacent wires
   typedef std::pair<Int_t, Int_t> hit_pair;

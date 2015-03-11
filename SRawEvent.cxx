@@ -15,6 +15,7 @@ Created: 10-24-2011
 #include <TString.h>
 
 #include "SRawEvent.h"
+#include "GeomSvc.h"
 
 ClassImp(Hit)
 ClassImp(SRawEvent)
@@ -442,6 +443,7 @@ void SRawEvent::reIndex(std::string option)
   bool _decluster = false;
   bool _mergehodo = false;
   bool _triggermask = false;
+  bool _sagittareduce = false;
 
   TString option_lower(option.c_str());
   option_lower.ToLower();
@@ -452,7 +454,8 @@ void SRawEvent::reIndex(std::string option)
   if(option_lower.Contains("c")) _decluster = true;
   if(option_lower.Contains("u")) _mergehodo = true;
   if(option_lower.Contains("t")) _triggermask = true;
-
+  if(option_lower.Contains("s")) _sagittareduce = true;
+  
   ///Dump the vector into a list and do the reduction
   std::list<Hit> hitlist_temp;
   hitlist_temp.clear();
@@ -478,9 +481,16 @@ void SRawEvent::reIndex(std::string option)
       hitlist_temp.unique();
     }
  
+  ///Remove clustered hits
   if(_decluster)
     {
       deClusterize(hitlist_temp);
+    }
+
+  ///Reduce hits by sagitta ratio
+  if(_sagittareduce)
+    {
+      sagittaReduce(hitlist_temp);
     }
 
   fAllHits.clear();
@@ -594,6 +604,83 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
     }
 
   cluster.clear();
+}
+
+void SRawEvent::sagittaReduce(std::list<Hit>& hits)
+{
+  GeomSvc* p_geomSvc = GeomSvc::instance();
+
+  //find index for D1, D2, and D3
+  int nHits_D1 = 0;
+  int nHits_D2 = 0;
+  int nHits_D3 = 0;
+  for(std::list<Hit>::iterator iter = hits.begin(); iter != hits.end(); ++iter)
+    {
+      if(iter->detectorID > 24) break;
+      if(iter->detectorID <= 6)
+	{
+	  ++nHits_D1;
+	}
+      else if(iter->detectorID <= 12)
+	{
+	  ++nHits_D2;
+	}
+      else
+	{
+	  ++nHits_D3;
+	}
+    }
+  int idx_D1 = nHits_D1;
+  int idx_D2 = nHits_D1 + nHits_D2;
+  int idx_D3 = nHits_D1 + nHits_D2 + nHits_D3;
+
+  //Loop over all hits
+  std::vector<Hit> hitTemp;
+  hitTemp.assign(hits.begin(), hits.end());
+  
+  std::vector<int> flag(hitTemp.size(), -1);
+  for(int i = idx_D2; i < idx_D3; ++i)
+    {
+      double z3 = p_geomSvc->getPlanePosition(hitTemp[i].detectorID);
+      double slope = hitTemp[i].pos/z3;
+      for(int j = idx_D1; j < idx_D2; ++j)
+	{
+	  if(p_geomSvc->getPlaneType(hitTemp[i].detectorID) != p_geomSvc->getPlaneType(hitTemp[j].detectorID)) continue;
+	  
+	  double z2 = p_geomSvc->getPlanePosition(hitTemp[j].detectorID);
+	  if(fabs((hitTemp[i].pos - hitTemp[j].pos)/(z2 - z3)) > TX_MAX) continue;
+
+	  double s2 = hitTemp[j].pos - z2*slope;
+	  for(int k = 0; k < idx_D1; ++k)
+	    {
+	      if(p_geomSvc->getPlaneType(hitTemp[i].detectorID) != p_geomSvc->getPlaneType(hitTemp[k].detectorID)) continue;
+	      double s1 = hitTemp[k].pos - slope*p_geomSvc->getPlanePosition(hitTemp[k].detectorID);
+	    
+	      if(fabs(s1/s2 - 1.77) < 0.25)
+		{
+		  flag[i] = 1;
+		  flag[j] = 1;
+		  flag[k] = 1;
+		}
+	    }
+	}
+    }
+
+  int idx = 0;
+  for(std::list<Hit>::iterator iter = hits.begin(); iter != hits.end(); )
+    {
+      if(flag[idx] < 0)
+	{
+	  iter = hits.erase(iter);
+	}
+      else
+	{
+	  ++iter;
+	}
+
+      ++idx;
+      if(idx >= idx_D3) break;
+    }
 }
 
 void SRawEvent::mergeEvent(const SRawEvent& event)
