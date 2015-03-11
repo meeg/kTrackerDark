@@ -55,7 +55,7 @@ public:
   //Detector identifier
   int detectorID;
   std::string detectorName;
-  int planeType;   //X = 1, U = 2, V = 3, Y = 4
+  int planeType;   //X = 1, angleFromVert > 0 = 2, angleFromVert < 0 = 3, Y = 4
 
   //Ideal properties 
   int nElements;

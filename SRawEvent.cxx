@@ -270,7 +270,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
   std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
   //Temp solutions here
-  double spacing[25] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
+  double spacing[25] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs 
                         4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
                         3.0, 3.0, 3.0, 3.0};                                                //prop tubes
 
@@ -334,6 +334,8 @@ std::list<Int_t> SRawEvent::getAdjacentHitsIndex(Hit& _hit)
 
   return hit_list;
 }
+
+
 
 Int_t SRawEvent::getNChamberHitsAll()
 {
@@ -592,6 +594,19 @@ void SRawEvent::processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>:
     }
 
   cluster.clear();
+}
+
+void SRawEvent::mergeEvent(const SRawEvent& event)
+{
+  fAllHits.insert(fAllHits.end(), event.fAllHits.begin(), event.fAllHits.end());
+  fTriggerHits.insert(fTriggerHits.end(), event.fTriggerHits.begin(), event.fTriggerHits.end());
+
+  fTurnID = event.fTurnID;
+  fRFID = event.fRFID;
+  for(int i = 0; i < 33; ++i) fIntensity[i] = event.fIntensity[i];
+
+  fTargetPos = event.fTargetPos;
+  reIndex();
 }
 
 void SRawEvent::setEventInfo(SRawEvent* event)

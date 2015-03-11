@@ -175,7 +175,10 @@ public:
   void setIntensity(Int_t i, Int_t val) { fIntensity[i] = val; }
   void setIntensity(Int_t val) { fIntensity[16] = val; }
 
-  //Set the event info from another event
+  ///Merge a event to this event
+  void mergeEvent(const SRawEvent& rawEvent);
+
+  ///Set the event info from another event
   void setEventInfo(SRawEvent* event);
 
   ///Clear the internal event structure
@@ -197,7 +200,7 @@ public:
       NIM2 = triggerBit(6),
       NIM3 = triggerBit(7),
       NIM4 = triggerBit(8),
-      NIM5 = triggerBit(9)
+      NIM5 = triggerBit(9)     
     };
 
 private:

@@ -111,11 +111,11 @@ int main(int argc, char *argv[])
       if(jobOptsSvc->m_enableTriggerMask)
         {
           triggerAna->trimEvent(rawEvent);
-          rawEvent->reIndex("aoct");
+          rawEvent->reIndex("aocts");
         }
       else
         {
-          rawEvent->reIndex("aoc");
+          rawEvent->reIndex("aocs");
         }
       if(!fastfinder->setRawEvent(rawEvent)) continue;
 
