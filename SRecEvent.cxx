@@ -240,7 +240,7 @@ bool SRecTrack::isValid()
   if(nHits < 15) return false;
 
   //Total chisq, may change to cut on prob
-  if(getChisq()/(nHits - 5) > 2.) return false;
+  if(getChisq()/(nHits - 5) > 6.) return false;
 
   return true;
 }
