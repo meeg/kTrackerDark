@@ -237,7 +237,7 @@ bool SRecTrack::isValid()
 
   //Number of hits cut
   Int_t nHits = getNHits();
-  if(nHits < 15) return false;
+  if(nHits < 14) return false;
 
   //Total chisq, may change to cut on prob
   if(getChisq()/(nHits - 5) > 6.) return false;
