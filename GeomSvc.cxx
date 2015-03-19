@@ -188,7 +188,7 @@ void GeomSvc::close()
     {
       for(int i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes; ++i)
 	{
-	  if(planes[i].rtprofile != NULL)delete planes[i].rtprofile;
+	  if(planes[i].rtprofile != NULL) delete planes[i].rtprofile;
 	}
 
       delete p_geometrySvc;

@@ -444,6 +444,7 @@ void SRawEvent::reIndex(std::string option)
   bool _mergehodo = false;
   bool _triggermask = false;
   bool _sagittareduce = false;
+  bool _externalpar = false;
 
   TString option_lower(option.c_str());
   option_lower.ToLower();
@@ -455,6 +456,7 @@ void SRawEvent::reIndex(std::string option)
   if(option_lower.Contains("u")) _mergehodo = true;
   if(option_lower.Contains("t")) _triggermask = true;
   if(option_lower.Contains("s")) _sagittareduce = true;
+  if(option_lower.Contains("e")) _externalpar = true;
   
   ///Dump the vector into a list and do the reduction
   std::list<Hit> hitlist_temp;
@@ -502,9 +504,16 @@ void SRawEvent::reIndex(std::string option)
       fNHits[i] = 0;
     }
 
+  GeomSvc* p_geomSvc = GeomSvc::instance();
   for(UInt_t i = 0; i < fAllHits.size(); i++)
     {
       ++fNHits[fAllHits[i].detectorID];
+      
+      if(_externalpar)
+	{
+	  fAllHits[i].pos = p_geomSvc->getMeasurement(fAllHits[i].detectorID, fAllHits[i].elementID);
+	  fAllHits[i].driftDistance = p_geomSvc->getDriftDistance(fAllHits[i].detectorID, fAllHits[i].tdcTime);
+	}
     }
 
   fNHits[0] = fAllHits.size();
