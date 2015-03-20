@@ -258,6 +258,10 @@ public:
 
   ///Set/Get event info
   void setEventInfo(SRawEvent* rawEvent);
+  void setEventInfo(int runID, int spillID, int eventID) { fRunID = runID; fSpillID = spillID; fEventID = eventID; }
+  void setTargetPos(int targetPos) { fTargetPos = targetPos; }
+  
+  ///directly setup everything by raw event
   void setRawEvent(SRawEvent* rawEvent);
 
   Int_t getRunID() { return fRunID; }
