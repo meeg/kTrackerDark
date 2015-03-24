@@ -161,6 +161,7 @@ int main(int argc, char *argv[])
       recEvent->clear();
       rawEvent->clear();
     }
+  saveTree->AutoSave("SaveSelf");
   cout << endl;
   cout << "kFastTracking ends successfully." << endl;
 
