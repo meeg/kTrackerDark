@@ -463,8 +463,8 @@ bool SRecDimuon::isValid()
 bool SRecDimuon::isTarget()
 {
   //single muon vertex
-  if(vtx_pos.Z() > 0.) return false;
-  if(vtx_neg.Z() > 0.) return false;
+  if(vtx_pos.Z() > 0. || vtx_pos.Z() < -300.) return false;
+  if(vtx_neg.Z() > 0. || vtx_neg.Z() < -300.) return false;
 
   //Track projection comparison
   double pzp = p_pos.Pz();
