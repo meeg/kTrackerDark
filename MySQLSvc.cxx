@@ -603,7 +603,7 @@ bool MySQLSvc::initWriter()
     }
 
   //Book kTrack table
-  sprintf(query, "CREATE TABLE kTrack ("
+  sprintf(query, "CREATE TABLE IF NOT EXISTS kTrack ("
 	  "trackID     INTEGER,"
 	  "runID       INTEGER,"
 	  "spillID     INTEGER,"
@@ -643,8 +643,8 @@ bool MySQLSvc::initWriter()
 	  "pz3         DOUBLE, "
 	  "tx_PT       DOUBLE, "
 	  "ty_PT       DOUBLE, "
-	  "PRIMARY KEY(runID, trackID, eventID), "
-	  "INDEX(eventID), INDEX(charge), INDEX(spillID) )");
+	  "PRIMARY KEY(runID, eventID, trackID), "
+	  "INDEX(eventID), INDEX(spillID) )");
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
@@ -652,14 +652,14 @@ bool MySQLSvc::initWriter()
 #endif
 
   //Book kHit table
-  sprintf(query, "CREATE TABLE kTrackHit ("
+  sprintf(query, "CREATE TABLE IF NOT EXISTS kTrackHit ("
           "runID       SMALLINT,"
           "eventID     INTEGER, "
           "trackID     INTEGER, "
           "hitID       BIGINT,  "
           "driftSign   SMALLINT,"
           "residual    DOUBLE,  "
-          "PRIMARY KEY(runID, trackID, hitID))");
+          "PRIMARY KEY(runID, eventID, trackID, hitID))");
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
@@ -667,7 +667,7 @@ bool MySQLSvc::initWriter()
 #endif
 
   //Bool kDimuon table
-  sprintf(query, "CREATE TABLE kDimuon ("
+  sprintf(query, "CREATE TABLE IF NOT EXISTS kDimuon ("
           "dimuonID    INTEGER,"
           "runID       INTEGER,"
           "spillID     INTEGER,"
@@ -686,17 +686,17 @@ bool MySQLSvc::initWriter()
           "xT          DOUBLE, "
           "trackSeparation DOUBLE,"
           "chisq_dimuon    DOUBLE,"
-	  "px1         DOUBLE,"
-	  "py1         DOUBLE,"
-	  "pz1         DOUBLE,"
-	  "px2         DOUBLE,"
-	  "py2         DOUBLE,"
-	  "pz2         DOUBLE,"
-	  "isValid     INTEGER,"
-	  "isTarget    INTEGER,"
-	  "isDump      INTEGER,"
-	  "PRIMARY KEY(runID, dimuonID, eventID)), "
-	  "INDEX(eventID), INDEX(spillID) )");
+          "px1         DOUBLE,"
+          "py1         DOUBLE,"
+          "pz1         DOUBLE,"
+          "px2         DOUBLE,"
+          "py2         DOUBLE,"
+          "pz2         DOUBLE,"
+          "isValid     INTEGER,"
+          "isTarget    INTEGER,"
+          "isDump      INTEGER,"
+          "PRIMARY KEY(runID, eventID, dimuonID)), "
+          "INDEX(eventID), INDEX(spillID) )");
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(query);
 #else
@@ -704,7 +704,7 @@ bool MySQLSvc::initWriter()
 #endif
 
   //Book and fill kInfo table
-  sprintf(query, "CREATE TABLE kInfo ("
+  sprintf(query, "CREATE TABLE IF NOT EXISTS kInfo ("
           "infoKey     VARCHAR(100),"
           "infoValue   TEXT,"
           "PRIMARY KEY(infoKey))");
