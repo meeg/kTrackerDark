@@ -12,6 +12,7 @@
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
 #include <TStopwatch.h>
+#include <TString.h>
 
 #include "GeomSvc.h"
 #include "ThresholdSvc.h"
@@ -81,6 +82,12 @@ int main(int argc, char *argv[])
       triggerAna->buildTriggerTree();
     }
 
+  //Make the reIndex options
+  TString opt = "aoc";      //turn on after pulse removal, out of time removal, and cluster removal
+  if(jobOptsSvc->m_enableTriggerMask) opt = opt + "t";
+  if(jobOptsSvc->m_sagittaReducer) opt = opt + "s";
+  if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
+
   TStopwatch timer;
 
   const int offset = jobOptsSvc->m_firstEvent;
@@ -111,12 +118,8 @@ int main(int argc, char *argv[])
       if(jobOptsSvc->m_enableTriggerMask)
         {
           triggerAna->trimEvent(rawEvent);
-          rawEvent->reIndex("aocts");
         }
-      else
-        {
-          rawEvent->reIndex("aocs");
-        }
+      rawEvent->reIndex(opt.Data());
       if(!fastfinder->setRawEvent(rawEvent)) continue;
 
       //Fill the TClonesArray

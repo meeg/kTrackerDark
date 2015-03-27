@@ -129,6 +129,8 @@ bool JobOptsSvc::init(const char* configfile)
   boolOpts["OnlineAlignment_enable"] = &m_enableOnlineAlignment;
   boolOpts["Threshold_Live"] = &m_thresholdLive;
   boolOpts["AttachRawEvent"] = &m_attachRawEvent;
+  boolOpts["SagittaReducer"] = &m_sagittaReducer;
+  boolOpts["UpdateAlignment"] = &m_updateAlignment;
 
   //read the file and find matching options
   string line;

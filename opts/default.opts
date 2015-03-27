@@ -90,3 +90,5 @@ TriggerMask_enable 1
 kMag_enable 1
 Evaluation_enable 0
 AttachRawEvent 1
+UpdateAlignment 1
+SagittaReducer 1

@@ -53,6 +53,8 @@ public:
   bool m_enableEvaluation; ///< Enable evaluation output
   bool m_thresholdLive;    ///< Live setting for ThresholdSvc
   bool m_attachRawEvent;   ///< Attach the raw event in the reconstructed data
+  bool m_sagittaReducer;   ///< Enable the sagitta ratio reducer
+  bool m_updateAlignment;  ///< Update the alignment/calibration in tracking, i.e. re-calculate the wire position and drift distance during tracking
 
   int m_mySQLInputPort;    ///< mysql database input port
   int m_mySQLOutputPort;    ///< mysql database output port
