@@ -23,6 +23,7 @@
 #include "VertexFit.h"
 #include "SRecEvent.h"
 #include "JobOptsSvc.h"
+#include "FastTracklet.h"
 
 #include "MODE_SWITCH.h"
 
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
 
   //Retrieve the raw event
   SRecEvent* recEvent = new SRecEvent();
-  TClonesArray* tracklets = new TClonesArray("tracklets");
+  TClonesArray* tracklets = new TClonesArray("Tracklet");
   SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());;
 
   TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
