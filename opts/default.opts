@@ -44,13 +44,13 @@ Threshold_Live 1
 #Calibrations
 #Alginment files (only used when online alignment is turned off)
 OnlineAlignment_enable 1
-AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/alignment_hodo.txt
-AlignmentFile_Chamber $KTRACKER_ROOT/alignment/alignment_chamber.txt
-AlignmentFile_Prop    $KTRACKER_ROOT/alignment/alignment_prop.txt
-AlignmentFile_Mille   $KTRACKER_ROOT/alignment/align_mille.txt
+AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/run2/alignment_hodo.txt
+AlignmentFile_Chamber $KTRACKER_ROOT/alignment/run2/alignment_chamber.txt
+AlignmentFile_Prop    $KTRACKER_ROOT/alignment/run2/alignment_prop.txt
+AlignmentFile_Mille   $KTRACKER_ROOT/alignment/run2/align_mille.txt
 
 #Calibration
-CalibrationsFile $KTRACKER_ROOT/alignment/calibration.txt
+CalibrationsFile $KTRACKER_ROOT/alignment/run2/calibration.txt
 
 #Trigger roads
 Trigger_Repository      $TRIGGER_ROOT
