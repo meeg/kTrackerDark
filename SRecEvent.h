@@ -248,7 +248,12 @@ public:
   Double_t chisq_kf;
   Double_t chisq_vx;
 
-  ClassDef(SRecDimuon, 4)
+  //Chisq of three test position
+  Double_t chisq_target;
+  Double_t chisq_dump;
+  Double_t chisq_upstream;
+
+  ClassDef(SRecDimuon, 5)
 };
 
 class SRecEvent: public TObject

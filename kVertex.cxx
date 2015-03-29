@@ -43,14 +43,27 @@ int main(int argc, char *argv[])
 
   //Retrieve the raw event
   SRecEvent* recEvent = new SRecEvent();
+  TClonesArray* tracklets = new TClonesArray("tracklets");
+  SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());;
 
   TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
   TTree* dataTree = (TTree*)dataFile->Get("save");
 
   dataTree->SetBranchAddress("recEvent", &recEvent);
+  dataTree->SetBranchAddress("tracklets", &tracklets);
 
   TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
-  TTree* saveTree = dataTree->CloneTree(0);
+  TTree* saveTree = new TTree("save", "save");
+
+  saveTree->Branch("recEvent", &recEvent, 256000, 99);
+  saveTree->Branch("tracklets", &tracklets, 256000, 99);
+
+  if(jobOptsSvc->m_attachRawEvent)
+    {
+      dataTree->SetBranchAddress("rawEvent", &rawEvent);
+      saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+      tracklets->BypassStreamer();
+    }
   
   //Initialize track finder
   LogInfo("Initializing the track finder and kalman filter ... ");
@@ -81,6 +94,8 @@ int main(int argc, char *argv[])
       if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
 
       recEvent->clear();
+      tracklets->Clear();
+      if(jobOptsSvc->m_attachRawEvent) rawEvent->clear();
     }
   cout << endl;
   cout << "kVertex ends successfully." << endl;
