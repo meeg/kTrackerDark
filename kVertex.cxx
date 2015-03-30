@@ -12,6 +12,7 @@
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
 #include <TMath.h>
+#include <TRandom.h>
 
 #include "GeomSvc.h"
 #include "ThresholdSvc.h"
@@ -103,6 +104,140 @@ int main(int argc, char *argv[])
 
   saveFile->cd();
   saveTree->Write();
+
+  //If it's for MC then end now
+  if(jobOptsSvc->m_mcMode)
+    {
+      saveFile->Close();
+      delete vtxfit;
+      
+      return EXIT_SUCCESS;
+    }
+
+  //Like-sign
+  saveFile->cd();
+  TTree* saveTree_pp = new TTree("save_pp", "save_pp");
+  saveTree_pp->Branch("recEvent", &recEvent, 256000, 99);
+
+  TTree* saveTree_mm = new TTree("save_pp", "save_pp");
+  saveTree_mm->Branch("recEvent", &recEvent, 256000, 99);
+
+  for(int i = offset; i < nEvtMax; ++i)
+    {
+      dataTree->GetEntry(i);
+      vtxfit->setRecEvent(recEvent, 1, 1);
+
+      if(recEvent->getNDimuons() > 0) saveTree_pp->Fill();
+      recEvent->clear();
+    }
+
+  for(int i = offset; i < nEvtMax; ++i)
+    {
+      dataTree->GetEntry(i);
+      vtxfit->setRecEvent(recEvent, -1, -1);
+
+      if(recEvent->getNDimuons() > 0) saveTree_mm->Fill();
+      recEvent->clear();
+    }
+  cout << "kVertex like sign ends successfully." << endl;
+
+  saveFile->cd();
+  saveTree_pp->Write();
+  saveTree_mm->Write();
+
+  //Event mixing
+  saveFile->cd();
+  TTree* saveTree_mix = new TTree("save_mix", "save_mix");
+  saveTree_mix->Branch("recEvent", &recEvent, 256000, 99);
+
+  //Load track bank of mu+ and mu-
+  vector<SRecTrack> ptracks[7], mtracks[7];
+  vector<int> pflags[7], mflags[7];
+  for(int i = 0; i < 7; ++i)
+    {
+      ptracks[i].reserve(25000);
+      pflags[i].reserve(25000);
+
+      mtracks[i].reserve(25000);
+      mflags[i].reserve(25000);
+    }
+
+  //Extract all the tracks and put in the container
+  for(int i = offset; i < nEvtMax; ++i)
+    {
+      dataTree->GetEntry(i);
+      if(!recEvent->isTriggeredBy(SRawEvent::MATRIX1)) continue;
+      if(recEvent->getTargetPos() < 1 || rawEvent->getTargetPos() > 7) continue;
+
+      int nTracks = recEvent->getNTracks();
+      if(nTracks != 1) continue;
+         
+      SRecTrack track = recEvent->getTrack(0);
+      track.setZVertex(track.getZVertex());
+      if(!track.isValid()) continue;
+
+      int index = rawEvent->getTargetPos() - 1;
+      if(track.getCharge() > 0)
+	{
+	  ptracks[index].push_back(track);
+	  pflags[index].push_back(1);
+	}
+      else
+	{
+	  mtracks[index].push_back(track);
+	  mflags[index].push_back(1);
+	}
+
+      rawEvent->clear();
+      recEvent->clear();
+    }
+
+  //Random combine, target by target
+  dataTree->GetEntry(0);
+  int runID = rawEvent->getRunID();
+  TRandom rnd;
+  rnd.SetSeed(runID);
+
+  int eventID = 0;
+  for(int i = 0; i < 7; ++i)
+    {
+      int nPlus = ptracks[i].size();
+      int nMinus = mtracks[i].size();
+      int nPairs = int(nPlus < nMinus ? 0.8*nPlus : 0.8*nMinus);
+      cout << nPlus << " mu+ and " << nMinus << " mu- tracks with targetPos = " << i+1;
+      cout << ", will generate " << nPairs << " random pairs. " << endl;
+
+      int nTries = 0;
+      int nSuccess = 0;
+      while(nSuccess < nPairs && nTries - nSuccess < 10000)
+	{
+	  ++nTries;
+	
+	  int idx1 = int(rnd.Rndm()*nPlus);
+	  int idx2 = int(rnd.Rndm()*nMinus);
+	
+	  if(pflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
+	  if((ptracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
+	
+	  recEvent->setEventInfo(runID, 0, eventID++);
+	  recEvent->setTargetPos(i+1);
+	  recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -1;
+	  recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -1;
+	
+	  vtxfit->setRecEvent(recEvent);
+	  if(eventID % 1000 == 0) saveTree_mix->AutoSave("SaveSelf");
+	  ++nSuccess;
+	
+	  saveTree_mix->Fill();
+	  recEvent->clear();
+	}
+      cout << "   Generated " << nSuccess << " fake pairs after " << nTries << " tries." << endl;
+    }
+  cout << endl;
+  cout << "kVertex mixing ends successfully." << endl;
+
+  saveFile->cd();
+  saveTree_mix->Write();
   saveFile->Close();
 
   delete vtxfit;

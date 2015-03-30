@@ -269,6 +269,9 @@ public:
   ///directly setup everything by raw event
   void setRawEvent(SRawEvent* rawEvent);
 
+  ///Trigger util
+  bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
+
   Int_t getRunID() { return fRunID; }
   Int_t getSpillID() { return fSpillID; }
   Int_t getEventID() { return fEventID; }
