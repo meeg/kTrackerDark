@@ -179,6 +179,11 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 		  dimuon.p_neg.SetPx(-dimuon.p_neg.Px());
 		  dimuon.p_neg_single.SetPx(-dimuon.p_neg_single.Px());
 		}
+	      if(dimuon.p_pos.Py()*dimuon.p_neg.Py() > 0)
+		{
+		  dimuon.p_pos.SetPy(-dimuon.p_pos.Py());
+		  dimuon.p_pos_single.SetPy(-dimuon.p_pos_single.Py());
+		}
 	    }
 	  dimuon.calcVariables();
 

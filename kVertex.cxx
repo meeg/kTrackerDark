@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
   TTree* saveTree_pp = new TTree("save_pp", "save_pp");
   saveTree_pp->Branch("recEvent", &recEvent, 256000, 99);
 
-  TTree* saveTree_mm = new TTree("save_pp", "save_pp");
+  TTree* saveTree_mm = new TTree("save_mm", "save_mm");
   saveTree_mm->Branch("recEvent", &recEvent, 256000, 99);
 
   for(int i = offset; i < nEvtMax; ++i)
