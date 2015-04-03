@@ -601,19 +601,7 @@ bool MySQLSvc::initWriter()
   //When the job is done, the intermediate tables are inserted into the final tables.
   const bool useSubsetTables = !subsetTableSuffix.empty();
 
-  //remove the existing database if not using a subset table (i.e. processing all events )
-  /* DONT DO THIS.  Should have a special --pruge-database flag to control this
-  if( !useSubsetTables )
-    {
-      sprintf(query, "DROP DATABASE IF EXISTS %s", outputSchema.c_str());
-      if(!outputServer->Exec(query))
-        {
-          std::cout << "MySQLSvc: problem dropping existing schema! Will try to continue..." << std::endl;
-        }
-    }
-    */
-
-  //create the output database
+  //create the output database if needed
   sprintf(query, "CREATE DATABASE IF NOT EXISTS %s", outputSchema.c_str());
   if(!outputServer->Exec(query))
     {
