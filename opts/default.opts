@@ -42,17 +42,17 @@ Threshold_Live 1
 
 #------------------------------
 #Calibrations
-#Alginment files (only used when online alignment is turned off)
+#Alginment files (only used when OnlineAlignment_enable is set to 0)
 OnlineAlignment_enable 1
 AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/run2/alignment_hodo.txt
 AlignmentFile_Chamber $KTRACKER_ROOT/alignment/run2/alignment_chamber.txt
 AlignmentFile_Prop    $KTRACKER_ROOT/alignment/run2/alignment_prop.txt
 AlignmentFile_Mille   $KTRACKER_ROOT/alignment/run2/align_mille.txt
 
-#Calibration
+#Calibration, not used if OnlineAlignment_enable is set to 1
 CalibrationsFile $KTRACKER_ROOT/alignment/run2/calibration.txt
 
-#Trigger roads
+#Trigger roads, only effective if TriggerMask_enable is set to 1
 Trigger_Repository      $TRIGGER_ROOT
 Trigger_L1              57
 
@@ -62,7 +62,6 @@ kMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Kmag
 
 #Geometry schema
 Geometry_Version $SEAQUEST_GEOMETRY_V
-
 
 #-----------------------
 # MySQL connection
@@ -82,13 +81,33 @@ N_Events -1
 #first of events to process
 FirstEvent 0
 
-#-------------------
-#Boolean switches
+#------------------- Tracker mode switches -------------------
+# only needed in ROOT file-based tracker, set to 1 to read the MC truth 
+# info alongside the normal detector information
 MCMode_enable 0
+
+# when set to 1, tracker will not require muon ID, needed for alignment only
 AlignmentMode_enable 0
+
+# when set to 1, only the hodo paddles on a trigger road will be used
+# for hodoscope masking
 TriggerMask_enable 1
+
+# when set to 0, tracker will perform a simple straight line fit
 kMag_enable 1
+
+# when set to 1, tracker will save massive intermediate debugging info
 Evaluation_enable 0
+
+# when set to 0, only the SRecEvent will be saved to the output file, 
+# and SRawEvent will be missing to save space. 
+# This option is only effective in file-based tracker 
 AttachRawEvent 1
+
+# when set to 1, tracker will update the alignment/calibration info
+# before real tracking, it should only be used when there is a need
+# to update the alignment and/or calibration
 UpdateAlignment 1
+
+# when set to 1, tracker will enable the sagitta hit reducer
 SagittaReducer 1
