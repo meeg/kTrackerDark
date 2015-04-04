@@ -7,10 +7,10 @@ Author: Kun Liu, liuk@fnal.gov
 Created: 9-29-2013
 */
 
+#include <stdexcept>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <TLorentzVector.h>
-
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
 
@@ -45,6 +45,9 @@ MySQLSvc::MySQLSvc()
   readQIE = true;
   readTriggerHits = true;
   readTargetPos = true;
+
+  subsetTableSuffix = getSubsetTableSuffix();
+  subsetEventString = getMySQLEventSelection();
 
   rndm.SetSeed(0);
 }
@@ -375,12 +378,24 @@ eventID, eventID, eventID, eventID, eventID);
 
 int MySQLSvc::getNEvents()
 {
+  TString eventQuery;
 #ifndef MC_MODE
   //More cuts should apply, say spill quality cuts, event quality cuts, etc.
-  sprintf(query, "SELECT eventID FROM Event,Spill WHERE Event.spillID=Spill.spillID AND Spill.targetPos!=0 AND Spill.spillID!=0 AND Spill.beamIntensity>1000 AND Spill.targetPos>=1 AND Spill.targetPos<=7");
+  eventQuery = "SELECT eventID FROM Event,Spill ";
+  eventQuery += "WHERE Event.spillID=Spill.spillID ";
+  eventQuery += "AND Spill.targetPos!=0 AND Spill.spillID!=0 AND Spill.targetPos>=1 AND Spill.targetPos<=7 ";
+  eventQuery += "AND Spill.beamIntensity>1000 ";
 #else
-  sprintf(query, "SELECT eventID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1");
+  eventQuery = "SELECT eventID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1";
 #endif
+
+  //add eventID selection if appropriate
+  if( !subsetEventString.empty() )
+    eventQuery += " AND " + subsetEventString;
+
+  //transfer string to query
+  sprintf(query, eventQuery.Data() );
+
   int nTotal = makeQueryInput();
   if(nTotal == 1) return 0;
 
@@ -578,7 +593,15 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
 
 bool MySQLSvc::initWriter()
 {
-  //check the essential info
+  using std::string;
+
+  //If we are processing a subset of events, the an intermediate table
+  //ill be used to store just the subset of events.
+  //The intermediate table will have a suffix specific to the event range.
+  //When the job is done, the intermediate tables are inserted into the final tables.
+  const bool useSubsetTables = !subsetTableSuffix.empty();
+
+  //create the output database if needed
   sprintf(query, "CREATE DATABASE IF NOT EXISTS %s", outputSchema.c_str());
   if(!outputServer->Exec(query))
     {
@@ -589,119 +612,59 @@ bool MySQLSvc::initWriter()
   sprintf(query, "USE %s", outputSchema.c_str());
   outputServer->Exec(query);
 
-  //Clear all the tables if exist
-  //todo: will want to reuse info from upstream processes probably
-  std::string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kInfo"};
-  for(int i = 0; i < 4; ++i)
+  //prepare the main output tables
+  string tableNames[3] = {"kTrack", "kTrackHit", "kDimuon"};
+  for(int i = 0; i != 3; ++i)
     {
-      sprintf(query, "DROP TABLE IF EXISTS %s", tableNames[i].c_str());
+      const string& tableName = tableNames[i];
+      //1. drop existing final tables unless processing an event subset
+      if( !useSubsetTables )
+        {
+          sprintf(query, "DROP TABLE IF EXISTS %s", tableName.c_str() );
+#ifndef OUT_TO_SCREEN
+          outputServer->Exec(query);
+#else
+          std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+        }
+
+      //2. get definition of table's fields and keys
+      const string tableDefinition = getTableDefinition( tableName );
+
+      //create final output tables
+      sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", tableName.c_str(), tableDefinition.c_str() );
 #ifndef OUT_TO_SCREEN
       outputServer->Exec(query);
 #else
       std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
-    }
 
-  //Book kTrack table
-  sprintf(query, "CREATE TABLE IF NOT EXISTS kTrack ("
-	  "trackID     INTEGER,"
-	  "runID       INTEGER,"
-	  "spillID     INTEGER,"
-	  "eventID     INTEGER,"
-	  "charge      INTEGER,"
-	  "roadID      INTEGER,"
-	  "numHits     INTEGER,"
-	  "numHitsSt1  INTEGER,"
-	  "numHitsSt2  INTEGER,"
-	  "numHitsSt3  INTEGER,"
-	  "numHitsSt4H INTEGER,"
-	  "numHitsSt4V INTEGER,"
-	  "chisq       DOUBLE, "
-	  "x0          DOUBLE, "
-	  "y0          DOUBLE, "
-	  "z0          DOUBLE, "
-	  "x_target    DOUBLE, "
-	  "y_target    DOUBLE, "
-	  "z_target    DOUBLE, "
-	  "x_dump      DOUBLE, "
-	  "y_dump      DOUBLE, "
-	  "z_dump      DOUBLE, "
-	  "px0         DOUBLE, "
-	  "py0         DOUBLE, "
-	  "pz0         DOUBLE, "
-	  "x1          DOUBLE, "
-	  "y1          DOUBLE, "
-	  "z1          DOUBLE, "
-	  "px1         DOUBLE, "
-	  "py1         DOUBLE, "
-	  "pz1         DOUBLE, "
-	  "x3          DOUBLE, "
-	  "y3          DOUBLE, "
-	  "z3          DOUBLE, "
-	  "px3         DOUBLE, "
-	  "py3         DOUBLE, "
-	  "pz3         DOUBLE, "
-	  "tx_PT       DOUBLE, "
-	  "ty_PT       DOUBLE, "
-	  "PRIMARY KEY(runID, eventID, trackID), "
-	  "INDEX(eventID), INDEX(spillID) )");
-#ifndef OUT_TO_SCREEN
-  outputServer->Exec(query);
-#else
-  std::cout << __FUNCTION__ << ": " << query << std::endl;
-#endif
+      //prepare intermediate tables to hold subset of events
+      if( useSubsetTables )
+        {
+          const string subsetTableName = Form("%s%s", tableName.c_str(), subsetTableSuffix.c_str() );
 
-  //Book kHit table
-  sprintf(query, "CREATE TABLE IF NOT EXISTS kTrackHit ("
-          "runID       SMALLINT,"
-          "eventID     INTEGER, "
-          "trackID     INTEGER, "
-          "hitID       BIGINT,  "
-          "driftSign   SMALLINT,"
-          "residual    DOUBLE,  "
-          "PRIMARY KEY(runID, eventID, trackID, hitID))");
-#ifndef OUT_TO_SCREEN
-  outputServer->Exec(query);
-#else
-  std::cout << __FUNCTION__ << ": " << query << std::endl;
-#endif
+          //3. always drop subset table
+          outputServer->Exec( Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str() ) );
 
-  //Bool kDimuon table
-  sprintf(query, "CREATE TABLE IF NOT EXISTS kDimuon ("
-          "dimuonID    INTEGER,"
-          "runID       INTEGER,"
-          "spillID     INTEGER,"
-          "eventID     INTEGER,"
-          "posTrackID  INTEGER,"
-          "negTrackID  INTEGER,"
-          "dx          DOUBLE, "
-          "dy          DOUBLE, "
-          "dz          DOUBLE, "
-          "dpx         DOUBLE, "
-          "dpy         DOUBLE, "
-          "dpz         DOUBLE, "
-          "mass        DOUBLE, "
-          "xF          DOUBLE, "
-          "xB          DOUBLE, "
-          "xT          DOUBLE, "
-          "trackSeparation DOUBLE,"
-          "chisq_dimuon    DOUBLE,"
-          "px1         DOUBLE,"
-          "py1         DOUBLE,"
-          "pz1         DOUBLE,"
-          "px2         DOUBLE,"
-          "py2         DOUBLE,"
-          "pz2         DOUBLE,"
-          "isValid     INTEGER,"
-          "isTarget    INTEGER,"
-          "isDump      INTEGER,"
-          "PRIMARY KEY(runID, eventID, dimuonID)), "
-          "INDEX(eventID), INDEX(spillID) )");
-#ifndef OUT_TO_SCREEN
-  outputServer->Exec(query);
-#else
-  std::cout << __FUNCTION__ << ": " << query << std::endl;
-#endif
+          //4. create the subset tbale
+          sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str() );
+          outputServer->Exec(query);
+
+          //5. delete subset's event range from the final table
+          sprintf( query, "DELETE FROM %s WHERE %s", tableName.c_str(), subsetEventString.c_str() );
+          outputServer->Exec(query);
+        }//end if(useSubsetTable)
+    }//end loop over tableNames
+
+  //============
+  // kInfo table
+  //============
+  std::cout << __FUNCTION__ << ": Now create kInfo table..." << std::endl;
+  // remove kInfo table if doing an entire run
+  // todo: Not clear what to do if using subset tables
+  if( !useSubsetTables )
+    outputServer->Exec( "DROP DATABASE IF EXISTS kInfo" );
 
   //Book and fill kInfo table
   sprintf(query, "CREATE TABLE IF NOT EXISTS kInfo ("
@@ -730,12 +693,137 @@ bool MySQLSvc::initWriter()
   std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
-  //Tracker version
+  //Tracker version from software release
+  char *trackerVersion = getenv( "SEAQUEST_RELEASE" );
+  if( !trackerVersion )
+    sprintf( trackerVersion, "unknown.version" );
   sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-	  "VALUES('%s','%s')", "version", "ROOT decoder/r1.2.0");
+          "VALUES('%s','%s/%s')", "version", "ROOT decoder", trackerVersion);
   outputServer->Exec(query);
+  
+  std::cout << __FUNCTION__ << ": ...Done creating kInfo table." << std::endl;
 
   return true;
+}
+
+std::string MySQLSvc::getSubsetTableSuffix( ) const
+{
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+  if( jobOptsSvc->ProcessAllEvents() )
+    return "";
+  else if( -1 == jobOptsSvc->m_nEvents ) //if nEvents is -1, then we are going to the last event
+    return Form( "_%d_END", jobOptsSvc->m_firstEvent );
+  else
+    return Form( "_%d_%d", jobOptsSvc->m_firstEvent, jobOptsSvc->m_firstEvent+jobOptsSvc->m_nEvents-1 );
+}
+
+std::string MySQLSvc::getMySQLEventSelection( ) const
+{
+  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+  if( jobOptsSvc->ProcessAllEvents() )
+    return "";
+  else if( -1 == jobOptsSvc->m_nEvents ) //if nEvents is -1, then we are going to the last event
+    return Form( "eventID >= %d", jobOptsSvc->m_firstEvent );
+  else
+    return Form( "eventID BETWEEN %d AND %d", jobOptsSvc->m_firstEvent, jobOptsSvc->m_firstEvent+jobOptsSvc->m_nEvents-1 );
+}
+
+std::string MySQLSvc::getTableDefinition( const std::string& tableType ) const
+{
+  if( "kTrack" == tableType )
+    {
+      return 
+             "trackID     INTEGER,"
+             "runID       INTEGER,"
+             "spillID     INTEGER,"
+             "eventID     INTEGER,"
+             "charge      INTEGER,"
+             "roadID      INTEGER,"
+             "numHits     INTEGER,"
+             "numHitsSt1  INTEGER,"
+             "numHitsSt2  INTEGER,"
+             "numHitsSt3  INTEGER,"
+             "numHitsSt4H INTEGER,"
+             "numHitsSt4V INTEGER,"
+             "chisq       DOUBLE, "
+             "x0          DOUBLE, "
+             "y0          DOUBLE, "
+             "z0          DOUBLE, "
+             "x_target    DOUBLE, "
+             "y_target    DOUBLE, "
+             "z_target    DOUBLE, "
+             "x_dump      DOUBLE, "
+             "y_dump      DOUBLE, "
+             "z_dump      DOUBLE, "
+             "px0         DOUBLE, "
+             "py0         DOUBLE, "
+             "pz0         DOUBLE, "
+             "x1          DOUBLE, "
+             "y1          DOUBLE, "
+             "z1          DOUBLE, "
+             "px1         DOUBLE, "
+             "py1         DOUBLE, "
+             "pz1         DOUBLE, "
+             "x3          DOUBLE, "
+             "y3          DOUBLE, "
+             "z3          DOUBLE, "
+             "px3         DOUBLE, "
+             "py3         DOUBLE, "
+             "pz3         DOUBLE, "
+             "tx_PT       DOUBLE, "
+             "ty_PT       DOUBLE, "
+             "PRIMARY KEY(runID, eventID, trackID), "
+             "INDEX(eventID), INDEX(spillID)";
+    }//end of kTrack
+
+  if( tableType == "kDimuon" )
+    {
+      return 
+             "dimuonID    INTEGER,"
+             "runID       INTEGER,"
+             "spillID     INTEGER,"
+             "eventID     INTEGER,"
+             "posTrackID  INTEGER,"
+             "negTrackID  INTEGER,"
+             "dx          DOUBLE, "
+             "dy          DOUBLE, "
+             "dz          DOUBLE, "
+             "dpx         DOUBLE, "
+             "dpy         DOUBLE, "
+             "dpz         DOUBLE, "
+             "mass        DOUBLE, "
+             "xF          DOUBLE, "
+             "xB          DOUBLE, "
+             "xT          DOUBLE, "
+             "trackSeparation DOUBLE,"
+             "chisq_dimuon    DOUBLE,"
+             "px1         DOUBLE,"
+             "py1         DOUBLE,"
+             "pz1         DOUBLE,"
+             "px2         DOUBLE,"
+             "py2         DOUBLE,"
+             "pz2         DOUBLE,"
+             "isValid     INTEGER,"
+             "isTarget    INTEGER,"
+             "isDump      INTEGER,"
+             "PRIMARY KEY(runID, eventID, dimuonID), "
+             "INDEX(eventID), INDEX(spillID)";
+    }//end of kDimuon
+
+  if( tableType == "kTrackHit" )
+    {
+      return 
+             "runID       SMALLINT,"
+             "eventID     INTEGER, "
+             "trackID     INTEGER, "
+             "hitID       BIGINT,  "
+             "driftSign   SMALLINT,"
+             "residual    DOUBLE,  "
+             "PRIMARY KEY(runID, eventID, trackID, hitID)";
+    }//end of kTrackHit
+
+  //if we got here, then the tableType is not known, die
+  throw std::invalid_argument( Form( "No known defintion for table type '%s'", tableType.c_str() ) );
 }
 
 void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
@@ -818,17 +906,30 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   if(boost::math::isnan(px3) || boost::math::isnan(py3) || boost::math::isnan(pz3)) return;
 
   //Database output
-  sprintf(query, "INSERT INTO kTrack(trackID,runID,spillID,eventID,charge,roadID,numHits,numHitsSt1,numHitsSt2,numHitsSt3,"
-	  "numHitsSt4H,numHitsSt4V,chisq,x0,y0,z0,px0,py0,pz0,x_target,y_target,z_target,x_dump,y_dump,z_dump," 
-	  "x1,y1,z1,px1,py1,pz1,x3,y3,z3,px3,py3,pz3,tx_PT,ty_PT) VALUES(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,"
-	  "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", trackID, runID, spillID, eventIDs_loaded.back(), 
-	  charge, roadID, numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V, chisq, x0, y0, z0, px0, py0, pz0, 
-	  proj_target.X(), proj_target.Y(), proj_target.Z(), proj_dump.X(), proj_dump.Y(), proj_dump.Z(), x1, y1, z1, px1, py1, pz1,
-	  x3, y3, z3, px3, py3, pz3, tx_prop, ty_prop);
+  TString insertQuery = Form( "INSERT INTO kTrack%s", subsetTableSuffix.c_str() );
+  insertQuery += 
+    "("
+    "trackID,runID,spillID,eventID,charge,roadID,"
+    "numHits,numHitsSt1,numHitsSt2,numHitsSt3,numHitsSt4H,numHitsSt4V,"
+    "chisq,x0,y0,z0,px0,py0,pz0,"
+    "x_target,y_target,z_target,x_dump,y_dump,z_dump," 
+    "x1,y1,z1,px1,py1,pz1,"
+    "x3,y3,z3,px3,py3,pz3,"
+    "tx_PT,ty_PT"
+    ")";
+  insertQuery += "VALUES(";
+  insertQuery += Form( "%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
+  insertQuery += Form( "%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V );
+  insertQuery += Form( "%f,%f,%f,%f,%f,%f,%f,", chisq, x0, y0, z0, px0, py0, pz0 );
+  insertQuery += Form( "%f,%f,%f,%f,%f,%f,", proj_target.X(), proj_target.Y(), proj_target.Z(), proj_dump.X(), proj_dump.Y(), proj_dump.Z() );
+  insertQuery += Form( "%f,%f,%f,%f,%f,%f,", x1, y1, z1, px1, py1, pz1 );
+  insertQuery += Form( "%f,%f,%f,%f,%f,%f,", x3, y3, z3, px3, py3, pz3 );
+  insertQuery += Form( "%f,%f", tx_prop, ty_prop);
+  insertQuery += ")";
 #ifndef OUT_TO_SCREEN
-      outputServer->Exec(query);
+  outputServer->Exec(insertQuery);
 #else
-      std::cout << __FUNCTION__ << ": " << query << std::endl;
+  std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
 #endif
 }
 
@@ -838,12 +939,14 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
     {
       if(iter->hit.index < 0) continue;
 
-      sprintf(query, "INSERT INTO kTrackHit(runID,eventID,trackID,hitID,driftSign,residual) VALUES(%d,%d,%d,%d,%d,%f)",
-              runID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
+      TString insertQuery = Form( "INSERT INTO kTrackHit%s", subsetTableSuffix.c_str() );
+      insertQuery += "(runID,eventID,trackID,hitID,driftSign,residual)";
+      insertQuery += Form( "VALUES(%d,%d,%d,%d,%d,%f)", 
+                          runID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
 #ifndef OUT_TO_SCREEN
-      outputServer->Exec(query);
+      outputServer->Exec(insertQuery);
 #else
-      std::cout << __FUNCTION__ << ": " << query << std::endl;
+      std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
 #endif
     }
 }
@@ -861,19 +964,54 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
 
   double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
-  sprintf(query, "INSERT INTO kDimuon(dimuonID,runID,spillID,eventID,posTrackID,negTrackID,dx,dy,dz,dpx,"
-          "dpy,dpz,mass,xF,xB,xT,trackSeparation,chisq_dimuon,px1,py1,pz1,px2,py2,pz2,isValid,isTarget,isDump) VALUES(%d,%d,%d,%d,"
-	  "%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%i,%i,%i)", 
-          dimuonID, runID, spillID, eventIDs_loaded.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks, 
-          x0, y0, z0, px0, py0, pz0, dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dz, dimuon.chisq_kf,
-	  dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz(),
-	  dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
+  TString insertQuery = Form( "INSERT INTO kDimuon%s", subsetTableSuffix.c_str() );
+  insertQuery += 
+    "("
+    "dimuonID,runID,spillID,eventID,posTrackID,negTrackID,"
+    "dx,dy,dz,dpx,dpy,dpz,"
+    "mass,xF,xB,xT,"
+    "trackSeparation,chisq_dimuon,"
+    "px1,py1,pz1,px2,py2,pz2,"
+    "isValid,isTarget,isDump"
+    ")";
+  insertQuery += "VALUES(";
+  insertQuery += Form( "%d,%d,%d,%d,%d,%d,", dimuonID, runID, spillID, eventIDs_loaded.back(), dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks );
+  insertQuery += Form( "%f,%f,%f,%f,%f,%f,", x0, y0, z0, px0, py0, pz0 );
+  insertQuery += Form( "%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2 );
+  insertQuery += Form( "%f,%f,", dz, dimuon.chisq_kf );
+  insertQuery += Form( "%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz() );
+  insertQuery += Form( "%i,%i,%i", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump() );
+  insertQuery += ")";
+
 #ifndef OUT_TO_SCREEN
-  outputServer->Exec(query);
+  outputServer->Exec(insertQuery);
 #else
-  std::cout << __FUNCTION__ << ": " << query << std::endl;
+  std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
 #endif
 }
+
+void MySQLSvc::pushToFinalTables( bool dropSubsetTables )
+{
+  //if we didn't write to intermediate subset tables, nothing to be done
+  if( subsetTableSuffix.empty() )
+    return;
+
+  std::string tableNames[3] = {"kTrack", "kTrackHit", "kDimuon"};
+  for( size_t i = 0; i != 3; ++i )
+    {
+      const std::string& finalTable = tableNames[i];
+      const std::string subsetTable = finalTable + subsetTableSuffix;
+      const TString cpQuery = Form( "INSERT INTO %s SELECT * FROM %s;", finalTable.c_str(), subsetTable.c_str() );
+      outputServer->Exec(cpQuery);
+      if( dropSubsetTables )
+        {
+          const TString rmQuery = Form( "DROP TABLE %s;", subsetTable.c_str() );
+          outputServer->Exec(rmQuery);
+        }
+    }//end loop over tables
+
+}//end pushToFinalTables
+
 
 int MySQLSvc::getNEventsFast()
 {

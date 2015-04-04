@@ -35,7 +35,7 @@ class MySQLSvc
 {
 public:
   MySQLSvc();
-  ~MySQLSvc();
+  virtual ~MySQLSvc();
   static MySQLSvc* instance();
   
   //Connect to the input server
@@ -75,10 +75,21 @@ public:
 
   //Output to database/txt file/screen
   bool initWriter();
+
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
   void writeTrackTable(int trackID, SRecTrack* recTrack);
   void writeTrackHitTable(int trackID, Tracklet* tracklet);
   void writeDimuonTable(int dimuonID, SRecDimuon dimuon);
+  
+  //helper functions for creating tables
+  /// Get the suffix to add to end of intermediate event subrange tables (if any)
+  std::string getSubsetTableSuffix( ) const;
+  /// Get WHERE clause to add to MySQL query to select the event subrange (if any)
+  std::string getMySQLEventSelection( ) const;
+  /// Get the definition of fields, keys, indices for a table (kTrack, kDimuon, or kTrackHit)
+  std::string getTableDefinition( const std::string& tableType ) const;
+  /// Copy output from intermediate subset tables to final table and delete subset tables (if desired)
+  void pushToFinalTables( bool dropSubsetTables );
 
   //Set the data schema
   void setInputSchema(std::string schema);
@@ -117,6 +128,10 @@ private:
   TSQLServer* outputServer; ///< Write output to this server
   TSQLResult* res;
   TSQLRow* row;
+
+  //information about where to put output
+  std::string subsetTableSuffix; ///< Append suffix to table names for intermediate event subset tables
+  std::string subsetEventString; ///< MySQL string used to select only the events to be processed (e.g. WHERE caluse)
 
   //Test if QIE/TriggerHits table exists
   bool readQIE;

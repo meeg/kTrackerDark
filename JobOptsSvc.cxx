@@ -255,4 +255,14 @@ std::string JobOptsSvc::GetOutputMySQLURL() const
   return Form( "mysql://%s:%d", m_mySQLOutputServer.c_str(), m_mySQLOutputPort);
 } 
 
+bool JobOptsSvc::ProcessAllEvents() const
+{
+  //if we are skipping any events or stopping after some number,
+  // then we are NOT processing all events
+  if( m_firstEvent > 0 )
+    return false;
+  if( m_nEvents > 0 )
+    return false;
 
+  return true;
+}

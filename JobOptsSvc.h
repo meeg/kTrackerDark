@@ -41,6 +41,9 @@ public:
   ///Return the URL for the output MySQL server
   std::string GetOutputMySQLURL() const;
 
+  ///Returns true if all events will be processing, false if only a subset
+  bool ProcessAllEvents() const;
+
   //@todo should store smart pointers instead of variable length variables
 
   std::string m_configFile; ///< Name of the config file loaded

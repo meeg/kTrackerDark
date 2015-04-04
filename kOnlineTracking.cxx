@@ -77,18 +77,13 @@ int main(int argc, char *argv[])
   int nEvents_dimuon = 0;
   int nEvents_dimuon_real = 0;
 
-  //the number of events available in DB
-  const int nEventsInDB = p_mysqlSvc->getNEvents();
-  //number of events to do is number available minus first
-  int nEvents = nEventsInDB - jobOptsSvc->m_firstEvent;
-  //unless the user restricted the number
-  if( 0 < jobOptsSvc->m_nEvents )
-    nEvents = std::min( jobOptsSvc->m_nEvents, nEvents );
-  cout << Form( "Out of %d available events in DB, I will process %d, starting with event %d", nEventsInDB, nEvents, jobOptsSvc->m_firstEvent ) << endl;
+  //the number of events available in DB within requested eventID range (firstEvent through firstEvent+nEvents)
+  const int nEvents = p_mysqlSvc->getNEvents();
+  cout << Form( "Found %d events in DB in eventID range %d-%d.", nEvents, jobOptsSvc->m_firstEvent, jobOptsSvc->m_firstEvent+jobOptsSvc->m_nEvents );
 
   //Start tracking
   if(!jobOptsSvc->m_mcMode) p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackBegin=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str())); 
-  for(int i = jobOptsSvc->m_firstEvent; i < nEvents; ++i) 
+  for(int i = 0; i < nEvents; ++i) 
     {
       //Read data
       if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
@@ -146,8 +141,13 @@ int main(int argc, char *argv[])
       rawEvent->clear();
       recEvent->clear();
     }
-
   //End tracking
+  
+  //push intermediate event subset tables to final tables (if needed)
+  bool dropSubsetTables = true; //change to false if there was a processing problem
+  p_mysqlSvc->pushToFinalTables( dropSubsetTables );
+  
+  //update summary table
   if(!jobOptsSvc->m_mcMode)
     {
       p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1 WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str())); 
