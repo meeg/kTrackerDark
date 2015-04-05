@@ -146,7 +146,7 @@ public:
   double getMomentum() const;
 
   //Decide charge by KMag bending direction
-  int getCharge() const { return (tx*Z_KMAG_BEND + x0)/Z_KMAG_BEND > tx ? 1 : -1; }
+  int getCharge() const { return x0*KMAGSTR > tx ? 1 : -1; }
 
   //Get the slope and intersection in station 1
   void getXZInfoInSt1(double& tx_st1, double& x0_st1);
