@@ -41,6 +41,9 @@ int main(int argc, char *argv[])
   JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
   jobOptsSvc->init(argv[1]);
 
+  //Initialize the Geometry service
+  GeomSvc::instance()->init();
+
   //Retrieve the raw event
   SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
 

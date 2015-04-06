@@ -42,8 +42,7 @@ int main(int argc, char *argv[])
   jobOptsSvc->init(argv[1]);
 
   //Initialize geometry service with calibration
-  GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->loadCalibration(jobOptsSvc->m_calibrationsFile);
+  GeomSvc::instance()->init();
 
   //Retrive the raw data
   SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());

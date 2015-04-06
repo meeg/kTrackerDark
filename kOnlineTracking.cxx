@@ -42,8 +42,7 @@ int main(int argc, char *argv[])
   jobOptsSvc->init(argv[1]);
 
   //Initialize geometry service with calibration
-  GeomSvc* geometrySvc = GeomSvc::instance();
-  geometrySvc->loadCalibration(jobOptsSvc->m_calibrationsFile);
+  GeomSvc::instance()->init();
 
   //Initialize MySQL service and connect to database, e906-db1 by default
   MySQLSvc* p_mysqlSvc = MySQLSvc::instance();

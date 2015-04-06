@@ -176,7 +176,7 @@ GeomSvc* GeomSvc::instance()
   if(p_geometrySvc == NULL)
     {
       p_geometrySvc = new GeomSvc;
-      p_geometrySvc->init();
+      //p_geometrySvc->init();
     }
 
   return p_geometrySvc;

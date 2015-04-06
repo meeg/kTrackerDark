@@ -43,6 +43,9 @@ int main(int argc, char *argv[])
   JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
   jobOptsSvc->init(argv[1]);
 
+  //Initialize the geometry service
+  GeomSvc::instance()->init();
+
   //Retrieve the raw event
   SRecEvent* recEvent = new SRecEvent();
   TClonesArray* tracklets = new TClonesArray("Tracklet");
