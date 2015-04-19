@@ -459,10 +459,27 @@ void SRawEvent::reIndex(std::string option)
   if(option_lower.Contains("e")) _externalpar = true;
   
   ///Dump the vector into a list and do the reduction
+  GeomSvc* p_geomSvc = GeomSvc::instance();
+  
   std::list<Hit> hitlist_temp;
   hitlist_temp.clear();
   for(std::vector<Hit>::iterator iter = fAllHits.begin(); iter != fAllHits.end(); ++iter)
     {
+      if(_externalpar)
+	{
+	  iter->pos = p_geomSvc->getMeasurement(iter->detectorID, iter->elementID);
+	  iter->driftDistance = p_geomSvc->getDriftDistance(iter->detectorID, iter->tdcTime);
+	  iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
+	}
+
+      if((iter->detectorID == 17 || iter->detectorID == 18) && iter->elementID >= 97 && iter->elementID <= 104)
+	{
+	  iter->detectorID = iter->detectorID == 17 ? 18 : 17;
+	  iter->pos = p_geomSvc->getMeasurement(iter->detectorID, iter->elementID);
+	  iter->driftDistance = p_geomSvc->getDriftDistance(iter->detectorID, iter->tdcTime);
+	  iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
+	}
+
       if(_outoftime && (!iter->isInTime())) continue;
       if(_hodomask && iter->detectorID <= 24 && (!iter->isHodoMask())) continue;
       if(_nonchamber && iter->detectorID > 24) continue;
@@ -504,16 +521,9 @@ void SRawEvent::reIndex(std::string option)
       fNHits[i] = 0;
     }
 
-  GeomSvc* p_geomSvc = GeomSvc::instance();
   for(UInt_t i = 0; i < fAllHits.size(); i++)
     {
       ++fNHits[fAllHits[i].detectorID];
-      
-      if(_externalpar)
-	{
-	  fAllHits[i].pos = p_geomSvc->getMeasurement(fAllHits[i].detectorID, fAllHits[i].elementID);
-	  fAllHits[i].driftDistance = p_geomSvc->getDriftDistance(fAllHits[i].detectorID, fAllHits[i].tdcTime);
-	}
     }
 
   fNHits[0] = fAllHits.size();
