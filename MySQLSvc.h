@@ -75,11 +75,13 @@ public:
 
   //Output to database/txt file/screen
   bool initWriter();
+  bool initBakWriter();
 
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
-  void writeTrackTable(int trackID, SRecTrack* recTrack);
+  void writeTrackingBak(SRecEvent* recEvent, TString bakSuffix);
+  void writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix);
   void writeTrackHitTable(int trackID, Tracklet* tracklet);
-  void writeDimuonTable(int dimuonID, SRecDimuon dimuon);
+  void writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix);
   
   //helper functions for creating tables
   /// Get the suffix to add to end of intermediate event subrange tables (if any)

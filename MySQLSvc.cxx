@@ -117,7 +117,7 @@ bool MySQLSvc::connectOutput(std::string mysqlServer, int mysqlPort)
   else
     {
       char serverUrl[200];
-      sprintf(serverUrl, "mysql://%s/%d", mysqlServer.c_str(), mysqlPort);
+      sprintf(serverUrl, "mysql://%s:%d", mysqlServer.c_str(), mysqlPort);
       outputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
     }
 
@@ -706,6 +706,77 @@ bool MySQLSvc::initWriter()
   return true;
 }
 
+bool MySQLSvc::initBakWriter()
+{
+  using std::string;
+
+  //If we are processing a subset of events, the an intermediate table
+  //ill be used to store just the subset of events.
+  //The intermediate table will have a suffix specific to the event range.
+  //When the job is done, the intermediate tables are inserted into the final tables.
+  const bool useSubsetTables = !subsetTableSuffix.empty();
+
+  //create the output database if needed
+  sprintf(query, "CREATE DATABASE IF NOT EXISTS %s", outputSchema.c_str());
+  if(!outputServer->Exec(query))
+    {
+      std::cout << "MySQLSvc: working schema does not exist and cannot be created! Will exit..." << std::endl;
+      return false;
+    }
+
+  sprintf(query, "USE %s", outputSchema.c_str());
+  outputServer->Exec(query);
+
+  //prepare the main output tables
+  string tableNames[6] = {"kTrackMix", "kDimuonMix", "kTrackPP", "kDimuonPP", "kTrackMM", "kDimuonMM"};
+  string tableDefs[6] = {"kTrack", "kDimuon", "kTrack", "kDimuon", "kTrack", "kDimuon"};
+  for(int i = 0; i != 6; ++i)
+    {
+      const string& tableName = tableNames[i];
+      const string& tableDef = tableDefs[i];
+      //1. drop existing final tables unless processing an event subset
+      if( !useSubsetTables )
+        {
+          sprintf(query, "DROP TABLE IF EXISTS %s", tableName.c_str() );
+#ifndef OUT_TO_SCREEN
+          outputServer->Exec(query);
+#else
+          std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+        }
+
+      //2. get definition of table's fields and keys
+      const string tableDefinition = getTableDefinition( tableDef );
+
+      //create final output tables
+      sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", tableName.c_str(), tableDefinition.c_str() );
+#ifndef OUT_TO_SCREEN
+      outputServer->Exec(query);
+#else
+      std::cout << __FUNCTION__ << ": " << query << std::endl;
+#endif
+
+      //prepare intermediate tables to hold subset of events
+      if( useSubsetTables )
+        {
+          const string subsetTableName = Form("%s%s", tableName.c_str(), subsetTableSuffix.c_str() );
+
+          //3. always drop subset table
+          outputServer->Exec( Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str() ) );
+
+          //4. create the subset tbale
+          sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str() );
+          outputServer->Exec(query);
+
+          //5. delete subset's event range from the final table
+          sprintf( query, "DELETE FROM %s WHERE %s", tableName.c_str(), subsetEventString.c_str() );
+          outputServer->Exec(query);
+        }//end if(useSubsetTable)
+    }//end loop over tableNames
+
+  return true;
+}
+
 std::string MySQLSvc::getSubsetTableSuffix( ) const
 {
   JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
@@ -844,21 +915,52 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
   for(int i = 0; i < nTracks_local; ++i)
     {
       int trackID = nTracks + i;
-      writeTrackTable(trackID, &recEvent->getTrack(i));
+      writeTrackTable(trackID, &recEvent->getTrack(i), "");
       writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
     }
 
   int nDimuons_local = recEvent->getNDimuons();
   for(int i = 0; i < nDimuons_local; ++i)
     {
-      writeDimuonTable(nDimuons+i, recEvent->getDimuon(i));
+      writeDimuonTable(nDimuons+i, recEvent->getDimuon(i), "");
     }
 
   nTracks += nTracks_local;
   nDimuons += nDimuons_local;
 }
 
-void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
+void MySQLSvc::writeTrackingBak(SRecEvent* recEvent, TString bakSuffix)
+{
+  runID = recEvent->getRunID();
+  spillID = recEvent->getSpillID();
+  if(!eventIDs_loaded.empty())
+    {
+      if(eventIDs_loaded.back() != recEvent->getEventID()) eventIDs_loaded.push_back(recEvent->getEventID());
+    }
+  else
+    {
+      eventIDs_loaded.push_back(recEvent->getEventID());
+    }
+
+  //Fill Track table
+  int nTracks_local = recEvent->getNTracks();
+  for(int i = 0; i < nTracks_local; ++i)
+    {
+      int trackID = nTracks + i;
+      writeTrackTable(trackID, &recEvent->getTrack(i), bakSuffix);
+    }
+
+  int nDimuons_local = recEvent->getNDimuons();
+  for(int i = 0; i < nDimuons_local; ++i)
+    {
+      writeDimuonTable(nDimuons+i, recEvent->getDimuon(i), bakSuffix);
+    }
+
+  nTracks += nTracks_local;
+  nDimuons += nDimuons_local;
+}
+
+void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix)
 {
   double px0, py0, pz0, x0, y0, z0; 
   double px1, py1, pz1, x1, y1, z1;
@@ -906,7 +1008,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   if(boost::math::isnan(px3) || boost::math::isnan(py3) || boost::math::isnan(pz3)) return;
 
   //Database output
-  TString insertQuery = Form( "INSERT INTO kTrack%s", subsetTableSuffix.c_str() );
+  TString insertQuery = Form( "INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str() );
   insertQuery += 
     "("
     "trackID,runID,spillID,eventID,charge,roadID,"
@@ -951,7 +1053,7 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
     }
 }
 
-void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
+void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix)
 {
   double x0 = dimuon.vtx.X();
   double y0 = dimuon.vtx.Y();
@@ -964,7 +1066,7 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon)
 
   double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
-  TString insertQuery = Form( "INSERT INTO kDimuon%s", subsetTableSuffix.c_str() );
+  TString insertQuery = Form( "INSERT INTO kDimuon%s%s", bakSuffix.Data(), subsetTableSuffix.c_str() );
   insertQuery += 
     "("
     "dimuonID,runID,spillID,eventID,posTrackID,negTrackID,"
