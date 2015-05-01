@@ -9,7 +9,6 @@ Created: 9-29-2013
 
 #include <stdexcept>
 #include <boost/lexical_cast.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 #include <TLorentzVector.h>
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
@@ -891,19 +890,19 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   y0 = recTrack->getVtxPar(1);
   z0 = recTrack->getVtxPar(2);
   recTrack->getMomentumVertex(px0, py0, pz0);
-  if(boost::math::isnan(px0) || boost::math::isnan(py0) || boost::math::isnan(pz0)) return;
+  if(std::isnan(px0) || std::isnan(py0) || std::isnan(pz0)) return;
 
   //At station 1
   z1 = 600.;
   recTrack->getExpPositionFast(z1, x1, y1);
   recTrack->getExpMomentumFast(z1, px1, py1, pz1);
-  if(boost::math::isnan(px1) || boost::math::isnan(py1) || boost::math::isnan(pz1)) return;
+  if(std::isnan(px1) || std::isnan(py1) || std::isnan(pz1)) return;
 
   //At station 3
   z3 = 1900.;
   recTrack->getExpPositionFast(z3, x3, y3);
   recTrack->getExpMomentumFast(z3, px3, py3, pz3);
-  if(boost::math::isnan(px3) || boost::math::isnan(py3) || boost::math::isnan(pz3)) return;
+  if(std::isnan(px3) || std::isnan(py3) || std::isnan(pz3)) return;
 
   //Database output
   TString insertQuery = Form( "INSERT INTO kTrack%s", subsetTableSuffix.c_str() );
