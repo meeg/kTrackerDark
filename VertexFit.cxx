@@ -75,13 +75,13 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
       SRecTrack& recTrack = recEvent->getTrack(i);
 
       recTrack.setZVertex(Z_TARGET, false);
-      recTrack.setChisqTarget(recTrack.getChisqVertex);
+      recTrack.setChisqTarget(recTrack.getChisqVertex());
 
       recTrack.setZVertex(Z_DUMP, false);
-      recTrack.setChisqTarget(recTrack.getChisqVertex);
+      recTrack.setChisqDump(recTrack.getChisqVertex());
 
       recTrack.setZVertex(Z_UPSTREAM+10., false);
-      recTrack.setChisqTarget(recTrack.getChisqVertex);
+      recTrack.setChisqUpstream(recTrack.getChisqVertex());
 
       recTrack.setZVertex(recTrack.getZVertex(), true);
     }
