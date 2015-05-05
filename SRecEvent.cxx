@@ -55,7 +55,7 @@ Int_t SRecTrack::getNHitsInStation(Int_t stationID)
   return nHits;
 }
 
-void SRecTrack::setZVertex(Double_t z)
+void SRecTrack::setZVertex(Double_t z, bool update)
 {
   Node _node_vertex;
   _node_vertex.setZ(z);
@@ -91,6 +91,8 @@ void SRecTrack::setZVertex(Double_t z)
   kmfit->fit_node(_node_vertex);
 
   fChisqVertex = _node_vertex.getChisq();
+  if(!update) return;
+
   fVertexPos.SetXYZ(_node_vertex.getFiltered().get_x(), _node_vertex.getFiltered().get_y(), z);
   fVertexMom = _node_vertex.getFiltered().get_mom_vec();
 

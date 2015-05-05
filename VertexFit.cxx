@@ -73,11 +73,17 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
   for(int i = 0; i < nTracks; ++i)
     {
       SRecTrack& recTrack = recEvent->getTrack(i);
-      if(recTrack.getChisqVertex() < 0.)
-	{
-	  //recTrack.setZVertex(findSingleMuonVertex(recTrack));
-	  recTrack.setZVertex(recTrack.getZVertex());
-	}
+
+      recTrack.setZVertex(Z_TARGET, false);
+      recTrack.setChisqTarget(recTrack.getChisqVertex);
+
+      recTrack.setZVertex(Z_DUMP, false);
+      recTrack.setChisqTarget(recTrack.getChisqVertex);
+
+      recTrack.setZVertex(Z_UPSTREAM+10., false);
+      recTrack.setChisqTarget(recTrack.getChisqVertex);
+
+      recTrack.setZVertex(recTrack.getZVertex(), true);
     }
 
   std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
@@ -188,17 +194,9 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 	  dimuon.calcVariables();
 
 	  //Test three fixed hypothesis
-	  track_pos.setZVertex(Z_DUMP);
-	  track_neg.setZVertex(Z_DUMP);
-	  dimuon.chisq_dump = track_pos.getChisqVertex() + track_neg.getChisqVertex();
-	  
- 	  track_pos.setZVertex(Z_TARGET);
-	  track_neg.setZVertex(Z_TARGET);
-	  dimuon.chisq_target = track_pos.getChisqVertex() + track_neg.getChisqVertex();
-	    
-	  track_pos.setZVertex(Z_UPSTREAM+10.);
-	  track_neg.setZVertex(Z_UPSTREAM+10.);
-	  dimuon.chisq_upstream = track_pos.getChisqVertex() + track_neg.getChisqVertex();
+	  dimuon.chisq_dump = track_pos.getChisqDump() + track_neg.getChisqDump();
+	  dimuon.chisq_target = track_pos.getChisqTarget() + track_neg.getChisqTarget();
+	  dimuon.chisq_upstream = track_pos.getChisqUpstream() + track_neg.getChisqUpstream();
 
 	  //Fill the final data
 	  recEvent->insertDimuon(dimuon);
