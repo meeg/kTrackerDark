@@ -328,7 +328,7 @@ eventID, eventID, eventID, eventID, eventID);
       p_geomSvc->toLocalDetectorName(detectorName, elementID);
 
       Hit h;
-      h.index = getInt(0);
+      h.index = getInt(0, 1);
       h.detectorID = p_geomSvc->getDetectorID(detectorName);
       h.elementID = elementID;
       h.tdcTime = getFloat(2);
@@ -844,7 +844,7 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
     {
       int trackID = nTracks + i;
       writeTrackTable(trackID, &recEvent->getTrack(i));
-      writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
+      //writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
     }
 
   int nDimuons_local = recEvent->getNDimuons();
@@ -1061,7 +1061,14 @@ int MySQLSvc::getInt(int id, int default_val)
       return default_val;
     }
 
-  return boost::lexical_cast<int>(row->GetField(id));
+  try
+    {
+      return boost::lexical_cast<int>(row->GetField(id));
+    }
+  catch(boost::bad_lexical_cast&)
+    {
+      return default_val;
+    }
 }
 
 float MySQLSvc::getFloat(int id, float default_val)
