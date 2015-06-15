@@ -378,7 +378,7 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
   for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
     {
       double dca = pos[i].Perp();
-      if(dca < dca_min)
+      if(dca < dca_min && charge*mom[i].Px() > 0.)
 	{
 	  dca_min = dca;
 	  iStep = i;

@@ -217,16 +217,19 @@ double VertexFit::findDimuonVertexFast(SRecTrack& track1, SRecTrack& track2)
   //Swim both tracks all the way down, and store the numbers
   TVector3 pos1[NSLICES_FMAG + NSTEPS_TARGET + 1];
   TVector3 pos2[NSLICES_FMAG + NSTEPS_TARGET + 1];
-  TVector3 mom[NSLICES_FMAG + NSTEPS_TARGET + 1];
-  track1.swimToVertex(pos1, mom);
-  track2.swimToVertex(pos2, mom);
+  TVector3 mom1[NSLICES_FMAG + NSTEPS_TARGET + 1];
+  TVector3 mom2[NSLICES_FMAG + NSTEPS_TARGET + 1];
+  track1.swimToVertex(pos1, mom1);
+  track2.swimToVertex(pos2, mom2);
 
   int iStep_min = -1; 
   double dist_min = 1E6;
+  int charge1 = track1.getCharge();
+  int charge2 = track2.getCharge();
   for(int iStep = 0; iStep < NSLICES_FMAG + NSTEPS_TARGET + 1; ++iStep)
     {
       double dist = (pos1[iStep] - pos2[iStep]).Perp();
-      if(dist < dist_min)
+      if(dist < dist_min && charge1*mom1[iStep].Px() > 0 && charge2*mom2[iStep].Px() > 0)
 	{
 	  iStep_min = iStep;
 	  dist_min = dist;
