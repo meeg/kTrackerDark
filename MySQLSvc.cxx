@@ -642,6 +642,7 @@ bool MySQLSvc::initWriter()
       if( useSubsetTables )
         {
           const string subsetTableName = Form("%s%s", tableName.c_str(), subsetTableSuffix.c_str() );
+          TSQLResult *res;
 
           //3. always drop subset table
           outputServer->Exec( Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str() ) );
@@ -650,9 +651,20 @@ bool MySQLSvc::initWriter()
           sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str() );
           outputServer->Exec(query);
 
-          //5. delete subset's event range from the final table
-          sprintf( query, "DELETE FROM %s WHERE %s", tableName.c_str(), subsetEventString.c_str() );
-          outputServer->Exec(query);
+          //5. see if data for the events in question already exist in the table (see if even a single row exists)
+          sprintf( query, "SELECT * FROM %s WHERE %s LIMIT 1", tableName.c_str(), subsetEventString.c_str() );
+          res = outputServer->Query(query);
+
+          // this will either be 1 if rows do exist, or 0 if none exist
+          if( res->GetRowCount() )
+            {
+              // delete subset's event range from the final table
+              sprintf( query, "DELETE FROM %s WHERE %s", tableName.c_str(), subsetEventString.c_str() );
+              outputServer->Exec(query);
+            }//end if(res->GetRowCount())
+          // always close a TSQLResult
+          res->Close();
+
         }//end if(useSubsetTable)
     }//end loop over tableNames
 
