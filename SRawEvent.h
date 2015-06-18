@@ -26,6 +26,8 @@ Created: 07-02-2012
 #define triggerBit(n) (1 << (n))
 #define hitFlagBit(n) (1 << (n))
 
+class EventReducer;
+
 ///Definition of hit structure
 class Hit: public TObject
 {
@@ -127,11 +129,8 @@ public:
   ///Find a hit -- binary search since hit list is sorted
   Int_t findHit(Short_t detectorID, Short_t elementID);
 
-  ///Manipulation/reduction of hit list
-  void reIndex(std::string option = "");
-  void deClusterize(std::list<Hit>& hits);
-  void processCluster(std::list<Hit>& hits, std::vector<std::list<Hit>::iterator>& cluster);
-  void sagittaReduce(std::list<Hit>& hits);
+  ///Reset the number hits on each plane
+  void reIndex();
 
   ///Type of pair with two adjacent wires
   typedef std::pair<Int_t, Int_t> hit_pair;
@@ -187,6 +186,9 @@ public:
 
   ///Print for debugging purposes
   void print(); 
+
+  ///Friend class which handles all kinds of hit list reduction
+  friend class EventReducer;
 
 public:
   //Trigger type

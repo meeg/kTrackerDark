@@ -22,7 +22,7 @@
 #include "KalmanFastTracking.h"
 #include "KalmanFitter.h"
 #include "VertexFit.h"
-#include "TriggerAnalyzer.h"
+#include "EventReducer.h"
 #include "JobOptsSvc.h"
 #include "MODE_SWITCH.h"
 
@@ -78,18 +78,12 @@ int main(int argc, char *argv[])
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
 #endif
 
-  TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
-  if(jobOptsSvc->m_enableTriggerMask)
-    {
-      triggerAna->init();
-      triggerAna->buildTriggerTree();
-    }
-
-  //Make the reIndex options
+  //Initialize event reducer
   TString opt = "aoc";      //turn on after pulse removal, out of time removal, and cluster removal
   if(jobOptsSvc->m_enableTriggerMask) opt = opt + "t";
   if(jobOptsSvc->m_sagittaReducer) opt = opt + "s";
   if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
+  EventReducer* eventReducer = new EventReducer(opt);
 
   TStopwatch timer;
 
@@ -118,11 +112,7 @@ int main(int argc, char *argv[])
 
       clock_t time_single = clock();
 
-      if(jobOptsSvc->m_enableTriggerMask)
-        {
-          triggerAna->trimEvent(rawEvent);
-        }
-      rawEvent->reIndex(opt.Data());
+      eventReducer->reduceEvent(rawEvent);
       if(!fastfinder->setRawEvent(rawEvent)) continue;
 
       //Fill the TClonesArray
@@ -176,7 +166,7 @@ int main(int argc, char *argv[])
   saveFile->Close();
 
   delete fastfinder;
-  delete triggerAna;
+  delete eventReducer;
 #ifdef _ENABLE_KF
   filter->close();
 #endif

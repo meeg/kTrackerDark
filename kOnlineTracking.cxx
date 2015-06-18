@@ -22,8 +22,7 @@
 #include "VertexFit.h"
 #include "MySQLSvc.h"
 #include "JobOptsSvc.h"
-#include "TriggerAnalyzer.h"
-
+#include "EventReducer.h"
 #include "MODE_SWITCH.h"
 
 using namespace std;
@@ -59,16 +58,20 @@ int main(int argc, char *argv[])
   TClonesArray& arr_tracklets = *tracklets;
 
   //Initialize track finder
+#ifdef _ENABLE_KF
+  KalmanFilter* filter = new KalmanFilter();
+  KalmanFastTracking* fastfinder = new KalmanFastTracking();
+#else
   KalmanFastTracking* fastfinder = new KalmanFastTracking(false);
+#endif
   VertexFit* vtxfit  = new VertexFit();
 
-  //Initialize the trigger analyzer
-  TriggerAnalyzer* triggerAna = new TriggerAnalyzer();
-  if(jobOptsSvc->m_enableTriggerMask)
-    {
-      triggerAna->init();
-      triggerAna->buildTriggerTree();
-    }
+  //Initialize event reducer
+  TString opt = "aoc";      //turn on after pulse removal, out of time removal, and cluster removal
+  if(jobOptsSvc->m_enableTriggerMask) opt = opt + "t";
+  if(jobOptsSvc->m_sagittaReducer) opt = opt + "s";
+  if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
+  EventReducer* eventReducer = new EventReducer(opt);
 
   //Quality control numbers and plots
   int nEvents_loaded = 0;
@@ -96,15 +99,7 @@ int main(int argc, char *argv[])
           cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
         }
 
-      if(jobOptsSvc->m_enableTriggerMask)
-        {
-          triggerAna->trimEvent(rawEvent);
-          rawEvent->reIndex("aoct");
-        }
-      else
-        {
-          rawEvent->reIndex("oac");
-        }
+      eventReducer->reduceEvent(rawEvent);
       if(!fastfinder->setRawEvent(rawEvent)) continue;
       ++nEvents_tracked;
 
@@ -161,7 +156,10 @@ int main(int argc, char *argv[])
 
   delete fastfinder;
   delete vtxfit;
-  delete triggerAna;
+  delete eventReducer;
+#ifdef _ENABLE_KF
+  filter->close();
+#endif
 
   return EXIT_SUCCESS;
 }

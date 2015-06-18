@@ -93,8 +93,6 @@ void SMillepede::setEvent(SRawEvent* rawEvt, SRecEvent* recEvt)
   rawEvent = rawEvt;
   recEvent = recEvt;
 
-  rawEvent->reIndex("oah");
-
   int nTracksTotal = recEvent->getNTracks();
   for(int i = 0; i < nTracksTotal; i++)
     {
