@@ -37,6 +37,11 @@
 #define PROB_TIGHT 0.001
 #define HIT_REJECT 3.
 
+#define SAGITTA_TARGET_CENTER 1.85
+#define SAGITTA_TARGET_WIN 0.25
+#define SAGITTA_DUMP_CENTER 1.5
+#define SAGITTA_DUMP_WIN 0.3
+
 //--------------- Muon identification -----------
 #define MUID_REJECT 4.
 #define MUID_THE_P0 0.11825 

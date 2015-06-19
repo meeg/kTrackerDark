@@ -162,8 +162,6 @@ private:
   double spacing_plane[25];
 
   //Sagitta ratio in station 1 U/X/V
-  double s_ratio[3];
-  double s_sigma[3];
   int s_detectorID[3];
 
   //Current tracklets being processed
