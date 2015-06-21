@@ -568,7 +568,10 @@ void TriggerAnalyzer::outputEnabled()
 
 void TriggerAnalyzer::trimEvent(SRawEvent* rawEvent)
 {
-  acceptEvent(rawEvent, USE_HIT);
+  rawEvent->setTriggerEmu(acceptEvent(rawEvent, USE_HIT));
+  
+  int nRoads[4] = {getNRoadsPosTop(), getNRoadsPosBot(), getNRoadsNegTop(), getNRoadsNegBot()};
+  rawEvent->setNRoads(nRoads);
 
   for(int i = 0; i < 2; ++i)
     {
