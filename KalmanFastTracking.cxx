@@ -361,7 +361,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
   for(int i = 0; i < 2; ++i)
     {
       std::cout << "=======================================================================================" << std::endl;
-      LogInfo("Prop tube segments in " << i == 0 ? "X-Z" : "Y-Z");
+      LogInfo("Prop tube segments in " << (i == 0 ? "X-Z" : "Y-Z"));
       for(std::list<PropSegment>::iterator seg = propSegs[i].begin(); seg != propSegs[i].end(); ++seg)
 	{
 	  seg->print();
@@ -412,7 +412,7 @@ bool KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
 #ifdef _DEBUG_ON
   LogInfo(stracks.size() << " final tracks:");
-  for(std::list<SRecTrack>::iterator strack = tracks.begin(); strack != tracks.end(); ++strack)
+  for(std::list<SRecTrack>::iterator strack = stracks.begin(); strack != stracks.end(); ++strack)
     {
       strack->print();
     }

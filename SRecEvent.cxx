@@ -34,6 +34,10 @@ SRecTrack::SRecTrack()
   fVertexPos.SetXYZ(999., 999., 999.);
   fStateVertex.ResizeTo(5, 1);
   fCovarVertex.ResizeTo(5, 5);
+
+  fChisqTarget = -99.;
+  fChisqDump = -99.;
+  fChisqUpstream = -99.;
 }
 
 bool SRecTrack::operator<(const SRecTrack& elem) const
