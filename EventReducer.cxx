@@ -1,3 +1,4 @@
+#include <iostream>
 #include "EventReducer.h"
 
 EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), outoftime(false), decluster(false), mergehodo(false), triggermask(false), sagitta(false), hough(false), externalpar(false), realization(false)
@@ -14,6 +15,17 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
   if(options.Contains("g")) hough = true;
   if(options.Contains("e")) externalpar = true;
   if(options.Contains("r")) realization = true;
+
+  //Screen output for all the methods enabled
+  if(afterhit)      std::cout << "EventReducer: after-pulse removal enabled. " << std::endl; 
+  if(hodomask)      std::cout << "EventReducer: hodoscope masking enabled. " << std::endl; 
+  if(outoftime)     std::cout << "EventReducer: out-of-time hits removal enabled. " << std::endl; 
+  if(decluster)     std::cout << "EventReducer: hit cluster removal enabled. " << std::endl; 
+  if(mergehodo)     std::cout << "EventReducer: v1495 hits will be merged with TW-TDC hits. " << std::endl; 
+  if(triggermask)   std::cout << "EventReducer: trigger road masking enabled. " << std::endl; 
+  if(sagitta)       std::cout << "EventReducer: sagitta reducer enabled. " << std::endl; 
+  if(hough)         std::cout << "EventReducer: hough transform reducer enabled. " << std::endl; 
+  if(realization)   std::cout << "EventReducer: realization enabled. " << std::endl; 
 
   //initialize services
   p_geomSvc = GeomSvc::instance();
