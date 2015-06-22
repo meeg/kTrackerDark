@@ -354,11 +354,11 @@ eventID, eventID, eventID, eventID, eventID);
     {
       if(readTriggerHits)
         {
-          rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 1));
+          rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, USE_TRIGGER_HIT));
         }
       else
         {
-          rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, 2));
+          rawEvent->setTriggerEmu(p_triggerAna->acceptEvent(rawEvent, USE_HIT));
         }
 
       int nRoads[4] = {p_triggerAna->getNRoadsPosTop(), p_triggerAna->getNRoadsPosBot(), p_triggerAna->getNRoadsNegTop(), p_triggerAna->getNRoadsNegBot()};
