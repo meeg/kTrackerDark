@@ -147,21 +147,32 @@ void EventReducer::sagittaReducer()
   for(int i = idx_D2; i < idx_D3; ++i)
     {
       double z3 = p_geomSvc->getPlanePosition(hitTemp[i].detectorID);
-      double slope = hitTemp[i].pos/z3;
+      double slope_target = hitTemp[i].pos/(z3 - Z_TARGET);
+      double slope_dump = hitTemp[i].pos/(z3 - Z_DUMP);
       for(int j = idx_D1; j < idx_D2; ++j)
 	{
 	  if(p_geomSvc->getPlaneType(hitTemp[i].detectorID) != p_geomSvc->getPlaneType(hitTemp[j].detectorID)) continue;
 
 	  double z2 = p_geomSvc->getPlanePosition(hitTemp[j].detectorID);
 	  if(fabs((hitTemp[i].pos - hitTemp[j].pos)/(z2 - z3)) > TX_MAX) continue;
-	  double s2 = hitTemp[j].pos - z2*slope;
+	  double s2_target = hitTemp[j].pos - slope_target*(z2 - Z_TARGET);
+	  double s2_dump = hitTemp[j].pos - slope_dump*(z2 - Z_DUMP);
 
 	  for(int k = 0; k < idx_D1; ++k)
 	    {
 	      if(p_geomSvc->getPlaneType(hitTemp[i].detectorID) != p_geomSvc->getPlaneType(hitTemp[k].detectorID)) continue;
-	      double s1 = hitTemp[k].pos - slope*p_geomSvc->getPlanePosition(hitTemp[k].detectorID);
+	      if(flag[i] > 0 && flag[j] > 0 && flag[k] > 0) continue;
+
+	      double z1 = p_geomSvc->getPlanePosition(hitTemp[k].detectorID);
+	      double pos_exp_target = SAGITTA_TARGET_CENTER*s2_target + slope_target*(z1 - Z_TARGET); 
+	      double pos_exp_dump = SAGITTA_DUMP_CENTER*s2_dump + slope_dump*(z1 - Z_DUMP);
+	      double win_target = fabs(s2_target*SAGITTA_TARGET_WIN);
+	      double win_dump = fabs(s2_dump*SAGITTA_DUMP_WIN);
+	       
+	      double p_min = std::min(pos_exp_target - win_target, pos_exp_dump - win_dump);
+	      double p_max = std::max(pos_exp_target + win_target, pos_exp_dump + win_dump);
 	
-	      if(fabs(s1/s2 - 1.77) < 0.25)
+	      if(hitTemp[k].pos > p_min && hitTemp[k].pos < p_max)
 		{
 		  flag[i] = 1;
 		  flag[j] = 1;

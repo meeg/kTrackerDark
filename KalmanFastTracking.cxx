@@ -270,9 +270,9 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     }
 
   //Initialize sagitta ratios, index 0, 1, 2 are for U, X, V
-  s_ratio[0] = 1.77; s_sigma[0] = 0.2; s_detectorID[0] = 12;
-  s_ratio[1] = 1.77; s_sigma[1] = 0.2; s_detectorID[1] = 10;
-  s_ratio[2] = 1.77; s_sigma[2] = 0.2; s_detectorID[2] = 8;
+  s_detectorID[0] = 12;
+  s_detectorID[1] = 10;
+  s_detectorID[2] = 8;
 }
 
 KalmanFastTracking::~KalmanFastTracking()
@@ -1425,16 +1425,26 @@ void KalmanFastTracking::getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_
   for(int i = 0; i < 3; i++)
     {
       double pos_st3 = p_geomSvc->getUinStereoPlane(s_detectorID[i], x_st3, y_st3);
-
+      
+      double z_st1 = z_plane[2*i+2];
       double z_st2 = z_plane[s_detectorID[i]];
       double x_st2 = tracklet.getExpPositionX(z_st2);
       double y_st2 = tracklet.getExpPositionY(z_st2);
       double pos_st2 = p_geomSvc->getUinStereoPlane(s_detectorID[i], x_st2, y_st2);
-      double sagitta_st2 = pos_st2 - pos_st3*z_st2/z_st3;
 
-      double z_st1 = z_plane[2*i+2];
-      pos_exp[i] = sagitta_st2*s_ratio[i] + pos_st3*z_st1/z_st3;
-      window[i] = fabs(5.*sagitta_st2*s_sigma[i]);
+      double s2_target = pos_st2 - pos_st3*(z_st2 - Z_TARGET)/(z_st3 - Z_TARGET);
+      double s2_dump = pos_st2 - pos_st3*(z_st2 - Z_DUMP)/(z_st3 - Z_DUMP);
+
+      double pos_exp_target = SAGITTA_TARGET_CENTER*s2_target + pos_st3*(z_st1 - Z_TARGET)/(z_st3 - Z_TARGET);
+      double pos_exp_dump = SAGITTA_DUMP_CENTER*s2_dump + pos_st3*(z_st1 - Z_DUMP)/(z_st3 - Z_DUMP);
+      double win_target = fabs(s2_target*SAGITTA_TARGET_WIN);
+      double win_dump = fabs(s2_dump*SAGITTA_DUMP_WIN);
+
+      double p_min = std::min(pos_exp_target - win_target, pos_exp_dump - win_dump);
+      double p_max = std::max(pos_exp_target + win_target, pos_exp_dump + win_dump);
+
+      pos_exp[i] = 0.5*(p_max + p_min);
+      window[i] = 0.5*(p_max - p_min);
     }
 }
 
