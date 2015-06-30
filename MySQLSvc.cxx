@@ -783,7 +783,10 @@ std::string MySQLSvc::getTableDefinition( const std::string& tableType ) const
              "pz3         DOUBLE, "
              "tx_PT       DOUBLE, "
              "ty_PT       DOUBLE, "
-             "PRIMARY KEY(runID, eventID, trackID), "
+             "chisq_target     DOUBLE, "
+             "chisq_dump       DOUBLE, "
+             "chisq_upstream   DOUBLE, "
+	     "PRIMARY KEY(runID, eventID, trackID), "
              "INDEX(eventID), INDEX(spillID)";
     }//end of kTrack
 
@@ -878,7 +881,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   int charge;
   int roadID;
   int numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V;
-  double chisq;
+  double chisq, chisq_target, chisq_dump, chisq_upstream;
 
   TVector3 proj_target = recTrack->getTargetPos();
   TVector3 proj_dump = recTrack->getDumpPos();
@@ -896,6 +899,9 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   numHitsSt4H = recTrack->getNHitsInPTY();
   numHitsSt4V = recTrack->getNHitsInPTX();
   chisq = recTrack->getChisq();
+  chisq_target = recTrack->getChisqTarget();
+  chisq_dump = recTrack->getChisqDump();
+  chisq_upstream = recTrack->getChisqUpstream();
 
   //Vertex point
   x0 = recTrack->getVtxPar(0);
@@ -926,7 +932,8 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
     "x_target,y_target,z_target,x_dump,y_dump,z_dump," 
     "x1,y1,z1,px1,py1,pz1,"
     "x3,y3,z3,px3,py3,pz3,"
-    "tx_PT,ty_PT"
+    "tx_PT,ty_PT,"
+    "chisq_target,chisq_dump,chisq_upstream"
     ")";
   insertQuery += "VALUES(";
   insertQuery += Form( "%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
@@ -935,7 +942,8 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack)
   insertQuery += Form( "%f,%f,%f,%f,%f,%f,", proj_target.X(), proj_target.Y(), proj_target.Z(), proj_dump.X(), proj_dump.Y(), proj_dump.Z() );
   insertQuery += Form( "%f,%f,%f,%f,%f,%f,", x1, y1, z1, px1, py1, pz1 );
   insertQuery += Form( "%f,%f,%f,%f,%f,%f,", x3, y3, z3, px3, py3, pz3 );
-  insertQuery += Form( "%f,%f", tx_prop, ty_prop);
+  insertQuery += Form( "%f,%f,", tx_prop, ty_prop);
+  insertQuery += Form( "%f,%f,%f", chisq_target, chisq_dump, chisq_upstream);
   insertQuery += ")";
 #ifndef OUT_TO_SCREEN
   outputServer->Exec(insertQuery);
