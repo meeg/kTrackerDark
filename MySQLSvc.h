@@ -34,135 +34,163 @@ Created: 2013.9.29
 class MySQLSvc
 {
 public:
-  MySQLSvc();
-  virtual ~MySQLSvc();
-  static MySQLSvc* instance();
-  
-  //Connect to the input server
-  bool connectInput( std::string mysqlServer = "", int mysqlPort = -1);
-  bool connectOutput(std::string mysqlServer = "", int mysqlPort = -1);
+    MySQLSvc();
+    virtual ~MySQLSvc();
+    static MySQLSvc* instance();
 
-  //Get direct pointer to the mysql connection
-  TSQLServer* getInputServer() { return inputServer; } 
-  TSQLServer* getOutputServer() { return outputServer; } 
+    //Connect to the input server
+    bool connectInput( std::string mysqlServer = "", int mysqlPort = -1);
+    bool connectOutput(std::string mysqlServer = "", int mysqlPort = -1);
 
-  //Set username/password
-  void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }
+    //Get direct pointer to the mysql connection
+    TSQLServer* getInputServer()
+    {
+        return inputServer;
+    }
+    TSQLServer* getOutputServer()
+    {
+        return outputServer;
+    }
 
-  //check if the run is stopped
-  bool isRunStopped();
+    //Set username/password
+    void setUserPasswd(std::string user_input, std::string passwd_input)
+    {
+        user = user_input;
+        passwd = passwd_input;
+    }
 
-  //Get run info
-  int getNEventsFast();
-  int getNEvents();
+    //check if the run is stopped
+    bool isRunStopped();
 
-  //Gets
-  bool getEvent(SRawEvent* rawEvent, int eventID);
-  bool getLatestEvt(SRawEvent* rawEvent);
-  bool getRandomEvt(SRawEvent* rawEvent);
-  bool getNextEvent(SRawEvent* rawEvent);
-  bool getNextEvent(SRawMCEvent* rawEvent);
+    //Get run info
+    int getNEventsFast();
+    int getNEvents();
 
-  //Check if the event has been loaded
-  bool isEventLoaded(int eventID) { return std::find(eventIDs_loaded.begin(), eventIDs_loaded.end(), eventID) != eventIDs_loaded.end(); } 
+    //Gets
+    bool getEvent(SRawEvent* rawEvent, int eventID);
+    bool getLatestEvt(SRawEvent* rawEvent);
+    bool getRandomEvt(SRawEvent* rawEvent);
+    bool getNextEvent(SRawEvent* rawEvent);
+    bool getNextEvent(SRawMCEvent* rawEvent);
 
-  //Get the event header
-  bool getEventHeader(SRawEvent* rawEvent, int eventID);
-  bool getMCGenInfo(SRawMCEvent* mcEvent, int eventID);
+    //Check if the event has been loaded
+    bool isEventLoaded(int eventID)
+    {
+        return std::find(eventIDs_loaded.begin(), eventIDs_loaded.end(), eventID) != eventIDs_loaded.end();
+    }
 
-  //initialize reader -- check the indexing, table existence
-  bool initReader();
+    //Get the event header
+    bool getEventHeader(SRawEvent* rawEvent, int eventID);
+    bool getMCGenInfo(SRawMCEvent* mcEvent, int eventID);
 
-  //Output to database/txt file/screen
-  bool initWriter();
+    //initialize reader -- check the indexing, table existence
+    bool initReader();
 
-  void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
-  void writeTrackTable(int trackID, SRecTrack* recTrack);
-  void writeTrackHitTable(int trackID, Tracklet* tracklet);
-  void writeDimuonTable(int dimuonID, SRecDimuon dimuon);
-  
-  //helper functions for creating tables
-  /// Get the suffix to add to end of intermediate event subrange tables (if any)
-  std::string getSubsetTableSuffix( ) const;
-  /// Get WHERE clause to add to MySQL query to select the event subrange (if any)
-  std::string getMySQLEventSelection( ) const;
-  /// Get the definition of fields, keys, indices for a table (kTrack, kDimuon, or kTrackHit)
-  std::string getTableDefinition( const std::string& tableType ) const;
-  /// Copy output from intermediate subset tables to final table and delete subset tables (if desired)
-  void pushToFinalTables( bool dropSubsetTables );
+    //Output to database/txt file/screen
+    bool initWriter();
 
-  //Set the data schema
-  void setInputSchema(std::string schema);
-  void setOutputSchema(std::string schema)  { outputSchema = schema; }
-  void setLoggingSchema(std::string schema) { logSchema = schema; } 
-  void enableQIE(bool opt) { readQIE = opt; }
-  void enableTargetPos(bool opt) { readTargetPos = opt; }
-  void enableTriggerHits(bool opt) { readTriggerHits = opt; }
+    void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
+    void writeTrackTable(int trackID, SRecTrack* recTrack);
+    void writeTrackHitTable(int trackID, Tracklet* tracklet);
+    void writeDimuonTable(int dimuonID, SRecDimuon dimuon);
 
-  //Memory-safe sql queries
-  int makeQueryInput();
-  int makeQueryOutput();
-  bool nextEntry();
-  
-  int getInt(int id, int default_val = 0);
-  float getFloat(int id, float default_val = 0.);
-  double getDouble(int id, double default_val = 0.);
-  std::string getString(int id, std::string default_val = "");
+    //helper functions for creating tables
+    /// Get the suffix to add to end of intermediate event subrange tables (if any)
+    std::string getSubsetTableSuffix( ) const;
+    /// Get WHERE clause to add to MySQL query to select the event subrange (if any)
+    std::string getMySQLEventSelection( ) const;
+    /// Get the definition of fields, keys, indices for a table (kTrack, kDimuon, or kTrackHit)
+    std::string getTableDefinition( const std::string& tableType ) const;
+    /// Copy output from intermediate subset tables to final table and delete subset tables (if desired)
+    void pushToFinalTables( bool dropSubsetTables );
+
+    //Set the data schema
+    void setInputSchema(std::string schema);
+    void setOutputSchema(std::string schema)
+    {
+        outputSchema = schema;
+    }
+    void setLoggingSchema(std::string schema)
+    {
+        logSchema = schema;
+    }
+    void enableQIE(bool opt)
+    {
+        readQIE = opt;
+    }
+    void enableTargetPos(bool opt)
+    {
+        readTargetPos = opt;
+    }
+    void enableTriggerHits(bool opt)
+    {
+        readTriggerHits = opt;
+    }
+
+    //Memory-safe sql queries
+    int makeQueryInput();
+    int makeQueryOutput();
+    bool nextEntry();
+
+    int getInt(int id, int default_val = 0);
+    float getFloat(int id, float default_val = 0.);
+    double getDouble(int id, double default_val = 0.);
+    std::string getString(int id, std::string default_val = "");
 
 private:
-  //pointer to the only instance
-  static MySQLSvc* p_mysqlSvc;
+    //pointer to the only instance
+    static MySQLSvc* p_mysqlSvc;
 
-  //Username and password
-  std::string user;
-  std::string passwd;
+    //Username and password
+    std::string user;
+    std::string passwd;
 
-  //pointer to the geometry service
-  GeomSvc* p_geomSvc;
+    //pointer to the geometry service
+    GeomSvc* p_geomSvc;
 
-  //pointer to trigger analyzer
-  TriggerAnalyzer* p_triggerAna;
+    //pointer to trigger analyzer
+    TriggerAnalyzer* p_triggerAna;
 
-  //SQL server
-  TSQLServer* inputServer;  ///< Fetch input from this server
-  TSQLServer* outputServer; ///< Write output to this server
-  TSQLResult* res;
-  TSQLRow* row;
+    //SQL server
+    TSQLServer* inputServer;  ///< Fetch input from this server
+    TSQLServer* outputServer; ///< Write output to this server
+    TSQLResult* res;
+    TSQLRow* row;
 
-  //information about where to put output
-  std::string subsetTableSuffix; ///< Append suffix to table names for intermediate event subset tables
-  std::string subsetEventString; ///< MySQL string used to select only the events to be processed (e.g. WHERE caluse)
+    //information about where to put output
+    std::string subsetTableSuffix; ///< Append suffix to table names for intermediate event subset tables
+    std::string subsetEventString; ///< MySQL string used to select only the events to be processed (e.g. WHERE caluse)
 
-  //Test if QIE/TriggerHits table exists
-  bool readQIE;
-  bool readTriggerHits;
-  bool readTargetPos;
-  bool setTriggerEmu;
+    //Test if QIE/TriggerHits table exists
+    bool readQIE;
+    bool readTriggerHits;
+    bool readTargetPos;
+    bool setTriggerEmu;
 
-  //Random generator
-  TRandom rndm;
+    //Random generator
+    TRandom rndm;
 
-  //run-related info
-  int runID;
-  int spillID;
-  int nEvents;
+    //run-related info
+    int runID;
+    int spillID;
+    int nEvents;
 
-  //event list
-  std::vector<int> eventIDs;
-  std::vector<int> eventIDs_loaded;
-  int index_eventID;
+    //event list
+    std::vector<int> eventIDs;
+    std::vector<int> eventIDs_loaded;
+    int index_eventID;
 
-  //Query string used in all clause
-  char query[2000];
+    //Query string used in all clause
+    char query[2000];
 
-  //name of the production schema working on
-  std::string inputSchema;
-  std::string outputSchema;
-  std::string logSchema;
+    //name of the production schema working on
+    std::string inputSchema;
+    std::string outputSchema;
+    std::string logSchema;
 
-  //Internal counter of tracks and dimuons
-  int nTracks;
-  int nDimuons;
+    //Internal counter of tracks and dimuons
+    int nTracks;
+    int nDimuons;
 };
 
 #endif

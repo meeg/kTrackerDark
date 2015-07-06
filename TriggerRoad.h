@@ -16,106 +16,139 @@
 class TriggerRoad : public TObject
 {
 public:
-  TriggerRoad();
-  TriggerRoad(std::list<int> uniqueIDs);
-  TriggerRoad(Tracklet& track);
-  TriggerRoad(SRecTrack& track);
-  
-  //Flag
-  bool isValid();
-  bool isEnabled() { return enabled; }
+    TriggerRoad();
+    TriggerRoad(std::list<int> uniqueIDs);
+    TriggerRoad(Tracklet& track);
+    TriggerRoad(SRecTrack& track);
 
-  //Get reflection in T/B, LR
-  TriggerRoad reflectTB();
-  TriggerRoad reflectLR();
+    //Flag
+    bool isValid();
+    bool isEnabled()
+    {
+        return enabled;
+    }
 
-  //Insert a hodo paddle into the road
-  void addElement(int detectorID, int elementID);
-  
-  //Setters
-  void enable() { enabled = true; }
-  void disable() { enabled = false; }
+    //Get reflection in T/B, LR
+    TriggerRoad reflectTB();
+    TriggerRoad reflectLR();
 
-  //Getters
-  int getNElements() { return detectorIDs.size(); }
-  int getDetectorID(int i) { return detectorIDs[i]; } 
-  int getElementID(int i) { return elementIDs[i]; }
-  int getUniqueID(int i) { return detectorIDs[i]*100 + elementIDs[i]; }
+    //Insert a hodo paddle into the road
+    void addElement(int detectorID, int elementID);
 
-  int getRoadID();
+    //Setters
+    void enable()
+    {
+        enabled = true;
+    }
+    void disable()
+    {
+        enabled = false;
+    }
 
-  //The total weight and ratio of target weight
-  double weight() const { return targetWeight + dumpWeight; }
-  double ratio() const { return targetWeight/(targetWeight + dumpWeight); }
-  double mratio() const { return highMWeight/(lowMWeight + highMWeight); }
+    //Getters
+    int getNElements()
+    {
+        return detectorIDs.size();
+    }
+    int getDetectorID(int i)
+    {
+        return detectorIDs[i];
+    }
+    int getElementID(int i)
+    {
+        return elementIDs[i];
+    }
+    int getUniqueID(int i)
+    {
+        return detectorIDs[i]*100 + elementIDs[i];
+    }
 
-  //Mean and sigma of pX distribution
-  int getNEntries() const { return pXs.size(); }
-  double getpXMean() const;
-  double getpXWidth() const;
+    int getRoadID();
 
-  //T/B , L/R
-  int getTB();
-  int getLR();
+    //The total weight and ratio of target weight
+    double weight() const
+    {
+        return targetWeight + dumpWeight;
+    }
+    double ratio() const
+    {
+        return targetWeight/(targetWeight + dumpWeight);
+    }
+    double mratio() const
+    {
+        return highMWeight/(lowMWeight + highMWeight);
+    }
 
-  //counts of mu+, mu-
-  int nPlus;
-  int nMinus;
+    //Mean and sigma of pX distribution
+    int getNEntries() const
+    {
+        return pXs.size();
+    }
+    double getpXMean() const;
+    double getpXWidth() const;
 
-  //print
-  void print();
+    //T/B , L/R
+    int getTB();
+    int getLR();
 
-  //Clear the container
-  void clear();
+    //counts of mu+, mu-
+    int nPlus;
+    int nMinus;
 
-  //Overriden operators for comparison and sort
-  bool operator==(const TriggerRoad& elem) const;
-  
-  static bool byTargetDump(const TriggerRoad& elem1, const TriggerRoad& elem2);
-  static bool byWeight(const TriggerRoad& elem1, const TriggerRoad& elem2);
-  static bool byMass(const TriggerRoad& elem1, const TriggerRoad& elem2);
-  static bool byPt(const TriggerRoad& elem1, const TriggerRoad& elem2);
-  static bool byRndFrequency(const TriggerRoad& elem1, const TriggerRoad& elem2);
+    //print
+    void print();
 
-  //overload operator +=
-  TriggerRoad& operator+=(const TriggerRoad& elem);
+    //Clear the container
+    void clear();
 
-  //Road maker
-  static std::list<TriggerRoad> makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pX, double weight);
+    //Overriden operators for comparison and sort
+    bool operator==(const TriggerRoad& elem) const;
 
-  //overload stream operator <<
-  friend std::ostream& operator << (std::ostream& os, const TriggerRoad& road);
+    static bool byTargetDump(const TriggerRoad& elem1, const TriggerRoad& elem2);
+    static bool byWeight(const TriggerRoad& elem1, const TriggerRoad& elem2);
+    static bool byMass(const TriggerRoad& elem1, const TriggerRoad& elem2);
+    static bool byPt(const TriggerRoad& elem1, const TriggerRoad& elem2);
+    static bool byRndFrequency(const TriggerRoad& elem1, const TriggerRoad& elem2);
+
+    //overload operator +=
+    TriggerRoad& operator+=(const TriggerRoad& elem);
+
+    //Road maker
+    static std::list<TriggerRoad> makeRoadList(int nHits, int dIDs[], int eIDs[], double z, double mass, double pX, double weight);
+
+    //overload stream operator <<
+    friend std::ostream& operator << (std::ostream& os, const TriggerRoad& road);
 
 public:
-  //Unique road ID
-  int roadID;
+    //Unique road ID
+    int roadID;
 
-  //Lv1 group ID
-  int groupID;
+    //Lv1 group ID
+    int groupID;
 
-  //Weights
-  double targetWeight;
-  double dumpWeight;
-  double lowMWeight;
-  double highMWeight;
+    //Weights
+    double targetWeight;
+    double dumpWeight;
+    double lowMWeight;
+    double highMWeight;
 
-  //pX distributions
-  std::vector<double> pXs;
-  double px_min;
-  double px_max;
-  double px_mean;
+    //pX distributions
+    std::vector<double> pXs;
+    double px_min;
+    double px_max;
+    double px_mean;
 
-  //Random frequency
-  double rndf;
+    //Random frequency
+    double rndf;
 
-  //Flag 
-  bool enabled;
+    //Flag
+    bool enabled;
 
-  //hodo paddles
-  std::vector<int> detectorIDs;
-  std::vector<int> elementIDs;
+    //hodo paddles
+    std::vector<int> detectorIDs;
+    std::vector<int> elementIDs;
 
-  ClassDef(TriggerRoad, 2)
+    ClassDef(TriggerRoad, 2)
 };
 
 typedef std::pair<int, int> Trigger;

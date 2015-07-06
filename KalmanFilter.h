@@ -1,7 +1,7 @@
 /*
 KalmanFilter.h
 
-Definition of the light-weighted version of class KalmanFilter, provide only the core function 
+Definition of the light-weighted version of class KalmanFilter, provide only the core function
 of the kalman filter, includes:
   1. prediction
   2. filter
@@ -26,37 +26,47 @@ Created: 10-14-2011
 class KalmanFilter
 {
 public:
-  ///singlton instance
-  static KalmanFilter* instance();
-  void close();
+    ///singlton instance
+    static KalmanFilter* instance();
+    void close();
 
-  ///Real constructor
-  KalmanFilter(bool limitedStep = true);
+    ///Real constructor
+    KalmanFilter(bool limitedStep = true);
 
-  ///Kalman filter steps
-  bool predict(Node& _node);
-  bool filter(Node& _node);
-  bool smooth(Node& _node, Node& _node_prev);
+    ///Kalman filter steps
+    bool predict(Node& _node);
+    bool filter(Node& _node);
+    bool smooth(Node& _node, Node& _node_prev);
 
-  ///set the current track parameter using the current node
-  void setCurrTrkpar(Node& _node) { _trkpar_curr = _node.getFiltered(); }
-  void setCurrTrkpar(TrkPar& _trkpar) { _trkpar_curr = _trkpar; }
+    ///set the current track parameter using the current node
+    void setCurrTrkpar(Node& _node)
+    {
+        _trkpar_curr = _node.getFiltered();
+    }
+    void setCurrTrkpar(TrkPar& _trkpar)
+    {
+        _trkpar_curr = _trkpar;
+    }
 
-  ///Fit one node
-  bool fit_node(Node& _node);
+    ///Fit one node
+    bool fit_node(Node& _node);
 
-  ///Enable the dump mode: stop calc prop matrix, start calc travel length
-  void enableDumpCorrection() { _extrapolator.setPropCalc(true); _extrapolator.setLengthCalc(true); }
+    ///Enable the dump mode: stop calc prop matrix, start calc travel length
+    void enableDumpCorrection()
+    {
+        _extrapolator.setPropCalc(true);
+        _extrapolator.setLengthCalc(true);
+    }
 
 private:
-  ///Pointer to singlton instance
-  static KalmanFilter *p_kmfit;
+    ///Pointer to singlton instance
+    static KalmanFilter *p_kmfit;
 
-  ///Stores the current track parameter
-  TrkPar _trkpar_curr;
+    ///Stores the current track parameter
+    TrkPar _trkpar_curr;
 
-  ///Track extrapolator
-  TrackExtrapolator _extrapolator;
+    ///Track extrapolator
+    TrackExtrapolator _extrapolator;
 };
 
 #endif

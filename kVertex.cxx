@@ -33,217 +33,219 @@ using Threshold::live;
 
 int main(int argc, char *argv[])
 {
-  if(argc != 2)
+    if(argc != 2)
     {
-      cout << "Usage: " << argv[0] << "  <options file>" << endl;
-      exit(0);
+        cout << "Usage: " << argv[0] << "  <options file>" << endl;
+        exit(0);
     }
 
-  //Initialize job options
-  JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
-  jobOptsSvc->init(argv[1]);
+    //Initialize job options
+    JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+    jobOptsSvc->init(argv[1]);
 
-  //Initialize the geometry service
-  GeomSvc::instance()->init();
+    //Initialize the geometry service
+    GeomSvc::instance()->init();
 
-  //Retrieve the raw event
-  SRecEvent* recEvent = new SRecEvent();
-  TClonesArray* tracklets = new TClonesArray("Tracklet");
-  SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());;
+    //Retrieve the raw event
+    SRecEvent* recEvent = new SRecEvent();
+    TClonesArray* tracklets = new TClonesArray("Tracklet");
+    SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());;
 
-  TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
-  TTree* dataTree = (TTree*)dataFile->Get("save");
+    TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
+    TTree* dataTree = (TTree*)dataFile->Get("save");
 
-  dataTree->SetBranchAddress("recEvent", &recEvent);
-  dataTree->SetBranchAddress("tracklets", &tracklets);
+    dataTree->SetBranchAddress("recEvent", &recEvent);
+    dataTree->SetBranchAddress("tracklets", &tracklets);
 
-  TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
-  TTree* saveTree = new TTree("save", "save");
+    TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
+    TTree* saveTree = new TTree("save", "save");
 
-  saveTree->Branch("recEvent", &recEvent, 256000, 99);
-  saveTree->Branch("tracklets", &tracklets, 256000, 99);
+    saveTree->Branch("recEvent", &recEvent, 256000, 99);
+    saveTree->Branch("tracklets", &tracklets, 256000, 99);
 
-  if(jobOptsSvc->m_attachRawEvent)
+    if(jobOptsSvc->m_attachRawEvent)
     {
-      dataTree->SetBranchAddress("rawEvent", &rawEvent);
-      saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
-      tracklets->BypassStreamer();
-    }
-  
-  //Initialize track finder
-  LogInfo("Initializing the track finder and kalman filter ... ");
-  VertexFit* vtxfit = new VertexFit();
-  vtxfit->enableOptimization();
-  if(jobOptsSvc->m_enableEvaluation) 
-    {
-      string evalFileName = "eval_" + jobOptsSvc->m_outputFile;
-      vtxfit->bookEvaluation(evalFileName.c_str());
+        dataTree->SetBranchAddress("rawEvent", &rawEvent);
+        saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+        tracklets->BypassStreamer();
     }
 
-  const int offset = jobOptsSvc->m_firstEvent;
-  int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
-  if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-  LogInfo("Running from event " << offset << " through to event " << nEvtMax);
-  for(int i = offset; i < nEvtMax; ++i)
+    //Initialize track finder
+    LogInfo("Initializing the track finder and kalman filter ... ");
+    VertexFit* vtxfit = new VertexFit();
+    vtxfit->enableOptimization();
+    if(jobOptsSvc->m_enableEvaluation)
     {
-      dataTree->GetEntry(i);
-      if(live())
+        string evalFileName = "eval_" + jobOptsSvc->m_outputFile;
+        vtxfit->bookEvaluation(evalFileName.c_str());
+    }
+
+    const int offset = jobOptsSvc->m_firstEvent;
+    int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
+    if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
+    LogInfo("Running from event " << offset << " through to event " << nEvtMax);
+    for(int i = offset; i < nEvtMax; ++i)
+    {
+        dataTree->GetEntry(i);
+        if(live())
         {
-          cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
-          cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;
+            cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
+            cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;
         }
 
-      vtxfit->setRecEvent(recEvent);
+        vtxfit->setRecEvent(recEvent);
 
-      if(recEvent->getNDimuons() > 0) saveTree->Fill();
-      if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
+        if(recEvent->getNDimuons() > 0) saveTree->Fill();
+        if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
 
-      recEvent->clear();
-      tracklets->Clear();
-      if(jobOptsSvc->m_attachRawEvent) rawEvent->clear();
+        recEvent->clear();
+        tracklets->Clear();
+        if(jobOptsSvc->m_attachRawEvent) rawEvent->clear();
     }
-  cout << endl;
-  cout << "kVertex ends successfully." << endl;
+    cout << endl;
+    cout << "kVertex ends successfully." << endl;
 
-  saveFile->cd();
-  saveTree->Write();
+    saveFile->cd();
+    saveTree->Write();
 
-  //If it's for MC then end now
-  if(jobOptsSvc->m_mcMode)
+    //If it's for MC then end now
+    if(jobOptsSvc->m_mcMode)
     {
-      saveFile->Close();
-      delete vtxfit;
-      
-      return EXIT_SUCCESS;
+        saveFile->Close();
+        delete vtxfit;
+
+        return EXIT_SUCCESS;
     }
 
-  //Like-sign
-  saveFile->cd();
-  TTree* saveTree_pp = new TTree("save_pp", "save_pp");
-  saveTree_pp->Branch("recEvent", &recEvent, 256000, 99);
+    //Like-sign
+    saveFile->cd();
+    TTree* saveTree_pp = new TTree("save_pp", "save_pp");
+    saveTree_pp->Branch("recEvent", &recEvent, 256000, 99);
 
-  TTree* saveTree_mm = new TTree("save_mm", "save_mm");
-  saveTree_mm->Branch("recEvent", &recEvent, 256000, 99);
+    TTree* saveTree_mm = new TTree("save_mm", "save_mm");
+    saveTree_mm->Branch("recEvent", &recEvent, 256000, 99);
 
-  for(int i = offset; i < nEvtMax; ++i)
+    for(int i = offset; i < nEvtMax; ++i)
     {
-      dataTree->GetEntry(i);
-      vtxfit->setRecEvent(recEvent, 1, 1);
+        dataTree->GetEntry(i);
+        vtxfit->setRecEvent(recEvent, 1, 1);
 
-      if(recEvent->getNDimuons() > 0) saveTree_pp->Fill();
-      recEvent->clear();
+        if(recEvent->getNDimuons() > 0) saveTree_pp->Fill();
+        recEvent->clear();
     }
 
-  for(int i = offset; i < nEvtMax; ++i)
+    for(int i = offset; i < nEvtMax; ++i)
     {
-      dataTree->GetEntry(i);
-      vtxfit->setRecEvent(recEvent, -1, -1);
+        dataTree->GetEntry(i);
+        vtxfit->setRecEvent(recEvent, -1, -1);
 
-      if(recEvent->getNDimuons() > 0) saveTree_mm->Fill();
-      recEvent->clear();
+        if(recEvent->getNDimuons() > 0) saveTree_mm->Fill();
+        recEvent->clear();
     }
-  cout << "kVertex like sign ends successfully." << endl;
+    cout << "kVertex like sign ends successfully." << endl;
 
-  saveFile->cd();
-  saveTree_pp->Write();
-  saveTree_mm->Write();
+    saveFile->cd();
+    saveTree_pp->Write();
+    saveTree_mm->Write();
 
-  //Event mixing
-  saveFile->cd();
-  TTree* saveTree_mix = new TTree("save_mix", "save_mix");
-  saveTree_mix->Branch("recEvent", &recEvent, 256000, 99);
+    //Event mixing
+    saveFile->cd();
+    TTree* saveTree_mix = new TTree("save_mix", "save_mix");
+    saveTree_mix->Branch("recEvent", &recEvent, 256000, 99);
 
-  //Load track bank of mu+ and mu-
-  vector<SRecTrack> ptracks[7], mtracks[7];
-  vector<int> pflags[7], mflags[7];
-  for(int i = 0; i < 7; ++i)
+    //Load track bank of mu+ and mu-
+    vector<SRecTrack> ptracks[7], mtracks[7];
+    vector<int> pflags[7], mflags[7];
+    for(int i = 0; i < 7; ++i)
     {
-      ptracks[i].reserve(25000);
-      pflags[i].reserve(25000);
+        ptracks[i].reserve(25000);
+        pflags[i].reserve(25000);
 
-      mtracks[i].reserve(25000);
-      mflags[i].reserve(25000);
+        mtracks[i].reserve(25000);
+        mflags[i].reserve(25000);
     }
 
-  //Extract all the tracks and put in the container
-  for(int i = offset; i < nEvtMax; ++i)
+    //Extract all the tracks and put in the container
+    for(int i = offset; i < nEvtMax; ++i)
     {
-      dataTree->GetEntry(i);
-      if(!recEvent->isTriggeredBy(SRawEvent::MATRIX1)) continue;
-      if(recEvent->getTargetPos() < 1 || rawEvent->getTargetPos() > 7) continue;
+        dataTree->GetEntry(i);
+        if(!recEvent->isTriggeredBy(SRawEvent::MATRIX1)) continue;
+        if(recEvent->getTargetPos() < 1 || rawEvent->getTargetPos() > 7) continue;
 
-      int nTracks = recEvent->getNTracks();
-      if(nTracks != 1) continue;
-         
-      SRecTrack track = recEvent->getTrack(0);
-      track.setZVertex(track.getZVertex());
-      if(!track.isValid()) continue;
+        int nTracks = recEvent->getNTracks();
+        if(nTracks != 1) continue;
 
-      int index = rawEvent->getTargetPos() - 1;
-      if(track.getCharge() > 0)
-	{
-	  ptracks[index].push_back(track);
-	  pflags[index].push_back(1);
-	}
-      else
-	{
-	  mtracks[index].push_back(track);
-	  mflags[index].push_back(1);
-	}
+        SRecTrack track = recEvent->getTrack(0);
+        track.setZVertex(track.getZVertex());
+        if(!track.isValid()) continue;
 
-      rawEvent->clear();
-      recEvent->clear();
+        int index = rawEvent->getTargetPos() - 1;
+        if(track.getCharge() > 0)
+        {
+            ptracks[index].push_back(track);
+            pflags[index].push_back(1);
+        }
+        else
+        {
+            mtracks[index].push_back(track);
+            mflags[index].push_back(1);
+        }
+
+        rawEvent->clear();
+        recEvent->clear();
     }
 
-  //Random combine, target by target
-  dataTree->GetEntry(0);
-  int runID = rawEvent->getRunID();
-  TRandom rnd;
-  rnd.SetSeed(runID);
+    //Random combine, target by target
+    dataTree->GetEntry(0);
+    int runID = rawEvent->getRunID();
+    TRandom rnd;
+    rnd.SetSeed(runID);
 
-  int eventID = 0;
-  for(int i = 0; i < 7; ++i)
+    int eventID = 0;
+    for(int i = 0; i < 7; ++i)
     {
-      int nPlus = ptracks[i].size();
-      int nMinus = mtracks[i].size();
-      int nPairs = int(nPlus < nMinus ? 0.8*nPlus : 0.8*nMinus);
-      cout << nPlus << " mu+ and " << nMinus << " mu- tracks with targetPos = " << i+1;
-      cout << ", will generate " << nPairs << " random pairs. " << endl;
+        int nPlus = ptracks[i].size();
+        int nMinus = mtracks[i].size();
+        int nPairs = int(nPlus < nMinus ? 0.8*nPlus : 0.8*nMinus);
+        cout << nPlus << " mu+ and " << nMinus << " mu- tracks with targetPos = " << i+1;
+        cout << ", will generate " << nPairs << " random pairs. " << endl;
 
-      int nTries = 0;
-      int nSuccess = 0;
-      while(nSuccess < nPairs && nTries - nSuccess < 10000)
-	{
-	  ++nTries;
-	
-	  int idx1 = int(rnd.Rndm()*nPlus);
-	  int idx2 = int(rnd.Rndm()*nMinus);
-	
-	  if(pflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
-	  if((ptracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
-	
-	  recEvent->setEventInfo(runID, 0, eventID++);
-	  recEvent->setTargetPos(i+1);
-	  recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -1;
-	  recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -1;
-	
-	  vtxfit->setRecEvent(recEvent);
-	  if(eventID % 1000 == 0) saveTree_mix->AutoSave("SaveSelf");
-	  ++nSuccess;
-	
-	  saveTree_mix->Fill();
-	  recEvent->clear();
-	}
-      cout << "   Generated " << nSuccess << " fake pairs after " << nTries << " tries." << endl;
+        int nTries = 0;
+        int nSuccess = 0;
+        while(nSuccess < nPairs && nTries - nSuccess < 10000)
+        {
+            ++nTries;
+
+            int idx1 = int(rnd.Rndm()*nPlus);
+            int idx2 = int(rnd.Rndm()*nMinus);
+
+            if(pflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
+            if((ptracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
+
+            recEvent->setEventInfo(runID, 0, eventID++);
+            recEvent->setTargetPos(i+1);
+            recEvent->insertTrack(ptracks[i][idx1]);
+            pflags[i][idx1] = -1;
+            recEvent->insertTrack(mtracks[i][idx2]);
+            mflags[i][idx2] = -1;
+
+            vtxfit->setRecEvent(recEvent);
+            if(eventID % 1000 == 0) saveTree_mix->AutoSave("SaveSelf");
+            ++nSuccess;
+
+            saveTree_mix->Fill();
+            recEvent->clear();
+        }
+        cout << "   Generated " << nSuccess << " fake pairs after " << nTries << " tries." << endl;
     }
-  cout << endl;
-  cout << "kVertex mixing ends successfully." << endl;
+    cout << endl;
+    cout << "kVertex mixing ends successfully." << endl;
 
-  saveFile->cd();
-  saveTree_mix->Write();
-  saveFile->Close();
+    saveFile->cd();
+    saveTree_mix->Write();
+    saveFile->Close();
 
-  delete vtxfit;
+    delete vtxfit;
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

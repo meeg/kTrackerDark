@@ -29,159 +29,171 @@ Created: 05-24-2013
 class KalmanFastTracking
 {
 public:
-  explicit KalmanFastTracking(bool flag = true);
-  ~KalmanFastTracking();
+    explicit KalmanFastTracking(bool flag = true);
+    ~KalmanFastTracking();
 
-  //Set the input event
-  bool setRawEvent(SRawEvent* event_input);
-  void setRawEventDebug(SRawEvent* event_input);
+    //Set the input event
+    bool setRawEvent(SRawEvent* event_input);
+    void setRawEventDebug(SRawEvent* event_input);
 
-  //Event quality cut
-  bool acceptEvent(SRawEvent* rawEvent);
+    //Event quality cut
+    bool acceptEvent(SRawEvent* rawEvent);
 
-  ///Tracklet finding stuff
-  //Build tracklets in a station
-  void buildTrackletsInStation(int stationID, double* pos_exp = NULL, double* window = NULL);
+    ///Tracklet finding stuff
+    //Build tracklets in a station
+    void buildTrackletsInStation(int stationID, double* pos_exp = NULL, double* window = NULL);
 
-  //Build back partial tracks using tracklets in station 2 & 3
-  void buildBackPartialTracks();
+    //Build back partial tracks using tracklets in station 2 & 3
+    void buildBackPartialTracks();
 
-  //Build global tracks by connecting station 23 tracklets and station 1 tracklets
-  void buildGlobalTracks();
+    //Build global tracks by connecting station 23 tracklets and station 1 tracklets
+    void buildGlobalTracks();
 
-  //Fit tracklets
-  int fitTracklet(Tracklet& tracklet);
+    //Fit tracklets
+    int fitTracklet(Tracklet& tracklet);
 
-  //Check the quality of tracklet, number of hits
-  bool acceptTracklet(Tracklet& tracklet);
-  bool hodoMask(Tracklet& tracklet);
-  bool muonID_comp(Tracklet& tracklet);
-  bool muonID_search(Tracklet& tracklet);
+    //Check the quality of tracklet, number of hits
+    bool acceptTracklet(Tracklet& tracklet);
+    bool hodoMask(Tracklet& tracklet);
+    bool muonID_comp(Tracklet& tracklet);
+    bool muonID_search(Tracklet& tracklet);
 
-  void buildPropSegments();
+    void buildPropSegments();
 
-  //Resolve left-right when possible
-  void resolveLeftRight(SRawEvent::hit_pair hpair, int& LR1, int& LR2);
-  void resolveLeftRight(Tracklet& tracklet, double threshold);
-  void resolveSingleLeftRight(Tracklet& tracklet);
+    //Resolve left-right when possible
+    void resolveLeftRight(SRawEvent::hit_pair hpair, int& LR1, int& LR2);
+    void resolveLeftRight(Tracklet& tracklet, double threshold);
+    void resolveSingleLeftRight(Tracklet& tracklet);
 
-  //Remove bad hit if needed
-  void removeBadHits(Tracklet& tracklet);
+    //Remove bad hit if needed
+    void removeBadHits(Tracklet& tracklet);
 
-  //Reduce the list of tracklets, returns the number of elements reduced
-  int reduceTrackletList(std::list<Tracklet>& tracklets);
+    //Reduce the list of tracklets, returns the number of elements reduced
+    int reduceTrackletList(std::list<Tracklet>& tracklets);
 
-  //Get exp postion and window using sagitta method in station 1
-  void getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window);
-  void getExtrapoWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window);
-  
-  //Print the distribution of tracklets at detector back/front
-  void printAtDetectorBack(int stationID, std::string outputFileName);
+    //Get exp postion and window using sagitta method in station 1
+    void getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window);
+    void getExtrapoWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window);
 
-  ///Track fitting stuff
-  //Convert Tracklet to KalmanTrack and solve left-right problem
-  void processOneTracklet(Tracklet& tracklet);
+    //Print the distribution of tracklets at detector back/front
+    void printAtDetectorBack(int stationID, std::string outputFileName);
 
-  //Use Kalman fitter to fit a track
-  bool fitTrack(KalmanTrack& kmtrk);
+    ///Track fitting stuff
+    //Convert Tracklet to KalmanTrack and solve left-right problem
+    void processOneTracklet(Tracklet& tracklet);
 
-  //Resolve left right by Kalman fitting results
-  void resolveLeftRight(KalmanTrack& kmtrk);
+    //Use Kalman fitter to fit a track
+    bool fitTrack(KalmanTrack& kmtrk);
 
-  ///Final output
-  std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
-  std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
-  std::list<SRecTrack>& getSRecTracks() { return stracks; }
-  std::list<PropSegment>& getPropSegments(int i) { return propSegs[i]; }
+    //Resolve left right by Kalman fitting results
+    void resolveLeftRight(KalmanTrack& kmtrk);
 
-  ///Tool, a simple-minded chi square fit
-  void chi2fit(int n, double x[], double y[], double& a, double& b);
+    ///Final output
+    std::list<Tracklet>& getFinalTracklets()
+    {
+        return trackletsInSt[4];
+    }
+    std::list<Tracklet>& getBackPartials()
+    {
+        return trackletsInSt[3];
+    }
+    std::list<SRecTrack>& getSRecTracks()
+    {
+        return stracks;
+    }
+    std::list<PropSegment>& getPropSegments(int i)
+    {
+        return propSegs[i];
+    }
+
+    ///Tool, a simple-minded chi square fit
+    void chi2fit(int n, double x[], double y[], double& a, double& b);
 
 private:
-  //Raw event input
-  SRawEvent* rawEvent;
-  std::vector<Hit> hitAll;
+    //Raw event input
+    SRawEvent* rawEvent;
+    std::vector<Hit> hitAll;
 
-  //Tracklets in one event, id = 0, 1, 2 for station 1, 2, 3+/-, id = 3 for station 2&3 combined, id = 4 for global tracks
-  //Likewise for the next part
-  std::list<Tracklet> trackletsInSt[5];
+    //Tracklets in one event, id = 0, 1, 2 for station 1, 2, 3+/-, id = 3 for station 2&3 combined, id = 4 for global tracks
+    //Likewise for the next part
+    std::list<Tracklet> trackletsInSt[5];
 
-  //Final SRecTrack list
-  std::list<SRecTrack> stracks;
+    //Final SRecTrack list
+    std::list<SRecTrack> stracks;
 
-  //Prop. tube segments for muon id purposes
-  // 0 for X-Z, 1 for Y-Z
-  std::list<PropSegment> propSegs[2];
-  ///Configurations of tracklet finding
-  //Hodo. IDs for masking
-  std::vector<int> detectorIDs_mask[4];
-  std::vector<int> detectorIDs_maskX[4];
-  std::vector<int> detectorIDs_maskY[4];
-  std::list<int> hitIDs_mask[4]; //hits in T/B, L/R are combined
-  std::vector<int> stationIDs_mask[6];
+    //Prop. tube segments for muon id purposes
+    // 0 for X-Z, 1 for Y-Z
+    std::list<PropSegment> propSegs[2];
+    ///Configurations of tracklet finding
+    //Hodo. IDs for masking
+    std::vector<int> detectorIDs_mask[4];
+    std::vector<int> detectorIDs_maskX[4];
+    std::vector<int> detectorIDs_maskY[4];
+    std::list<int> hitIDs_mask[4]; //hits in T/B, L/R are combined
+    std::vector<int> stationIDs_mask[6];
 
-  //prop. tube IDs for MUID -- 0 for x-z, 1 for y-z
-  int detectorIDs_muid[2][4];
-  double z_ref_muid[2][4];
-  std::list<int> hitIDs_muid[2][4];
+    //prop. tube IDs for MUID -- 0 for x-z, 1 for y-z
+    int detectorIDs_muid[2][4];
+    double z_ref_muid[2][4];
+    std::list<int> hitIDs_muid[2][4];
 
-  //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
-  double z_mask[24];
-  double x_mask_min[24][72];
-  double x_mask_max[24][72];
-  double y_mask_min[24][72];
-  double y_mask_max[24][72];
- 
-  ///For following part, id = 0, 1, 2, 3, 4, 5 stand for station 1, 2, 3+, 3-, and prop tubes X-Z and Y-Z 
-  //Super plane IDs for DCs
-  std::vector<int> superIDs[6];
-  
-  //Window sizes for X-U combination
-  double u_win[4];
-  double u_costheta[4];
-  double u_sintheta[4];
+    //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
+    double z_mask[24];
+    double x_mask_min[24][72];
+    double x_mask_max[24][72];
+    double y_mask_min[24][72];
+    double y_mask_max[24][72];
 
-  //Plane angles for all planes
-  double costheta_plane[25];
-  double sintheta_plane[25];
+    ///For following part, id = 0, 1, 2, 3, 4, 5 stand for station 1, 2, 3+, 3-, and prop tubes X-Z and Y-Z
+    //Super plane IDs for DCs
+    std::vector<int> superIDs[6];
 
-  //Z positions
-  double z_plane_x[4];
-  double z_plane_u[4];
-  double z_plane_v[4];
-  double z_plane[25];
+    //Window sizes for X-U combination
+    double u_win[4];
+    double u_costheta[4];
+    double u_sintheta[4];
 
-  //Maximum slope and intersection in each view
-  double slope_max[25];
-  double intersection_max[25];
+    //Plane angles for all planes
+    double costheta_plane[25];
+    double sintheta_plane[25];
 
-  //Resolutions of all planes
-  double resol_plane[25];
+    //Z positions
+    double z_plane_x[4];
+    double z_plane_u[4];
+    double z_plane_v[4];
+    double z_plane[25];
 
-  //Cell width of all planes
-  double spacing_plane[25];
+    //Maximum slope and intersection in each view
+    double slope_max[25];
+    double intersection_max[25];
 
-  //Sagitta ratio in station 1 U/X/V
-  int s_detectorID[3];
+    //Resolutions of all planes
+    double resol_plane[25];
 
-  //Current tracklets being processed
-  Tracklet tracklet_curr;
+    //Cell width of all planes
+    double spacing_plane[25];
 
-  //Least chi square fitter and functor
-  ROOT::Math::Minimizer* minimizer[2];
-  ROOT::Math::Functor fcn;
+    //Sagitta ratio in station 1 U/X/V
+    int s_detectorID[3];
 
-  //Kalman fitter
-  KalmanFitter* kmfitter;
+    //Current tracklets being processed
+    Tracklet tracklet_curr;
 
-  //Geometry service
-  GeomSvc* p_geomSvc;
+    //Least chi square fitter and functor
+    ROOT::Math::Minimizer* minimizer[2];
+    ROOT::Math::Functor fcn;
 
-  //Job option service
-  JobOptsSvc* p_jobOptsSvc;
+    //Kalman fitter
+    KalmanFitter* kmfitter;
 
-  //Flag for enable Kalman fitting
-  const bool enable_KF;
+    //Geometry service
+    GeomSvc* p_geomSvc;
+
+    //Job option service
+    JobOptsSvc* p_jobOptsSvc;
+
+    //Flag for enable Kalman fitting
+    const bool enable_KF;
 };
 
 #endif

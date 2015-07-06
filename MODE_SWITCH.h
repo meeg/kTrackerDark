@@ -44,7 +44,7 @@
 
 //--------------- Muon identification -----------
 #define MUID_REJECT 4.
-#define MUID_THE_P0 0.11825 
+#define MUID_THE_P0 0.11825
 #define MUID_EMP_P0 0.00643
 #define MUID_EMP_P1 -0.00009
 #define MUID_EMP_P2 0.00000046
@@ -69,7 +69,7 @@
 #define Z_ST2 1347.36
 #define Z_ABSORBER 2028.19
 #define Z_REF 0.
-#define Z_TARGET -129.54 
+#define Z_TARGET -129.54
 #define Z_DUMP 40.
 #define RESOLUTION_DC 0.07
 

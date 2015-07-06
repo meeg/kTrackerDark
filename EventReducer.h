@@ -25,46 +25,46 @@ Created: 06-17-2015
 class EventReducer
 {
 public:
-  EventReducer(TString options);
-  ~EventReducer();
+    EventReducer(TString options);
+    ~EventReducer();
 
-  //main external call
-  int reduceEvent(SRawEvent* rawEvent);
+    //main external call
+    int reduceEvent(SRawEvent* rawEvent);
 
-  //sagitta ratio reducer
-  void sagittaReducer();
+    //sagitta ratio reducer
+    void sagittaReducer();
 
-  //hough transform reducer
-  void houghReducer();
+    //hough transform reducer
+    void houghReducer();
 
-  //hit cluster remover
-  void deClusterize();
-  void processCluster(std::vector<std::list<Hit>::iterator>& cluster);
+    //hit cluster remover
+    void deClusterize();
+    void processCluster(std::vector<std::list<Hit>::iterator>& cluster);
 
 private:
-  //pointer to geometry service, inited outside
-  GeomSvc* p_geomSvc;
+    //pointer to geometry service, inited outside
+    GeomSvc* p_geomSvc;
 
-  //pointer to trigger analyzer, inited inside
-  TriggerAnalyzer* p_triggerAna;
+    //pointer to trigger analyzer, inited inside
+    TriggerAnalyzer* p_triggerAna;
 
-  //Random number
-  TRandom rndm;
+    //Random number
+    TRandom rndm;
 
-  //temporary container for the hit list
-  std::list<Hit> hitlist;
+    //temporary container for the hit list
+    std::list<Hit> hitlist;
 
-  //flags of the hit manipulation method
-  bool afterhit;            //after pulse removal
-  bool hodomask;            //hodoscope masking
-  bool outoftime;           //out of time hit removal
-  bool decluster;           //remove hit clusters in chamber
-  bool mergehodo;           //merge trigger hit with hit
-  bool triggermask;         //use active trigger road for track masking
-  bool sagitta;             //remove the hits which cannot form a sagitta triplet
-  bool hough;               //remove the hits which cannot form a peak in hough space, will be implemented later
-  bool externalpar;         //re-apply the alignment and calibration parameters
-  bool realization;         //apply detector efficiency and resolution by dropping and smear
+    //flags of the hit manipulation method
+    bool afterhit;            //after pulse removal
+    bool hodomask;            //hodoscope masking
+    bool outoftime;           //out of time hit removal
+    bool decluster;           //remove hit clusters in chamber
+    bool mergehodo;           //merge trigger hit with hit
+    bool triggermask;         //use active trigger road for track masking
+    bool sagitta;             //remove the hits which cannot form a sagitta triplet
+    bool hough;               //remove the hits which cannot form a peak in hough space, will be implemented later
+    bool externalpar;         //re-apply the alignment and calibration parameters
+    bool realization;         //apply detector efficiency and resolution by dropping and smear
 };
 
 #endif
