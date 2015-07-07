@@ -62,30 +62,30 @@ extern "C"
 ///Parameters for alignment pocedure
 namespace MILLEPEDE
 {
-//Maximum number of detector planes
-static const int NPLAN = 24;
+    //Maximum number of detector planes
+    static const int NPLAN = 24;
 
-//Number of track parameters
-static const int NPARTRK = 4;
+    //Number of track parameters
+    static const int NPARTRK = 4;
 
-//Number of alignment parameters per plane
-static const int NPARPLAN = 3;
+    //Number of alignment parameters per plane
+    static const int NPARPLAN = 3;
 
-//Total number of global parameters
-static const int NGLB = NPLAN*NPARPLAN;
+    //Total number of global parameters
+    static const int NGLB = NPLAN*NPARPLAN;
 
-//Standard deviation cut of the residule
-static const int NSTDEV = 3;
+    //Standard deviation cut of the residule
+    static const int NSTDEV = 3;
 
-//Minimun number of hits
-static const int NHITSMIN = 15;
+    //Minimun number of hits
+    static const int NHITSMIN = 15;
 
-//Maximum allowed chi square/prob
-static const double CHISQMAX = 8.;
-static const double PROBMIN = 0.9;
+    //Maximum allowed chi square/prob
+    static const double CHISQMAX = 8.;
+    static const double PROBMIN = 0.9;
 
-//Lowest allowed momentum
-static const double MOMMIN = 25.;
+    //Lowest allowed momentum
+    static const double MOMMIN = 25.;
 };
 
 class SMillepede
@@ -111,14 +111,8 @@ public:
 
     //Fix detector parameters
     void fixDetectorParameter(int detectorID, int parameterID, float val = 0.);
-    void setDetectorParError(int detectorID, int parameterID, float err)
-    {
-        err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = err;
-    }
-    void setDetectorParameter(int detectorID, int parameterID, float val)
-    {
-        par_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = val;
-    }
+    void setDetectorParError(int detectorID, int parameterID, float err) { err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = err; }
+    void setDetectorParameter(int detectorID, int parameterID, float val) { par_align[(detectorID-1)*MILLEPEDE::NPARPLAN + parameterID] = val; }
     void constrainDetectors(int detectorID1, int detectorID2, int parameterID);
 
     //Book/Fill evaluation tree
@@ -129,34 +123,13 @@ public:
     void printResults(std::string outputFileName, std::string incrementFileName);
     void printQAPlots();
 
-    int getNHitsOnDetector(int detectorID)
-    {
-        return nHits[detectorID-1];
-    }
-    double getZOffsetVal(int detectorID)
-    {
-        return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0];
-    }
-    double getWOffsetVal(int detectorID)
-    {
-        return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2];
-    }
-    double getPhiOffsetVal(int detectorID)
-    {
-        return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1];
-    }
-    double getZOffsetErr(int detectorID)
-    {
-        return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0];
-    }
-    double getWOffsetErr(int detectorID)
-    {
-        return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2];
-    }
-    double getPhiOffsetErr(int detectorID)
-    {
-        return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1];
-    }
+    int getNHitsOnDetector(int detectorID) { return nHits[detectorID-1]; }
+    double getZOffsetVal(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0]; }
+    double getWOffsetVal(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2]; }
+    double getPhiOffsetVal(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1]; }
+    double getZOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0]; }
+    double getWOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2]; }
+    double getPhiOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1]; }
 
     //Wrapping with precision conversion and clearer method name
     void initMillepede(std::string configFileName);

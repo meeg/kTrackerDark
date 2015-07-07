@@ -54,10 +54,7 @@ public:
 
     ///Get the final state parameters and covariance
     void getFinalStateWithCov(TMatrixD& state_out, TMatrixD& cov_out);
-    double getTravelLength()
-    {
-        return travelLength;
-    }
+    double getTravelLength() { return travelLength; }
 
     ///Get the propagator
     //void buildNumericalPropagator();
@@ -79,24 +76,12 @@ public:
     ///Transplanted from GEANT3 fortran code
     void TRSDSC(int charge, G4ThreeVector mom_input, G4ThreeVector pos_input);
     void TRSCSD(int charge, G4ThreeVector mom_input, G4ThreeVector pos_input);
-    TMatrixD& getJacSD2SC()
-    {
-        return jac_sd2sc;
-    }
-    TMatrixD& getJacSC2SD()
-    {
-        return jac_sc2sd;
-    }
+    TMatrixD& getJacSD2SC() { return jac_sd2sc; }
+    TMatrixD& getJacSC2SD() { return jac_sc2sd; }
 
     ///External control of modes
-    void setPropCalc(bool option)
-    {
-        calcProp = option;
-    }
-    void setLengthCalc(bool option)
-    {
-        calcLength = option;
-    }
+    void setPropCalc(bool option) { calcProp = option; }
+    void setLengthCalc(bool option) { calcLength = option; }
 
     ///Debug print
     void print();

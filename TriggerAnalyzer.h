@@ -54,39 +54,15 @@ public:
     void trimEvent(SRawEvent* rawEvent);
 
     //Get the road list of +/-
-    std::list<TriggerRoad>& getRoadsAll(int charge)
-    {
-        return roads[(-charge+1)/2];
-    }
-    std::list<TriggerRoad>& getRoadsFound(int charge)
-    {
-        return roads_found[(-charge+1)/2];
-    }
-    std::list<TriggerRoad>& getRoadsEnabled(int charge)
-    {
-        return roads_enabled[(-charge+1)/2];
-    }
-    std::list<TriggerRoad>& getRoadsDisabled(int charge)
-    {
-        return roads_disabled[(-charge+1)/2];
-    }
+    std::list<TriggerRoad>& getRoadsAll(int charge) { return roads[(-charge+1)/2]; }
+    std::list<TriggerRoad>& getRoadsFound(int charge) { return roads_found[(-charge+1)/2]; }
+    std::list<TriggerRoad>& getRoadsEnabled(int charge) { return roads_enabled[(-charge+1)/2]; }
+    std::list<TriggerRoad>& getRoadsDisabled(int charge) { return roads_disabled[(-charge+1)/2]; }
 
-    int getNRoadsPosTop()
-    {
-        return nRoads[0][0];
-    }
-    int getNRoadsPosBot()
-    {
-        return nRoads[0][1];
-    }
-    int getNRoadsNegTop()
-    {
-        return nRoads[1][0];
-    }
-    int getNRoadsNegBot()
-    {
-        return nRoads[1][1];
-    }
+    int getNRoadsPosTop() { return nRoads[0][0]; }
+    int getNRoadsPosBot() { return nRoads[0][1]; }
+    int getNRoadsNegTop() { return nRoads[1][0]; }
+    int getNRoadsNegBot() { return nRoads[1][1]; }
 
     //Build prefix tree
     void buildTriggerTree();
@@ -98,16 +74,8 @@ public:
     void search(TNode* root, DataMatrix& data, int level, int charge);
 
     //print/clear prefix tree
-    void print(int charge)
-    {
-        roads_temp.clear();
-        printTree(root[(-charge+1)/2]);
-    }
-    void clear(int charge)
-    {
-        roads_temp.clear();
-        clearTree(root[(-charge+1)/2]);
-    }
+    void print(int charge) { roads_temp.clear(); printTree(root[(-charge+1)/2]); }
+    void clear(int charge) { roads_temp.clear(); clearTree(root[(-charge+1)/2]); }
 
     void printTree(TNode* root);
     void clearTree(TNode* root);

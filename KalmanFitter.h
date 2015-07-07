@@ -26,11 +26,7 @@ public:
     //~KalmanFitter();
 
     ///Set the convergence control parameters
-    void setControlParameter(int nMaxIteration, double tolerance)
-    {
-        _max_iteration = nMaxIteration;
-        _tolerance = tolerance;
-    }
+    void setControlParameter(int nMaxIteration, double tolerance) { _max_iteration = nMaxIteration; _tolerance = tolerance; }
 
     ///external call to process one single tracks
     ///the prediction-filter-smooth cycle is iteratively done
@@ -55,46 +51,22 @@ public:
     bool initSmoother(Node& _node);
 
     ///return the node list
-    std::list<Node>& getNodeList()
-    {
-        return _nodes;
-    }
+    std::list<Node>& getNodeList() { return _nodes; }
 
     ///Vertex finder
     double findVertex();
 
     ///Get the final results -- temporary interfaces, just for debugging purposes
-    double getMomentumInitial(double& px, double& py, double& pz)
-    {
-        return _nodes.front().getSmoothed().get_mom(px, py, pz);
-    }
-    double getMomentumFinal(double& px, double& py, double& pz)
-    {
-        return _nodes.back().getSmoothed().get_mom(px, py, pz);
-    }
+    double getMomentumInitial(double& px, double& py, double& pz) { return _nodes.front().getSmoothed().get_mom(px, py, pz); }
+    double getMomentumFinal(double& px, double& py, double& pz) { return _nodes.back().getSmoothed().get_mom(px, py, pz); }
 
-    double getPositionInitial(double& x, double& y, double& z)
-    {
-        return _nodes.front().getSmoothed().get_pos(x, y, z);
-    }
-    double getPositionFinal(double& x, double& y, double& z)
-    {
-        return _nodes.back().getSmoothed().get_pos(x, y, z);
-    }
+    double getPositionInitial(double& x, double& y, double& z) { return _nodes.front().getSmoothed().get_pos(x, y, z); }
+    double getPositionFinal(double& x, double& y, double& z) { return _nodes.back().getSmoothed().get_pos(x, y, z); }
 
-    double getChisq()
-    {
-        return _chisq;
-    }
+    double getChisq() { return _chisq; }
 
-    const TrkPar& getTrkParInitial()
-    {
-        return _nodes.front().getSmoothed();
-    }
-    const TrkPar& getTrkParFinal()
-    {
-        return _nodes.back().getSmoothed();
-    }
+    const TrkPar& getTrkParInitial() { return _nodes.front().getSmoothed(); }
+    const TrkPar& getTrkParFinal() { return _nodes.back().getSmoothed(); }
 
     //TrkPar getTrkPar(double z) { std::cout << "Will be implemented later" << std::endl; }
 

@@ -11,9 +11,9 @@ Created: 10-18-2011
 
 Updated by Kun Liu on 07-03-2012
 ---  Support all detector planes including chambers, hodoscopes, and prop.
-     tubes
+tubes
 ---  The convention of detector plane ID is: firstly chambers, then hodos,
-     and then prop. tubes
+and then prop. tubes
 */
 
 #ifndef _GEOMSVC_H
@@ -41,18 +41,9 @@ public:
     double intercept(double tx, double ty, double x0_track, double y0_track) const;
 
     //X, Y, U, V conversion
-    double getX(double w, double y) const
-    {
-        return w/costheta - y*tantheta;
-    }
-    double getY(double x, double w) const
-    {
-        return w/sintheta - x/tantheta;
-    }
-    double getW(double x, double y) const
-    {
-        return x*costheta + y*sintheta;
-    }
+    double getX(double w, double y) const { return w/costheta - y*tantheta; }
+    double getY(double x, double w) const { return w/sintheta - x/tantheta; }
+    double getW(double x, double y) const { return x*costheta + y*sintheta; }
 
     //Calculate the internal variables
     void update();
@@ -141,128 +132,44 @@ public:
     void toLocalDetectorName(std::string& detectorName, int& eID);
 
     ///Get the plane position
-    int getDetectorID(std::string detectorName)
-    {
-        return map_detectorID[detectorName];
-    }
-    std::string getDetectorName(int detectorID)
-    {
-        return map_detectorName[detectorID];
-    }
+    int getDetectorID(std::string detectorName) { return map_detectorID[detectorName]; }
+    std::string getDetectorName(int detectorID) { return map_detectorName[detectorID]; }
     std::vector<int> getDetectorIDs(std::string pattern);
     bool findPatternInDetector(int detectorID, std::string pattern);
 
-    double getPlanePosition(int detectorID) const
-    {
-        return planes[detectorID].zc;
-    }
-    double getPlaneSpacing(int detectorID) const
-    {
-        return planes[detectorID].spacing;
-    }
-    double getCellWidth(int detectorID)
-    {
-        return planes[detectorID].cellWidth;
-    }
-    double getCostheta(int detectorID) const
-    {
-        return planes[detectorID].costheta;
-    }
-    double getSintheta(int detectorID) const
-    {
-        return planes[detectorID].sintheta;
-    }
-    double getTantheta(int detectorID) const
-    {
-        return planes[detectorID].tantheta;
-    }
-    double getPlaneScaleX(int detectorID)
-    {
-        return planes[detectorID].x2 - planes[detectorID].x1;
-    }
-    double getPlaneScaleY(int detectorID)
-    {
-        return planes[detectorID].y2 - planes[detectorID].y1;
-    }
-    int getPlaneNElements(int detectorID)
-    {
-        return planes[detectorID].nElements;
-    }
-    double getPlaneResolution(int detectorID) const
-    {
-        return planes[detectorID].resolution;
-    }
+    double getPlanePosition(int detectorID) const { return planes[detectorID].zc; }
+    double getPlaneSpacing(int detectorID) const  { return planes[detectorID].spacing; }
+    double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
+    double getCostheta(int detectorID) const  { return planes[detectorID].costheta; }
+    double getSintheta(int detectorID) const  { return planes[detectorID].sintheta; }
+    double getTantheta(int detectorID) const  { return planes[detectorID].tantheta; }
+    double getPlaneScaleX(int detectorID)   { return planes[detectorID].x2 - planes[detectorID].x1; }
+    double getPlaneScaleY(int detectorID)   { return planes[detectorID].y2 - planes[detectorID].y1; }
+    int getPlaneNElements(int detectorID)   { return planes[detectorID].nElements; }
+    double getPlaneResolution(int detectorID) const { return planes[detectorID].resolution; }
 
-    double getPlaneCenterX(int detectorID)
-    {
-        return planes[detectorID].xc;
-    }
-    double getPlaneCenterY(int detectorID)
-    {
-        return planes[detectorID].yc;
-    }
-    double getPlaneCenterZ(int detectorID)
-    {
-        return planes[detectorID].zc;
-    }
-    double getRotationInX(int detectorID)
-    {
-        return planes[detectorID].rX;
-    }
-    double getRotationInY(int detectorID)
-    {
-        return planes[detectorID].rY;
-    }
-    double getRotationInZ(int detectorID)
-    {
-        return planes[detectorID].rZ;
-    }
+    double getPlaneCenterX(int detectorID)  { return planes[detectorID].xc; }
+    double getPlaneCenterY(int detectorID)  { return planes[detectorID].yc; }
+    double getPlaneCenterZ(int detectorID)  { return planes[detectorID].zc; }
+    double getRotationInX(int detectorID)    { return planes[detectorID].rX; }
+    double getRotationInY(int detectorID)    { return planes[detectorID].rY; }
+    double getRotationInZ(int detectorID)    { return planes[detectorID].rZ; }
 
-    double getPlaneZOffset(int detectorID)
-    {
-        return planes[detectorID].deltaZ;
-    }
-    double getPlanePhiOffset(int detectorID)
-    {
-        return planes[detectorID].rotZ;
-    }
-    double getPlaneWOffset(int detectorID)
-    {
-        return planes[detectorID].deltaW;
-    }
-    double getPlaneWOffset(int detectorID, int moduleID)
-    {
-        return planes[detectorID].deltaW_module[moduleID];
-    }
+    double getPlaneZOffset(int detectorID)   { return planes[detectorID].deltaZ; }
+    double getPlanePhiOffset(int detectorID) { return planes[detectorID].rotZ; }
+    double getPlaneWOffset(int detectorID)   { return planes[detectorID].deltaW; }
+    double getPlaneWOffset(int detectorID, int moduleID) { return planes[detectorID].deltaW_module[moduleID]; }
 
-    int getPlaneType(int detectorID) const
-    {
-        return planes[detectorID].planeType;
-    }
+    int getPlaneType(int detectorID) const { return planes[detectorID].planeType; }
 
-    double getKMAGCenter()
-    {
-        return (zmin_kmag + zmax_kmag)/2.;
-    }
-    double getKMAGUpstream()
-    {
-        return zmin_kmag;
-    }
-    double getKMAGDownstream()
-    {
-        return zmax_kmag;
-    }
+    double getKMAGCenter()     { return (zmin_kmag + zmax_kmag)/2.; }
+    double getKMAGUpstream()   { return zmin_kmag; }
+    double getKMAGDownstream() { return zmax_kmag; }
 
     ///Get the interception of a line an a plane
-    double getInterception(int detectorID, double tx, double ty, double x0, double y0) const
-    {
-        return planes[detectorID].intercept(tx, ty, x0, y0);
-    }
+    double getInterception(int detectorID, double tx, double ty, double x0, double y0) const { return planes[detectorID].intercept(tx, ty, x0, y0); }
     double getInterceptionFast(int detectorID, double tx, double ty, double x0, double y0) const;
-    double getInterceptionFast(int detectorID, double x_exp, double y_exp) const
-    {
-        return planes[detectorID].getW(x_exp, y_exp);
-    }
+    double getInterceptionFast(int detectorID, double x_exp, double y_exp) const { return planes[detectorID].getW(x_exp, y_exp); }
 
     ///Convert the detectorID and elementID to the actual hit position
     void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);
@@ -271,30 +178,15 @@ public:
     int getExpElementID(int detectorID, double pos_exp);
 
     ///Calibration related
-    bool isCalibrationLoaded()
-    {
-        return calibration_loaded;
-    }
+    bool isCalibrationLoaded() { return calibration_loaded; }
     double getDriftDistance(int detectorID, double tdcTime);
     bool isInTime(int detectorID, double tdcTime);
-    TSpline3* getRTCurve(int detectorID)
-    {
-        return planes[detectorID].rtprofile;
-    }
+    TSpline3* getRTCurve(int detectorID) { return planes[detectorID].rtprofile; }
 
     ///Convert the stereo hits to Y value
-    double getYinStereoPlane(int detectorID, double x, double u)
-    {
-        return planes[detectorID].getY(x, u);
-    }
-    double getUinStereoPlane(int detectorID, double x, double y)
-    {
-        return planes[detectorID].getW(x, y);
-    }
-    double getXinStereoPlane(int detectorID, double u, double y)
-    {
-        return planes[detectorID].getX(u, y);
-    }
+    double getYinStereoPlane(int detectorID, double x, double u) { return planes[detectorID].getY(x, u); }
+    double getUinStereoPlane(int detectorID, double x, double y) { return planes[detectorID].getW(x, y); }
+    double getXinStereoPlane(int detectorID, double u, double y) { return planes[detectorID].getX(u, y); }
 
     ///See if a point is in a plane
     bool isInPlane(int detectorID, double x, double y);

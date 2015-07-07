@@ -2,8 +2,8 @@
 
 
 
-  @author Brian G. Tice
-  */
+@author Brian G. Tice
+*/
 
 #ifndef _JOBOPTSSVC_H
 #define _JOBOPTSSVC_H

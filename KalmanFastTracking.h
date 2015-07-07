@@ -89,22 +89,10 @@ public:
     void resolveLeftRight(KalmanTrack& kmtrk);
 
     ///Final output
-    std::list<Tracklet>& getFinalTracklets()
-    {
-        return trackletsInSt[4];
-    }
-    std::list<Tracklet>& getBackPartials()
-    {
-        return trackletsInSt[3];
-    }
-    std::list<SRecTrack>& getSRecTracks()
-    {
-        return stracks;
-    }
-    std::list<PropSegment>& getPropSegments(int i)
-    {
-        return propSegs[i];
-    }
+    std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
+    std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
+    std::list<SRecTrack>& getSRecTracks() { return stracks; }
+    std::list<PropSegment>& getPropSegments(int i) { return propSegs[i]; }
 
     ///Tool, a simple-minded chi square fit
     void chi2fit(int n, double x[], double y[], double& a, double& b);

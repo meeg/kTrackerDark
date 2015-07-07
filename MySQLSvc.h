@@ -43,21 +43,11 @@ public:
     bool connectOutput(std::string mysqlServer = "", int mysqlPort = -1);
 
     //Get direct pointer to the mysql connection
-    TSQLServer* getInputServer()
-    {
-        return inputServer;
-    }
-    TSQLServer* getOutputServer()
-    {
-        return outputServer;
-    }
+    TSQLServer* getInputServer() { return inputServer; }
+    TSQLServer* getOutputServer() { return outputServer; }
 
     //Set username/password
-    void setUserPasswd(std::string user_input, std::string passwd_input)
-    {
-        user = user_input;
-        passwd = passwd_input;
-    }
+    void setUserPasswd(std::string user_input, std::string passwd_input) { user = user_input; passwd = passwd_input; }
 
     //check if the run is stopped
     bool isRunStopped();
@@ -74,10 +64,7 @@ public:
     bool getNextEvent(SRawMCEvent* rawEvent);
 
     //Check if the event has been loaded
-    bool isEventLoaded(int eventID)
-    {
-        return std::find(eventIDs_loaded.begin(), eventIDs_loaded.end(), eventID) != eventIDs_loaded.end();
-    }
+    bool isEventLoaded(int eventID) { return std::find(eventIDs_loaded.begin(), eventIDs_loaded.end(), eventID) != eventIDs_loaded.end(); }
 
     //Get the event header
     bool getEventHeader(SRawEvent* rawEvent, int eventID);
@@ -106,26 +93,11 @@ public:
 
     //Set the data schema
     void setInputSchema(std::string schema);
-    void setOutputSchema(std::string schema)
-    {
-        outputSchema = schema;
-    }
-    void setLoggingSchema(std::string schema)
-    {
-        logSchema = schema;
-    }
-    void enableQIE(bool opt)
-    {
-        readQIE = opt;
-    }
-    void enableTargetPos(bool opt)
-    {
-        readTargetPos = opt;
-    }
-    void enableTriggerHits(bool opt)
-    {
-        readTriggerHits = opt;
-    }
+    void setOutputSchema(std::string schema)  { outputSchema = schema; }
+    void setLoggingSchema(std::string schema) { logSchema = schema; }
+    void enableQIE(bool opt) { readQIE = opt; }
+    void enableTargetPos(bool opt) { readTargetPos = opt; }
+    void enableTriggerHits(bool opt) { readTriggerHits = opt; }
 
     //Memory-safe sql queries
     int makeQueryInput();

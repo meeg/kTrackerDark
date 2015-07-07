@@ -36,56 +36,26 @@ public:
     Hit();
 
     //Decompose the data quality flag
-    bool isInTime()
-    {
-        return (flag & Hit::inTime) != 0;
-    }
-    bool isHodoMask()
-    {
-        return (flag & Hit::hodoMask) != 0;
-    }
-    bool isTriggerMask()
-    {
-        return (flag & Hit::triggerMask) != 0;
-    }
+    bool isInTime() { return (flag & Hit::inTime) != 0; }
+    bool isHodoMask() { return (flag & Hit::hodoMask) != 0; }
+    bool isTriggerMask() { return (flag & Hit::triggerMask) != 0; }
 
     //Set the flag
-    void setFlag(UShort_t flag_input)
-    {
-        flag |= flag_input;
-    }
-    void resetFlag(UShort_t flag_input)
-    {
-        flag &= ~flag_input;
-    }
-    void setInTime(bool f = true)
-    {
-        f ? (flag |= inTime) : (flag &= ~inTime);
-    }
-    void setHodoMask(bool f = true)
-    {
-        f ? (flag |= hodoMask) : (f &= ~hodoMask);
-    }
-    void setTriggerMask(bool f = true)
-    {
-        f ? (flag |= triggerMask) : (flag &= ~triggerMask);
-    }
+    void setFlag(UShort_t flag_input) { flag |= flag_input; }
+    void resetFlag(UShort_t flag_input) { flag &= ~flag_input; }
+    void setInTime(bool f = true) { f ? (flag |= inTime) : (flag &= ~inTime); }
+    void setHodoMask(bool f = true) { f ? (flag |= hodoMask) : (f &= ~hodoMask); }
+    void setTriggerMask(bool f = true) { f ? (flag |= triggerMask) : (flag &= ~triggerMask); }
 
     //Sign of this hit
-    Int_t getSign()
-    {
-        return driftDistance > 0 ? 1 : -1;
-    }
+    Int_t getSign() { return driftDistance > 0 ? 1 : -1; }
 
     //overiden comparison operator for track seeding
     bool operator<(const Hit& elem) const;
     bool operator==(const Hit& elem) const;
 
     //Debugging output
-    void print()
-    {
-        std::cout << index << " : " << detectorID << " : " << elementID << " : " << pos << " : " << driftDistance << " : " << isInTime() << " : " << isHodoMask() << " : " << isTriggerMask() << std::endl;
-    }
+    void print() { std::cout << index << " : " << detectorID << " : " << elementID << " : " << pos << " : " << driftDistance << " : " << isInTime() << " : " << isHodoMask() << " : " << isTriggerMask() << std::endl; }
 
     //Data members
     Int_t index;             //unique index for identification
@@ -121,14 +91,8 @@ public:
     std::list<Int_t> getHitsIndexInDetectors(std::vector<Int_t>& detectorIDs);
     std::list<Int_t> getAdjacentHitsIndex(Hit& _hit);
 
-    Int_t getNHitsAll()
-    {
-        return fNHits[0];
-    }
-    Int_t getNTriggerHits()
-    {
-        return fTriggerHits.size();
-    }
+    Int_t getNHitsAll() { return fNHits[0]; }
+    Int_t getNTriggerHits() { return fTriggerHits.size(); }
     Int_t getNChamberHitsAll();
     Int_t getNHodoHitsAll();
     Int_t getNPropHitsAll();
@@ -137,73 +101,30 @@ public:
     Int_t getNHitsInD3p();
     Int_t getNHitsInD3m();
 
-    Int_t getNHitsInDetector(Short_t detectorID)
-    {
-        return fNHits[detectorID];
-    }
-    Int_t getNHitsInSuperDetector(Short_t detectorID)
-    {
-        return fNHits[2*detectorID-1] + fNHits[2*detectorID];
-    }
+    Int_t getNHitsInDetector(Short_t detectorID) { return fNHits[detectorID]; }
+    Int_t getNHitsInSuperDetector(Short_t detectorID) { return fNHits[2*detectorID-1] + fNHits[2*detectorID]; }
     Int_t getNHitsInDetectors(std::vector<Int_t>& detectorIDs);
 
-    std::vector<Hit> getAllHits()
-    {
-        return fAllHits;
-    }
-    std::vector<Hit> getTriggerHits()
-    {
-        return fTriggerHits;
-    }
-    Hit getTriggerHit(Int_t index)
-    {
-        return fTriggerHits[index];
-    }
-    Hit getHit(Int_t index)
-    {
-        return fAllHits[index];
-    }
+    std::vector<Hit> getAllHits() { return fAllHits; }
+    std::vector<Hit> getTriggerHits() { return fTriggerHits; }
+    Hit getTriggerHit(Int_t index) { return fTriggerHits[index]; }
+    Hit getHit(Int_t index) { return fAllHits[index]; }
     Hit getHit(Short_t detectorID, Short_t elementID);
-    void setHitFlag(Int_t index, Short_t flag)
-    {
-        if(index < 0) return;
-        fAllHits[index].setFlag(flag);
-    }
-    void setHitFlag(Short_t detectorID, Short_t elementID, Short_t flag)
-    {
-        setHitFlag(findHit(detectorID, elementID), flag);
-    }
+    void setHitFlag(Int_t index, Short_t flag) { if(index < 0) return; fAllHits[index].setFlag(flag); }
+    void setHitFlag(Short_t detectorID, Short_t elementID, Short_t flag) { setHitFlag(findHit(detectorID, elementID), flag); }
 
-    Int_t getRunID()
-    {
-        return fRunID;
-    }
-    Int_t getEventID()
-    {
-        return fEventID;
-    }
-    Int_t getSpillID()
-    {
-        return fSpillID;
-    }
+    Int_t getRunID() { return fRunID; }
+    Int_t getEventID() { return fEventID; }
+    Int_t getSpillID() { return fSpillID; }
 
     ///Sets
     void setEventInfo(Int_t runID, Int_t spillID, Int_t eventID);
-    void setHit(Int_t index, Hit h)
-    {
-        fAllHits[index] = h;
-    }
-    void setTriggerHit(Int_t index, Hit h)
-    {
-        fTriggerHits[index] = h;
-    }
+    void setHit(Int_t index, Hit h) { fAllHits[index] = h; }
+    void setTriggerHit(Int_t index, Hit h) { fTriggerHits[index] = h; }
 
     ///Insert a new hit
     void insertHit(Hit h);
-    void insertTriggerHit(Hit h)
-    {
-        fTriggerHits.push_back(h);
-    }
+    void insertTriggerHit(Hit h) { fTriggerHits.push_back(h); }
 
     ///Find a hit -- binary search since hit list is sorted
     Int_t findHit(Short_t detectorID, Short_t elementID);
@@ -217,130 +138,42 @@ public:
     std::list<SRawEvent::hit_pair> getPartialHitPairsInSuperDetector(Short_t detectorID, Double_t x_exp, Double_t wind);
 
     ///Set/get the trigger types
-    Int_t getTriggerBits()
-    {
-        return fTriggerBits;
-    }
+    Int_t getTriggerBits() { return fTriggerBits; }
     void setTriggerBits(Int_t triggers[]);
-    void setTriggerBits(Int_t triggers)
-    {
-        fTriggerBits = triggers;
-    }
-    bool isTriggeredBy(Int_t trigger)
-    {
-        return (fTriggerBits & trigger) != 0;
-    }
+    void setTriggerBits(Int_t triggers) { fTriggerBits = triggers; }
+    bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
 
     //Set/get offline trigger emulation results
-    bool isEmuTriggered()
-    {
-        return fTriggerEmu > 0;
-    }
-    Int_t getNRoadsPos()
-    {
-        return fNRoads[0] + fNRoads[1];
-    }
-    Int_t getNRoadsNeg()
-    {
-        return fNRoads[2] + fNRoads[3];
-    }
-    Int_t getNRoadsPosTop()
-    {
-        return fNRoads[0];
-    }
-    Int_t getNRoadsPosBot()
-    {
-        return fNRoads[1];
-    }
-    Int_t getNRoadsNegTop()
-    {
-        return fNRoads[2];
-    }
-    Int_t getNRoadsNegBot()
-    {
-        return fNRoads[3];
-    }
-    Short_t* getNRoads()
-    {
-        return fNRoads;
-    }
-    void setTriggerEmu(bool flag)
-    {
-        fTriggerEmu = flag ? 1 : -1;
-    }
-    void setNRoads(Short_t nRoads[])
-    {
-        for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i];
-    }
-    void setNRoads(Int_t nRoads[])
-    {
-        for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i];
-    }
+    bool isEmuTriggered() { return fTriggerEmu > 0; }
+    Int_t getNRoadsPos() { return fNRoads[0] + fNRoads[1]; }
+    Int_t getNRoadsNeg() { return fNRoads[2] + fNRoads[3]; }
+    Int_t getNRoadsPosTop() { return fNRoads[0]; }
+    Int_t getNRoadsPosBot() { return fNRoads[1]; }
+    Int_t getNRoadsNegTop() { return fNRoads[2]; }
+    Int_t getNRoadsNegBot() { return fNRoads[3]; }
+    Short_t* getNRoads() { return fNRoads; }
+    void setTriggerEmu(bool flag) { fTriggerEmu = flag ? 1 : -1; }
+    void setNRoads(Short_t nRoads[]) { for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i]; }
+    void setNRoads(Int_t nRoads[]) { for(Int_t i = 0; i < 4; ++i) fNRoads[i] = nRoads[i]; }
 
     //Set/get the target position
-    Int_t getTargetPos()
-    {
-        return fTargetPos;
-    }
-    void setTargetPos(Short_t targetPos)
-    {
-        fTargetPos = targetPos;
-    }
+    Int_t getTargetPos() { return fTargetPos; }
+    void setTargetPos(Short_t targetPos) { fTargetPos = targetPos; }
 
     //Set/get the beam info
-    Int_t getTurnID()
-    {
-        return fTurnID;
-    }
-    Int_t getRFID()
-    {
-        return fRFID;
-    }
-    Int_t getIntensity()
-    {
-        return fIntensity[16];
-    }
-    Int_t getIntensity(Int_t i)
-    {
-        return fIntensity[i+16];
-    }
-    Int_t getIntensitySumBefore(Int_t n = 16)
-    {
-        Int_t sum = 0;
-        for(Int_t i = n; i < 16; ++i) sum += fIntensity[i];
-        return sum;
-    }
-    Int_t getIntensitySumAfter(Int_t n = 16)
-    {
-        Int_t sum = 0;
-        for(Int_t i = 16; i < n+16; ++i) sum += fIntensity[i];
-        return sum;
-    }
-    Int_t* getIntensityAll()
-    {
-        return fIntensity;
-    }
+    Int_t getTurnID() { return fTurnID; }
+    Int_t getRFID() { return fRFID; }
+    Int_t getIntensity() { return fIntensity[16]; }
+    Int_t getIntensity(Int_t i) { return fIntensity[i+16]; }
+    Int_t getIntensitySumBefore(Int_t n = 16) { Int_t sum = 0; for(Int_t i = n; i < 16; ++i) sum += fIntensity[i]; return sum; }
+    Int_t getIntensitySumAfter(Int_t n = 16) { Int_t sum = 0; for(Int_t i = 16; i < n+16; ++i) sum += fIntensity[i]; return sum; }
+    Int_t* getIntensityAll() { return fIntensity; }
 
-    void setTurnID(Int_t turnID)
-    {
-        fTurnID = turnID;
-    }
-    void setRFID(Int_t rfID)
-    {
-        fRFID = rfID;
-    }
-    void setIntensity(const Int_t intensity[])
-    {
-        for(Int_t i = 0; i < 33; ++i) fIntensity[i] = intensity[i];
-    }
-    void setIntensity(Int_t i, Int_t val)
-    {
-        fIntensity[i] = val;
-    }
-    void setIntensity(Int_t val)
-    {
-        fIntensity[16] = val;
-    }
+    void setTurnID(Int_t turnID) { fTurnID = turnID; }
+    void setRFID(Int_t rfID) { fRFID = rfID; }
+    void setIntensity(const Int_t intensity[]) { for(Int_t i = 0; i < 33; ++i) fIntensity[i] = intensity[i]; }
+    void setIntensity(Int_t i, Int_t val) { fIntensity[i] = val; }
+    void setIntensity(Int_t val) { fIntensity[16] = val; }
 
     ///Merge a event to this event
     void mergeEvent(const SRawEvent& rawEvent);

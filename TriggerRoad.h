@@ -23,10 +23,7 @@ public:
 
     //Flag
     bool isValid();
-    bool isEnabled()
-    {
-        return enabled;
-    }
+    bool isEnabled() { return enabled; }
 
     //Get reflection in T/B, LR
     TriggerRoad reflectTB();
@@ -36,54 +33,24 @@ public:
     void addElement(int detectorID, int elementID);
 
     //Setters
-    void enable()
-    {
-        enabled = true;
-    }
-    void disable()
-    {
-        enabled = false;
-    }
+    void enable() { enabled = true; }
+    void disable() { enabled = false; }
 
     //Getters
-    int getNElements()
-    {
-        return detectorIDs.size();
-    }
-    int getDetectorID(int i)
-    {
-        return detectorIDs[i];
-    }
-    int getElementID(int i)
-    {
-        return elementIDs[i];
-    }
-    int getUniqueID(int i)
-    {
-        return detectorIDs[i]*100 + elementIDs[i];
-    }
+    int getNElements() { return detectorIDs.size(); }
+    int getDetectorID(int i) { return detectorIDs[i]; }
+    int getElementID(int i) { return elementIDs[i]; }
+    int getUniqueID(int i) { return detectorIDs[i]*100 + elementIDs[i]; }
 
     int getRoadID();
 
     //The total weight and ratio of target weight
-    double weight() const
-    {
-        return targetWeight + dumpWeight;
-    }
-    double ratio() const
-    {
-        return targetWeight/(targetWeight + dumpWeight);
-    }
-    double mratio() const
-    {
-        return highMWeight/(lowMWeight + highMWeight);
-    }
+    double weight() const { return targetWeight + dumpWeight; }
+    double ratio() const { return targetWeight/(targetWeight + dumpWeight); }
+    double mratio() const { return highMWeight/(lowMWeight + highMWeight); }
 
     //Mean and sigma of pX distribution
-    int getNEntries() const
-    {
-        return pXs.size();
-    }
+    int getNEntries() const { return pXs.size(); }
     double getpXMean() const;
     double getpXWidth() const;
 

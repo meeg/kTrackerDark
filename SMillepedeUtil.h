@@ -31,10 +31,7 @@ public:
 
     //Flag indicating whether this node is valid or not
     bool flag;
-    bool isValid()
-    {
-        return flag;
-    }
+    bool isValid() { return flag; }
 
     //detector ID
     int detectorID;
@@ -70,10 +67,7 @@ public:
     double z;
 
     //Overiden comparison operator
-    bool operator<(const MPNode& elem) const
-    {
-        return detectorID < elem.detectorID;
-    }
+    bool operator<(const MPNode& elem) const { return detectorID < elem.detectorID; }
 
     //Debugging output
     void print();

@@ -33,14 +33,8 @@ public:
     double charge;
     double p;
 
-    double getExpPositionX(double z)
-    {
-        return axz*z + bxz;
-    }
-    double getExpPositionY(double z)
-    {
-        return ayz*z + byz;
-    }
+    double getExpPositionX(double z) { return axz*z + bxz; }
+    double getExpPositionY(double z) { return ayz*z + byz; }
 
     void decideCharge();
     void decideMomentum();
@@ -64,10 +58,7 @@ public:
     KalmanTrack(SRecTrack& _trk, SRawEvent *_rawevt, SRecEvent *_recevt);
 
     ///Get the seed associated
-    Seed getSeed()
-    {
-        return _seed;
-    }
+    Seed getSeed() { return _seed; }
 
     ///Flip the sign of this track
     void flipCharge();
@@ -80,30 +71,15 @@ public:
 
     ///Propagate the track to a designated position
     bool propagateTo(int detectorID);
-    int getCurrentDetectorID()
-    {
-        return _node_next.getHit().detectorID;
-    }
+    int getCurrentDetectorID() { return _node_next.getHit().detectorID; }
 
     ///Get the expected position
     double getExpPosition();
     double getExpPosError();
-    double getExpPositionX()
-    {
-        return _node_next.getPredicted()._state_kf[3][0];
-    }
-    double getExpPositionY()
-    {
-        return _node_next.getPredicted()._state_kf[4][0];
-    }
-    double getExpPosErrorX()
-    {
-        return sqrt(_node_next.getPredicted()._covar_kf[3][0]);
-    }
-    double getExpPosErrorY()
-    {
-        return sqrt(_node_next.getPredicted()._covar_kf[4][0]);
-    }
+    double getExpPositionX() { return _node_next.getPredicted()._state_kf[3][0]; }
+    double getExpPositionY() { return _node_next.getPredicted()._state_kf[4][0]; }
+    double getExpPosErrorX() { return sqrt(_node_next.getPredicted()._covar_kf[3][0]); }
+    double getExpPosErrorY() { return sqrt(_node_next.getPredicted()._covar_kf[4][0]); }
 
     Node* getNearestNodePtr(double z);
     void getExpPositionFast(double z, double& x, double& y, Node *_node = NULL);
@@ -126,62 +102,29 @@ public:
     void updateMomentum();
 
     ///set the current track parameter
-    void setCurrTrkpar(TrkPar& _trkpar)
-    {
-        _trkpar_curr = _trkpar;
-    }
+    void setCurrTrkpar(TrkPar& _trkpar) { _trkpar_curr = _trkpar; }
 
     ///Get the rough vertex momentum
     double getMomentumVertex(double z, double& px, double& py, double& pz);
 
     ///Get the list of hits associated
-    std::list<int>& getHitIndexList()
-    {
-        return _hit_index;
-    }
-    std::list<Node>& getNodeList()
-    {
-        return _nodes;
-    }
+    std::list<int>& getHitIndexList() { return _hit_index; }
+    std::list<Node>& getNodeList() { return _nodes; }
     std::vector<int> getMissedDetectorIDs();
 
-    int getNHits()
-    {
-        return _hit_index.size();
-    }
-    int getCharge()
-    {
-        return _nodes.front().getFiltered().get_charge();
-    }
-    int getAssignedCharge()
-    {
-        return _nodes.back().getPredicted().get_charge();
-    }
+    int getNHits() { return _hit_index.size(); }
+    int getCharge() { return _nodes.front().getFiltered().get_charge(); }
+    int getAssignedCharge() { return _nodes.back().getPredicted().get_charge(); }
     int getKickCharge();  //Get the charge decided by the sign of Kick
-    double getChisq()
-    {
-        return _chisq;
-    }
-    double getQuality()
-    {
-        return _quality;
-    }
-    double getReducedChisq()
-    {
-        return _chisq/_hit_index.size();
-    }
-    double getChisqVertex()
-    {
-        return _chisq_vertex;
-    }
+    double getChisq() { return _chisq; }
+    double getQuality() { return _quality; }
+    double getReducedChisq() { return _chisq/_hit_index.size(); }
+    double getChisqVertex() { return _chisq_vertex; }
 
     double getXZSlopeInStation(int stationID);
     double getPositionInStation(int stationID, double& x, double& y, double& z);
     double getMomentumInStation(int stationID);
-    double getMomentumUpstream()
-    {
-        return 1./fabs(_nodes.front().getFiltered()._state_kf[0][0]);
-    }
+    double getMomentumUpstream() { return 1./fabs(_nodes.front().getFiltered()._state_kf[0][0]); }
     double getMomentumUpstream(double& px, double& py, double& pz);
     int getNHitsInStation(int stationID);
 

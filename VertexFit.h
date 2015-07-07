@@ -5,11 +5,11 @@
 VertexFit.h
 
 Definition of the Vertex fit of dimuon events, this package is aimed at:
-  1. Use closest distance method to find z0 for two muon tracks
-  2. Use vertex fit to fit the z0 --- will be implemented in next version
+1. Use closest distance method to find z0 for two muon tracks
+2. Use vertex fit to fit the z0 --- will be implemented in next version
 
 Reference: CBM-SOFT-note-2006-001, by S. Gorbunov and I. Kisel, with some minor
-           modifications
+modifications
 
 Author: Kun Liu, liuk@fnal.gov
 Created: 2-8-2012
@@ -60,10 +60,7 @@ public:
     ~VertexFit();
 
     ///Enable the optimization of final dimuon vertex z position
-    void enableOptimization()
-    {
-        optimize = true;
-    }
+    void enableOptimization() { optimize = true; }
 
     ///Set the convergence control parameters
     void setControlParameter(int nMaxIteration, double tolerance)
@@ -77,11 +74,7 @@ public:
 
     ///Initialize and reset
     void init();
-    void addHypothesis(double z, double sigz = 50.)
-    {
-        z_start.push_back(z);
-        sig_z_start.push_back(sigz);
-    }
+    void addHypothesis(double z, double sigz = 50.) { z_start.push_back(z); sig_z_start.push_back(sigz); }
     void setStartingVertex(double z_start, double sigz_start);
 
     ///Add one track parameter set into the fit
@@ -100,22 +93,10 @@ public:
     double findSingleMuonVertex(TrkPar& _trkpar_start);
 
     ///Gets
-    double getVertexZ0()
-    {
-        return _vtxpar_curr._r[2][0];
-    }
-    double getVXChisq()
-    {
-        return _chisq_vertex;
-    }
-    double getKFChisq()
-    {
-        return _chisq_kalman;
-    }
-    int getNTracks()
-    {
-        return _trkpar_curr.size();
-    }
+    double getVertexZ0() { return _vtxpar_curr._r[2][0]; }
+    double getVXChisq() { return _chisq_vertex; }
+    double getKFChisq() { return _chisq_kalman; }
+    int getNTracks() { return _trkpar_curr.size(); }
 
     ///Core function, update the vertex prediction according to the track info.
     void updateVertex();

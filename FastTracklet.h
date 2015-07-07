@@ -30,24 +30,12 @@ public:
     SignedHit(Hit hit_input, int sign_input);
 
     //comparision operators for sorting
-    bool operator<(const SignedHit elem) const
-    {
-        return hit.detectorID < elem.hit.detectorID;
-    }
-    bool operator==(const SignedHit elem) const
-    {
-        return hit.index == elem.hit.index;
-    }
+    bool operator<(const SignedHit elem) const { return hit.detectorID < elem.hit.detectorID; }
+    bool operator==(const SignedHit elem) const { return hit.index == elem.hit.index; }
 
     //Get the real hit position
-    double pos()
-    {
-        return hit.pos + sign*hit.driftDistance;
-    }
-    double pos(int sign_input)
-    {
-        return hit.pos + sign_input*hit.driftDistance;
-    }
+    double pos() { return hit.pos + sign*hit.driftDistance; }
+    double pos(int sign_input) { return hit.pos + sign_input*hit.driftDistance; }
 
     //Data members
     Hit hit;
@@ -68,10 +56,7 @@ public:
     bool isValid();
 
     //Get expected position at a given Z
-    double getExpPosition(double z)
-    {
-        return a*z + b;
-    }
+    double getExpPosition(double z) { return a*z + b; }
 
     //Get the closest approach to a given space position/proptube wire
     double getClosestApproach(double z, double pos);
@@ -125,25 +110,16 @@ public:
     bool isValid();
 
     //Sort hit list
-    void sortHits()
-    {
-        hits.sort();
-    }
+    void sortHits() { hits.sort(); }
 
     //Get number of real hits
-    int getNHits() const
-    {
-        return nXHits + nUHits + nVHits;
-    }
+    int getNHits() const { return nXHits + nUHits + nVHits; }
 
     //Get the probabilities
     double getProb() const;
 
     //Get the chi square
-    double getChisq() const
-    {
-        return chisq;
-    }
+    double getChisq() const { return chisq; }
 
     //Get x and y positions at a given z
     double getExpPositionX(double z) const;
@@ -170,10 +146,7 @@ public:
     double getMomentum() const;
 
     //Decide charge by KMag bending direction
-    int getCharge() const
-    {
-        return x0*KMAGSTR > tx ? 1 : -1;
-    }
+    int getCharge() const { return x0*KMAGSTR > tx ? 1 : -1; }
 
     //Get the slope and intersection in station 1
     void getXZInfoInSt1(double& tx_st1, double& x0_st1);
