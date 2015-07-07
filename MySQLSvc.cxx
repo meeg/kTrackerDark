@@ -352,7 +352,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
         }
         rawEvent->insertHit(h);
     }
-    rawEvent->reIndex();
+    rawEvent->reIndex(true);
 
     //Set the trigger emulation info
     if(setTriggerEmu)

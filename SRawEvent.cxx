@@ -224,8 +224,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
     //Temp solutions here
     double spacing[25] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
                           4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
-                          3.0, 3.0, 3.0, 3.0
-                         };                                                //prop tubes
+                          3.0, 3.0, 3.0, 3.0};                                                //prop tubes
 
     int index1 = -1;
     int index2 = -1;
@@ -273,8 +272,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
     //Temp solutions here
     double spacing[25] = {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
                           4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
-                          3.0, 3.0, 3.0, 3.0
-                         };                                                //prop tubes
+                          3.0, 3.0, 3.0, 3.0};                                                //prop tubes
 
     int index1 = -1;
     int index2 = -1;
@@ -435,8 +433,10 @@ Int_t SRawEvent::getNHitsInD3m()
     return nHits;
 }
 
-void SRawEvent::reIndex()
+void SRawEvent::reIndex(bool doSort)
 {
+    if(doSort) std::sort(fAllHits.begin(), fAllHits.end());
+
     for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+1; i++) fNHits[i] = 0;
     for(UInt_t i = 0; i < fAllHits.size(); i++) ++fNHits[fAllHits[i].detectorID];
 

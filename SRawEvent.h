@@ -130,7 +130,7 @@ public:
     Int_t findHit(Short_t detectorID, Short_t elementID);
 
     ///Reset the number hits on each plane
-    void reIndex();
+    void reIndex(bool doSort = false);
 
     ///Type of pair with two adjacent wires
     typedef std::pair<Int_t, Int_t> hit_pair;
