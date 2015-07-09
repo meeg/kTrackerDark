@@ -21,34 +21,34 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  GeomSvc* p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init();
+    GeomSvc* p_geomSvc = GeomSvc::instance();
+    p_geomSvc->init();
 
-  SRawEvent* rawEvent = new SRawEvent();
+    SRawEvent* rawEvent = new SRawEvent();
 
-  TFile* dataFile = new TFile(argv[1], "READ");
-  TTree* dataTree = (TTree *)dataFile->Get("save");
+    TFile* dataFile = new TFile(argv[1], "READ");
+    TTree* dataTree = (TTree *)dataFile->Get("save");
 
-  dataTree->SetBranchAddress("rawEvent", &rawEvent);
+    dataTree->SetBranchAddress("rawEvent", &rawEvent);
 
-  SRawEvent* rawEvent_new = new SRawEvent();
+    SRawEvent* rawEvent_new = new SRawEvent();
 
-  TFile* saveFile = new TFile(argv[2], "recreate");
-  TTree* saveTree = new TTree("save", "save");
+    TFile* saveFile = new TFile(argv[2], "recreate");
+    TTree* saveTree = new TTree("save", "save");
 
-  saveTree->Branch("rawEvent", &rawEvent_new, 256000, 99);
+    saveTree->Branch("rawEvent", &rawEvent_new, 256000, 99);
 
-  for(Int_t i = 0; i < dataTree->GetEntries(); ++i)
+    for(Int_t i = 0; i < dataTree->GetEntries(); ++i)
     {
-      dataTree->GetEntry(i);
+        dataTree->GetEntry(i);
 
-      rawEvent->clear();
-      rawEvent_new->clear();
+        rawEvent->clear();
+        rawEvent_new->clear();
     }
-  
-  saveFile->cd();
-  saveTree->Write();
-  saveFile->Close();
 
-  return EXIT_SUCCESS;
+    saveFile->cd();
+    saveTree->Write();
+    saveFile->Close();
+
+    return EXIT_SUCCESS;
 }

@@ -16,55 +16,62 @@
 #include "SRawEvent.h"
 #include "GeomSvc.h"
 #include "MySQLSvc.h"
+#include "JobOptsSvc.h"
 
 using namespace std;
 
 int main(int argc, char **argv)
 {
-  cout << "Exporting Run: " << argv[1] << " to ROOT file: " << argv[2] << endl;
+    cout << "Exporting Run: " << argv[1] << " to ROOT file: " << argv[2] << endl;
 
-  ///Initialize the geometry service and output file 
-  GeomSvc* p_geomSvc = GeomSvc::instance();
-  p_geomSvc->init();
+    ///Initialize the default job options
+    JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+    p_jobOptsSvc->init();
 
-  MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-  if(argc > 3)
+
+    ///Initialize the geometry service and output file
+    GeomSvc* p_geomSvc = GeomSvc::instance();
+    p_geomSvc->init();
+
+    MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
+    if(argc > 3)
     {
-      p_mysqlSvc->connect(argv[3]);
+        p_mysqlSvc->connectInput(argv[3], atoi(argv[4]));
     }
-  else
+    else
     {
-      p_mysqlSvc->connect();
+        p_mysqlSvc->connectInput();
     }
-  p_mysqlSvc->setWorkingSchema(argv[1]);
-  if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
+    p_mysqlSvc->setInputSchema(argv[1]);
+    if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
 
-  SRawMCEvent* rawEvent = new SRawMCEvent();
+    SRawMCEvent* rawEvent = new SRawMCEvent();
 
-  TFile *saveFile = new TFile(argv[2], "recreate");
-  TTree *saveTree = new TTree("save", "save");
+    TFile *saveFile = new TFile(argv[2], "recreate");
+    TTree *saveTree = new TTree("save", "save");
 
-  saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+    saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
 
-  int nEvents = p_mysqlSvc->getNEventsFast();
-  if(argc > 4) nEvents = atoi(argv[4]);
-  cout << "Totally " << nEvents << " events in this run" << endl;
-  for(int i = 0; i < nEvents; ++i)
+    int nEvents = p_mysqlSvc->getNEventsFast();
+    if(argc > 4) nEvents = atoi(argv[4]);
+    cout << "Totally " << nEvents << " events in this run" << endl;
+    for(int i = 0; i < nEvents; ++i)
     {
-      if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-      cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEvents << "% finished." << flush;
+        if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
+        cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEvents << "% finished." << flush;
 
-      saveTree->Fill();
+        saveTree->Fill();
     }
-  cout << endl;
-  cout << "sqlMCReader ends successfully." << endl;
+    cout << endl;
+    cout << "sqlMCReader ends successfully." << endl;
 
-  saveFile->cd();
-  saveTree->Write();
-  saveFile->Close();
+    saveFile->cd();
+    saveTree->Write();
+    saveFile->Close();
 
-  delete p_mysqlSvc;
-  delete p_geomSvc;
+    delete p_mysqlSvc;
+    delete p_geomSvc;;
+    delete p_jobOptsSvc;
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
