@@ -25,6 +25,7 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
     if(triggermask)   std::cout << "EventReducer: trigger road masking enabled. " << std::endl;
     if(sagitta)       std::cout << "EventReducer: sagitta reducer enabled. " << std::endl;
     if(hough)         std::cout << "EventReducer: hough transform reducer enabled. " << std::endl;
+    if(externalpar)   std::cout << "EventReducer: will reset the alignment/calibration parameters. " << std::endl;
     if(realization)   std::cout << "EventReducer: realization enabled. " << std::endl;
 
     //initialize services
@@ -74,6 +75,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
         if(hodomask && iter->detectorID <= 24 && (!iter->isHodoMask())) continue;
         if(triggermask && iter->detectorID > 24 && iter->detectorID <= 40 && (!iter->isTriggerMask())) continue;
 
+        /*
         //only temporary before the mapping is fixed
         if((iter->detectorID == 17 || iter->detectorID == 18) && iter->elementID >= 97 && iter->elementID <= 104)
         {
@@ -82,6 +84,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
             //iter->driftDistance = p_geomSvc->getDriftDistance(iter->detectorID, iter->tdcTime);
             //iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
         }
+        */
 
         if(externalpar)
         {
