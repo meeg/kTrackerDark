@@ -92,6 +92,7 @@ void SRawEvent::setEventInfo(Int_t runID, Int_t spillID, Int_t eventID)
 
 void SRawEvent::insertHit(Hit h)
 {
+    if(h.detectorID < 1 || h.detectorID > 48) return;
     fAllHits.push_back(h);
 
     fNHits[0]++;
