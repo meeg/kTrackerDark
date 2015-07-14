@@ -1,7 +1,7 @@
 #include <iostream>
 #include "EventReducer.h"
 
-EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), outoftime(false), decluster(false), mergehodo(false), triggermask(false), sagitta(false), hough(false), externalpar(false), realization(false)
+EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), outoftime(false), decluster(false), mergehodo(false), triggermask(false), sagitta(false), hough(false), externalpar(false), realization(false), difnim(false)
 {
     //parse the reducer setup
     options.ToLower();
@@ -15,6 +15,7 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
     if(options.Contains("g")) hough = true;
     if(options.Contains("e")) externalpar = true;
     if(options.Contains("r")) realization = true;
+    if(options.Contains("n")) difnim = true;
 
     //Screen output for all the methods enabled
     if(afterhit)      std::cout << "EventReducer: after-pulse removal enabled. " << std::endl;
@@ -27,6 +28,7 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
     if(hough)         std::cout << "EventReducer: hough transform reducer enabled. " << std::endl;
     if(externalpar)   std::cout << "EventReducer: will reset the alignment/calibration parameters. " << std::endl;
     if(realization)   std::cout << "EventReducer: realization enabled. " << std::endl;
+    if(difnim)        std::cout << "EventReducer: trigger masking will be disabled in NIM events. " << std::endl;
 
     //initialize services
     p_geomSvc = GeomSvc::instance();
@@ -51,29 +53,25 @@ EventReducer::~EventReducer()
 
 int EventReducer::reduceEvent(SRawEvent* rawEvent)
 {
-    int nHits_before = rawEvent->getNHitsAll();
-
-    //sort the hit list first
-    std::sort(rawEvent->fAllHits.begin(), rawEvent->fAllHits.end());
-
-    //Label the hits which are not on an active trigger road as intime and trigger masked
-    if(triggermask)
-    {
-        p_triggerAna->trimEvent(rawEvent);
-    }
+    int nHits_before = rawEvent->getNChamberHitsAll();
 
     //dump the vector of hits from SRawEvent to a list first
     hitlist.clear();
     for(std::vector<Hit>::iterator iter = rawEvent->fAllHits.begin(); iter != rawEvent->fAllHits.end(); ++iter)
     {
-        if(realization && iter->detectorID <= 24)
-        {
-            if(rndm.Rndm() > 0.94) continue;
-        }
-
         if(outoftime && (!iter->isInTime())) continue;
-        if(hodomask && iter->detectorID <= 24 && (!iter->isHodoMask())) continue;
-        if(triggermask && iter->detectorID > 24 && iter->detectorID <= 40 && (!iter->isTriggerMask())) continue;
+
+        if(iter->detectorID <= 24)    //chamber hits
+        {
+            if(realization && rndm.Rndm() > 0.94) continue;
+            if(hodomask && (!iter->isHodoMask())) continue;
+            //if(triggermask && (!iter->isTriggerMask())) continue;
+        }
+        else if(iter->detectorID > 24 && iter->detectorID <= 40)
+        {
+            // if trigger masking is enabled, all the X hodos are discarded
+            if(triggermask && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
+        }
 
         /*
         //only temporary before the mapping is fixed
@@ -93,16 +91,25 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
             //iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
         }
 
-        if(realization && iter->detectorID <= 24)
-        {
-            iter->driftDistance += rndm.Gaus(0., 0.04);
-        }
+        if(realization && iter->detectorID <= 24) iter->driftDistance += rndm.Gaus(0., 0.04);
 
         hitlist.push_back(*iter);
     }
 
+    if(mergehodo)
+    {
+        for(std::vector<Hit>::iterator iter = rawEvent->fTriggerHits.begin(); iter != rawEvent->fTriggerHits.end(); ++iter)
+        {
+            if(triggermask && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
+            hitlist.push_back(*iter);
+        }
+    }
+
+    // manully create the X-hodo hits by the trigger roads
+    if(triggermask) p_triggerAna->trimEvent(rawEvent, hitlist, mergehodo ? (USE_HIT | USE_TRIGGER_HIT) : USE_TRIGGER_HIT);
+
     //Remove after hits
-    //hitlist.sort();
+    hitlist.sort();
     if(afterhit) hitlist.unique();
 
     //Remove hit clusters
@@ -116,7 +123,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
     rawEvent->fAllHits.assign(hitlist.begin(), hitlist.end());
 
     rawEvent->reIndex();
-    return nHits_before - rawEvent->fNHits[0];
+    return nHits_before - rawEvent->getNChamberHitsAll();
 }
 
 void EventReducer::sagittaReducer()

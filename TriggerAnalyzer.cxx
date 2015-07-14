@@ -25,7 +25,7 @@ void TNode::add(TNode* child)
 
 TriggerAnalyzer::TriggerAnalyzer()
 {
-    GeomSvc* p_geomSvc = GeomSvc::instance();
+    p_geomSvc = GeomSvc::instance();
 
     detectorIDs_trigger = p_geomSvc->getDetectorIDs("H1[TB]");
     std::vector<int> H2X_trigger = p_geomSvc->getDetectorIDs("H2[TB]");
@@ -49,7 +49,7 @@ TriggerAnalyzer::~TriggerAnalyzer()
 bool TriggerAnalyzer::init(std::string schemaName)
 {
     JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-    GeomSvc* p_geomSvc = GeomSvc::instance();
+    p_geomSvc = GeomSvc::instance();
 
     char query[300];
     sprintf(query, "SELECT charge,St1DetectorName,St1ElementID,St2DetectorName,St2ElementID,"
@@ -275,7 +275,7 @@ bool TriggerAnalyzer::acceptEvent(TriggerRoad& p_road, TriggerRoad& m_road)
 
 bool TriggerAnalyzer::buildData(int nHits, int detectorIDs[], int elementIDs[])
 {
-    GeomSvc* p_geomSvc = GeomSvc::instance();
+    p_geomSvc = GeomSvc::instance();
     data.clear();
 
     //Form data matrix
@@ -325,25 +325,31 @@ bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent, int mode)
     int detectorIDs[10000];
     int elementIDs[10000];
 
-    std::vector<Hit> triggerHits;
-    if(mode == USE_TRIGGER_HIT)
+    if((mode & USE_HIT) != 0)
     {
-        triggerHits = rawEvent->getTriggerHits();
+        for(std::vector<Hit>::iterator iter = rawEvent->getAllHits().begin(); iter != rawEvent->getAllHits().end(); ++iter)
+        {
+            if(iter->detectorID < 25 || iter->detectorID > 40) continue;
+            if(!iter->isInTime()) continue;
+
+            detectorIDs[nHits] = iter->detectorID;
+            elementIDs[nHits] = iter->elementID;
+
+            ++nHits;
+        }
     }
-    else if(mode == USE_HIT)
+
+    if((mode & USE_TRIGGER_HIT) != 0)
     {
-        triggerHits = rawEvent->getAllHits();
-    }
+        for(std::vector<Hit>::iterator iter = rawEvent->getTriggerHits().begin(); iter != rawEvent->getTriggerHits().end(); ++iter)
+        {
+            if(!iter->isInTime()) continue;
 
-    for(std::vector<Hit>::iterator iter = triggerHits.begin(); iter != triggerHits.end(); ++iter)
-    {
-        if(iter->detectorID < 25 || iter->detectorID > 40) continue;
-        if(!iter->isInTime()) continue;
+            detectorIDs[nHits] = iter->detectorID;
+            elementIDs[nHits] = iter->elementID;
 
-        detectorIDs[nHits] = iter->detectorID;
-        elementIDs[nHits] = iter->elementID;
-
-        ++nHits;
+            ++nHits;
+        }
     }
 
     return acceptEvent(nHits, detectorIDs, elementIDs);
@@ -570,9 +576,9 @@ void TriggerAnalyzer::outputEnabled()
     fout_pair.close();
 }
 
-void TriggerAnalyzer::trimEvent(SRawEvent* rawEvent)
+void TriggerAnalyzer::trimEvent(SRawEvent* rawEvent, std::list<Hit>& hitlist, int mode)
 {
-    rawEvent->setTriggerEmu(acceptEvent(rawEvent, USE_HIT));
+    rawEvent->setTriggerEmu(acceptEvent(rawEvent, mode));
 
     int nRoads[4] = {getNRoadsPosTop(), getNRoadsPosBot(), getNRoadsNegTop(), getNRoadsNegBot()};
     rawEvent->setNRoads(nRoads);
@@ -583,7 +589,17 @@ void TriggerAnalyzer::trimEvent(SRawEvent* rawEvent)
         {
             for(int j = 0; j < 4; ++j)
             {
-                rawEvent->setHitFlag(iter->detectorIDs[j], iter->elementIDs[j], Hit::triggerMask | Hit::inTime);
+                Hit h;
+                h.index = hitlist.size();
+                h.detectorID = iter->detectorIDs[j];
+                h.elementID = iter->elementIDs[j];
+                h.tdcTime = 9999.;
+                h.driftDistance = 0.;
+                h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
+                h.setInTime();
+                h.setTriggerMask();
+
+                hitlist.push_back(h);
             }
         }
     }

@@ -107,7 +107,6 @@ bool MySQLSvc::connectOutput(std::string mysqlServer, int mysqlPort)
         inputServer = NULL;
     }
 
-
     if(mysqlPort < 0)
     {
         JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();

@@ -336,8 +336,6 @@ std::list<Int_t> SRawEvent::getAdjacentHitsIndex(Hit& _hit)
     return hit_list;
 }
 
-
-
 Int_t SRawEvent::getNChamberHitsAll()
 {
     Int_t nHits = 0;
@@ -481,14 +479,19 @@ void SRawEvent::setEventInfo(SRawEvent* event)
 void SRawEvent::clear()
 {
     fAllHits.clear();
-    for(Int_t i = 0; i < nChamberPlanes+1; i++)
-    {
-        fNHits[i] = 0;
-    }
+    for(Int_t i = 0; i < nChamberPlanes+1; i++) fNHits[i] = 0;
 
     fRunID = -1;
     fSpillID = -1;
     fEventID = -1;
+
+    fTriggerEmu = -1;
+    for(int i = 0; i < 4; ++i) fNRoads[i] = 0;
+
+    fTurnID = -1;
+    fRFID = -1;
+    for(int i = 0; i < 33; ++i) fIntensity[i] = -1;
+
     fTriggerBits = 0;
     fTriggerHits.clear();
 }
@@ -500,6 +503,16 @@ void SRawEvent::setTriggerBits(Int_t triggers[])
         if(triggers[i] == 0) continue;
         fTriggerBits |= triggerBit(i);
     }
+}
+
+bool SRawEvent::isNIMTriggered()
+{
+    return isTriggeredBy(NIM1) || isTriggeredBy(NIM1) || isTriggeredBy(NIM3);
+}
+
+bool SRawEvent::isFPGATriggered()
+{
+    return isTriggeredBy(MATRIX1) || isTriggeredBy(MATRIX2) || isTriggeredBy(MATRIX3) || isTriggeredBy(MATRIX4) || isTriggeredBy(MATRIX5);
 }
 
 void SRawEvent::print()

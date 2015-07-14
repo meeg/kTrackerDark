@@ -51,7 +51,7 @@ public:
     bool acceptEvent(SRawEvent* rawEvent, int mode = USE_TRIGGER_HIT);
 
     //Trim a event's hodoscope hits
-    void trimEvent(SRawEvent* rawEvent);
+    void trimEvent(SRawEvent* rawEvent, std::list<Hit>& hitlist, int mode = USE_TRIGGER_HIT);
 
     //Get the road list of +/-
     std::list<TriggerRoad>& getRoadsAll(int charge) { return roads[(-charge+1)/2]; }
@@ -87,6 +87,9 @@ public:
     void outputEnabled();
 
 private:
+    //Pointer to Geometry
+    GeomSvc* p_geomSvc;
+
     //Single muon roads
     std::list<TriggerRoad> roads[2];
     std::list<TriggerRoad> roads_enabled[2];

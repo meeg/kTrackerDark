@@ -105,8 +105,8 @@ public:
     Int_t getNHitsInSuperDetector(Short_t detectorID) { return fNHits[2*detectorID-1] + fNHits[2*detectorID]; }
     Int_t getNHitsInDetectors(std::vector<Int_t>& detectorIDs);
 
-    std::vector<Hit> getAllHits() { return fAllHits; }
-    std::vector<Hit> getTriggerHits() { return fTriggerHits; }
+    std::vector<Hit>& getAllHits() { return fAllHits; }
+    std::vector<Hit>& getTriggerHits() { return fTriggerHits; }
     Hit getTriggerHit(Int_t index) { return fTriggerHits[index]; }
     Hit getHit(Int_t index) { return fAllHits[index]; }
     Hit getHit(Short_t detectorID, Short_t elementID);
@@ -142,6 +142,8 @@ public:
     void setTriggerBits(Int_t triggers[]);
     void setTriggerBits(Int_t triggers) { fTriggerBits = triggers; }
     bool isTriggeredBy(Int_t trigger) { return (fTriggerBits & trigger) != 0; }
+    bool isNIMTriggered();
+    bool isFPGATriggered();
 
     //Set/get offline trigger emulation results
     bool isEmuTriggered() { return fTriggerEmu > 0; }

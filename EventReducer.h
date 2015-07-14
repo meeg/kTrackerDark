@@ -65,6 +65,7 @@ private:
     bool hough;               //remove the hits which cannot form a peak in hough space, will be implemented later
     bool externalpar;         //re-apply the alignment and calibration parameters
     bool realization;         //apply detector efficiency and resolution by dropping and smear
+    bool difnim;              //treat the nim/FPGA triggered events differently, i.e. no trigger masking in NIM events
 };
 
 #endif
