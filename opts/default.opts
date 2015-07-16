@@ -33,14 +33,6 @@ InputSchema "Run_123456_R004"
 OutputSchema "Run_123456_R004_tracked_1"
 
 #------------------------------
-#settings for threshold service
-# Higher number means more printing
-# kNone = 0, kError = 1, kWarning = 2, kInfo = 3, kDebug = 4, kVerbose = 5
-Threshold_Level 3
-#Boolean setting for live mode
-Threshold_Live 1
-
-#------------------------------
 #Calibrations
 #Alginment files (only used when OnlineAlignment_enable is set to 0)
 OnlineAlignment_enable 1
@@ -81,33 +73,53 @@ N_Events -1
 #first of events to process
 FirstEvent 0
 
-#------------------- Tracker mode switches -------------------
-# only needed in ROOT file-based tracker, set to 1 to read the MC truth 
+
+#------------------- Tracker mode switches (useful ones) -------------------
+# intended for normal user to change according to different analysis needs
+
+# when set to 1, the X-hodo hits from both TW-TDC will be merged into the hits
+# from v1495 TDC for future hodoscope masking, trigger road reconstruction,
+# and trigger road masking
+# It's recommended to turn on for Run-II data, off for Run-III and after
+MergeHodoHits 0
+
+# when set to 1, tracker will drop all the chamber hits that are not covered
+# by a fired hodoscope.
+# This also affects TriggerMask option, if HodoMasking is not enabled,
+# Trigger masking will be applied on track level during tracking, instead of hit level
+HodoscopeMasking 1
+
+# when set to 1, only the hodo paddles on a trigger road will be used
+# for hodoscope masking
+TriggerMask_enable 1
+
+# when set to 1, tracker will update the alignment/calibration info
+# before real tracking, it should only be used when there is a need
+# to update the alignment and/or calibration
+# DO NOT toggle when OnlineAlignment_enable is 1
+UpdateAlignment 1
+
+# when set to 1, tracker will enable the sagitta hit reducer
+SagittaReducer 1
+
+# when set to 0, only the SRecEvent will be saved to the output file,
+# and SRawEvent will be missing to save space.
+# This option is only effective in file-based tracker
+AttachRawEvent 1
+
+
+#------------------- Tracker mode switches (not useful ones) -------------------
+# EXPERTS ONLY, don't change without good reason or not sure what it actually does
+
+# only needed in ROOT file-based tracker, set to 1 to read the MC truth
 # info alongside the normal detector information
 MCMode_enable 0
 
 # when set to 1, tracker will not require muon ID, needed for alignment only
 AlignmentMode_enable 0
 
-# when set to 1, only the hodo paddles on a trigger road will be used
-# for hodoscope masking
-TriggerMask_enable 1
-
 # when set to 0, tracker will perform a simple straight line fit
 kMag_enable 1
 
 # when set to 1, tracker will save massive intermediate debugging info
 Evaluation_enable 0
-
-# when set to 0, only the SRecEvent will be saved to the output file, 
-# and SRawEvent will be missing to save space. 
-# This option is only effective in file-based tracker 
-AttachRawEvent 1
-
-# when set to 1, tracker will update the alignment/calibration info
-# before real tracking, it should only be used when there is a need
-# to update the alignment and/or calibration
-UpdateAlignment 1
-
-# when set to 1, tracker will enable the sagitta hit reducer
-SagittaReducer 1

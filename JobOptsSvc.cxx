@@ -1,8 +1,3 @@
-#include "JobOptsSvc.h"
-#include "ThresholdSvc.h"
-
-#include <TString.h>
-
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -10,6 +5,9 @@
 #include <wordexp.h> //to expand environmentals
 #include <boost/algorithm/string.hpp> //for strip
 #include <boost/lexical_cast.hpp>
+
+#include "JobOptsSvc.h"
+#include <TString.h>
 
 using namespace std;
 
@@ -56,13 +54,12 @@ void JobOptsSvc::close()
     }
 }
 
-bool JobOptsSvc::init( bool forceInit /* = false */ )
+bool JobOptsSvc::init(bool forceInit /* = false */ )
 {
     if(debug()) cout << "JobOptsSvc::init()" << endl;
 
     //don't accidentally load defaults over other settings
-    if( m_isInit && !forceInit )
-        return true;
+    if(m_isInit && !forceInit) return true;
 
     //hardcoded default standard job options file
     return init("$KTRACKER_ROOT/opts/default.opts");
@@ -72,10 +69,6 @@ bool JobOptsSvc::init(const char* configfile)
 {
     if(debug()) cout << "JobOptsSvc::init( " << configfile << " )" << endl;
 
-    //hardocded defaults, just in case not all options are listed in file
-    //default threshold settings are info with live on
-    m_thresholdLive = true;
-    m_thresholdLevel = Threshold::kInfo;
 
     // expand any environment variables in the file name
     m_configFile = ExpandEnvironmentals( configfile );
@@ -118,7 +111,6 @@ bool JobOptsSvc::init(const char* configfile)
     intOpts["N_Events"] = &m_nEvents;
     intOpts["FirstEvent"] = &m_firstEvent;
     intOpts["Trigger_L1"] = &m_triggerL1;
-    intOpts["Threshold_Level"] = &m_thresholdLevel;
 
     map<string,bool*> boolOpts;
     boolOpts["MCMode_enable"] = &m_mcMode;
@@ -127,10 +119,11 @@ bool JobOptsSvc::init(const char* configfile)
     boolOpts["kMag_enable"] = &m_enableKMag;
     boolOpts["Evaluation_enable"] = &m_enableEvaluation;
     boolOpts["OnlineAlignment_enable"] = &m_enableOnlineAlignment;
-    boolOpts["Threshold_Live"] = &m_thresholdLive;
     boolOpts["AttachRawEvent"] = &m_attachRawEvent;
     boolOpts["SagittaReducer"] = &m_sagittaReducer;
     boolOpts["UpdateAlignment"] = &m_updateAlignment;
+    boolOpts["HodoscopeMasking"] = &m_hodomask;
+    boolOpts["MergeHodoHits"] = &m_mergeHodo;
 
     //read the file and find matching options
     string line;
@@ -191,12 +184,7 @@ bool JobOptsSvc::init(const char* configfile)
         if(debug()) cout << " ... key not found.  handle error?" << endl;
     }
 
-    //apply threshold settings
-    Threshold::ThresholdSvc::Get().SetLevel( Threshold::Level(m_thresholdLevel) );
-    Threshold::ThresholdSvc::Get().SetLive(  m_thresholdLive );
-
     m_isInit = true;
-
     return true;
 }
 

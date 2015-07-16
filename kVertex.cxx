@@ -15,7 +15,6 @@
 #include <TRandom.h>
 
 #include "GeomSvc.h"
-#include "ThresholdSvc.h"
 #include "SRawEvent.h"
 #include "KalmanUtil.h"
 #include "KalmanTrack.h"
@@ -29,14 +28,13 @@
 #include "MODE_SWITCH.h"
 
 using namespace std;
-using Threshold::live;
 
 int main(int argc, char *argv[])
 {
     if(argc != 2)
     {
         cout << "Usage: " << argv[0] << "  <options file>" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     //Initialize job options
@@ -87,7 +85,7 @@ int main(int argc, char *argv[])
     for(int i = offset; i < nEvtMax; ++i)
     {
         dataTree->GetEntry(i);
-        if(live())
+        if(i % 1000 == 0)
         {
             cout << "\r Processing event " << i << " with eventID = " << recEvent->getEventID() << ", ";
             cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;

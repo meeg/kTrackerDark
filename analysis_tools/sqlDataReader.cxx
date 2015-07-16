@@ -19,10 +19,8 @@
 #include "GeomSvc.h"
 #include "MySQLSvc.h"
 #include "JobOptsSvc.h"
-#include "ThresholdSvc.h"
 
 using namespace std;
-using Threshold::live;
 
 int main(int argc, char **argv)
 {
@@ -105,11 +103,7 @@ int main(int argc, char **argv)
 
         //print progress every event or every 1%
         const int fracDone = (i+1)*100/nEvents;
-        if(live())
-        {
-            cout << "\r Converting event " << rawEvent->getEventID() << ", " << fracDone << "% finished." << flush;
-        }
-        else if(i % printFreq == 0)
+        if(i % printFreq == 0)
         {
             timer.Stop();
             cout << Form("Converting Event %d, %d%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq) << endl;

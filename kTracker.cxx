@@ -13,7 +13,6 @@
 #include <TClonesArray.h>
 
 #include "GeomSvc.h"
-#include "ThresholdSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
@@ -27,7 +26,6 @@
 #include "MODE_SWITCH.h"
 
 using namespace std;
-using Threshold::live;
 
 int main(int argc, char *argv[])
 {
@@ -81,6 +79,8 @@ int main(int argc, char *argv[])
     if(jobOptsSvc->m_enableTriggerMask) opt = opt + "t";
     if(jobOptsSvc->m_sagittaReducer) opt = opt + "s";
     if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
+    if(jobOptsSvc->m_hodomask) opt = opt + "h";
+    if(jobOptsSvc->m_mergeHodo) opt = opt + "m";
     EventReducer* eventReducer = new EventReducer(opt);
 
     //Quality control numbers and plots
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         ++nEvents_loaded;
 
         //Do the tracking
-        if(live())
+        if(i % 1000 == 0)
         {
             cout << "\r Tracking runID = " << rawEvent->getRunID() << " eventID = " << rawEvent->getEventID() << ", " << (i+1)*100/(nEvtMax - offset) << "% finished. ";
             cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
