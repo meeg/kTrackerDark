@@ -59,6 +59,7 @@ public:
     bool m_updateAlignment;  ///< Update the alignment/calibration in tracking, i.e. re-calculate the wire position and drift distance during tracking
     bool m_hodomask;         ///< Enable hodoscope masking
     bool m_mergeHodo;        ///< merge the TW-TDC and v1495 TDC
+    bool m_realization;      ///< randomly drop hits according to efficiency, and smear drift distance according to resolution
 
     int m_mySQLInputPort;    ///< mysql database input port
     int m_mySQLOutputPort;    ///< mysql database output port

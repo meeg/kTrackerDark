@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
     if(jobOptsSvc->m_hodomask) opt = opt + "h";
     if(jobOptsSvc->m_mergeHodo) opt = opt + "m";
+    if(jobOptsSvc->m_realization) opt = opt + "r";
     EventReducer* eventReducer = new EventReducer(opt);
 
     //Quality control numbers and plots
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
             cout << nEvents_tracked*100/nEvents_loaded << "% have at least one track, " << nEvents_dimuon*100/nEvents_loaded << "% have at least one dimuon pair, ";
             cout << nEvents_dimuon_real*100/nEvents_loaded << "% have successful dimuon vertex fit.";
         }
-        
+
         eventReducer->reduceEvent(rawEvent);
         if(!fastfinder->setRawEvent(rawEvent)) continue;
         ++nEvents_tracked;

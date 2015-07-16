@@ -84,7 +84,8 @@ FirstEvent 0
 MergeHodoHits 0
 
 # when set to 1, tracker will drop all the chamber hits that are not covered
-# by a fired hodoscope.
+# by a fired hodoscope, i.e. masking on hit level.
+# If set to 0 the masking is only done on track level.
 # This also affects TriggerMask option, if HodoMasking is not enabled,
 # Trigger masking will be applied on track level during tracking, instead of hit level
 HodoscopeMasking 1
@@ -107,6 +108,11 @@ SagittaReducer 1
 # This option is only effective in file-based tracker
 AttachRawEvent 1
 
+# when set to 1, tracker will randomly drop some chamber hits
+# and smear the drift distance according to a Gaussian
+# to simulate the chamber efficiency/resolution in the perfect MC
+# DO NOT use when dealing with data, it's messy enough
+MCRealization 0
 
 #------------------- Tracker mode switches (not useful ones) -------------------
 # EXPERTS ONLY, don't change without good reason or not sure what it actually does

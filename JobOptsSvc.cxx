@@ -124,6 +124,7 @@ bool JobOptsSvc::init(const char* configfile)
     boolOpts["UpdateAlignment"] = &m_updateAlignment;
     boolOpts["HodoscopeMasking"] = &m_hodomask;
     boolOpts["MergeHodoHits"] = &m_mergeHodo;
+    boolOpts["MCRealization"] = &m_realization;
 
     //read the file and find matching options
     string line;

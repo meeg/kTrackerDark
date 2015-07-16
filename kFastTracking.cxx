@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
     if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
     if(jobOptsSvc->m_hodomask) opt = opt + "h";
     if(jobOptsSvc->m_mergeHodo) opt = opt + "m";
+    if(jobOptsSvc->m_realization) opt = opt + "r";
     EventReducer* eventReducer = new EventReducer(opt);
 
     TStopwatch timer;
