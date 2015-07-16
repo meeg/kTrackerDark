@@ -15,7 +15,6 @@
 #include <TString.h>
 
 #include "GeomSvc.h"
-#include "ThresholdSvc.h"
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
@@ -27,14 +26,13 @@
 #include "MODE_SWITCH.h"
 
 using namespace std;
-using Threshold::live;
 
 int main(int argc, char *argv[])
 {
     if(argc != 2)
     {
         cout << "Usage: " << argv[0] << "  <options file>" << endl;
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     //Initialize job options
@@ -83,6 +81,8 @@ int main(int argc, char *argv[])
     if(jobOptsSvc->m_enableTriggerMask) opt = opt + "t";
     if(jobOptsSvc->m_sagittaReducer) opt = opt + "s";
     if(jobOptsSvc->m_updateAlignment) opt = opt + "e";
+    if(jobOptsSvc->m_hodomask) opt = opt + "h";
+    if(jobOptsSvc->m_mergeHodo) opt = opt + "m";
     EventReducer* eventReducer = new EventReducer(opt);
 
     TStopwatch timer;
@@ -97,12 +97,7 @@ int main(int argc, char *argv[])
         dataTree->GetEntry(i);
 
         const double fracDone = (i - offset + 1)*100/(nEvtMax - offset);
-        if( live() )
-        {
-            cout << "\r Processing event " << i << " with eventID = " << rawEvent->getEventID() << ", ";
-            cout << fracDone << "% finished .. ";
-        }
-        else if( 0 == i % printFreq )
+        if(0 == i % printFreq)
         {
             timer.Stop();
             cout << Form( "Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq ) << endl;
@@ -144,12 +139,10 @@ int main(int argc, char *argv[])
         }
 #endif
 
-        if(live())
-        {
-            time_single = clock() - time_single;
-            time = double(time_single)/CLOCKS_PER_SEC;
-            cout << "it takes " << time << " seconds for this event." << flush;
-        }
+        // time of each event
+        time_single = clock() - time_single;
+        time = double(time_single)/CLOCKS_PER_SEC;
+
         recEvent->reIndex();
         saveTree->Fill();
         if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");

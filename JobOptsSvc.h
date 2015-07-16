@@ -54,10 +54,11 @@ public:
     bool m_enableKMag;       ///< Turn kMag on
     bool m_enableOnlineAlignment;   ///< Get alignment params from database?
     bool m_enableEvaluation; ///< Enable evaluation output
-    bool m_thresholdLive;    ///< Live setting for ThresholdSvc
     bool m_attachRawEvent;   ///< Attach the raw event in the reconstructed data
     bool m_sagittaReducer;   ///< Enable the sagitta ratio reducer
     bool m_updateAlignment;  ///< Update the alignment/calibration in tracking, i.e. re-calculate the wire position and drift distance during tracking
+    bool m_hodomask;         ///< Enable hodoscope masking
+    bool m_mergeHodo;        ///< merge the TW-TDC and v1495 TDC
 
     int m_mySQLInputPort;    ///< mysql database input port
     int m_mySQLOutputPort;    ///< mysql database output port
@@ -65,8 +66,6 @@ public:
     int m_firstEvent;   ///< first event to process
 
     int m_triggerL1;    ///< L1 firmware version (trigger roads)
-
-    int m_thresholdLevel; ///< Level setting for ThresholdSvc
 
     std::string m_inputFile;  ///< Name of the input file
     std::string m_outputFile; ///< Name of the output file
