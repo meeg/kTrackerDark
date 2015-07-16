@@ -15,6 +15,7 @@ Created: 06-17-2015
 #include "MODE_SWITCH.h"
 
 #include <list>
+#include <map>
 #include <TString.h>
 #include <TRandom.h>
 
@@ -41,6 +42,12 @@ public:
     void deClusterize();
     void processCluster(std::vector<std::list<Hit>::iterator>& cluster);
 
+    //hodosope maksing
+    void initHodoMaskLUT();
+    void hodoscopeMask(std::list<Hit>& chamberhits, std::list<Hit>& hodohits);
+    bool lineCrossing(double x1, double y1, double x2, double y2,
+                      double x3, double y3, double x4, double y4);
+
 private:
     //pointer to geometry service, inited outside
     GeomSvc* p_geomSvc;
@@ -53,6 +60,13 @@ private:
 
     //temporary container for the hit list
     std::list<Hit> hitlist;
+    std::list<Hit> hodohitlist;
+
+    //loop-up table of hodoscope masking
+    typedef std::map<int, std::vector<int> > LUT;
+    LUT h2celementID_lo;
+    LUT h2celementID_hi;
+    LUT c2helementIDs;
 
     //flags of the hit manipulation method
     bool afterhit;            //after pulse removal

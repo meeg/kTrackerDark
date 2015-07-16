@@ -13,6 +13,8 @@ Created: 10-24-2011
 #include <TRandom.h>
 #include <TMath.h>
 #include <TString.h>
+#include <TROOT.h>
+#include <TRandom.h>
 
 #include "SRawEvent.h"
 
@@ -21,6 +23,16 @@ ClassImp(SRawEvent)
 ClassImp(SRawMCEvent)
 
 Hit::Hit() : index(-1), detectorID(-1), flag(0)
+{
+}
+
+Hit::Hit(int uniqueID)
+{
+    detectorID = getDetectorID(uniqueID);
+    elementID = getElementID(uniqueID);
+}
+
+Hit::Hit(int dID, int eID) : detectorID(dID), elementID(eID)
 {
 }
 
@@ -336,6 +348,8 @@ std::list<Int_t> SRawEvent::getAdjacentHitsIndex(Hit& _hit)
     return hit_list;
 }
 
+
+
 Int_t SRawEvent::getNChamberHitsAll()
 {
     Int_t nHits = 0;
@@ -436,6 +450,7 @@ void SRawEvent::reIndex(bool doSort)
 {
     if(doSort) std::sort(fAllHits.begin(), fAllHits.end());
 
+    ///Reset the number of hits on each plane
     for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+1; i++) fNHits[i] = 0;
     for(UInt_t i = 0; i < fAllHits.size(); i++) ++fNHits[fAllHits[i].detectorID];
 
@@ -478,8 +493,9 @@ void SRawEvent::setEventInfo(SRawEvent* event)
 
 void SRawEvent::clear()
 {
+    //set everything to empty or impossible numbers
     fAllHits.clear();
-    for(Int_t i = 0; i < nChamberPlanes+1; i++) fNHits[i] = 0;
+    for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+1; i++) fNHits[i] = 0;
 
     fRunID = -1;
     fSpillID = -1;

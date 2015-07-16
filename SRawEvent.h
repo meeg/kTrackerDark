@@ -34,6 +34,8 @@ class Hit: public TObject
 public:
     //Constructor
     Hit();
+    Hit(int uniqueID);
+    Hit(int detectorID, int elementID);
 
     //Decompose the data quality flag
     bool isInTime() { return (flag & Hit::inTime) != 0; }
@@ -49,6 +51,11 @@ public:
 
     //Sign of this hit
     Int_t getSign() { return driftDistance > 0 ? 1 : -1; }
+
+    //convert detectorID and elementID into one number
+    Int_t uniqueID() { return detectorID*1000 + elementID; }
+    Int_t getDetectorID(Int_t uniqueID) { return uniqueID/1000; }
+    Int_t getElementID(Int_t uniqueID) { return uniqueID % 1000; }
 
     //overiden comparison operator for track seeding
     bool operator<(const Hit& elem) const;

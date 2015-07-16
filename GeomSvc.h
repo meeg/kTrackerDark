@@ -175,6 +175,7 @@ public:
     void getMeasurement(int detectorID, int elementID, double& measurement, double& dmeasurement);
     double getMeasurement(int detectorID, int elementID);
     void get2DBoxSize(int detectorID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max);
+    void getWireEndPoints(int detectorID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max);
     int getExpElementID(int detectorID, double pos_exp);
 
     ///Calibration related

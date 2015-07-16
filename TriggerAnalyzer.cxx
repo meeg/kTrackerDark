@@ -590,7 +590,7 @@ void TriggerAnalyzer::trimEvent(SRawEvent* rawEvent, std::list<Hit>& hitlist, in
             for(int j = 0; j < 4; ++j)
             {
                 Hit h;
-                h.index = hitlist.size();
+                h.index = 10000 + hitlist.size();  // give it a huge offset;
                 h.detectorID = iter->detectorIDs[j];
                 h.elementID = iter->elementIDs[j];
                 h.tdcTime = 9999.;

@@ -39,6 +39,8 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
         p_triggerAna->buildTriggerTree();
     }
 
+    if(hodomask) initHodoMaskLUT();
+
     //set random seed
     rndm.SetSeed(0);
 }
@@ -57,6 +59,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
     //dump the vector of hits from SRawEvent to a list first
     hitlist.clear();
+    hodohitlist.clear();
     for(std::vector<Hit>::iterator iter = rawEvent->fAllHits.begin(); iter != rawEvent->fAllHits.end(); ++iter)
     {
         if(outoftime && (!iter->isInTime())) continue;
@@ -64,7 +67,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
         if(iter->detectorID <= 24)    //chamber hits
         {
             if(realization && rndm.Rndm() > 0.94) continue;
-            if(hodomask && (!iter->isHodoMask())) continue;
+            //if(hodomask && (!iter->isHodoMask())) continue;
             //if(triggermask && (!iter->isTriggerMask())) continue;
         }
         else if(iter->detectorID > 24 && iter->detectorID <= 40)
@@ -93,7 +96,14 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
         if(realization && iter->detectorID <= 24) iter->driftDistance += rndm.Gaus(0., 0.04);
 
-        hitlist.push_back(*iter);
+        if(iter->detectorID >= 25 && iter->detectorID <= 40)
+        {
+            hodohitlist.push_back(*iter);
+        }
+        else
+        {
+            hitlist.push_back(*iter);
+        }
     }
 
     if(mergehodo)
@@ -101,15 +111,20 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
         for(std::vector<Hit>::iterator iter = rawEvent->fTriggerHits.begin(); iter != rawEvent->fTriggerHits.end(); ++iter)
         {
             if(triggermask && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
-            hitlist.push_back(*iter);
+            hodohitlist.push_back(*iter);
         }
     }
 
     // manully create the X-hodo hits by the trigger roads
-    if(triggermask) p_triggerAna->trimEvent(rawEvent, hitlist, mergehodo ? (USE_HIT | USE_TRIGGER_HIT) : USE_TRIGGER_HIT);
+    if(triggermask) p_triggerAna->trimEvent(rawEvent, hodohitlist, mergehodo ? (USE_HIT | USE_TRIGGER_HIT) : USE_TRIGGER_HIT);
+
+    //apply hodoscope mask
+    hodohitlist.sort();
+    if(hodomask) hodoscopeMask(hitlist, hodohitlist);
 
     //Remove after hits
     hitlist.sort();
+    hitlist.merge(hodohitlist);
     if(afterhit) hitlist.unique();
 
     //Remove hit clusters
@@ -307,4 +322,135 @@ void EventReducer::processCluster(std::vector<std::list<Hit>::iterator>& cluster
     }
 
     cluster.clear();
+}
+
+void EventReducer::initHodoMaskLUT()
+{
+    h2celementID_lo.clear();
+    h2celementID_hi.clear();
+
+    int hodoIDs[8] = {25, 26, 31, 32, 33, 34, 39, 40};
+    int chamIDs[8][12] = { {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0},
+                           {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0},
+                           {7, 8, 9, 10, 11, 12, 0, 0, 0, 0, 0, 0},
+                           {7, 8, 9, 10, 11, 12, 0, 0, 0, 0, 0, 0},
+                           {0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 23, 24},
+                           {13, 14, 15, 16, 17, 18, 0, 0, 0, 0, 0, 0},
+                           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+    for(int i = 0; i < 8; ++i)
+    {
+        int nPaddles = p_geomSvc->getPlaneNElements(hodoIDs[i]);
+        for(int j = 1; j <= nPaddles; ++j)
+        {
+            //for each paddle, there is a group of 6/12 chamber planes to work with
+            int uniqueID = hodoIDs[i]*1000 + j;
+
+            //get the four corners of the paddle
+            double z0, x0_min, x0_max, y0_min, y0_max;
+            z0 = p_geomSvc->getPlanePosition(hodoIDs[i]);
+            p_geomSvc->get2DBoxSize(hodoIDs[i], j, x0_min, x0_max, y0_min, y0_max);
+
+            for(int k = 0; k < 12; ++k)
+            {
+                if(chamIDs[i][k] < 1) continue;
+
+                //project the box to the chamber plane with maximum xz/yz slope
+                double z = p_geomSvc->getPlanePosition(chamIDs[i][k]);
+                double x_min = x0_min - fabs(TX_MAX*(z - z0));
+                double x_max = x0_max + fabs(TX_MAX*(z - z0));
+                double y_min = y0_min - fabs(TY_MAX*(z - z0));
+                double y_max = y0_max + fabs(TY_MAX*(z - z0));
+
+                int elementID_lo = p_geomSvc->getPlaneNElements(chamIDs[i][k]);;
+                int elementID_hi = 0;
+                if(p_geomSvc->getPlaneType(chamIDs[i][k]) == 1)
+                {
+                    elementID_lo = p_geomSvc->getExpElementID(chamIDs[i][k], x_min);
+                    elementID_hi = p_geomSvc->getExpElementID(chamIDs[i][k], x_max);
+                }
+                else
+                {
+                    for(int m = 1; m <= p_geomSvc->getPlaneNElements(chamIDs[i][k]); ++m)
+                    {
+                        double x1, y1, x2, y2;
+                        p_geomSvc->getWireEndPoints(chamIDs[i][k], m, x1, x2, y1, y2);
+
+                        if(!lineCrossing(x_min, y_min, x_min, y_max, x1, y1, x2, y2) &&
+                           !lineCrossing(x_max, y_min, x_max, y_max, x1, y1, x2, y2)) continue;
+
+                        if(m < elementID_lo) elementID_lo = m;
+                        if(m > elementID_hi) elementID_hi = m;
+                    }
+                }
+
+                elementID_lo -= 2;
+                if(elementID_lo < 1) elementID_lo = 1;
+                elementID_hi += 2;
+                if(elementID_hi > p_geomSvc->getPlaneNElements(chamIDs[i][k])) elementID_hi = p_geomSvc->getPlaneNElements(chamIDs[i][k]);
+
+                h2celementID_lo[uniqueID].push_back(chamIDs[i][k]*1000 + elementID_lo);
+                h2celementID_hi[uniqueID].push_back(chamIDs[i][k]*1000 + elementID_hi);
+            }
+        }
+    }
+
+    //reverse the LUT
+    c2helementIDs.clear();
+    for(LUT::iterator iter = h2celementID_lo.begin(); iter != h2celementID_lo.end(); ++iter)
+    {
+        int hodoUID = iter->first;
+        for(unsigned int i = 0; i < h2celementID_lo[hodoUID].size(); ++i)
+        {
+            int chamUID_lo = iter->second[i];
+            int chamUID_hi = h2celementID_hi[hodoUID][i];
+            for(int j = chamUID_lo; j <= chamUID_hi; ++j)
+            {
+                c2helementIDs[j].push_back(hodoUID);
+            }
+        }
+    }
+}
+
+void EventReducer::hodoscopeMask(std::list<Hit>& chamberhits, std::list<Hit>& hodohits)
+{
+    for(std::list<Hit>::iterator iter = chamberhits.begin(); iter != chamberhits.end(); )
+    {
+        if(iter->detectorID > 40)
+        {
+            ++iter;
+            continue;
+        }
+
+        int uniqueID = iter->uniqueID();
+
+        bool masked = false;
+        for(std::vector<int>::iterator jter = c2helementIDs[uniqueID].begin(); jter != c2helementIDs[uniqueID].end(); ++jter)
+        {
+            if(std::find(hodohits.begin(), hodohits.end(), Hit(*jter)) != hodohits.end())
+            {
+                masked = true;
+                break;
+            }
+        }
+
+        if(masked)
+        {
+            ++iter;
+        }
+        else
+        {
+            iter = chamberhits.erase(iter);
+        }
+    }
+}
+
+bool EventReducer::lineCrossing(double x1, double y1, double x2, double y2,
+                                double x3, double y3, double x4, double y4)
+{
+    double tc = (x1 - x2)*(y3 - y1) + (y1 - y2)*(x1 - x3);
+    double td = (x1 - x2)*(y4 - y1) + (y1 - y2)*(x1 - x4);
+
+    return tc*td < 0;
 }
