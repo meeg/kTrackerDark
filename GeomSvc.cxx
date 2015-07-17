@@ -560,6 +560,16 @@ void GeomSvc::get2DBoxSize(int detectorID, int elementID, double& x_min, double&
     }
 }
 
+void GeomSvc::getWireEndPoints(int detectorID, int elementID, double& x_min, double& x_max, double& y_min, double& y_max)
+{
+    y_min = planes[detectorID].y1;
+    y_max = planes[detectorID].y2;
+
+    double dw = planes[detectorID].xoffset + planes[detectorID].spacing*(elementID - (planes[detectorID].nElements + 1.)/2.);
+    x_min = planes[detectorID].xc + dw*cos(planes[detectorID].rZ) - fabs(0.5*planes[detectorID].tantheta*(y_max - y_min));
+    x_max = planes[detectorID].xc + dw*cos(planes[detectorID].rZ) + fabs(0.5*planes[detectorID].tantheta*(y_max - y_min));
+}
+
 void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 {
     using namespace std;
@@ -839,4 +849,3 @@ void GeomSvc::printTable()
         std::cout << planes[iter->second] << std::endl;
     }
 }
-
