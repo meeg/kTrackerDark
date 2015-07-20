@@ -126,6 +126,8 @@ int main(int argc, char *argv[])
     for(int i = offset; i < nEvtMax; ++i)
     {
         dataTree->GetEntry(i);
+
+        if(!rawEvent->isTriggeredBy(SRawEvent::MATRIX3)) continue;
         vtxfit->setRecEvent(recEvent, 1, 1);
 
         if(recEvent->getNDimuons() > 0) saveTree_pp->Fill();
@@ -135,6 +137,8 @@ int main(int argc, char *argv[])
     for(int i = offset; i < nEvtMax; ++i)
     {
         dataTree->GetEntry(i);
+
+        if(!rawEvent->isTriggeredBy(SRawEvent::MATRIX3)) continue;
         vtxfit->setRecEvent(recEvent, -1, -1);
 
         if(recEvent->getNDimuons() > 0) saveTree_mm->Fill();
@@ -204,7 +208,7 @@ int main(int argc, char *argv[])
     {
         int nPlus = ptracks[i].size();
         int nMinus = mtracks[i].size();
-        int nPairs = int(nPlus < nMinus ? 0.8*nPlus : 0.8*nMinus);
+        int nPairs = int(nPlus < nMinus ? 0.9*nPlus : 0.9*nMinus);
         cout << nPlus << " mu+ and " << nMinus << " mu- tracks with targetPos = " << i+1;
         cout << ", will generate " << nPairs << " random pairs. " << endl;
 
@@ -219,6 +223,7 @@ int main(int argc, char *argv[])
 
             if(pflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
             if((ptracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
+            if(fabs(ptracks[i][idx1].getVertex().Z() - mtracks[i][idx2].getVertex().Z()) > 300.) continue;
 
             recEvent->setEventInfo(runID, 0, eventID++);
             recEvent->setTargetPos(i+1);
