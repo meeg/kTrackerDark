@@ -438,10 +438,11 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
     LogInfo("NRoadsNeg: " << rawEvent->getNRoadsNeg());
 #endif
 
-    if(rawEvent->getNHitsInD1() > 300) return false;
-    if(rawEvent->getNHitsInD2() > 200) return false;
-    if(rawEvent->getNHitsInD3p() > 180) return false;
-    if(rawEvent->getNHitsInD3m() > 160) return false;
+    if(rawEvent->getNHitsInD1() > 320) return false;
+    if(rawEvent->getNHitsInD2() > 160) return false;
+    if(rawEvent->getNHitsInD3p() > 150) return false;
+    if(rawEvent->getNHitsInD3m() > 150) return false;
+    /*
     if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[0]) > 15) return false;
     if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[1]) > 10) return false;
     if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[2]) > 10) return false;
@@ -450,6 +451,7 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
 
     if(rawEvent->getNRoadsPos() > 5) return false;
     if(rawEvent->getNRoadsNeg() > 5) return false;
+    */
     return true;
 }
 
