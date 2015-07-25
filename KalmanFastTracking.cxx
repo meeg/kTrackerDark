@@ -244,7 +244,19 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 #ifdef COARSE_MODE
         resol_plane[i] = p_geomSvc->getPlaneSpacing(i)/sqrt(12.);
 #else
-        resol_plane[i] = p_geomSvc->getPlaneResolution(i);
+        //resol_plane[i] = p_geomSvc->getPlaneResolution(i);
+        if(i <= 6)
+        {
+            resol_plane[i] = ST1_REJECT;
+        }
+        else if(i <= 12)
+        {
+            resol_plane[i] = ST2_REJECT;
+        }
+        else
+        {
+            resol_plane[i] = ST3_REJECT;
+        }
 #endif
 
         spacing_plane[i] = p_geomSvc->getPlaneSpacing(i);
@@ -822,9 +834,10 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
                 hit_neighbour = detectorID % 2 == 0 ? &(*(--iter)) : &(*(++iter));
             }
         }
+        if(hit_remove == NULL) continue;
 
-        double cut = hit_remove->sign == 0 ? HIT_REJECT*resol_plane[hit_remove->hit.detectorID] + hit_remove->hit.driftDistance : HIT_REJECT*resol_plane[hit_remove->hit.detectorID];
-        if(hit_remove != NULL && res_remove > cut)
+        double cut = hit_remove->sign == 0 ? hit_remove->hit.driftDistance + resol_plane[hit_remove->hit.detectorID] : resol_plane[hit_remove->hit.detectorID];
+        if(res_remove > cut)
         {
 #ifdef _DEBUG_ON
             LogInfo("Dropping this hit: " << res_remove << "  " << HIT_REJECT*resol_plane[hit_remove->hit.detectorID]);
