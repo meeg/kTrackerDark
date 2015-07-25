@@ -9,6 +9,8 @@
 #define _JOBOPTSSVC_H
 
 #include <string>
+#include <TFile.h>
+#include <TString.h>
 
 class JobOptsSvc
 {
@@ -17,12 +19,14 @@ public:
     static JobOptsSvc* instance();
 
     ///Initialization with defaults
-    bool init( bool forceInit = false );
+    bool init(bool forceInit = false);
     ///Initialization using this config file
     bool init(const char* filename);
     ///Close the service and cleanup
     void close();
 
+    ///Save the content to a TFile
+    void save(TFile* saveFile);
 
     ///Return a string with environmental variables expanded
     std::string ExpandEnvironmentals( const std::string& input ) const;
@@ -72,7 +76,6 @@ public:
     std::string m_outputFile; ///< Name of the output file
     std::string m_inputSchema; ///< Name of the input schema
     std::string m_outputSchema; ///< Name of the output schema
-
 
     std::string m_alignmentFileHodo; ///< Name of hodoscope alignment file
     std::string m_alignmentFileChamber; ///< Name of chamber alignment file

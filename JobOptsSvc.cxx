@@ -7,7 +7,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "JobOptsSvc.h"
-#include <TString.h>
+#include <TTree.h>
 
 using namespace std;
 
@@ -254,4 +254,84 @@ bool JobOptsSvc::ProcessAllEvents() const
         return false;
 
     return true;
+}
+
+void JobOptsSvc::save(TFile* saveFile)
+{
+    saveFile->cd();
+    TTree* saveTree = new TTree("config", "config");
+
+    TString s_configFile = m_configFile;
+
+    int s_mcMode = m_mcMode;
+    int s_alignmentMode = m_alignmentMode;
+    int s_enableTriggerMask = m_enableTriggerMask;
+    int s_enableKMag = m_enableKMag;
+    int s_enableOnlineAlignment = m_enableOnlineAlignment;
+    int s_enableEvaluation = m_enableEvaluation;
+    int s_attachRawEvent = m_attachRawEvent;
+    int s_sagittaReducer = m_sagittaReducer;
+    int s_updateAlignment = m_updateAlignment;
+    int s_hodomask = m_hodomask;
+    int s_mergeHodo = m_mergeHodo;
+    int s_realization = m_realization;
+
+    TString s_mySQLInputURL = GetInputMySQLURL();
+    TString s_mySQLOutputURL = GetOutputMySQLURL();
+    int s_nevents = m_nEvents;
+    int s_firstEvent = m_firstEvent;
+
+    TString s_roadsPT = GetRoadsFilePlusTop();
+    TString s_roadsPB = GetRoadsFilePlusBottom();
+    TString s_roadsMT = GetRoadsFileMinusTop();
+    TString s_roadsMB = GetRoadsFileMinusBottom();
+
+    TString s_inputFile = m_inputFile;
+    TString s_outputFile = m_outputFile;
+
+    TString s_alignmentFileHodo = m_alignmentFileHodo;
+    TString s_alignmentFileCham = m_alignmentFileChamber;
+    TString s_alignmentFileProp = m_alignmentFileProp;
+    TString s_alignmentFileMille = m_alignmentFileMille;
+    TString s_calibrationFile = m_calibrationsFile;
+
+    TString s_fmagFile = m_fMagFile;
+    TString s_kmagFile = m_kMagFile;
+
+    TString s_geomVersion = m_geomVersion;
+
+    saveTree->Branch("ConfigFile", &s_configFile);
+    saveTree->Branch("MCMode", &s_mcMode);
+    saveTree->Branch("AlignmentMode", &s_alignmentMode);
+    saveTree->Branch("TriggerMask", &s_enableTriggerMask);
+    saveTree->Branch("KMagON", &s_enableKMag);
+    saveTree->Branch("OnlineAlignment", &s_enableOnlineAlignment);
+    saveTree->Branch("Evaluation", &s_enableEvaluation);
+    saveTree->Branch("AttachRaw", &s_attachRawEvent);
+    saveTree->Branch("SagittaReducer", &s_sagittaReducer);
+    saveTree->Branch("UpdateAlignment", &s_updateAlignment);
+    saveTree->Branch("HodoMask", &s_hodomask);
+    saveTree->Branch("MergeHodo", &s_mergeHodo);
+    saveTree->Branch("Realization", &s_realization);
+    saveTree->Branch("MySQLInput", &s_mySQLInputURL);
+    saveTree->Branch("MySQLOutput", &s_mySQLOutputURL);
+    saveTree->Branch("NEvents", &s_nevents);
+    saveTree->Branch("FirstEvent", &s_firstEvent);
+    saveTree->Branch("InputFile", &s_inputFile);
+    saveTree->Branch("OutputFile", &s_outputFile);
+    saveTree->Branch("RoadFilePT", &s_roadsPT);
+    saveTree->Branch("RoadFilePB", &s_roadsPB);
+    saveTree->Branch("RoadFileMT", &s_roadsMT);
+    saveTree->Branch("RoadFileMB", &s_roadsMB);
+    saveTree->Branch("AlignmentHodo", &s_alignmentFileHodo);
+    saveTree->Branch("AlignmentCham", &s_alignmentFileCham);
+    saveTree->Branch("AlignmentProp", &s_alignmentFileProp);
+    saveTree->Branch("AlignmentMille", &s_alignmentFileMille);
+    saveTree->Branch("Calibration", &s_calibrationFile);
+    saveTree->Branch("FMag", &s_fmagFile);
+    saveTree->Branch("KMag", &s_kmagFile);
+    saveTree->Branch("Geometry", &s_geomVersion);
+
+    saveTree->Fill();
+    saveTree->Write();
 }
