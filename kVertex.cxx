@@ -61,6 +61,15 @@ int main(int argc, char *argv[])
     saveTree->Branch("recEvent", &recEvent, 256000, 99);
     saveTree->Branch("tracklets", &tracklets, 256000, 99);
 
+    // save if the configuration file if exists from tracker output
+    if(dataFile->GetListOfKeys()->Contains("config"))
+    {
+        TTree* configTree = (TTree*)dataFile->Get("config");
+
+        saveFile->cd();
+        configTree->Write();
+    }
+
     if(jobOptsSvc->m_attachRawEvent)
     {
         dataTree->SetBranchAddress("rawEvent", &rawEvent);
