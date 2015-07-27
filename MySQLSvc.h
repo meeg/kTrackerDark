@@ -79,7 +79,7 @@ public:
 
   void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
   void writeTrackingBak(SRecEvent* recEvent, TString bakSuffix);
-  void writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix);
+  void writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix, int targPos);
   void writeTrackHitTable(int trackID, Tracklet* tracklet);
   void writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix);
   

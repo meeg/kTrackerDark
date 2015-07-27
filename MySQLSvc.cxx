@@ -850,6 +850,7 @@ std::string MySQLSvc::getTableDefinition( const std::string& tableType ) const
       return 
              "trackID     INTEGER,"
              "runID       INTEGER,"
+             "targetPos   INTEGER,"
              "eventID     INTEGER,"
              "charge      INTEGER,"
              "roadID      INTEGER,"
@@ -991,7 +992,7 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
   for(int i = 0; i < nTracks_local; ++i)
     {
       int trackID = nTracks + i;
-      writeTrackTable(trackID, &recEvent->getTrack(i), "");
+      writeTrackTable(trackID, &recEvent->getTrack(i), "", 0);
       writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
     }
 
@@ -1010,7 +1011,6 @@ void MySQLSvc::writeTrackingBak(SRecEvent* recEvent, TString bakSuffix)
   runID = recEvent->getRunID();
   spillID = recEvent->getSpillID();
   int targPos = recEvent->getTargetPos();
-  printf("Target = %d", targPos);
   if(!eventIDs_loaded.empty())
     {
       if(eventIDs_loaded.back() != recEvent->getEventID()) eventIDs_loaded.push_back(recEvent->getEventID());
@@ -1025,7 +1025,7 @@ void MySQLSvc::writeTrackingBak(SRecEvent* recEvent, TString bakSuffix)
   for(int i = 0; i < nTracks_local; ++i)
     {
       int trackID = nTracks + i;
-      writeTrackTable(trackID, &recEvent->getTrack(i), bakSuffix);
+      writeTrackTable(trackID, &recEvent->getTrack(i), bakSuffix, targPos);
     }
 
   int nDimuons_local = recEvent->getNDimuons();
@@ -1038,7 +1038,7 @@ void MySQLSvc::writeTrackingBak(SRecEvent* recEvent, TString bakSuffix)
   nDimuons += nDimuons_local;
 }
 
-void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix)
+void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix, int targPos)
 {
   double px0, py0, pz0, x0, y0, z0; 
   double px1, py1, pz1, x1, y1, z1;
@@ -1092,7 +1092,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     insertQuery = Form( "INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str() );
     insertQuery += 
       "("
-      "trackID,runID,eventID,charge,roadID,"
+      "trackID,runID,targetPos,eventID,charge,roadID,"
       "numHits,numHitsSt1,numHitsSt2,numHitsSt3,numHitsSt4H,numHitsSt4V,"
       "chisq,x0,y0,z0,px0,py0,pz0,"
       "x_target,y_target,z_target,x_dump,y_dump,z_dump," 
@@ -1101,7 +1101,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
       "tx_PT,ty_PT"
       ")";
     insertQuery += "VALUES(";
-    insertQuery += Form( "%d,%d,%d,%d,%d,", trackID, runID, eventIDs_loaded.back(), charge, roadID);
+    insertQuery += Form( "%d,%d,%d,%d,%d,%d,", trackID, runID, targPos, eventIDs_loaded.back(), charge, roadID);
     insertQuery += Form( "%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V );
     insertQuery += Form( "%f,%f,%f,%f,%f,%f,%f,", chisq, x0, y0, z0, px0, py0, pz0 );
     insertQuery += Form( "%f,%f,%f,%f,%f,%f,", proj_target.X(), proj_target.Y(), proj_target.Z(), proj_dump.X(), proj_dump.Y(), proj_dump.Z() );
