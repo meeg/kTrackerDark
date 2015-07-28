@@ -664,7 +664,7 @@ bool MySQLSvc::initWriter()
   // remove kInfo table if doing an entire run
   // todo: Not clear what to do if using subset tables
   if( !useSubsetTables )
-    outputServer->Exec( "DROP DATABASE IF EXISTS kInfo" );
+    outputServer->Exec( "DROP TABLE IF EXISTS kInfo" );
 
   //Book and fill kInfo table
   sprintf(query, "CREATE TABLE IF NOT EXISTS kInfo ("
