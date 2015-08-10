@@ -436,7 +436,7 @@ void SMillepede::setSingleTrack()
         derlc[3] = node->dwdty;
 
         //Fill global derivatives
-        if(index > 0)
+        if(index >= 0)
         {
             dergb[NPARPLAN*index + 0] = node->dwdz;
             dergb[NPARPLAN*index + 1] = node->dwdphi;
