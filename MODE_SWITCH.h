@@ -98,6 +98,18 @@
 #define USE_TRIGGER_HIT 1
 #define USE_HIT 2
 
+//-------------- Track finding exit code ---------------
+#define TFEXIT_SUCCESS 0;
+#define VFEXIT_SUCCESS 0;
+#define TFEXIT_FAIL_MULTIPLICITY -1;
+#define TFEXIT_FAIL_ROUGH_MUONID -2;
+#define TFEXIT_FAIL_ST2_TRACKLET -3;
+#define TFEXIT_FAIL_ST3_TRACKLET -4;
+#define TFEXIT_FAIL_NO_TRACKS -5;
+#define TFEXIT_FAIL_NO_DIMUON -6;
+#define VFEXIT_FAIL_DIMUONPAIR -11;
+#define VFEXIT_FAIL_ITERATION -12;
+
 //-------------- Useful marcros -----------------
 #define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
 #define varName(x) #x

@@ -33,7 +33,7 @@ public:
     ~KalmanFastTracking();
 
     //Set the input event
-    bool setRawEvent(SRawEvent* event_input);
+    int setRawEvent(SRawEvent* event_input);
     void setRawEventDebug(SRawEvent* event_input);
 
     //Event quality cut

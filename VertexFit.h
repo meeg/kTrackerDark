@@ -70,7 +70,7 @@ public:
     }
 
     ///Set the SRecEvent, main external call the use vertex fit
-    bool setRecEvent(SRecEvent* recEvent, int sign1 = 1, int sign2 = -1);
+    int setRecEvent(SRecEvent* recEvent, int sign1 = 1, int sign2 = -1);
 
     ///Initialize and reset
     void init();

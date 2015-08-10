@@ -276,6 +276,7 @@ public:
     void setEventInfo(SRawEvent* rawEvent);
     void setEventInfo(int runID, int spillID, int eventID) { fRunID = runID; fSpillID = spillID; fEventID = eventID; }
     void setTargetPos(int targetPos) { fTargetPos = targetPos; }
+    void setRecStatus(int status) { fRecStatus = status; }
 
     ///directly setup everything by raw event
     void setRawEvent(SRawEvent* rawEvent);
@@ -288,6 +289,7 @@ public:
     Int_t getEventID() { return fEventID; }
     Int_t getTargetPos() { return fTargetPos; }
     Int_t getTriggerBits() { return fTriggerBits; }
+    Int_t getRecStatus() { return fRecStatus; }
 
     Int_t getLocalID(Int_t hitID) { return fLocalID[hitID]; }
 
@@ -313,6 +315,9 @@ public:
     void clear();
 
 private:
+    ///Reconstruction status
+    Short_t fRecStatus;
+
     ///Basic event info.
     Int_t fRunID;
     Int_t fSpillID;
@@ -333,7 +338,7 @@ private:
     ///Mapping of hitID to local container ID in SRawEvent
     std::map<Int_t, Int_t> fLocalID;
 
-    ClassDef(SRecEvent, 3)
+    ClassDef(SRecEvent, 4)
 };
 
 #endif

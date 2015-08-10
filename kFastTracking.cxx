@@ -60,8 +60,9 @@ int main(int argc, char *argv[])
 
     TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
     jobOptsSvc->save(saveFile);
-    TTree* saveTree = jobOptsSvc->m_attachRawEvent ? dataTree->CloneTree(0) : new TTree("save", "save");
 
+    TTree* saveTree = new TTree("save", "save");
+    saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
     saveTree->Branch("recEvent", &recEvent, 256000, 99);
     saveTree->Branch("time", &time, "time/D");
     saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
@@ -110,12 +111,12 @@ int main(int argc, char *argv[])
         clock_t time_single = clock();
 
         eventReducer->reduceEvent(rawEvent);
-        if(!fastfinder->setRawEvent(rawEvent)) continue;
+        recEvent->setRecStatus(fastfinder->setRawEvent(rawEvent));
 
         //Fill the TClonesArray
         arr_tracklets.Clear();
         std::list<Tracklet>& rec_tracklets = fastfinder->getFinalTracklets();
-        if(rec_tracklets.empty()) continue;
+        //if(rec_tracklets.empty()) continue;
 
         nTracklets = 0;
         recEvent->setRawEvent(rawEvent);
@@ -145,7 +146,10 @@ int main(int argc, char *argv[])
         time_single = clock() - time_single;
         time = double(time_single)/CLOCKS_PER_SEC;
 
+        // sort the track list, and empty the large hit list in rawEvent if needed
         recEvent->reIndex();
+        if(!jobOptsSvc->m_attachRawEvent) rawEvent->empty();
+
         saveTree->Fill();
         if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
 

@@ -66,7 +66,7 @@ VertexFit::~VertexFit()
     }
 }
 
-bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
+int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 {
     //if the single vertex is not set, set it first
     int nTracks = recEvent->getNTracks();
@@ -91,7 +91,7 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 
     nPos = idx_pos.size();
     nNeg = idx_neg.size();
-    if(nPos*nNeg == 0) return false;
+    if(nPos*nNeg == 0) return VFEXIT_FAIL_DIMUONPAIR;
 
     //Prepare evaluation output
     if(evalTree != NULL)
@@ -209,8 +209,8 @@ bool VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
         }
     }
 
-    if(recEvent->getNDimuons() > 0) return true;
-    return false;
+    if(recEvent->getNDimuons() > 0) return VFEXIT_SUCCESS;
+    return VFEXIT_FAIL_ITERATION;
 }
 
 double VertexFit::findDimuonVertexFast(SRecTrack& track1, SRecTrack& track2)

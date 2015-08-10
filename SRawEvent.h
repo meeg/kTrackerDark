@@ -193,6 +193,9 @@ public:
     ///Clear the internal event structure
     void clear();
 
+    ///only empty the hit list, leave other information untouched
+    void empty() { fAllHits.clear(); fTriggerHits.clear(); }
+
     ///Print for debugging purposes
     void print();
 

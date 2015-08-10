@@ -45,21 +45,24 @@ int main(int argc, char *argv[])
     GeomSvc::instance()->init();
 
     //Retrieve the raw event
+    SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
     SRecEvent* recEvent = new SRecEvent();
     TClonesArray* tracklets = new TClonesArray("Tracklet");
-    SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());;
 
     TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
     TTree* dataTree = (TTree*)dataFile->Get("save");
 
+    dataTree->SetBranchAddress("rawEvent", &rawEvent);
     dataTree->SetBranchAddress("recEvent", &recEvent);
     dataTree->SetBranchAddress("tracklets", &tracklets);
 
     TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
     TTree* saveTree = new TTree("save", "save");
 
+    saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
     saveTree->Branch("recEvent", &recEvent, 256000, 99);
     saveTree->Branch("tracklets", &tracklets, 256000, 99);
+    tracklets->BypassStreamer();
 
     // save if the configuration file if exists from tracker output
     if(dataFile->GetListOfKeys()->Contains("config"))
@@ -69,12 +72,9 @@ int main(int argc, char *argv[])
         saveFile->cd();
         configTree->Write();
     }
-
-    if(jobOptsSvc->m_attachRawEvent)
+    else
     {
-        dataTree->SetBranchAddress("rawEvent", &rawEvent);
-        saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
-        tracklets->BypassStreamer();
+        jobOptsSvc->save(saveFile);
     }
 
     //Initialize track finder
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
             cout << (i + 1)*100/nEvtMax << "% finished .. " << flush;
         }
 
-        vtxfit->setRecEvent(recEvent);
+        recEvent->setRecStatus(vtxfit->setRecEvent(recEvent));
 
         if(recEvent->getNDimuons() > 0) saveTree->Fill();
         if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
