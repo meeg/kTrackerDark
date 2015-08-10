@@ -503,6 +503,7 @@ SRecEvent::SRecEvent()
     fRunID = -1;
     fSpillID = -1;
     fEventID = -1;
+    fRecStatus = 0;
 
     clear();
 }
@@ -551,4 +552,6 @@ void SRecEvent::clear()
     fAllTracks.clear();
     fLocalID.clear();
     fDimuons.clear();
+
+    fRecStatus = 0;
 }

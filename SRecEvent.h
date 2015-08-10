@@ -276,7 +276,7 @@ public:
     void setEventInfo(SRawEvent* rawEvent);
     void setEventInfo(int runID, int spillID, int eventID) { fRunID = runID; fSpillID = spillID; fEventID = eventID; }
     void setTargetPos(int targetPos) { fTargetPos = targetPos; }
-    void setRecStatus(int status) { fRecStatus = status; }
+    void setRecStatus(int status) { fRecStatus += status; }
 
     ///directly setup everything by raw event
     void setRawEvent(SRawEvent* rawEvent);

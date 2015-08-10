@@ -107,8 +107,8 @@
 #define TFEXIT_FAIL_ST3_TRACKLET -4;
 #define TFEXIT_FAIL_NO_TRACKS -5;
 #define TFEXIT_FAIL_NO_DIMUON -6;
-#define VFEXIT_FAIL_DIMUONPAIR -11;
-#define VFEXIT_FAIL_ITERATION -12;
+#define VFEXIT_FAIL_DIMUONPAIR -10;
+#define VFEXIT_FAIL_ITERATION -20;
 
 //-------------- Useful marcros -----------------
 #define LogInfo(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
