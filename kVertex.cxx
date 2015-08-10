@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
         recEvent->setRecStatus(vtxfit->setRecEvent(recEvent));
 
-        if(recEvent->getNDimuons() > 0) saveTree->Fill();
+        saveTree->Fill();
         if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
 
         recEvent->clear();
