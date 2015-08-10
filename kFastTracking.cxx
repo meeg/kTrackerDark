@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     const int offset = jobOptsSvc->m_firstEvent;
     int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
     if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-    const int printFreq = (nEvtMax - offset)/100;
+    const int printFreq = (nEvtMax - offset)/100 > 1 ? (nEvtMax - offset)/100 : 1;
     LogInfo("Running from event " << offset << " through to event " << nEvtMax);
     for(int i = offset; i < nEvtMax; ++i)
     {
