@@ -58,6 +58,7 @@ int main(int argc, char **argv)
     dataTree->SetBranchAddress("tracklets", &tracklets);
 
     if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
+    p_mysqlSvc->writeInfoTable();
 
     int nEvents = dataTree->GetEntries();
     for(int i = 0; i < nEvents; ++i)
@@ -65,39 +66,42 @@ int main(int argc, char **argv)
         dataTree->GetEntry(i);
         cout << "\r Uploading event " << recEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished." << flush;
 
-        p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
+        p_mysqlSvc->writeTrackingRes("", recEvent, tracklets);
     }
     cout << endl;
     cout << "Uploaded Data events successfully." << endl;
 
     if(!p_mysqlSvc->initBakWriter()) exit(EXIT_FAILURE);
 
+    p_mysqlSvc->resetWriter();
     int nEventsMix = mixTree->GetEntries();
     for(int i = 0; i < nEventsMix; ++i)
     {
         mixTree->GetEntry(i);
         cout << "\r Uploading event " << mixEvent->getEventID() << ", " << (i+1)*100/nEventsMix << "% finished." << flush;
-        p_mysqlSvc->writeTrackingBak(mixEvent, "Mix");
+        p_mysqlSvc->writeTrackingRes("Mix", mixEvent);
     }
     cout << endl;
     cout << "Uploaded Mix events successfully." << endl;
 
+    p_mysqlSvc->resetWriter();
     int nEventsPP = ppTree->GetEntries();
     for(int i = 0; i < nEventsPP; ++i)
     {
         ppTree->GetEntry(i);
         cout << "\r Uploading event " << ppEvent->getEventID() << ", " << (i+1)*100/nEventsPP << "% finished." << flush;
-        p_mysqlSvc->writeTrackingBak(ppEvent, "PP");
+        p_mysqlSvc->writeTrackingRes("PP", ppEvent);
     }
     cout << endl;
     cout << "Uploaded PP events successfully." << endl;
 
+    p_mysqlSvc->resetWriter();
     int nEventsMM = mmTree->GetEntries();
     for(int i = 0; i < nEventsMM; ++i)
     {
         mmTree->GetEntry(i);
         cout << "\r Uploading event " << mmEvent->getEventID() << ", " << (i+1)*100/nEventsMM << "% finished." << flush;
-        p_mysqlSvc->writeTrackingBak(mmEvent, "MM");
+        p_mysqlSvc->writeTrackingRes("MM", mmEvent);
     }
     cout << endl;
     cout << "Uploaded MM events successfully." << endl;

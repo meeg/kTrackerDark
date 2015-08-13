@@ -379,13 +379,31 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
 
     //Now the swimming is done, find the point with closest distance of approach, let iStep store the index of that step
     double dca_min = 1E9;
+    double dca_xmin = 1E9;
+    double dca_ymin = 1E9;
+    int iStep_x = iStep;          // the point when track cross beam line in X and in Y
+    int iStep_y = iStep;          // both intialized with the most upstream position
     for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
     {
+        if(charge*mom[i].Px() < 0.) continue;    // this is the upstream accidental cross, ignore
+
         double dca = pos[i].Perp();
-        if(dca < dca_min && charge*mom[i].Px() > 0.)
+        if(dca < dca_min)
         {
             dca_min = dca;
             iStep = i;
+        }
+
+        if(fabs(pos[i].X()) < dca_xmin)
+        {
+            dca_xmin = fabs(pos[i].X());
+            iStep_x = i;
+        }
+
+        if(fabs(pos[i].Y()) < dca_ymin)
+        {
+            dca_ymin = fabs(pos[i].Y());
+            iStep_y = i;
         }
     }
 
@@ -394,6 +412,14 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
     setDumpFaceMom(mom[NSLICES_FMAG]);
     setTargetPos(fDumpFacePos + TVector3(fDumpFaceMom.Px()/fDumpFaceMom.Pz()*Z_TARGET, fDumpFaceMom.Py()/fDumpFaceMom.Pz()*Z_TARGET, Z_TARGET));
     setTargetMom(mom[NSLICES_FMAG]);
+
+    double dz_x = -pos[iStep_x].X()/mom[iStep_x].Px()*mom[iStep_x].Pz();
+    setXVertexPos(pos[iStep_x] + TVector3(mom[iStep_x].Px()/mom[iStep_x].Pz()*dz_x, mom[iStep_x].Py()/mom[iStep_x].Pz()*dz_x, dz_x));
+    setXVertexMom(mom[iStep_x]);
+
+    double dz_y = -pos[iStep_y].Y()/mom[iStep_y].Py()*mom[iStep_y].Pz();
+    setYVertexPos(pos[iStep_y] + TVector3(mom[iStep_y].Px()/mom[iStep_y].Pz()*dz_y, mom[iStep_y].Py()/mom[iStep_y].Pz()*dz_y, dz_y));
+    setYVertexMom(mom[iStep_y]);
 
 #ifdef _DEBUG_ON_LEVEL_2
     std::cout << "The one with minimum DCA is: " << iStep << ": " << std::endl;
@@ -443,6 +469,7 @@ void SRecDimuon::calcVariables()
     xF = 2.*p_sum.Pz()/TMath::Sqrt(s)/(1. - mass*mass/s);
 
     costh = 2.*(p_neg.E()*p_pos.Pz() - p_pos.E()*p_neg.Pz())/mass/sqrt(mass*mass + pT*pT);
+    phi = 2.*sqrt(mass*mass + pT*pT)/mass*(p_neg.X()*p_pos.Y() - p_pos.X()*p_neg.Y())/(p_pos.X()*p_pos.X() - p_neg.X()*p_neg.X() + p_pos.Y()*p_pos.Y() - p_neg.Y()*p_neg.Y());
     mass_single = (p_pos_single + p_neg_single).M();
 }
 

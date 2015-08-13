@@ -21,6 +21,7 @@ Created: 2013.9.29
 #include <TClonesArray.h>
 #include <TVector3.h>
 #include <TLorentzVector.h>
+#include <TTree.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -76,12 +77,14 @@ public:
     //Output to database/txt file/screen
     bool initWriter();
     bool initBakWriter();
+    void resetWriter() { nTracks = 0; nDimuons = 0; }  // reset the track and dimuon counter to 0
 
-    void writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets);
-    void writeTrackingBak(SRecEvent* recEvent, TString bakSuffix);
-    void writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix);
+    void writeInfoTable(TTree* config);
+    void writeTrackingRes(TString tableSuffix, SRecEvent* recEvent, TClonesArray* tracklets = NULL);
+    void writeTrackTable(int trackID, SRecTrack* recTrack, TString tableSuffix);
     void writeTrackHitTable(int trackID, Tracklet* tracklet);
-    void writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix, int targetPos);
+    void writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString tableSuffix, int targetPos);
+    void writeEventTable(int eventID, int statusCode, TString tableSuffix);
 
     //helper functions for creating tables
     /// Get the suffix to add to end of intermediate event subrange tables (if any)

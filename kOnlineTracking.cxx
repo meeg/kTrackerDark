@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     p_mysqlSvc->connectInput();
     p_mysqlSvc->connectOutput();
     if(!(p_mysqlSvc->initReader() && p_mysqlSvc->initWriter())) exit(EXIT_FAILURE);
+    p_mysqlSvc->writeInfoTable();
 
     //Data output definition
     int nTracklets;
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
 
         if(nTracklets > 0)
         {
-            p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
+            p_mysqlSvc->writeTrackingRes("", recEvent, tracklets);
         }
         rawEvent->clear();
         recEvent->clear();

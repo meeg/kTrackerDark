@@ -3,9 +3,6 @@
 
 //--------------- Mode controls, experts only  ------------------
 //Will be removed eventually
-//=== Enable alignment mode
-//#define ALIGNMENT_MODE
-
 //=== Enable multiple minimizer feature, disabled by default
 //#define _ENABLE_MULTI_MINI
 
@@ -70,7 +67,9 @@
 #define Z_ABSORBER 2028.19
 #define Z_REF 0.
 #define Z_TARGET -129.54
-#define Z_DUMP 40.
+#define Z_DUMP 42.
+#define Z_ST1 600.
+#define Z_ST3 1900.
 #define RESOLUTION_DC 0.07
 
 #define BEAM_SPOT_X 0.5

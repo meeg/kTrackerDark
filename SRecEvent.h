@@ -117,9 +117,13 @@ public:
     TVector3 getDumpPos() { return fDumpPos; }
     TVector3 getDumpFacePos() { return fDumpFacePos; }
     TVector3 getTargetPos() { return fTargetPos; }
+    TVector3 getXVertexPos() { return fXVertexPos; }
+    TVector3 getYVertexPos() { return fYVertexPos; }
     TVector3 getDumpMom() { return fDumpMom; }
     TVector3 getDumpFaceMom() { return fDumpFaceMom; }
     TVector3 getTargetMom() { return fTargetMom; }
+    TVector3 getXVertexMom() { return fXVertexMom; }
+    TVector3 getYVertexMom() { return fYVertexMom; }
     TVector3 getVertexPos() { return fVertexPos; }
     TVector3 getVertexMom() { return fVertexMom; }
     Double_t getChisqDump() { return fChisqDump; }
@@ -130,9 +134,13 @@ public:
     void setDumpPos(TVector3 pos) { fDumpPos = pos; }
     void setDumpFacePos(TVector3 pos) { fDumpFacePos = pos; }
     void setTargetPos(TVector3 pos) { fTargetPos = pos; }
+    void setXVertexPos(TVector3 pos) { fXVertexPos = pos; }
+    void setYVertexPos(TVector3 pos) { fYVertexPos = pos; }
     void setDumpMom(TVector3 mom) { fDumpMom = mom; }
     void setDumpFaceMom(TVector3 mom) { fDumpFaceMom = mom; }
     void setTargetMom(TVector3 mom) { fTargetMom = mom; }
+    void setXVertexMom(TVector3 mom) { fXVertexMom = mom; }
+    void setYVertexMom(TVector3 mom) { fYVertexMom = mom; }
     void setChisqDump(Double_t chisq) { fChisqDump = chisq; }
     void setChisqTarget(Double_t chisq) { fChisqTarget = chisq; }
     void setChisqUpstream(Double_t chisq) { fChisqUpstream = chisq; }
@@ -172,10 +180,14 @@ private:
     TVector3 fDumpFacePos;
     TVector3 fDumpPos;
     TVector3 fTargetPos;
+    TVector3 fXVertexPos;
+    TVector3 fYVertexPos;
 
     TVector3 fDumpFaceMom;
     TVector3 fDumpMom;
     TVector3 fTargetMom;
+    TVector3 fXVertexMom;
+    TVector3 fYVertexMom;
 
     ///Vertex infomation
     TVector3 fVertexMom;      //duplicate information as fStateVertex already contains all the info., just keep it for now
@@ -201,7 +213,7 @@ private:
     Double_t fChisqDump;
     Double_t fChisqUpstream;
 
-    ClassDef(SRecTrack, 9)
+    ClassDef(SRecTrack, 10)
 };
 
 class SRecDimuon: public TObject
@@ -252,6 +264,7 @@ public:
     Double_t x1;
     Double_t x2;
     Double_t costh;
+    Double_t phi;
     Double_t mass_single;
     Double_t chisq_single;
 
@@ -264,7 +277,7 @@ public:
     Double_t chisq_dump;
     Double_t chisq_upstream;
 
-    ClassDef(SRecDimuon, 5)
+    ClassDef(SRecDimuon, 6)
 };
 
 class SRecEvent: public TObject

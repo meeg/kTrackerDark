@@ -10,6 +10,8 @@ Created: 9-29-2013
 #include <stdexcept>
 #include <boost/lexical_cast.hpp>
 #include <TLorentzVector.h>
+#include <TObjArray.h>
+#include <TLeaf.h>
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
 
@@ -619,8 +621,8 @@ bool MySQLSvc::initWriter()
     outputServer->Exec(query);
 
     //prepare the main output tables
-    string tableNames[3] = {"kTrack", "kTrackHit", "kDimuon"};
-    for(int i = 0; i != 3; ++i)
+    string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kEvent"};
+    for(int i = 0; i != 4; ++i)
     {
         const string& tableName = tableNames[i];
         //1. drop existing final tables unless processing an event subset
@@ -682,7 +684,7 @@ bool MySQLSvc::initWriter()
     std::cout << __FUNCTION__ << ": Now create kInfo table..." << std::endl;
     // remove kInfo table if doing an entire run
     // todo: Not clear what to do if using subset tables
-    if(!useSubsetTables) outputServer->Exec( "DROP TABLE IF EXISTS kInfo" );
+    if(!useSubsetTables) outputServer->Exec("DROP TABLE IF EXISTS kInfo");
 
     //Book and fill kInfo table
     sprintf(query, "CREATE TABLE IF NOT EXISTS kInfo ("
@@ -697,7 +699,7 @@ bool MySQLSvc::initWriter()
 #endif
 
     sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-            "VALUES('%s','%s')", "sourceSchema", inputSchema.c_str());
+                   "VALUES('%s','%s')", "sourceSchema", inputSchema.c_str());
 #ifndef OUT_TO_SCREEN
     outputServer->Exec(query);
 #else
@@ -712,19 +714,9 @@ bool MySQLSvc::initWriter()
     std::cout << __FUNCTION__ << ": " << query << std::endl;
 #endif
 
-    //Tracker version from software release
-    char *trackerVersion = getenv( "SEAQUEST_RELEASE" );
-    if(!trackerVersion) sprintf( trackerVersion, "unknown.version" );
-    sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-                   "VALUES('%s','%s/%s')", "version", "ROOT decoder", trackerVersion);
-    outputServer->Exec(query);
+
 
     std::cout << __FUNCTION__ << ": ...Done creating kInfo table." << std::endl;
-
-    //initialize the trackID and dimuonID counter
-    nTracks = 0;
-    nDimuons = 0;
-
     return true;
 }
 
@@ -795,10 +787,6 @@ bool MySQLSvc::initBakWriter()
         }//end if(useSubsetTable)
     }//end loop over tableNames
 
-    //initialize the trackID and dimuonID counter
-    nTracks = 0;
-    nDimuons = 0;
-
     return true;
 }
 
@@ -838,10 +826,20 @@ std::string MySQLSvc::getMySQLEventSelection( ) const
 
 std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
 {
+    if(tableType == "kEvent")
+    {
+        return "runID       SMALLINT, "
+               "spillID     INTEGER, "
+               "eventID     INTEGER, "
+               "status      SMALLINT, "
+               "PRIMARY KEY(runID, eventID), "
+               "INDEX(spillID), INDEX(eventID)";
+    }
+
     if(tableType == "kTrack" || tableType == "kTrackPP" || tableType == "kTrackMM" || tableType == "kTrackMix")
     {
         return "trackID     INTEGER,"
-               "runID       INTEGER,"
+               "runID       SMALLINT,"
                "spillID     INTEGER,"
                "eventID     INTEGER,"
                "charge      INTEGER,"
@@ -896,7 +894,7 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
     if(tableType == "kDimuon" || tableType == "kDimuonPP" || tableType == "kDimuonMM" || tableType == "kDimuonMix")
     {
         return  "dimuonID    INTEGER,"
-                "runID       INTEGER,"
+                "runID       SMALLINT,"
                 "spillID     INTEGER,"
                 "eventID     INTEGER,"
                 "targetPos   INTEGER,"
@@ -946,7 +944,7 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
     return "";
 }
 
-void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
+void MySQLSvc::writeTrackingRes(TString tableSuffix, SRecEvent* recEvent, TClonesArray* tracklets)
 {
     runID = recEvent->getRunID();
     spillID = recEvent->getSpillID();
@@ -959,56 +957,62 @@ void MySQLSvc::writeTrackingRes(SRecEvent* recEvent, TClonesArray* tracklets)
     {
         eventIDs_loaded.push_back(recEvent->getEventID());
     }
+
+    //Write the general event table
+    writeEventTable(recEvent->getEventID(), recEvent->getRecStatus(), "");
 
     //Fill Track table/TrackHit table
     int nTracks_local = recEvent->getNTracks();
     for(int i = 0; i < nTracks_local; ++i)
     {
         int trackID = nTracks + i;
-        writeTrackTable(trackID, &recEvent->getTrack(i), "");
-        writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
+        writeTrackTable(trackID, &recEvent->getTrack(i), tableSuffix);
+        if(tracklets != NULL) writeTrackHitTable(trackID, (Tracklet*)tracklets->At(i));
     }
 
     int nDimuons_local = recEvent->getNDimuons();
     for(int i = 0; i < nDimuons_local; ++i)
     {
-        writeDimuonTable(nDimuons+i, recEvent->getDimuon(i), "", targetPos);
+        writeDimuonTable(nDimuons+i, recEvent->getDimuon(i), tableSuffix, targetPos);
     }
 
     nTracks += nTracks_local;
     nDimuons += nDimuons_local;
 }
 
-void MySQLSvc::writeTrackingBak(SRecEvent* recEvent, TString bakSuffix)
+void MySQLSvc::writeInfoTable(TTree* config)
 {
-    runID = recEvent->getRunID();
-    spillID = recEvent->getSpillID();
-    int targetPos = recEvent->getTargetPos();
-    if(!eventIDs_loaded.empty())
+    TObjArray* array = config->GetListOfLeaves();
+    for(int i = 0; i < array->GetEntries(); ++i)
     {
-        if(eventIDs_loaded.back() != recEvent->getEventID()) eventIDs_loaded.push_back(recEvent->getEventID());
-    }
-    else
-    {
-        eventIDs_loaded.push_back(recEvent->getEventID());
-    }
-
-    //Fill Track table
-    int nTracks_local = recEvent->getNTracks();
-    for(int i = 0; i < nTracks_local; ++i)
-    {
-        int trackID = nTracks + i;
-        writeTrackTable(trackID, &recEvent->getTrack(i), bakSuffix);
+        TString key = array->At(i)->GetName();
+        if(TString(((TLeaf*)array->At(i))->GetTypeName()) == "TString")
+        {
+            TString val = *(TString*)(config->GetLeaf(key.Data())->GetValuePointer());
+            outputServer->Exec(Form("INSERT INTO kInfo (infoKey,infoValue) VALUES('%s','%s')", key.Data(), val.Data()));
+        }
+        else
+        {
+            int val = config->GetLeaf(key.Data())->GetValue();
+            outputServer->Exec(Form("INSERT INTO kInfo (infoKey,infoValue) VALUES('%s', '%d')", key.Data(), val));
+        }
     }
 
-    int nDimuons_local = recEvent->getNDimuons();
-    for(int i = 0; i < nDimuons_local; ++i)
-    {
-        writeDimuonTable(nDimuons+i, recEvent->getDimuon(i), bakSuffix, targetPos);
-    }
+    //Tracker version from software release
+    char *trackerVersion = getenv("SEAQUEST_RELEASE");
+    if(!trackerVersion) sprintf( trackerVersion, "unknown.version");
+    sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
+                   "VALUES('%s','%s')", "version", trackerVersion);
+    outputServer->Exec(query);
+}
 
-    nTracks += nTracks_local;
-    nDimuons += nDimuons_local;
+void MySQLSvc::writeEventTable(int eventID, int statusCode, TString tableSuffix)
+{
+    if(tableSuffix != "") return;
+
+    sprintf(query, "INSERT INTO kEvent (runID,spillID,eventID,status)"
+                   "VALUES(%d,%d,%d,%d)", runID, spillID, eventID, statusCode);
+    outputServer->Exec(query);
 }
 
 void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix)
