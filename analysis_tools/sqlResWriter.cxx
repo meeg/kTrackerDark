@@ -35,19 +35,29 @@ int main(int argc, char **argv)
     ///Intialize the mysql service
     MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
     p_mysqlSvc->setUserPasswd("production", "qqbar2mu+mu-");
-    p_mysqlSvc->connectOutput();
+    p_mysqlSvc->connectOutput(argv[3], atoi(argv[4]));
     p_mysqlSvc->setOutputSchema(argv[2]);
-    if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
 
     ///Retrieve data from file
     TClonesArray* tracklets = new TClonesArray("Tracklet");
     SRecEvent* recEvent = new SRecEvent();
+    SRecEvent* mixEvent = new SRecEvent();
+    SRecEvent* ppEvent = new SRecEvent();
+    SRecEvent* mmEvent = new SRecEvent();
 
     TFile* dataFile = new TFile(argv[1], "READ");
     TTree* dataTree = (TTree*)dataFile->Get("save");
+    TTree* mixTree = (TTree*)dataFile->Get("save_mix");
+    TTree* ppTree = (TTree*)dataFile->Get("save_pp");
+    TTree* mmTree = (TTree*)dataFile->Get("save_mm");
 
+    mixTree->SetBranchAddress("recEvent", &mixEvent);
+    ppTree->SetBranchAddress("recEvent", &ppEvent);
+    mmTree->SetBranchAddress("recEvent", &mmEvent);
     dataTree->SetBranchAddress("recEvent", &recEvent);
     dataTree->SetBranchAddress("tracklets", &tracklets);
+
+    if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
 
     int nEvents = dataTree->GetEntries();
     for(int i = 0; i < nEvents; ++i)
@@ -58,6 +68,39 @@ int main(int argc, char **argv)
         p_mysqlSvc->writeTrackingRes(recEvent, tracklets);
     }
     cout << endl;
+    cout << "Uploaded Data events successfully." << endl;
+
+    if(!p_mysqlSvc->initBakWriter()) exit(EXIT_FAILURE);
+
+    int nEventsMix = mixTree->GetEntries();
+    for(int i = 0; i < nEventsMix; ++i)
+    {
+        mixTree->GetEntry(i);
+        cout << "\r Uploading event " << mixEvent->getEventID() << ", " << (i+1)*100/nEventsMix << "% finished." << flush;
+        p_mysqlSvc->writeTrackingBak(mixEvent, "Mix");
+    }
+    cout << endl;
+    cout << "Uploaded Mix events successfully." << endl;
+
+    int nEventsPP = ppTree->GetEntries();
+    for(int i = 0; i < nEventsPP; ++i)
+    {
+        ppTree->GetEntry(i);
+        cout << "\r Uploading event " << ppEvent->getEventID() << ", " << (i+1)*100/nEventsPP << "% finished." << flush;
+        p_mysqlSvc->writeTrackingBak(ppEvent, "PP");
+    }
+    cout << endl;
+    cout << "Uploaded PP events successfully." << endl;
+
+    int nEventsMM = mmTree->GetEntries();
+    for(int i = 0; i < nEventsMM; ++i)
+    {
+        mmTree->GetEntry(i);
+        cout << "\r Uploading event " << mmEvent->getEventID() << ", " << (i+1)*100/nEventsMM << "% finished." << flush;
+        p_mysqlSvc->writeTrackingBak(mmEvent, "MM");
+    }
+    cout << endl;
+    cout << "Uploaded MM events successfully." << endl;
     cout << "sqlResWriter ends successfully." << endl;
 
     delete p_mysqlSvc;
