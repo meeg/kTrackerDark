@@ -1021,7 +1021,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     TVector3 pos_xvertex = recTrack->getXVertexPos();
     TVector3 pos_yvertex = recTrack->getYVertexPos();
 
-    if(std::isnan(pos_xvertex.Z()) || std::isnan(pos_yvertex).Z()) return;
+    if(std::isnan(pos_xvertex.Z()) || std::isnan(pos_yvertex.Z())) return;
 
     double tx_prop = recTrack->getPTSlopeX();
     double ty_prop = recTrack->getPTSlopeY();
