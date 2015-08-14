@@ -7,11 +7,16 @@ Author: Kun Liu, liuk@fnal.gov
 Created: 9-29-2013
 */
 
+#include <cstring>
+#include <cmath>
+#include <cfloat>
 #include <stdexcept>
 #include <boost/lexical_cast.hpp>
+
 #include <TLorentzVector.h>
 #include <TObjArray.h>
 #include <TLeaf.h>
+
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
 
@@ -1058,17 +1063,17 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     y0 = recTrack->getVtxPar(1);
     z0 = recTrack->getVtxPar(2);
     recTrack->getMomentumVertex(px0, py0, pz0);
-    if(boost::math::isnan(px0) || boost::math::isnan(py0) || boost::math::isnan(pz0)) return;
+    if(std::isnan(px0) || std::isnan(py0) || std::isnan(pz0)) return;
 
     //At station 1
     recTrack->getExpPositionFast(Z_ST1, x1, y1);
     recTrack->getExpMomentumFast(Z_ST1, px1, py1, pz1);
-    if(boost::math::isnan(px1) || boost::math::isnan(py1) || boost::math::isnan(pz1)) return;
+    if(std::isnan(px1) || std::isnan(py1) || std::isnan(pz1)) return;
 
     //At station 3
     recTrack->getExpPositionFast(Z_ST3, x3, y3);
     recTrack->getExpMomentumFast(Z_ST3, px3, py3, pz3);
-    if(boost::math::isnan(px3) || boost::math::isnan(py3) || boost::math::isnan(pz3)) return;
+    if(std::isnan(px3) || std::isnan(py3) || std::isnan(pz3)) return;
 
     TString insertQuery = "";
     insertQuery = Form("INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
