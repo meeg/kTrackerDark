@@ -46,6 +46,7 @@ int main(int argc, char **argv)
     SRecEvent* mmEvent = new SRecEvent();
 
     TFile* dataFile = new TFile(argv[1], "READ");
+    TTree* configTree = (TTree*)dataFile->Get("config");
     TTree* dataTree = (TTree*)dataFile->Get("save");
     TTree* mixTree = (TTree*)dataFile->Get("save_mix");
     TTree* ppTree = (TTree*)dataFile->Get("save_pp");
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
     dataTree->SetBranchAddress("tracklets", &tracklets);
 
     if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
-    p_mysqlSvc->writeInfoTable();
+    p_mysqlSvc->writeInfoTable(configTree);
 
     int nEvents = dataTree->GetEntries();
     for(int i = 0; i < nEvents; ++i)
