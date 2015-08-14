@@ -1066,7 +1066,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
                    "pxT,pyT,pzT,pxD,pyD,pzD,"
                    "x1,y1,z1,px1,py1,pz1,"
                    "x3,y3,z3,px3,py3,pz3,"
-                   "tx_PT,ty_PT,"
+                   "thbend,tx_PT,ty_PT,"
                    "chisq_target,chisq_dump,chisq_upstream)";
     insertQuery += "VALUES(";
     insertQuery += Form("%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
@@ -1076,7 +1076,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", mom_target.X(), mom_target.Y(), mom_target.Z(), mom_dump.X(), mom_dump.Y(), mom_dump.Z());
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
-    insertQuery += Form("%f,%f,", tx_prop, ty_prop);
+    insertQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
     insertQuery += Form("%f,%f,%f", chisq_target, chisq_dump, chisq_upstream);
     insertQuery += ")";
 

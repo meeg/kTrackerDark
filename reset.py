@@ -21,20 +21,20 @@ setup = os.path.abspath( "setup.sh" )
 analysisTools = ["sqlDataReader", "sqlResWriter"]
 
 if len(sys.argv) == 1:
-  os.chdir('TrackExtrapolator')
-  os.system('source %(setup)s; make clean; make' % locals() )
-  os.chdir('..')
-  os.system('source %(setup)s; make clean;make' % locals() )
-  for tool in analysisTools:
-    if os.path.isfile(tool):
-      os.unlink(tool)
-    print "Compiling analysis tool:",tool
-    os.system( "source %(setup)s; ./compile analysis_tools/%(tool)s" % locals() )
-else:
-  if opts.clean:
     os.chdir('TrackExtrapolator')
-    os.system('make clean')
+    os.system('source %(setup)s; make clean; make' % locals() )
     os.chdir('..')
-    os.system('make clean')
-  elif opts.kclean:
-    os.system('make clean')
+    os.system('source %(setup)s; make clean;make' % locals() )
+    #for tool in analysisTools:
+    #    if os.path.isfile(tool):
+    #        os.unlink(tool)
+    #    print "Compiling analysis tool:",tool
+    #    os.system( "source %(setup)s; ./compile analysis_tools/%(tool)s" % locals() )
+else:
+    if opts.clean:
+        os.chdir('TrackExtrapolator')
+        os.system('make clean')
+        os.chdir('..')
+        os.system('make clean')
+    elif opts.kclean:
+        os.system('make clean')
