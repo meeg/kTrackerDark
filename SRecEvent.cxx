@@ -471,7 +471,7 @@ void SRecDimuon::calcVariables()
     xF = 2.*p_sum.Pz()/TMath::Sqrt(s)/(1. - mass*mass/s);
 
     costh = 2.*(p_neg.E()*p_pos.Pz() - p_pos.E()*p_neg.Pz())/mass/sqrt(mass*mass + pT*pT);
-    phi = 2.*sqrt(mass*mass + pT*pT)/mass*(p_neg.X()*p_pos.Y() - p_pos.X()*p_neg.Y())/(p_pos.X()*p_pos.X() - p_neg.X()*p_neg.X() + p_pos.Y()*p_pos.Y() - p_neg.Y()*p_neg.Y());
+    phi = atan(2.*sqrt(mass*mass + pT*pT)/mass*(p_neg.X()*p_pos.Y() - p_pos.X()*p_neg.Y())/(p_pos.X()*p_pos.X() - p_neg.X()*p_neg.X() + p_pos.Y()*p_pos.Y() - p_neg.Y()*p_neg.Y()));
     mass_single = (p_pos_single + p_neg_single).M();
 }
 

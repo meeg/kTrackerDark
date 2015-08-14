@@ -944,7 +944,7 @@ void MySQLSvc::writeTrackingRes(TString tableSuffix, SRecEvent* recEvent, TClone
     }
 
     //Write the general event table
-    writeEventTable(recEvent->getEventID(), recEvent->getRecStatus(), "");
+    writeEventTable(recEvent->getEventID(), recEvent->getRecStatus(), tableSuffix);
 
     //Fill Track table/TrackHit table
     int nTracks_local = recEvent->getNTracks();
