@@ -832,8 +832,8 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                "spillID     INTEGER, "
                "eventID     INTEGER, "
                "status      SMALLINT, "
-               "PRIMARY KEY(runID, eventID), "
-               "INDEX(spillID), INDEX(eventID)";
+               "PRIMARY KEY(eventID), "
+               "INDEX(spillID)";
     }
 
     if(tableType == "kTrack" || tableType == "kTrackPP" || tableType == "kTrackMM" || tableType == "kTrackMix")
@@ -887,8 +887,9 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                "chisq_target     DOUBLE, "
                "chisq_dump       DOUBLE, "
                "chisq_upstream   DOUBLE, "
-               "PRIMARY KEY(runID, eventID, trackID), "
-               "INDEX(eventID), INDEX(spillID)";
+               "PRIMARY KEY(trackID), "
+               "INDEX(eventID), "
+               "INDEX(spillID)";
     }//end of kTrack
 
     if(tableType == "kDimuon" || tableType == "kDimuonPP" || tableType == "kDimuonMM" || tableType == "kDimuonMix")
@@ -923,8 +924,9 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                 "isValid     INTEGER,"
                 "isTarget    INTEGER,"
                 "isDump      INTEGER,"
-                "PRIMARY KEY(runID, eventID, dimuonID), "
-                "INDEX(eventID), INDEX(spillID)";
+                "PRIMARY KEY(dimuonID), "
+                "INDEX(eventID), "
+                "INDEX(spillID)";
     }//end of kDimuon
 
     if(tableType == "kTrackHit")
@@ -936,8 +938,9 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                "hitID       BIGINT,  "
                "driftSign   SMALLINT,"
                "residual    DOUBLE,  "
-               "PRIMARY KEY(runID, eventID, trackID, hitID), "
-               "INDEX(eventID), INDEX(spillID)";
+               "PRIMARY KEY(trackID, hitID), "
+               "INDEX(eventID), "
+               "INDEX(spillID)";
     }//end of kTrackHit
 
     // to mute warning, program won't come to this part if development is not stupid
