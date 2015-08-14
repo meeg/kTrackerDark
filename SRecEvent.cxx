@@ -381,8 +381,10 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
     double dca_min = 1E9;
     double dca_xmin = 1E9;
     double dca_ymin = 1E9;
-    int iStep_x = iStep;          // the point when track cross beam line in X and in Y
-    int iStep_y = iStep;          // both intialized with the most upstream position
+
+    iStep = NSLICES_FMAG+NSTEPS_TARGET;   // set the default point to the most upstream
+    int iStep_x = iStep;                  // the point when track cross beam line in X and in Y
+    int iStep_y = iStep;                  // both intialized with the most upstream position
     for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
     {
         if(charge*mom[i].Px() < 0.) continue;    // this is the upstream accidental cross, ignore

@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         TTree* configTree = (TTree*)dataFile->Get("config");
 
         saveFile->cd();
-        configTree->Write();
+        configTree->CloneTree()->Write();
     }
     else
     {

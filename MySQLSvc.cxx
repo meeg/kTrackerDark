@@ -94,7 +94,7 @@ bool MySQLSvc::connectInput(std::string mysqlServer, int mysqlPort)
     else
     {
         char serverUrl[200];
-        sprintf(serverUrl, "mysql://%s/%d", mysqlServer.c_str(), mysqlPort);
+        sprintf(serverUrl, "mysql://%s:%d", mysqlServer.c_str(), mysqlPort);
         inputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
     }
 
@@ -108,7 +108,7 @@ bool MySQLSvc::connectInput(std::string mysqlServer, int mysqlPort)
 
 bool MySQLSvc::connectOutput(std::string mysqlServer, int mysqlPort)
 {
-    if( outputServer )
+    if(outputServer)
     {
         delete outputServer;
         inputServer = NULL;
@@ -122,7 +122,7 @@ bool MySQLSvc::connectOutput(std::string mysqlServer, int mysqlPort)
     else
     {
         char serverUrl[200];
-        sprintf(serverUrl, "mysql://%s/%d", mysqlServer.c_str(), mysqlPort);
+        sprintf(serverUrl, "mysql://%s:%d", mysqlServer.c_str(), mysqlPort);
         outputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
     }
 
@@ -631,7 +631,7 @@ bool MySQLSvc::initWriter()
     {
         const string& tableName = tableNames[i];
         //1. drop existing final tables unless processing an event subset
-        if( !useSubsetTables )
+        if(!useSubsetTables)
         {
             sprintf(query, "DROP TABLE IF EXISTS %s", tableName.c_str() );
 #ifndef OUT_TO_SCREEN
@@ -642,10 +642,10 @@ bool MySQLSvc::initWriter()
         }
 
         //2. get definition of table's fields and keys
-        const string tableDefinition = getTableDefinition( tableName );
+        const string tableDefinition = getTableDefinition(tableName);
 
         //create final output tables
-        sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", tableName.c_str(), tableDefinition.c_str() );
+        sprintf(query, "CREATE TABLE IF NOT EXISTS %s (%s)", tableName.c_str(), tableDefinition.c_str());
 #ifndef OUT_TO_SCREEN
         outputServer->Exec(query);
 #else
@@ -653,27 +653,27 @@ bool MySQLSvc::initWriter()
 #endif
 
         //prepare intermediate tables to hold subset of events
-        if( useSubsetTables )
+        if(useSubsetTables)
         {
-            const string subsetTableName = Form("%s%s", tableName.c_str(), subsetTableSuffix.c_str() );
+            const string subsetTableName = Form("%s%s", tableName.c_str(), subsetTableSuffix.c_str());
             TSQLResult *res;
 
             //3. always drop subset table
-            outputServer->Exec( Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str() ) );
+            outputServer->Exec(Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str()));
 
             //4. create the subset tbale
-            sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str() );
+            sprintf(query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str());
             outputServer->Exec(query);
 
             //5. see if data for the events in question already exist in the table (see if even a single row exists)
-            sprintf( query, "SELECT * FROM %s WHERE %s LIMIT 1", tableName.c_str(), subsetEventString.c_str() );
+            sprintf(query, "SELECT * FROM %s WHERE %s LIMIT 1", tableName.c_str(), subsetEventString.c_str());
             res = outputServer->Query(query);
 
             // this will either be 1 if rows do exist, or 0 if none exist
-            if( res->GetRowCount() )
+            if(res->GetRowCount())
             {
                 // delete subset's event range from the final table
-                sprintf( query, "DELETE FROM %s WHERE %s", tableName.c_str(), subsetEventString.c_str() );
+                sprintf(query, "DELETE FROM %s WHERE %s", tableName.c_str(), subsetEventString.c_str());
                 outputServer->Exec(query);
             }//end if(res->GetRowCount())
             // always close a TSQLResult
@@ -696,30 +696,7 @@ bool MySQLSvc::initWriter()
                    "infoKey     VARCHAR(100),"
                    "infoValue   TEXT,"
                    "PRIMARY KEY(infoKey))");
-
-#ifndef OUT_TO_SCREEN
     outputServer->Exec(query);
-#else
-    std::cout << __FUNCTION__ << ": " << query << std::endl;
-#endif
-
-    sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-                   "VALUES('%s','%s')", "sourceSchema", inputSchema.c_str());
-#ifndef OUT_TO_SCREEN
-    outputServer->Exec(query);
-#else
-    std::cout << __FUNCTION__ << ": " << query << std::endl;
-#endif
-
-    sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
-            "VALUES('%s','%s')", "outputSchema", outputSchema.c_str());
-#ifndef OUT_TO_SCREEN
-    outputServer->Exec(query);
-#else
-    std::cout << __FUNCTION__ << ": " << query << std::endl;
-#endif
-
-
 
     std::cout << __FUNCTION__ << ": ...Done creating kInfo table." << std::endl;
     return true;
@@ -990,6 +967,9 @@ void MySQLSvc::writeTrackingRes(TString tableSuffix, SRecEvent* recEvent, TClone
 
 void MySQLSvc::writeInfoTable(TTree* config)
 {
+    if(config->GetEntries() == 0) return;
+    config->GetEntry(0);
+
     TObjArray* array = config->GetListOfLeaves();
     for(int i = 0; i < array->GetEntries(); ++i)
     {
@@ -1001,7 +981,7 @@ void MySQLSvc::writeInfoTable(TTree* config)
         }
         else
         {
-            int val = config->GetLeaf(key.Data())->GetValue();
+            int val = int(config->GetLeaf(key.Data())->GetValue());
             outputServer->Exec(Form("INSERT INTO kInfo (infoKey,infoValue) VALUES('%s', '%d')", key.Data(), val));
         }
     }
@@ -1040,6 +1020,8 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     TVector3 mom_dump = recTrack->getDumpMom();
     TVector3 pos_xvertex = recTrack->getXVertexPos();
     TVector3 pos_yvertex = recTrack->getYVertexPos();
+
+    if(std::isnan(pos_xvertex.Z()) || std::isnan(pos_yvertex).Z()) return;
 
     double tx_prop = recTrack->getPTSlopeX();
     double ty_prop = recTrack->getPTSlopeY();
@@ -1084,7 +1066,8 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
                    "pxT,pyT,pzT,pxD,pyD,pzD,"
                    "x1,y1,z1,px1,py1,pz1,"
                    "x3,y3,z3,px3,py3,pz3,"
-                   "tx_PT,ty_PT) ";
+                   "tx_PT,ty_PT,"
+                   "chisq_target,chisq_dump,chisq_upstream)";
     insertQuery += "VALUES(";
     insertQuery += Form("%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
     insertQuery += Form("%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V);
@@ -1138,14 +1121,14 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuff
     insertQuery = Form("INSERT INTO kDimuon%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
     insertQuery += "(dimuonID,runID,spillID,eventID,targetPos,posTrackID,negTrackID,"
                    "dx,dy,dz,dpx,dpy,dpz,"
-                   "mass,xF,xB,xT,costh,phi"
+                   "mass,xF,xB,xT,costh,phi,"
                    "trackSeparation,chisq_dimuon,"
                    "px1,py1,pz1,px2,py2,pz2,"
                    "isValid,isTarget,isDump) ";
     insertQuery += "VALUES(";
     insertQuery += Form("%d,%d,%d,%d,%d,%d,%d,", dimuonID, runID, spillID, eventIDs_loaded.back(), targetPos, dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks);
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x0, y0, z0, px0, py0, pz0);
-    insertQuery += Form("%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dimuon.costh, dimuon.phi);
     insertQuery += Form("%f,%f,", dz, dimuon.chisq_kf);
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
     insertQuery += Form("%i,%i,%i", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
