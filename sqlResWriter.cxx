@@ -14,6 +14,7 @@
 #include <TSQLRow.h>
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
+#include <TString.h>
 
 #include "SRecEvent.h"
 #include "JobOptsSvc.h"
@@ -41,10 +42,8 @@ int main(int argc, char **argv)
     ///Retrieve data from file
     TClonesArray* tracklets = new TClonesArray("Tracklet");
     SRecEvent* recEvent = new SRecEvent();
-    SRecEvent* mixEvent = new SRecEvent();
-    SRecEvent* ppEvent = new SRecEvent();
-    SRecEvent* mmEvent = new SRecEvent();
 
+    ///Get trees
     TFile* dataFile = new TFile(argv[1], "READ");
     TTree* configTree = (TTree*)dataFile->Get("config");
     TTree* dataTree = (TTree*)dataFile->Get("save");
@@ -52,60 +51,41 @@ int main(int argc, char **argv)
     TTree* ppTree = (TTree*)dataFile->Get("save_pp");
     TTree* mmTree = (TTree*)dataFile->Get("save_mm");
 
-    mixTree->SetBranchAddress("recEvent", &mixEvent);
-    ppTree->SetBranchAddress("recEvent", &ppEvent);
-    mmTree->SetBranchAddress("recEvent", &mmEvent);
-    dataTree->SetBranchAddress("recEvent", &recEvent);
-    dataTree->SetBranchAddress("tracklets", &tracklets);
+    ///Table name and corresponding trees
+    TString tableSuffix[4] = {"", "Mix", "PP", "MM"};
+    TTree* trees[4] = {dataTree, mixTree, ppTree, mmTree};
 
+    ///Initialize data tables
     if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
-    p_mysqlSvc->writeInfoTable(configTree);
-
-    int nEvents = dataTree->GetEntries();
-    for(int i = 0; i < nEvents; ++i)
-    {
-        dataTree->GetEntry(i);
-        cout << "\r Uploading event " << recEvent->getEventID() << ", " << (i+1)*100/nEvents << "% finished." << flush;
-
-        p_mysqlSvc->writeTrackingRes("", recEvent, tracklets);
-    }
-    cout << endl;
-    cout << "Uploaded Data events successfully." << endl;
-
     if(!p_mysqlSvc->initBakWriter()) exit(EXIT_FAILURE);
 
-    p_mysqlSvc->resetWriter();
-    int nEventsMix = mixTree->GetEntries();
-    for(int i = 0; i < nEventsMix; ++i)
-    {
-        mixTree->GetEntry(i);
-        cout << "\r Uploading event " << mixEvent->getEventID() << ", " << (i+1)*100/nEventsMix << "% finished." << flush;
-        p_mysqlSvc->writeTrackingRes("Mix", mixEvent);
-    }
-    cout << endl;
-    cout << "Uploaded Mix events successfully." << endl;
+    ///Write the tracker configuration table
+    p_mysqlSvc->writeInfoTable(configTree);
 
-    p_mysqlSvc->resetWriter();
-    int nEventsPP = ppTree->GetEntries();
-    for(int i = 0; i < nEventsPP; ++i)
+    ///Upload all tables
+    for(int i = 0; i < 4; ++i)
     {
-        ppTree->GetEntry(i);
-        cout << "\r Uploading event " << ppEvent->getEventID() << ", " << (i+1)*100/nEventsPP << "% finished." << flush;
-        p_mysqlSvc->writeTrackingRes("PP", ppEvent);
-    }
-    cout << endl;
-    cout << "Uploaded PP events successfully." << endl;
+        trees[i]->SetBranchAddress("recEvent", &recEvent);
 
-    p_mysqlSvc->resetWriter();
-    int nEventsMM = mmTree->GetEntries();
-    for(int i = 0; i < nEventsMM; ++i)
-    {
-        mmTree->GetEntry(i);
-        cout << "\r Uploading event " << mmEvent->getEventID() << ", " << (i+1)*100/nEventsMM << "% finished." << flush;
-        p_mysqlSvc->writeTrackingRes("MM", mmEvent);
+        TClonesArray* trackletArray = NULL;
+        if(trees[i]->GetListOfBranches()->Contains("tracklets"))
+        {
+            trackletArray = tracklets;
+            trees[i]->SetBranchAddress("tracklets", &trackletArray);
+        }
+
+        p_mysqlSvc->resetWriter();
+        int nEvents = trees[i]->GetEntries();
+        int printFreq = nEvents/100 > 1 ? nEvents/100 : 1;
+        for(int j = 0; j < nEvents; ++j)
+        {
+            trees[i]->GetEntry(j);
+            if(j % printFreq) cout << Form("Uploading %s event, %d percent finished.", tableSuffix[i].Data(), (j+1)*100/nEvents) << endl;
+
+            p_mysqlSvc->writeTrackingRes(tableSuffix[i], recEvent, trackletArray);
+        }
+        cout << Form("Uploaded %s data events successfully", tableSuffix[i].Data()) << endl << endl;
     }
-    cout << endl;
-    cout << "Uploaded MM events successfully." << endl;
     cout << "sqlResWriter ends successfully." << endl;
 
     delete p_mysqlSvc;

@@ -31,7 +31,7 @@ runIDs = [int(line.strip()) for line in open(options.list).readlines()]
 GridUtil.gridInit()
 
 # the uploader
-uploader = 'sqlResWriter'
+uploader = os.path.join(os.getenv('KTRACKER_ROOT'), 'sqlResWriter')
 
 # main part
 finishedRuns = []
@@ -69,8 +69,9 @@ while len(uploadedRuns) < len(runIDs):
         runID = toBeUploadedRuns[index]
         sourceFile = os.path.join(conf.outdir, 'vertex', GridUtil.version, GridUtil.getSubDir(runID), 'vertex_%06d_%s.root' % (runID, GridUtil.version))
         targetSchema = options.output % runID
+        uploadLog = os.path.join(GridUtil.workDir, 'log_upload_%06d' % runID)
 
-        cmd = './%s %s %s %s %d > log_%s_%d &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploader, runID)
+        cmd = './%s %s %s %s %d > %s &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploadLog)
         print cmd
         os.system(cmd)
 
