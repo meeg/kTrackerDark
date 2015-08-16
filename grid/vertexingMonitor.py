@@ -46,7 +46,7 @@ while len(uploadedRuns) < len(runIDs):
             continue
 
         targetFile = os.path.join(conf.outdir, 'vertex', GridUtil.version, GridUtil.getSubDir(runID), 'vertex_%06d_%s.root' % (runID, GridUtil.version))
-        nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStats(conf.outdir, 'vertex', runID)
+        nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStatus(conf.outdir, 'vertex', runID)
         for opt in failedOpts:
             failedJobs.append(GridUtil.makeCommandFromOpts('vertex', opt, conf))
         if (not os.path.exists(targetFile)) or len(failedOpts) != 0:
@@ -65,13 +65,14 @@ while len(uploadedRuns) < len(runIDs):
     if nJobs > len(toBeUploadedRuns):
         nJobs = len(toBeUploadedRuns)
 
+    print '%s: %s uploader running, will submit %d more.' % (datetime.now(), nRunning, nJobs)
     for index in range(nJobs):
         runID = toBeUploadedRuns[index]
         sourceFile = os.path.join(conf.outdir, 'vertex', GridUtil.version, GridUtil.getSubDir(runID), 'vertex_%06d_%s.root' % (runID, GridUtil.version))
         targetSchema = options.output % runID
         uploadLog = os.path.join(GridUtil.workDir, 'log_upload_%06d' % runID)
 
-        cmd = './%s %s %s %s %d > %s &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploadLog)
+        cmd = '%s %s %s %s %d > %s &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploadLog)
         print cmd
         os.system(cmd)
 
