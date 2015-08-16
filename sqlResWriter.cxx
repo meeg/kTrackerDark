@@ -80,7 +80,7 @@ int main(int argc, char **argv)
         for(int j = 0; j < nEvents; ++j)
         {
             trees[i]->GetEntry(j);
-            if(j % printFreq) cout << Form("Uploading %s event, %d percent finished.", tableSuffix[i].Data(), (j+1)*100/nEvents) << endl;
+            if(j % printFreq == 0) cout << Form("Uploading %s event, %d percent finished.", tableSuffix[i].Data(), (j+1)*100/nEvents) << endl;
 
             p_mysqlSvc->writeTrackingRes(tableSuffix[i], recEvent, trackletArray);
         }
