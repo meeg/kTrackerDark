@@ -21,20 +21,26 @@ class JobConfig:
     """Container of all possible runKTracker script arguments that are not specific to a run"""
 
     def __init__(self, configFile = ''):
-        self.attr = {}
+        self.attr = {}           # save the key-value pairs
+        self.switch = []         # save the boolean switches
+        self.inited = True       # flag to show it's properly initialized
+
         if not os.path.exists(configFile):
             self.inited = False
             return
 
-        self.inited = True
         for line in open(configFile).readlines():
             if '#' in line:
                 continue
 
             vals = [val.strip() for val in line.strip().split('=')]
-            if len(vals) != 2:
+            print vals
+            if len(vals) == 2:
+                self.attr[vals[0]] = vals[1]
+            elif len(vals) == 1 and len(vals[0]) > 0:
+                self.switch.append(vals[0])
+            else:
                 continue
-            self.attr[vals[0]] = vals[1]
 
     def __getattr__(self, attr):
         return self.attr[attr]
@@ -43,6 +49,8 @@ class JobConfig:
         suffix = ' '
         for key in self.attr:
             suffix = suffix + '--%s=%s ' % (key, self.attr[key])
+        for item in self.switch:
+            suffix = suffix + '--%s ' % item
         return suffix
 
 def getNEvents(name):
@@ -147,7 +155,7 @@ def makeCommand(jobType, runID, conf, firstEvent = -1, nEvents = -1, outtag = ''
 
     # add the rest universal ones as defined by config file
     if conf.inited:
-        cmd = cmd + str(conf)
+        cmd = cmd + str(conf).replace('${RUN}', '%06d' % runID)
 
     return cmd
 
