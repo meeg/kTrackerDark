@@ -726,7 +726,7 @@ bool MySQLSvc::initBakWriter()
     //prepare the main output tables
     string tableNames[10] = {"kTrackMix", "kDimuonMix", "kTrackPP", "kDimuonPP",
                             "kTrackMM", "kDimuonMM", "kTrackMixPP", "kDimuonMixPP",
-                            "kTrackMixMM", "kTrackMixMM"};
+                            "kTrackMixMM", "kDimuonMixMM"};
     for(int i = 0; i != 10; ++i)
     {
         const string& tableName = tableNames[i];

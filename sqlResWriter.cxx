@@ -50,8 +50,8 @@ int main(int argc, char **argv)
     TTree* mixTree = (TTree*)dataFile->Get("save_mix");
     TTree* ppTree = (TTree*)dataFile->Get("save_pp");
     TTree* mmTree = (TTree*)dataFile->Get("save_mm");
-    TTree* mixppTree = (TTree*)dataFile->Get("save_pp_mix");
-    TTree* mixmmTree = (TTree*)dataFile->Get("save_mm_mix");
+    TTree* mixppTree = (TTree*)dataFile->Get("save_mix_pp");
+    TTree* mixmmTree = (TTree*)dataFile->Get("save_mix_mm");
 
     ///Table name and corresponding trees
     TString tableSuffix[6] = {"", "Mix", "PP", "MM", "MixPP", "MixMM"};
