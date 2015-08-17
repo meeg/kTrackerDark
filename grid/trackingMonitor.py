@@ -80,7 +80,7 @@ while nExist != len(runIDs):
     # sleep for 1 minutes
     fout.flush()
     print '%s: %d/%d finished. ' % (datetime.now(), nExist, len(runIDs))
-    time.sleep(60)
+    time.sleep(300)
 
 fout.close()
 stopGridGuard()

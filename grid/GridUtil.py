@@ -117,9 +117,9 @@ def gridGuard():
     while not stopGrid.isSet():
         time.sleep(60)
         nMinutes = nMinutes + 1
-        if nMinutes % 240 == 0:
+        if nMinutes % 600 == 0:
             print 'Renew the ticket. '
-            os.system('kinit -R -c /e906/app/users/%s/.krbcc/my_cert' % os.getenv('USER'))
+            os.system('kinit -R -c %s' % os.getenv('KRB5CCNAME'))
     print 'Grid guard is terminated after %s minutes. ' % nMinutes
 
 def startGridGuard():

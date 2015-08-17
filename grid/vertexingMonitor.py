@@ -59,7 +59,7 @@ while len(uploadedRuns) < len(runIDs):
     GridUtil.submitAllJobs(failedJobs, 'vertexMonitor_err.log_'+GridUtil.getTimeStamp())
 
     # submit the uploader to background
-    nRunning = int(os.popen('pgrep %s | wc -l' % uploader).read().strip())
+    nRunning = int(os.popen('pgrep %s | wc -l' % uploader.split('/')[-1]).read().strip())
     toBeUploadedRuns = [runID for runID in finishedRuns if runID not in uploadedRuns]
     nJobs = options.nJobsMax - nRunning
     if nJobs > len(toBeUploadedRuns):
@@ -81,7 +81,7 @@ while len(uploadedRuns) < len(runIDs):
     # sleep for 1 minutes
     fout.flush()
     print '%s: %d/%d finished, %d uploaded. ' % (datetime.now(), len(finishedRuns), len(runIDs), len(uploadedRuns))
-    time.sleep(60)
+    time.sleep(300)
 
 fout.close()
 stopGridGuard()
