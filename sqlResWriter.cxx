@@ -50,10 +50,12 @@ int main(int argc, char **argv)
     TTree* mixTree = (TTree*)dataFile->Get("save_mix");
     TTree* ppTree = (TTree*)dataFile->Get("save_pp");
     TTree* mmTree = (TTree*)dataFile->Get("save_mm");
+    TTree* mixppTree = (TTree*)dataFile->Get("save_pp_mix");
+    TTree* mixmmTree = (TTree*)dataFile->Get("save_mm_mix");
 
     ///Table name and corresponding trees
-    TString tableSuffix[4] = {"", "Mix", "PP", "MM"};
-    TTree* trees[4] = {dataTree, mixTree, ppTree, mmTree};
+    TString tableSuffix[6] = {"", "Mix", "PP", "MM", "MixPP", "MixMM"};
+    TTree* trees[6] = {dataTree, mixTree, ppTree, mmTree, mixppTree, mixmmTree};
 
     ///Initialize data tables
     if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
@@ -63,7 +65,7 @@ int main(int argc, char **argv)
     p_mysqlSvc->writeInfoTable(configTree);
 
     ///Upload all tables
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0; i < 6; ++i)
     {
         trees[i]->SetBranchAddress("recEvent", &recEvent);
 

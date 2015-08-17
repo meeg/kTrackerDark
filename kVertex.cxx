@@ -13,6 +13,7 @@
 #include <TClonesArray.h>
 #include <TMath.h>
 #include <TRandom.h>
+#include <TString.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -159,11 +160,6 @@ int main(int argc, char *argv[])
     saveTree_pp->Write();
     saveTree_mm->Write();
 
-    //Event mixing
-    saveFile->cd();
-    TTree* saveTree_mix = new TTree("save_mix", "save_mix");
-    saveTree_mix->Branch("recEvent", &recEvent, 256000, 99);
-
     //Load track bank of mu+ and mu-
     vector<SRecTrack> ptracks[7], mtracks[7];
     vector<int> pflags[7], mflags[7];
@@ -207,6 +203,11 @@ int main(int argc, char *argv[])
     }
 
     //Random combine, target by target
+    //Unlike-sign event mixing
+    saveFile->cd();
+    TTree* saveTree_mix = new TTree("save_mix", "save_mix");
+    saveTree_mix->Branch("recEvent", &recEvent, 256000, 99);
+
     dataTree->GetEntry(0);
     int runID = rawEvent->getRunID();
     TRandom rnd;
@@ -236,10 +237,8 @@ int main(int argc, char *argv[])
 
             recEvent->setEventInfo(runID, 0, eventID++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(ptracks[i][idx1]);
-            pflags[i][idx1] = -1;
-            recEvent->insertTrack(mtracks[i][idx2]);
-            mflags[i][idx2] = -1;
+            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -1;
+            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -1;
 
             vtxfit->setRecEvent(recEvent);
             if(eventID % 1000 == 0) saveTree_mix->AutoSave("SaveSelf");
@@ -255,9 +254,99 @@ int main(int argc, char *argv[])
 
     saveFile->cd();
     saveTree_mix->Write();
+
+    //like-sign event mixing
+    saveFile->cd();
+    TTree* saveTree_mix_pp = new TTree("save_mix_pp", "save_mix_pp");
+    saveTree_mix_pp->Branch("recEvent", &recEvent, 256000, 99);
+
+    TTree* saveTree_mix_mm = new TTree("save_mix_mm", "save_mix_mm");
+    saveTree_mix_mm->Branch("recEvent", &recEvent, 256000, 99);
+
+    int eventID_pp = 0;
+    int eventID_mm = 0;
+    for(int i = 0; i < 7; ++i)
+    {
+        //pp pairs
+        int nPlus = ptracks[i].size();
+        for(int j = 0; j < nPlus; ++j) pflags[i][j] = 1;
+
+        int nPairs = int(0.9*nPlus);
+        cout << nPlus << " mu+ tracks with targetPos = " << i+1;
+        cout << ", will generate " << nPairs << " random ++ pairs. " << endl;
+
+        int nTries = 0;
+        int nSuccess = 0;
+        while(nSuccess < nPairs && nTries - nSuccess < 10000)
+        {
+            ++nTries;
+
+            int idx1 = int(rnd.Rndm()*nPlus);
+            int idx2 = int(rnd.Rndm()*nPlus);
+            if(idx1 == idx2) continue;
+
+            if(pflags[i][idx1] < 0 || pflags[i][idx2] < 0) continue;
+            if((ptracks[i][idx1].getTriggerRoad() > 0 && ptracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && ptracks[i][idx2].getTriggerRoad() < 0)) continue;
+            if(fabs(ptracks[i][idx1].getVertex().Z() - ptracks[i][idx2].getVertex().Z()) > 300.) continue;
+
+            recEvent->setEventInfo(runID, 0, eventID_pp++);
+            recEvent->setTargetPos(i+1);
+            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -1;
+            recEvent->insertTrack(ptracks[i][idx2]); pflags[i][idx2] = -1;
+
+            vtxfit->setRecEvent(recEvent, 1, 1);
+            if(eventID_pp % 1000 == 0) saveTree_mix_pp->AutoSave("SaveSelf");
+            ++nSuccess;
+
+            saveTree_mix_pp->Fill();
+            recEvent->clear();
+        }
+        cout << "   Generated " << nSuccess << " fake ++ pairs after " << nTries << " tries." << endl;
+
+        //mm pairs
+        int nMinus = mtracks[i].size();
+        for(int j = 0; j < nMinus; ++j) mflags[i][j] = 1;
+
+        nPairs = int(0.9*nMinus);
+        cout << nMinus << " mu- tracks with targetPos = " << i+1;
+        cout << ", will generate " << nPairs << " random -- pairs. " << endl;
+
+        nTries = 0;
+        nSuccess = 0;
+        while(nSuccess < nPairs && nTries - nSuccess < 10000)
+        {
+            ++nTries;
+
+            int idx1 = int(rnd.Rndm()*nMinus);
+            int idx2 = int(rnd.Rndm()*nMinus);
+            if(idx1 == idx2) continue;
+
+            if(mflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
+            if((mtracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (mtracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
+            if(fabs(mtracks[i][idx1].getVertex().Z() - mtracks[i][idx2].getVertex().Z()) > 300.) continue;
+
+            recEvent->setEventInfo(runID, 0, eventID_mm++);
+            recEvent->setTargetPos(i+1);
+            recEvent->insertTrack(mtracks[i][idx1]); mflags[i][idx1] = -1;
+            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -1;
+
+            vtxfit->setRecEvent(recEvent, -1, -1);
+            if(eventID_mm % 1000 == 0) saveTree_mix_mm->AutoSave("SaveSelf");
+            ++nSuccess;
+
+            saveTree_mix_mm->Fill();
+            recEvent->clear();
+        }
+        cout << "   Generated " << nSuccess << " fake -- pairs after " << nTries << " tries." << endl;
+    }
+    cout << endl;
+    cout << "kVertex like-sign mixing ends successfully." << endl;
+
+    saveFile->cd();
+    saveTree_mix_pp->Write();
+    saveTree_mix_mm->Write();
     saveFile->Close();
 
     delete vtxfit;
-
     return EXIT_SUCCESS;
 }

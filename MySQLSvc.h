@@ -88,13 +88,13 @@ public:
 
     //helper functions for creating tables
     /// Get the suffix to add to end of intermediate event subrange tables (if any)
-    std::string getSubsetTableSuffix( ) const;
+    std::string getSubsetTableSuffix() const;
     /// Get WHERE clause to add to MySQL query to select the event subrange (if any)
-    std::string getMySQLEventSelection( ) const;
+    std::string getMySQLEventSelection() const;
     /// Get the definition of fields, keys, indices for a table (kTrack, kDimuon, or kTrackHit)
-    std::string getTableDefinition( const std::string& tableType ) const;
+    std::string getTableDefinition(const TString tableType) const;
     /// Copy output from intermediate subset tables to final table and delete subset tables (if desired)
-    void pushToFinalTables( bool dropSubsetTables );
+    void pushToFinalTables(bool dropSubsetTables);
 
     //Set the data schema
     void setInputSchema(std::string schema);

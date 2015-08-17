@@ -626,7 +626,7 @@ bool MySQLSvc::initWriter()
     outputServer->Exec(query);
 
     //prepare the main output tables
-    string tableNames[4] = {"kTrack", "kTrackHit", "kDimuon", "kEvent"};
+    string tableNames[4] = {"kTrack", "kHit", "kDimuon", "kEvent"};
     for(int i = 0; i != 4; ++i)
     {
         const string& tableName = tableNames[i];
@@ -659,7 +659,7 @@ bool MySQLSvc::initWriter()
             TSQLResult *res;
 
             //3. always drop subset table
-            outputServer->Exec(Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str()));
+            outputServer->Exec(Form("DROP TABLE IF EXISTS %s", subsetTableName.c_str()));
 
             //4. create the subset tbale
             sprintf(query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str());
@@ -724,13 +724,15 @@ bool MySQLSvc::initBakWriter()
     outputServer->Exec(query);
 
     //prepare the main output tables
-    string tableNames[6] = {"kTrackMix", "kDimuonMix", "kTrackPP", "kDimuonPP", "kTrackMM", "kDimuonMM"};
-    for(int i = 0; i != 6; ++i)
+    string tableNames[10] = {"kTrackMix", "kDimuonMix", "kTrackPP", "kDimuonPP",
+                            "kTrackMM", "kDimuonMM", "kTrackMixPP", "kDimuonMixPP",
+                            "kTrackMixMM", "kTrackMixMM"};
+    for(int i = 0; i != 10; ++i)
     {
         const string& tableName = tableNames[i];
 
         //1. drop existing final tables unless processing an event subset
-        if( !useSubsetTables )
+        if(!useSubsetTables)
         {
             sprintf(query, "DROP TABLE IF EXISTS %s", tableName.c_str() );
             #ifndef OUT_TO_SCREEN
@@ -741,10 +743,10 @@ bool MySQLSvc::initBakWriter()
         }
 
         //2. get definition of table's fields and keys
-        const string tableDefinition = getTableDefinition( tableName );
+        const string tableDefinition = getTableDefinition(tableName);
 
         //create final output tables
-        sprintf( query, "CREATE TABLE IF NOT EXISTS %s (%s)", tableName.c_str(), tableDefinition.c_str());
+        sprintf(query, "CREATE TABLE IF NOT EXISTS %s (%s)", tableName.c_str(), tableDefinition.c_str());
 #ifndef OUT_TO_SCREEN
         outputServer->Exec(query);
 #else
@@ -757,7 +759,7 @@ bool MySQLSvc::initBakWriter()
             const string subsetTableName = Form("%s%s", tableName.c_str(), subsetTableSuffix.c_str());
 
             //3. always drop subset table
-            outputServer->Exec( Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str()));
+            outputServer->Exec(Form( "DROP TABLE IF EXISTS %s", subsetTableName.c_str()));
 
             //4. create the subset tbale
             sprintf(query, "CREATE TABLE IF NOT EXISTS %s (%s)", subsetTableName.c_str(), tableDefinition.c_str());
@@ -772,7 +774,7 @@ bool MySQLSvc::initBakWriter()
     return true;
 }
 
-std::string MySQLSvc::getSubsetTableSuffix( ) const
+std::string MySQLSvc::getSubsetTableSuffix() const
 {
     JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
     if(jobOptsSvc->ProcessAllEvents())
@@ -789,7 +791,7 @@ std::string MySQLSvc::getSubsetTableSuffix( ) const
     }
 }
 
-std::string MySQLSvc::getMySQLEventSelection( ) const
+std::string MySQLSvc::getMySQLEventSelection() const
 {
     JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
     if(jobOptsSvc->ProcessAllEvents())
@@ -806,9 +808,9 @@ std::string MySQLSvc::getMySQLEventSelection( ) const
     }
 }
 
-std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
+std::string MySQLSvc::getTableDefinition(const TString tableType) const
 {
-    if(tableType == "kEvent")
+    if(tableType.Contains("kEvent"))
     {
         return "runID       SMALLINT, "
                "spillID     INTEGER, "
@@ -818,7 +820,7 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                "INDEX(spillID)";
     }
 
-    if(tableType == "kTrack" || tableType == "kTrackPP" || tableType == "kTrackMM" || tableType == "kTrackMix")
+    if(tableType.Contains("kTrack"))
     {
         return "trackID     INTEGER,"
                "runID       SMALLINT,"
@@ -874,7 +876,7 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                "INDEX(spillID)";
     }//end of kTrack
 
-    if(tableType == "kDimuon" || tableType == "kDimuonPP" || tableType == "kDimuonMM" || tableType == "kDimuonMix")
+    if(tableType.Contains("kDimuon"))
     {
         return  "dimuonID    INTEGER,"
                 "runID       SMALLINT,"
@@ -911,7 +913,7 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                 "INDEX(spillID)";
     }//end of kDimuon
 
-    if(tableType == "kTrackHit")
+    if(tableType.Contains("kHit"))
     {
         return "runID       SMALLINT,"
                "eventID     INTEGER, "
@@ -923,7 +925,7 @@ std::string MySQLSvc::getTableDefinition(const std::string& tableType) const
                "PRIMARY KEY(trackID, hitID), "
                "INDEX(eventID), "
                "INDEX(spillID)";
-    }//end of kTrackHit
+    }//end of kHit
 
     // to mute warning, program won't come to this part if development is not stupid
     return "";
@@ -974,6 +976,8 @@ void MySQLSvc::writeInfoTable(TTree* config)
     for(int i = 0; i < array->GetEntries(); ++i)
     {
         TString key = array->At(i)->GetName();
+        if(key == "FirstEvent" || key == "NEvents") continue;
+
         if(TString(((TLeaf*)array->At(i))->GetTypeName()) == "TString")
         {
             TString val = *(TString*)(config->GetLeaf(key.Data())->GetValuePointer());
@@ -987,8 +991,8 @@ void MySQLSvc::writeInfoTable(TTree* config)
     }
 
     //Tracker version from software release
-    char *trackerVersion = getenv("SEAQUEST_RELEASE");
-    if(!trackerVersion) sprintf( trackerVersion, "unknown.version");
+    char* trackerVersion = getenv("SEAQUEST_RELEASE");
+    if(!trackerVersion) sprintf(trackerVersion, "unknown.version");
     sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
                    "VALUES('%s','%s')", "version", trackerVersion);
     outputServer->Exec(query);
@@ -1093,7 +1097,7 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
     {
         if(iter->hit.index < 0) continue;
 
-        TString insertQuery = Form("INSERT INTO kTrackHit%s", subsetTableSuffix.c_str());
+        TString insertQuery = Form("INSERT INTO kHit%s", subsetTableSuffix.c_str());
         insertQuery += "(runID,spillID,eventID,trackID,hitID,driftSign,residual)";
         insertQuery += Form("VALUES(%d,%d,%d,%d,%d,%d,%f)", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
 #ifndef OUT_TO_SCREEN
@@ -1106,6 +1110,9 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
 
 void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix, int targetPos)
 {
+    //basic validity check
+    if(std::isnan(dimuon.mass)) return;
+
     double x0 = dimuon.vtx.X();
     double y0 = dimuon.vtx.Y();
     double z0 = dimuon.vtx.Z();
@@ -1146,7 +1153,7 @@ void MySQLSvc::pushToFinalTables(bool dropSubsetTables)
     //if we didn't write to intermediate subset tables, nothing to be done
     if(subsetTableSuffix.empty()) return;
 
-    std::string tableNames[3] = {"kTrack", "kTrackHit", "kDimuon"};
+    std::string tableNames[3] = {"kTrack", "kHit", "kDimuon"};
     for(int i = 0; i != 3; ++i)
     {
         const std::string& finalTable = tableNames[i];
