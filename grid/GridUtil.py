@@ -34,7 +34,6 @@ class JobConfig:
                 continue
 
             vals = [val.strip() for val in line.strip().split('=')]
-            print vals
             if len(vals) == 2:
                 self.attr[vals[0]] = vals[1]
             elif len(vals) == 1 and len(vals[0]) > 0:

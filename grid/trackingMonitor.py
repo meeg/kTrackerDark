@@ -37,7 +37,7 @@ while nExist != len(runIDs):
     nExist = 0
     for index, runID in enumerate(runIDs):
         targetFile = os.path.join(tconf.outdir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s.root' % (runID, GridUtil.version))
-        vertexOpts = os.path.join(vconf.outdir, 'opts', GridUtil.version, GridUtil.getSubDir(runID), '%s_%06d_%s.opts', (GridUtil.auxPrefix['vertex'], runID, GridUtil.version))
+        vertexOpts = os.path.join(vconf.outdir, 'opts', GridUtil.version, GridUtil.getSubDir(runID), '%s_%06d_%s.opts' % (GridUtil.auxPrefix['vertex'], runID, GridUtil.version))
 
         #skip if this file has already been merged
         if os.path.exists(targetFile):
