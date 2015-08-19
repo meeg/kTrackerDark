@@ -114,22 +114,35 @@ bool MySQLSvc::connectOutput(std::string mysqlServer, int mysqlPort)
         inputServer = NULL;
     }
 
-    if(mysqlPort < 0)
+    int wait_count = 0;
+    const int WAIT_TIME = 60;
+    const int MAX_WAIT_COUNT = 60;
+    while(outputServer == NULL)
     {
-        JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-        outputServer = TSQLServer::Connect(p_jobOptsSvc->GetOutputMySQLURL().c_str(), user.c_str(), passwd.c_str());
-    }
-    else
-    {
-        char serverUrl[200];
-        sprintf(serverUrl, "mysql://%s:%d", mysqlServer.c_str(), mysqlPort);
-        outputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
-    }
+        if(mysqlPort < 0)
+        {
+            JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+            outputServer = TSQLServer::Connect(p_jobOptsSvc->GetOutputMySQLURL().c_str(), user.c_str(), passwd.c_str());
+        }
+        else
+        {
+            char serverUrl[200];
+            sprintf(serverUrl, "mysql://%s:%d", mysqlServer.c_str(), mysqlPort);
+            outputServer = TSQLServer::Connect(serverUrl, user.c_str(), passwd.c_str());
+        }
 
-    if(outputServer == NULL)
-    {
-        LogInfo("Connection to database failed!");
-        return false;
+        if(outputServer == NULL)
+        {
+            //wait a minute and try again
+            sleep(WAIT_TIME);
+            ++wait_count;
+        }
+
+        if(wait_count == MAX_WAIT_COUNT)
+        {
+            LogInfo("Connection to database failed!");
+            return false;
+        }
     }
     return true;
 }

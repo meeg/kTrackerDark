@@ -83,7 +83,7 @@ bool JobOptsSvc::init(const char* configfile)
 
 
     //define the types of options to look for
-    map<string,string*> stringOpts;
+    map<string, string*> stringOpts;
     stringOpts["InputFile"] = &m_inputFile;
     stringOpts["OutputFile"] = &m_outputFile;
     stringOpts["InputSchema"] = &m_inputSchema;
@@ -105,14 +105,14 @@ bool JobOptsSvc::init(const char* configfile)
     stringOpts["MySQL_OutputServer"] = &m_mySQLOutputServer;
     stringOpts["Geometry_Version"] = &m_geomVersion;
 
-    map<string,int*> intOpts;
+    map<string, int*> intOpts;
     intOpts["MySQL_InputPort"] = &m_mySQLInputPort;
     intOpts["MySQL_OutputPort"] = &m_mySQLOutputPort;
     intOpts["N_Events"] = &m_nEvents;
     intOpts["FirstEvent"] = &m_firstEvent;
     intOpts["Trigger_L1"] = &m_triggerL1;
 
-    map<string,bool*> boolOpts;
+    map<string, bool*> boolOpts;
     boolOpts["MCMode_enable"] = &m_mcMode;
     boolOpts["AlignmentMode_enable"] = &m_alignmentMode;
     boolOpts["TriggerMask_enable"] = &m_enableTriggerMask;
@@ -125,6 +125,7 @@ bool JobOptsSvc::init(const char* configfile)
     boolOpts["HodoscopeMasking"] = &m_hodomask;
     boolOpts["MergeHodoHits"] = &m_mergeHodo;
     boolOpts["MCRealization"] = &m_realization;
+    boolOpts["AutoUpload"] = &m_autoUpload;
 
     //read the file and find matching options
     string line;

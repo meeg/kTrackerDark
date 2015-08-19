@@ -64,6 +64,7 @@ public:
     bool m_hodomask;         ///< Enable hodoscope masking
     bool m_mergeHodo;        ///< merge the TW-TDC and v1495 TDC
     bool m_realization;      ///< randomly drop hits according to efficiency, and smear drift distance according to resolution
+    bool m_autoUpload;       ///< automatically upload the reconstructed data after kVertex is done
 
     int m_mySQLInputPort;    ///< mysql database input port
     int m_mySQLOutputPort;    ///< mysql database output port

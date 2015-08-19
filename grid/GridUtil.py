@@ -42,7 +42,13 @@ class JobConfig:
                 continue
 
     def __getattr__(self, attr):
-        return self.attr[attr]
+        attr = attr.replace('_', '-')   # runKTracker use - instead of _
+        if attr in self.attr:
+            return self.attr[attr]
+        elif attr in self.switch:
+            return True
+        else:
+            return False
 
     def __str__(self):
         suffix = ' '
@@ -56,13 +62,13 @@ def getNEvents(name):
 	"""Find the number of events in either ROOT file or MySQL schema"""
 
 	if 'root' in name:
-		dataFile = TFile(name, 'READ')
-		if dataFile.GetListOfKeys().Contains('save'):
-		  	return dataFile.Get('save').GetEntries()
-		else:
-		  	return 0
-	else:
-		return 0
+        dataFile = TFile(name, 'READ')
+        if dataFile.GetListOfKeys().Contains('save'):
+            return dataFile.Get('save').GetEntries()
+        else:
+            return 0
+    else:
+        return 0
 
 def getOptimizedSize(name, nEvtMax):
     """Optimize how a run is splitted into serveral jobs"""
@@ -96,16 +102,16 @@ def getJobAttr(optfile):
         outtag = re.findall(r'_(\d+).opts', optfile)[0]
 
     for line in open(optfile, 'r').readlines():
-		if '#' in line:
-			continue
+        if '#' in line:
+            continue
 
-		opt = line.strip().split()
-		if len(opt) != 2:
-			continue
-		elif opt[0] == 'N_Events':
-			nEvents = int(opt[1])
-		elif opt[0] == 'FirstEvent':
-			firstEvent = int(opt[1])
+        opt = line.strip().split()
+        if len(opt) != 2:
+            continue
+        elif opt[0] == 'N_Events':
+            nEvents = int(opt[1])
+        elif opt[0] == 'FirstEvent':
+            firstEvent = int(opt[1])
 
     return (runID, outtag, firstEvent, nEvents)
 
@@ -170,16 +176,16 @@ def makeCommandFromOpts(jobType, opts, conf):
     return cmd
 
 def submitOneJob(cmd):
-	"""Actually submit the jobs and parse the return info to see if it's successful"""
+    """Actually submit the jobs and parse the return info to see if it's successful"""
 
-	output, err = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
-	try:
-		jobID = re.findall(r'cluster (\d*)', output)[0]
-		print cmd, 'successful, jobID =', jobID
-		return True
-	except:
-		print cmd, 'failed, will try again later'
-		return False
+    output, err = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
+    try:
+        jobID = re.findall(r'cluster (\d*)', output)[0]
+        print cmd, 'successful, jobID =', jobID
+        return True
+    except:
+        print cmd, 'failed, will try again later'
+        return False
 
 def submitAllJobs(cmds, errlog):
     """Submit all jobs, retry the failed ones, and save the jobs in errlog when a jobs failed more than once"""

@@ -66,13 +66,15 @@ while len(uploadedRuns) < len(runIDs):
         nJobs = len(toBeUploadedRuns)
 
     print '%s: %s uploader running, will submit %d more.' % (datetime.now(), nRunning, nJobs)
+    time.sleep(60)    # this is to ensure the copy from node to server is completed
     for index in range(nJobs):
         runID = toBeUploadedRuns[index]
         sourceFile = os.path.join(conf.outdir, 'vertex', GridUtil.version, GridUtil.getSubDir(runID), 'vertex_%06d_%s.root' % (runID, GridUtil.version))
         targetSchema = options.output % runID
         uploadLog = os.path.join(GridUtil.workDir, 'log_upload_%06d' % runID)
+        uploadErr = os.path.join(GridUtil.workDir, 'err_upload_%06d' % runID)
 
-        cmd = '%s %s %s %s %d > %s &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploadLog)
+        cmd = '%s %s %s %s %d 1> %s 2> %s &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploadLog, uploadErr)
         print cmd
         os.system(cmd)
 

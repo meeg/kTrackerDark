@@ -114,6 +114,11 @@ AttachRawEvent 1
 # DO NOT use when dealing with data, it's messy enough
 MCRealization 0
 
+# when set to 1, kVertex will automatically start the uploading to
+# mysql server specified above.
+# This is not yet applicable in kOnlineTracking
+AutoUpload 1
+
 #------------------- Tracker mode switches (not useful ones) -------------------
 # EXPERTS ONLY, don't change without good reason or not sure what it actually does
 
