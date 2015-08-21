@@ -105,7 +105,8 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
     for(int i = 0; i < nPos; ++i)
     {
         if(!recEvent->getTrack(idx_pos[i]).isValid()) continue;
-        for(int j = 0; j < nNeg; ++j)
+        int j = sign1 + sign2 == 0 ? 0 : i + 1;      // this is to avoid using same track twice in like-sign mode
+        for(; j < nNeg; ++j)
         {
             //Only needed for like-sign muons
             if(idx_pos[i] == idx_neg[j]) continue;
@@ -173,6 +174,7 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
             dimuon.p_neg = track_neg.getMomentumVertex();
             dimuon.chisq_kf = track_pos.getChisqVertex() + track_neg.getChisqVertex();
 
+            /*
             //If we are running in the like-sign mode, reverse one sign of px
             if(sign1 + sign2 != 0)
             {
@@ -192,6 +194,7 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
                     dimuon.p_pos_single.SetPy(-dimuon.p_pos_single.Py());
                 }
             }
+            */
             dimuon.calcVariables();
 
             //Test three fixed hypothesis

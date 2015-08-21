@@ -116,7 +116,7 @@ def getJobAttr(optfile):
     return (runID, outtag, firstEvent, nEvents)
 
 def gridInit():
-    """Initialize grid crendial"""
+    """Initialize grid credential"""
     os.environ['KRB5CCNAME'] = '/e906/app/users/%s/.krbcc/my_cert' % os.getenv('USER')
     if len(os.popen('klist').readlines()) == 0:
         os.system('kinit -A -r7d %s@FNAL.GOV' % os.getenv('USER'))

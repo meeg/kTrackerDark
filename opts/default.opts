@@ -116,7 +116,7 @@ MCRealization 0
 
 # when set to 1, kVertex will automatically start the uploading to
 # mysql server specified above.
-# This is not yet applicable in kOnlineTracking
+# This is not yet working in kOnlineTracking or MC mode
 AutoUpload 1
 
 #------------------- Tracker mode switches (not useful ones) -------------------
