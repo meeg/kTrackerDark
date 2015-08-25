@@ -21,6 +21,9 @@ parser.add_option('-e', '--errlog', type = 'string', dest = 'errlog', help = 'Fa
 parser.add_option('-d', '--debug', action = 'store_true', dest = 'debug', help = 'Enable massive debugging output', default = False)
 (options, args) = parser.parse_args()
 
+if len(sys.argv) < 2:
+    parser.parse_args(['--help'])
+
 # initialize vertex configuration
 conf = GridUtil.JobConfig(options.config)
 

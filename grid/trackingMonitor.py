@@ -18,6 +18,9 @@ parser.add_option('-e', '--errlog', type = 'string', dest = 'errlog', help = 'Fa
 parser.add_option('-d', '--debug', action = 'store_true', dest = 'debug', help = 'Enable massive debugging output', default = False)
 (options, args) = parser.parse_args()
 
+if len(sys.argv) < 2:
+    parser.parse_args(['--help'])
+
 # initialize general tracking configuration
 tconf = GridUtil.JobConfig(options.tconfig)
 vconf = GridUtil.JobConfig(options.vconfig)
@@ -36,7 +39,8 @@ while nExist != len(runIDs):
     vertexJobs = []
     nExist = 0
     for index, runID in enumerate(runIDs):
-        targetFile = os.path.join(tconf.outdir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s.root' % (runID, GridUtil.version))
+        targetFile = os.path.join(vconf.indir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s.root' % (runID, GridUtil.version))
+        tempTargetFile = os.path.join(tconf.outdir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s.root' % (runID, GridUtil.version))
         vertexOpts = os.path.join(vconf.outdir, 'opts', GridUtil.version, GridUtil.getSubDir(runID), '%s_%06d_%s.opts' % (GridUtil.auxPrefix['vertex'], runID, GridUtil.version))
 
         #skip if this file has already been merged
@@ -60,7 +64,7 @@ while nExist != len(runIDs):
         # now proceed to merge
         mergeSuccessful = True
         sourceFile = os.path.join(tconf.outdir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s_*.root' % (runID, GridUtil.version))
-        mergeOutput, mergeErr = subprocess.Popen('hadd %s %s' % (targetFile, sourceFile), stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
+        mergeOutput, mergeErr = subprocess.Popen('hadd %s %s' % (tempTargetFile, sourceFile), stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
 
         for line in mergeErr.strip().split('\n'):
             if 'dictionary' not in line:
@@ -68,7 +72,11 @@ while nExist != len(runIDs):
 
         if mergeSuccessful:
             print 'Run %06d finished and merged.' % runID
-            os.system('rm ' + sourceFile)
+            if tempTargetFile == targetFile or GridUtil.runCommand('mv %s %s ' % (tempTargetFile, targetFile)):
+                GridUtil.runCommand('rm ' + sourceFile)
+            else:
+                print 'Run %06d failed in moving to pnfs.' % runID
+                fout.write('%s: %06d %02d %02d %02d %s\n' % (datetime.now(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'moving to pnfs failed'))
             vertexJobs.append(GridUtil.makeCommand('vertex', runID, vconf))
         else:
             print 'Run %06d failed in merging.' % runID
@@ -83,7 +91,7 @@ while nExist != len(runIDs):
     # sleep for 1 minutes
     fout.flush()
     print '%s: %d/%d finished. ' % (datetime.now(), nExist, len(runIDs))
-    time.sleep(300)
+    time.sleep(600)
 
 fout.close()
 stopGridGuard()

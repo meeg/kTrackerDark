@@ -18,6 +18,9 @@ parser.add_option('-m', '--mc', action = 'store_true', dest = 'mc', help = 'MC m
 parser.add_option('-d', '--debug', action = 'store_true', dest = 'debug', help = 'Enable massive debugging output', default = False)
 (options, args) = parser.parse_args()
 
+if len(sys.argv) < 2:
+    parser.parse_args(['--help'])
+
 # initialize grid credetial
 GridUtil.gridInit()
 

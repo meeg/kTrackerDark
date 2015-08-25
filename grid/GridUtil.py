@@ -59,9 +59,9 @@ class JobConfig:
         return suffix
 
 def getNEvents(name):
-	"""Find the number of events in either ROOT file or MySQL schema"""
+    """Find the number of events in either ROOT file or MySQL schema"""
 
-	if 'root' in name:
+    if 'root' in name:
         dataFile = TFile(name, 'READ')
         if dataFile.GetListOfKeys().Contains('save'):
             return dataFile.Get('save').GetEntries()
@@ -239,6 +239,15 @@ def getJobStatus(rootdir, jobType, runID):
             failedOpts.append(optfile)
 
     return (len(optfiles), nFinished, failedOpts)
+
+def runCommand(cmd):
+    """Run a bash command and check if there is any stderr output, if not return True, otherwise return False"""
+    output, err = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
+    if err == '':
+        return True
+    else:
+        return False
+
 
 def getTimeStamp():
     return datetime.now().strftime('%y%m%d-%H%M');
