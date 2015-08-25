@@ -39,9 +39,15 @@ while nExist != len(runIDs):
     vertexJobs = []
     nExist = 0
     for index, runID in enumerate(runIDs):
-        targetFile = os.path.join(vconf.indir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s.root' % (runID, GridUtil.version))
+        targetDir = os.path.join(vconf.indir, 'track', GridUtil.version, GridUtil.getSubDir(runID))
+        targetFile = os.path.join(targetDir, 'track_%06d_%s.root' % (runID, GridUtil.version))
         tempTargetFile = os.path.join(tconf.outdir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s.root' % (runID, GridUtil.version))
         vertexOpts = os.path.join(vconf.outdir, 'opts', GridUtil.version, GridUtil.getSubDir(runID), '%s_%06d_%s.opts' % (GridUtil.auxPrefix['vertex'], runID, GridUtil.version))
+
+        # make target tracking dir first
+        if not os.path.exists(targetDir):
+            GridUtil.runCommand('mkdir -p ' + targetDir)
+            GridUtil.runCommand('chmod 01755 ' + targetFile)
 
         #skip if this file has already been merged
         if os.path.exists(targetFile):
@@ -72,7 +78,9 @@ while nExist != len(runIDs):
 
         if mergeSuccessful:
             print 'Run %06d finished and merged.' % runID
-            if tempTargetFile == targetFile or GridUtil.runCommand('mv %s %s ' % (tempTargetFile, targetFile)):
+            if tempTargetFile == targetFile:
+                GridUtil.runCommand('rm ' + sourceFile)
+            elif GridUtil.runCommand('mv %s %s ' % (tempTargetFile, targetFile)):
                 GridUtil.runCommand('rm ' + sourceFile)
             else:
                 print 'Run %06d failed in moving to pnfs.' % runID
