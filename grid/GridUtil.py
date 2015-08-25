@@ -76,6 +76,7 @@ def getOptimizedSize(name, nEvtMax):
     nEvents = getNEvents(name)
     nJobs = nEvents/nEvtMax + 1
     if nJobs > 10:
+        print '%s has %d events and more than 10 jobs, redueced the number of jobs to 10' % (name, nEvents)
         nJobs = 10
     nEvtMax_opt = nEvents/nJobs
 
