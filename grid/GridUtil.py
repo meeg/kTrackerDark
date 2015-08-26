@@ -119,10 +119,14 @@ def getJobAttr(optfile):
 def gridInit():
     """Initialize grid credential"""
     os.environ['KRB5CCNAME'] = '/e906/app/users/%s/.krbcc/my_cert' % os.getenv('USER')
-    if len(os.popen('klist').readlines()) == 0:
+    if not ticketValid():
         os.system('kinit -A -r7d %s@FNAL.GOV' % os.getenv('USER'))
 
     startGridGuard()
+
+def ticketValid():
+    """Check if the ticket is still valid"""
+    return len(os.popen('klist').readlines()) != 0
 
 def gridGuard():
     """Renew the grid credetial every hour"""
@@ -191,6 +195,7 @@ def submitOneJob(cmd):
 def submitAllJobs(cmds, errlog):
     """Submit all jobs, retry the failed ones, and save the jobs in errlog when a jobs failed more than once"""
 
+    totalFailCounts = 0
     while len(cmds) != 0:
 
         cmds_success = []
@@ -200,12 +205,14 @@ def submitAllJobs(cmds, errlog):
                 cmds_success.append(cmd)
 
         if len(cmds_success) == 0:
-            fout = open(os.path.join(workDir, errlog), 'w')
-            fout.write(str(datetime.now()) + '\n')
-            for cmd in cmds:
-                fout.write(cmd + '\n')
-            fout.close()
-            return False
+            totalFailCounts = totalFailCounts + 1
+            if totalFailCounts > 10:
+                fout = open(os.path.join(workDir, errlog), 'w')
+                fout.write(str(datetime.now()) + '\n')
+                for cmd in cmds:
+                    fout.write(cmd + '\n')
+                    fout.close()
+                return False
 
         for cmd in cmds_success:
             cmds.remove(cmd)
@@ -214,7 +221,7 @@ def submitAllJobs(cmds, errlog):
             return True
 
         print 'Sleep for 10 seconds ... '
-        time.sleep(10)
+        time.sleep(30)
 
 def getJobStatus(rootdir, jobType, runID):
     """Get the status of all jobs associated with one runID"""
