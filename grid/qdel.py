@@ -28,14 +28,14 @@ output, err = subprocess.Popen('jobsub_q | grep liuk', stdout = subprocess.PIPE,
 jobDetails = []
 for line in output.split('\n'):
     vals = line.strip().split()
-    jobID = int(re.findall(r'^(\d{7})', vals[0]))
+    jobID = int(re.findall(r'^(\d{7})', vals[0])[0])
     jobDetails.append((jobID, vals[0], vals[8]))
 
 toBeKilled = []
 for job in jobDetails:
     if job[0] < jobIDmin or job[0] > jobIDmax:
         continue
-    if len(re.findall(pattern, job[2])):
+    if len(re.findall(pattern, job[2])) == 0:
         continue
 
     toBeKilled.append(job[1])
