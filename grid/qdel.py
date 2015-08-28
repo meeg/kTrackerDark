@@ -18,7 +18,7 @@ if len(sys.argv) < 2:
     parser.parse_args(['--help'])
 
 jobIDmin = -1
-jobIDmax = 999999
+jobIDmax = 9999999
 if options.range != '':
     jobIDmin, jobIDmax = options.range.split('-')
 
@@ -34,10 +34,9 @@ for line in output.split('\n'):
     vals = line.strip().split()
     if len(vals) < 3:
         continue
-        
+
     jobID = int(re.findall(r'^(\d{7})', vals[0])[0])
     jobDetails.append((jobID, vals[0], vals[8], vals[5], line))
-jobDetails.sort(key = lambda x : x[0])
 
 toBeKilled = []
 for job in jobDetails:
@@ -59,4 +58,4 @@ if options.debug:
 
 for index, url in enumerate(toBeKilled):
     print '%d/%d' % (index+1, len(toBeKilled)),
-    os.system('jobsub_rm --jobid=%s')
+    os.system('jobsub_rm --jobid=' + url)
