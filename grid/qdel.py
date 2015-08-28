@@ -32,6 +32,9 @@ output, err = subprocess.Popen('jobsub_q | grep liuk', stdout = subprocess.PIPE,
 jobDetails = []
 for line in output.split('\n'):
     vals = line.strip().split()
+    if len(vals) < 3:
+        continue
+        
     jobID = int(re.findall(r'^(\d{7})', vals[0])[0])
     jobDetails.append((jobID, vals[0], vals[8], vals[5], line))
 jobDetails.sort(key = lambda x : x[0])
