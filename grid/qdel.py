@@ -47,14 +47,12 @@ for job in jobDetails:
     if status not in job[3]:
         continue
 
-    if options.debug:
-        print jobDetails[4]
+    print job[4]
     toBeKilled.append(job[1])
 
-if options.debug:
-    proceed = raw_input('Proceed (Y/N) ?')
-    if proceed.lower() == 'n':
-        sys.exit()
+proceed = raw_input('Proceed (Y/N) ? ')
+if proceed.lower() == 'n':
+    sys.exit()
 
 for index, url in enumerate(toBeKilled):
     print '%d/%d' % (index+1, len(toBeKilled)),

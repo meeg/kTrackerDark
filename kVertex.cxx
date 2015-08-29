@@ -403,6 +403,10 @@ int main(int argc, char *argv[])
     }
     cout << "sql data uploaded successfully." << endl;
 
+    //Set the ktracked bit in summary table
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1 WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackEnd=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+
     saveFile->Close();
     delete p_mysqlSvc;
     delete vtxfit;
