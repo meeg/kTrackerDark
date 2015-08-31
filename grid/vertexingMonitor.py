@@ -55,6 +55,8 @@ while len(uploadedRuns) < len(runIDs):
         if (not os.path.exists(targetFile)) or len(failedOpts) != 0:
             fout.write('%s: %06d %02d %02d %02d %s\n' % (datetime.now(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'certain jobs failed'))
             continue
+        if nTotalJobs != nFinishedJobs:
+            continue
 
         finishedRuns.append(runID)
         uploadedRuns.append(runID)
