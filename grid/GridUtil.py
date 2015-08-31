@@ -102,6 +102,8 @@ def getJobAttr(optfile):
     if len(re.findall(r'_(\d+).opts', optfile)) > 0:
         outtag = re.findall(r'_(\d+).opts', optfile)[0]
 
+    firstEvent = 0
+    nEvents = -1
     for line in open(optfile, 'r').readlines():
         if '#' in line:
             continue
@@ -173,7 +175,7 @@ def makeCommandFromOpts(jobType, opts, conf):
     """Make a runKTracker command using configuration and opts file"""
 
     runID, outtag, firstEvent, nEvents = getJobAttr(opts)
-    cmd = 'runKTracker.py --grid --%s' % jobType
+    cmd = 'runKTracker.py --grid --%s --run=%d' % (jobType, runID)
     if firstEvent >= 0 and nEvents > 0 and outtag != '':
         cmd = cmd + '--n-events=%d --first-event=%d --outtag=%s' % (nEvents, firstEvent, outtag)
 
