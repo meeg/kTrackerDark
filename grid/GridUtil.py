@@ -173,7 +173,9 @@ def makeCommandFromOpts(jobType, opts, conf):
     """Make a runKTracker command using configuration and opts file"""
 
     runID, outtag, firstEvent, nEvents = getJobAttr(opts)
-    cmd = 'runKTracker.py --grid --%s --run=%d --first-event=%d --n-events=%d --outtag=%s' % (jobType, runID, firstEvent, nEvents, outtag)
+    cmd = 'runKTracker.py --grid --%s' % jobType
+    if firstEvent >= 0 and nEvents > 0 and outtag != '':
+        cmd = cmd + '--n-events=%d --first-event=%d --outtag=%s' % (nEvents, firstEvent, outtag)
 
     if conf.inited:
         cmd = cmd + str(conf).replace('${RUN}', '%06d' % runID)
