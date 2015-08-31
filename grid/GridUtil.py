@@ -138,7 +138,7 @@ def gridGuard():
         if nMinutes % 600 == 0:
             print 'Renew the ticket. '
             os.system('kinit -R -c %s' % os.getenv('KRB5CCNAME'))
-    print 'Grid guard is terminated after %s minutes. ' % nMinutes
+    print 'Grid guard is terminated after %d minutes. ' % nMinutes
 
 def startGridGuard():
     """Start a new thread used to refresh the gridGuard"""
@@ -176,7 +176,7 @@ def makeCommandFromOpts(jobType, opts, conf):
     cmd = 'runKTracker.py --grid --%s --run=%d --first-event=%d --n-events=%d --outtag=%s' % (jobType, runID, firstEvent, nEvents, outtag)
 
     if conf.inited:
-        cmd = cmd + str(conf)
+        cmd = cmd + str(conf).replace('${RUN}', '%06d' % runID)
 
     return cmd
 

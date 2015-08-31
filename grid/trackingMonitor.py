@@ -68,6 +68,7 @@ while nExist != len(runIDs):
             continue
 
         # now proceed to merge
+        time.sleep(15)   # to ensure the output file has been fully copied back
         mergeSuccessful = True
         sourceFile = os.path.join(tconf.outdir, 'track', GridUtil.version, GridUtil.getSubDir(runID), 'track_%06d_%s_*.root' % (runID, GridUtil.version))
         mergeOutput, mergeErr = subprocess.Popen('hadd %s %s' % (tempTargetFile, sourceFile), stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
@@ -85,6 +86,8 @@ while nExist != len(runIDs):
             else:
                 print 'Run %06d failed in moving to pnfs.' % runID
                 fout.write('%s: %06d %02d %02d %02d %s\n' % (datetime.now(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'moving to pnfs failed'))
+                continue
+            nExist = nExist + 1
             vertexJobs.append(GridUtil.makeCommand('vertex', runID, vconf))
         else:
             print 'Run %06d failed in merging.' % runID
