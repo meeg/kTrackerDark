@@ -32,6 +32,7 @@ MySQLSvc::MySQLSvc()
     outputServer = NULL;
     res = NULL;
     row = NULL;
+    p_triggerAna = NULL;
 
     p_geomSvc = GeomSvc::instance();
 
@@ -64,8 +65,7 @@ MySQLSvc::~MySQLSvc()
     if(outputServer != NULL) delete outputServer;
     if(res != NULL) delete res;
     if(row != NULL) delete row;
-
-    delete p_triggerAna;
+    if(p_triggerAna != NULL) delete p_triggerAna;
 }
 
 MySQLSvc* MySQLSvc::instance()
