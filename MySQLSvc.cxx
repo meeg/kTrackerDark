@@ -935,6 +935,10 @@ std::string MySQLSvc::getTableDefinition(const TString tableType) const
                "hitID       BIGINT,  "
                "driftSign   SMALLINT,"
                "residual    DOUBLE,  "
+               "tdcTime     DOUBLE,  "
+               "driftDistance DECIMAL(5,4), "
+               "detectorName  CHAR(16), "
+               "elementID     SMALLINT(6), "
                "PRIMARY KEY(trackID, hitID), "
                "INDEX(eventID), "
                "INDEX(spillID)";
@@ -1074,8 +1078,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     recTrack->getExpMomentumFast(Z_ST3, px3, py3, pz3);
     if(std::isnan(px3) || std::isnan(py3) || std::isnan(pz3)) return;
 
-    TString insertQuery = "";
-    insertQuery = Form("INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
+    TString insertQuery = Form("INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
     insertQuery += "(trackID,runID,spillID,eventID,charge,roadID,"
                    "numHits,numHitsSt1,numHitsSt2,numHitsSt3,numHitsSt4H,numHitsSt4V,"
                    "chisq,x0,y0,z0,px0,py0,pz0,"
@@ -1094,8 +1097,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
     insertQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
-    insertQuery += Form("%f,%f,%f", chisq_target, chisq_dump, chisq_upstream);
-    insertQuery += ")";
+    insertQuery += Form("%f,%f,%f)", chisq_target, chisq_dump, chisq_upstream);
 
 #ifndef OUT_TO_SCREEN
     outputServer->Exec(insertQuery);
@@ -1106,19 +1108,23 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
 
 void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
 {
+    TString insertQuery = Form("INSERT INTO kHit%s", subsetTableSuffix.c_str());
+    insertQuery += "(runID,spillID,eventID,trackID,hitID,driftSign,residual,tdcTime,detectorName,elementID,driftDistance) VALUS";
     for(std::list<SignedHit>::iterator iter = tracklet->hits.begin(); iter != tracklet->hits.end(); ++iter)
     {
         if(iter->hit.index < 0) continue;
-
-        TString insertQuery = Form("INSERT INTO kHit%s", subsetTableSuffix.c_str());
-        insertQuery += "(runID,spillID,eventID,trackID,hitID,driftSign,residual)";
-        insertQuery += Form("VALUES(%d,%d,%d,%d,%d,%d,%f)", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
-#ifndef OUT_TO_SCREEN
-        outputServer->Exec(insertQuery);
-#else
-        std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
-#endif
+        insertQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
+        insertQuery += Form("%f,%s,%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
     }
+
+    //remove the last comma
+    insertQuery.Remove(insertQuery.Length() - 1);
+
+#ifndef OUT_TO_SCREEN
+    outputServer->Exec(insertQuery);
+#else
+    std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
+#endif
 }
 
 void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix, int targetPos)
@@ -1137,8 +1143,7 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuff
 
     double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
-    TString insertQuery = "";
-    insertQuery = Form("INSERT INTO kDimuon%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
+    TString insertQuery = Form("INSERT INTO kDimuon%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
     insertQuery += "(dimuonID,runID,spillID,eventID,targetPos,posTrackID,negTrackID,"
                    "dx,dy,dz,dpx,dpy,dpz,"
                    "mass,xF,xB,xT,costh,phi,"

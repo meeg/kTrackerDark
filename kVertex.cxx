@@ -362,6 +362,10 @@ int main(int argc, char *argv[])
     p_mysqlSvc->connectOutput(jobOptsSvc->m_mySQLOutputServer, jobOptsSvc->m_mySQLOutputPort);
     p_mysqlSvc->setOutputSchema(jobOptsSvc->m_outputSchema);
 
+    //Set the ktracked bit in summary table
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0 WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackStart=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+
     //Table names and corresponding trees
     TString tableSuffix[6] = {"", "Mix", "PP", "MM", "MixPP", "MixMM"};
     TTree* trees[6] = {saveTree, saveTree_mix, saveTree_pp, saveTree_mm, saveTree_mix_pp, saveTree_mix_mm};
