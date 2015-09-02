@@ -20,6 +20,8 @@ Created: 9-29-2013
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
 
+#define MaxQueryLen 50000
+
 MySQLSvc* MySQLSvc::p_mysqlSvc = NULL;
 
 MySQLSvc::MySQLSvc()
@@ -1043,7 +1045,7 @@ void MySQLSvc::writeEventTable(int eventID, int statusCode, TString tableSuffix)
     }
 
     eventQuery += Form(" (%d,%d,%d,%d),", runID, spillID, eventID, statusCode);
-    if(eventQuery.Length() > 10000) commitInsertion(eventQuery);
+    if(eventQuery.Length() > MaxQueryLen) commitInsertion(eventQuery);
 }
 
 void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix)
@@ -1124,7 +1126,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     trackQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
     trackQuery += Form("%f,%f,%f),", chisq_target, chisq_dump, chisq_upstream);
 
-    if(trackQuery.Length() > 10000) commitInsertion(trackQuery);
+    if(trackQuery.Length() > MaxQueryLen) commitInsertion(trackQuery);
 }
 
 void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
@@ -1142,7 +1144,7 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
         hitQuery += Form("%f,'%s',%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
     }
 
-    if(hitQuery.Length() > 10000) commitInsertion(hitQuery);
+    if(hitQuery.Length() > MaxQueryLen) commitInsertion(hitQuery);
 }
 
 void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix, int targetPos)
@@ -1178,7 +1180,7 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuff
     dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
     dimuonQuery += Form("%i,%i,%i),", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
 
-    if(dimuonQuery.Length() > 10000) commitInsertion(dimuonQuery);
+    if(dimuonQuery.Length() > MaxQueryLen) commitInsertion(dimuonQuery);
 }
 
 void MySQLSvc::pushToFinalTables(bool dropSubsetTables)
