@@ -1109,12 +1109,12 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
 void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
 {
     TString insertQuery = Form("INSERT INTO kHit%s", subsetTableSuffix.c_str());
-    insertQuery += "(runID,spillID,eventID,trackID,hitID,driftSign,residual,tdcTime,detectorName,elementID,driftDistance) VALUS";
+    insertQuery += "(runID,spillID,eventID,trackID,hitID,driftSign,residual,tdcTime,detectorName,elementID,driftDistance) VALUES";
     for(std::list<SignedHit>::iterator iter = tracklet->hits.begin(); iter != tracklet->hits.end(); ++iter)
     {
         if(iter->hit.index < 0) continue;
         insertQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
-        insertQuery += Form("%f,%s,%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
+        insertQuery += Form("%f,'%s',%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
     }
 
     //remove the last comma
