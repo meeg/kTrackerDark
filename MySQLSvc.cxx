@@ -787,6 +787,25 @@ bool MySQLSvc::initBakWriter()
     return true;
 }
 
+void MySQLSvc::resetWriter()
+{
+    //reset the track and dimuon counter
+    nTracks = 0;
+    nDimuons = 0;
+
+    //reset the buffer query subset
+    eventQuery = "";
+    trackQuery = "";
+}
+
+void MySQLSvc::finalizeWriter()
+{
+    if(eventQuery.Length() > 10)  commitInsertion(eventQuery);
+    if(dimuonQuery.Length() > 10) commitInsertion(dimuonQuery);
+    if(trackQuery.Length() > 10)  commitInsertion(trackQuery);
+    if(hitQuery.Length() > 10)    commitInsertion(hitQuery);
+}
+
 std::string MySQLSvc::getSubsetTableSuffix() const
 {
     JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
@@ -1018,10 +1037,13 @@ void MySQLSvc::writeInfoTable(TTree* config)
 void MySQLSvc::writeEventTable(int eventID, int statusCode, TString tableSuffix)
 {
     if(tableSuffix != "") return;
+    if(eventQuery.Length() == 0)
+    {
+        eventQuery = TString("INSERT INTO kEvent (runID,spillID,eventID,status) VALUES");
+    }
 
-    sprintf(query, "INSERT INTO kEvent (runID,spillID,eventID,status)"
-                   "VALUES(%d,%d,%d,%d)", runID, spillID, eventID, statusCode);
-    outputServer->Exec(query);
+    eventQuery += Form(" (%d,%d,%d,%d),", runID, spillID, eventID, statusCode);
+    if(eventQuery.Length() > 10000) commitInsertion(eventQuery);
 }
 
 void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuffix)
@@ -1078,53 +1100,49 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     recTrack->getExpMomentumFast(Z_ST3, px3, py3, pz3);
     if(std::isnan(px3) || std::isnan(py3) || std::isnan(pz3)) return;
 
-    TString insertQuery = Form("INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
-    insertQuery += "(trackID,runID,spillID,eventID,charge,roadID,"
-                   "numHits,numHitsSt1,numHitsSt2,numHitsSt3,numHitsSt4H,numHitsSt4V,"
-                   "chisq,x0,y0,z0,px0,py0,pz0,"
-                   "xT,yT,xD,yD,z0x,z0y,"
-                   "pxT,pyT,pzT,pxD,pyD,pzD,"
-                   "x1,y1,z1,px1,py1,pz1,"
-                   "x3,y3,z3,px3,py3,pz3,"
-                   "thbend,tx_PT,ty_PT,"
-                   "chisq_target,chisq_dump,chisq_upstream)";
-    insertQuery += "VALUES(";
-    insertQuery += Form("%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
-    insertQuery += Form("%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V);
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,%f,", chisq, x0, y0, z0, px0, py0, pz0);
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", pos_target.X(), pos_target.Y(), pos_dump.X(), pos_dump.Y(), pos_xvertex.Z(), pos_yvertex.Z());
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", mom_target.X(), mom_target.Y(), mom_target.Z(), mom_dump.X(), mom_dump.Y(), mom_dump.Z());
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
-    insertQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
-    insertQuery += Form("%f,%f,%f)", chisq_target, chisq_dump, chisq_upstream);
+    if(trackQuery.Length() == 0)
+    {
+        trackQuery = Form("INSERT INTO kTrack%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
+        trackQuery += TString("(trackID,runID,spillID,eventID,charge,roadID,"
+                              "numHits,numHitsSt1,numHitsSt2,numHitsSt3,numHitsSt4H,numHitsSt4V,"
+                              "chisq,x0,y0,z0,px0,py0,pz0,"
+                              "xT,yT,xD,yD,z0x,z0y,"
+                              "pxT,pyT,pzT,pxD,pyD,pzD,"
+                              "x1,y1,z1,px1,py1,pz1,"
+                              "x3,y3,z3,px3,py3,pz3,"
+                              "thbend,tx_PT,ty_PT,"
+                              "chisq_target,chisq_dump,chisq_upstream) VALUES");
+    }
 
-#ifndef OUT_TO_SCREEN
-    outputServer->Exec(insertQuery);
-#else
-    std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
-#endif
+    trackQuery += Form(" (%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
+    trackQuery += Form("%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V);
+    trackQuery += Form("%f,%f,%f,%f,%f,%f,%f,", chisq, x0, y0, z0, px0, py0, pz0);
+    trackQuery += Form("%f,%f,%f,%f,%f,%f,", pos_target.X(), pos_target.Y(), pos_dump.X(), pos_dump.Y(), pos_xvertex.Z(), pos_yvertex.Z());
+    trackQuery += Form("%f,%f,%f,%f,%f,%f,", mom_target.X(), mom_target.Y(), mom_target.Z(), mom_dump.X(), mom_dump.Y(), mom_dump.Z());
+    trackQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
+    trackQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
+    trackQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
+    trackQuery += Form("%f,%f,%f),", chisq_target, chisq_dump, chisq_upstream);
+
+    if(trackQuery.Length() > 10000) commitInsertion(trackQuery);
 }
 
 void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
 {
-    TString insertQuery = Form("INSERT INTO kHit%s", subsetTableSuffix.c_str());
-    insertQuery += "(runID,spillID,eventID,trackID,hitID,driftSign,residual,tdcTime,detectorName,elementID,driftDistance) VALUES";
+    if(hitQuery.Length() == 0)
+    {
+        hitQuery = Form("INSERT INTO kHit%s", subsetTableSuffix.c_str());
+        hitQuery += TString("(runID,spillID,eventID,trackID,hitID,driftSign,residual,tdcTime,detectorName,elementID,driftDistance) VALUES");
+    }
+
     for(std::list<SignedHit>::iterator iter = tracklet->hits.begin(); iter != tracklet->hits.end(); ++iter)
     {
         if(iter->hit.index < 0) continue;
-        insertQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
-        insertQuery += Form("%f,'%s',%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
+        hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
+        hitQuery += Form("%f,'%s',%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
     }
 
-    //remove the last comma
-    insertQuery.Remove(insertQuery.Length() - 1);
-
-#ifndef OUT_TO_SCREEN
-    outputServer->Exec(insertQuery);
-#else
-    std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
-#endif
+    if(hitQuery.Length() > 10000) commitInsertion(hitQuery);
 }
 
 void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuffix, int targetPos)
@@ -1140,30 +1158,27 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuff
     double px0 = p_sum.Px();
     double py0 = p_sum.Py();
     double pz0 = p_sum.Pz();
-
     double dz = dimuon.vtx_pos.Z() - dimuon.vtx_neg.Z();
 
-    TString insertQuery = Form("INSERT INTO kDimuon%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
-    insertQuery += "(dimuonID,runID,spillID,eventID,targetPos,posTrackID,negTrackID,"
-                   "dx,dy,dz,dpx,dpy,dpz,"
-                   "mass,xF,xB,xT,costh,phi,"
-                   "trackSeparation,chisq_dimuon,"
-                   "px1,py1,pz1,px2,py2,pz2,"
-                   "isValid,isTarget,isDump) ";
-    insertQuery += "VALUES(";
-    insertQuery += Form("%d,%d,%d,%d,%d,%d,%d,", dimuonID, runID, spillID, eventIDs_loaded.back(), targetPos, dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks);
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", x0, y0, z0, px0, py0, pz0);
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dimuon.costh, dimuon.phi);
-    insertQuery += Form("%f,%f,", dz, dimuon.chisq_kf);
-    insertQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
-    insertQuery += Form("%i,%i,%i", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
-    insertQuery += ")";
+    if(dimuonQuery.Length() == 0)
+    {
+        dimuonQuery = Form("INSERT INTO kDimuon%s%s", bakSuffix.Data(), subsetTableSuffix.c_str());
+        dimuonQuery += TString("(dimuonID,runID,spillID,eventID,targetPos,posTrackID,negTrackID,"
+                               "dx,dy,dz,dpx,dpy,dpz,"
+                               "mass,xF,xB,xT,costh,phi,"
+                               "trackSeparation,chisq_dimuon,"
+                               "px1,py1,pz1,px2,py2,pz2,"
+                               "isValid,isTarget,isDump) VALUES");
+    }
 
-#ifndef OUT_TO_SCREEN
-    outputServer->Exec(insertQuery);
-#else
-    std::cout << __FUNCTION__ << ": " << insertQuery << std::endl;
-#endif
+    dimuonQuery += Form(" (%d,%d,%d,%d,%d,%d,%d,", dimuonID, runID, spillID, eventIDs_loaded.back(), targetPos, dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks);
+    dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", x0, y0, z0, px0, py0, pz0);
+    dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dimuon.costh, dimuon.phi);
+    dimuonQuery += Form("%f,%f,", dz, dimuon.chisq_kf);
+    dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
+    dimuonQuery += Form("%i,%i,%i),", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
+
+    if(dimuonQuery.Length() > 10000) commitInsertion(dimuonQuery);
 }
 
 void MySQLSvc::pushToFinalTables(bool dropSubsetTables)
@@ -1216,6 +1231,21 @@ int MySQLSvc::makeQueryOutput()
     return 0;
 }
 
+
+void MySQLSvc::commitInsertion(TString& insertion)
+{
+    //remove the last comma
+    insertion.Chop();
+
+#ifndef OUT_TO_SCREEN
+    outputServer->Exec(insertion);
+#else
+    std::cout << varName(insertion) << ": " << insertion << std::endl;
+#endif
+
+    //clear up
+    insertion.Clear();
+}
 
 bool MySQLSvc::nextEntry()
 {

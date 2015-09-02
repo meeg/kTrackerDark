@@ -77,7 +77,8 @@ public:
     //Output to database/txt file/screen
     bool initWriter();
     bool initBakWriter();
-    void resetWriter() { nTracks = 0; nDimuons = 0; }  // reset the track and dimuon counter to 0
+    void resetWriter();       // reset the track and dimuon counter to 0
+    void finalizeWriter();    // commit the remaining part of insertion queries
 
     void writeInfoTable(TTree* config);
     void writeTrackingRes(TString tableSuffix, SRecEvent* recEvent, TClonesArray* tracklets = NULL);
@@ -107,6 +108,7 @@ public:
     //Memory-safe sql queries
     int makeQueryInput();
     int makeQueryOutput();
+    void commitInsertion(TString& insertion);
     bool nextEntry();
 
     int getInt(int id, int default_val = 0);
@@ -164,6 +166,12 @@ private:
     std::string inputSchema;
     std::string outputSchema;
     std::string logSchema;
+
+    //uploading query buffer
+    TString eventQuery;
+    TString dimuonQuery;
+    TString trackQuery;
+    TString hitQuery;
 
     //Internal counter of tracks and dimuons
     int nTracks;

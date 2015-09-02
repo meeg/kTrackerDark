@@ -86,6 +86,7 @@ int main(int argc, char **argv)
 
             p_mysqlSvc->writeTrackingRes(tableSuffix[i], recEvent, trackletArray);
         }
+        p_mysqlSvc->finalizeWriter();
         cout << Form("Uploaded %s data events successfully", tableSuffix[i].Data()) << endl << endl;
     }
     cout << "sqlResWriter ends successfully." << endl;
