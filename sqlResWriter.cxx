@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     p_mysqlSvc->setOutputSchema(argv[2]);
 
     //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", argv[2]));
 
     ///Retrieve data from file
     TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     cout << "sqlResWriter ends successfully." << endl;
 
     //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", argv[2]));
 
     delete p_mysqlSvc;
     delete p_geomSvc;
