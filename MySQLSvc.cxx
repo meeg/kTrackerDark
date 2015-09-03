@@ -1066,7 +1066,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     TVector3 pos_xvertex = recTrack->getXVertexPos();
     TVector3 pos_yvertex = recTrack->getYVertexPos();
 
-    if(std::isnan(pos_xvertex.Z()) || std::isnan(pos_yvertex.Z())) return;
+    //if(std::isnan(pos_xvertex.Z()) || std::isnan(pos_yvertex.Z())) return;
 
     double tx_prop = recTrack->getPTSlopeX();
     double ty_prop = recTrack->getPTSlopeY();
@@ -1090,17 +1090,17 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     y0 = recTrack->getVtxPar(1);
     z0 = recTrack->getVtxPar(2);
     recTrack->getMomentumVertex(px0, py0, pz0);
-    if(std::isnan(px0) || std::isnan(py0) || std::isnan(pz0)) return;
+    //if(std::isnan(px0) || std::isnan(py0) || std::isnan(pz0)) return;
 
     //At station 1
     recTrack->getExpPositionFast(Z_ST1, x1, y1);
     recTrack->getExpMomentumFast(Z_ST1, px1, py1, pz1);
-    if(std::isnan(px1) || std::isnan(py1) || std::isnan(pz1)) return;
+    //if(std::isnan(px1) || std::isnan(py1) || std::isnan(pz1)) return;
 
     //At station 3
     recTrack->getExpPositionFast(Z_ST3, x3, y3);
     recTrack->getExpMomentumFast(Z_ST3, px3, py3, pz3);
-    if(std::isnan(px3) || std::isnan(py3) || std::isnan(pz3)) return;
+    //if(std::isnan(px3) || std::isnan(py3) || std::isnan(pz3)) return;
 
     if(trackQuery.Length() == 0)
     {
@@ -1116,15 +1116,16 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
                               "chisq_target,chisq_dump,chisq_upstream) VALUES");
     }
 
-    trackQuery += Form(" (%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
-    trackQuery += Form("%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V);
-    trackQuery += Form("%f,%f,%f,%f,%f,%f,%f,", chisq, x0, y0, z0, px0, py0, pz0);
-    trackQuery += Form("%f,%f,%f,%f,%f,%f,", pos_target.X(), pos_target.Y(), pos_dump.X(), pos_dump.Y(), pos_xvertex.Z(), pos_yvertex.Z());
-    trackQuery += Form("%f,%f,%f,%f,%f,%f,", mom_target.X(), mom_target.Y(), mom_target.Z(), mom_dump.X(), mom_dump.Y(), mom_dump.Z());
-    trackQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
-    trackQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
-    trackQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
-    trackQuery += Form("%f,%f,%f),", chisq_target, chisq_dump, chisq_upstream);
+    TString insertQuery = Form(" (%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
+    insertQuery += Form("%d,%d,%d,%d,%d,%d,", numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,%f,", chisq, x0, y0, z0, px0, py0, pz0);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", pos_target.X(), pos_target.Y(), pos_dump.X(), pos_dump.Y(), pos_xvertex.Z(), pos_yvertex.Z());
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", mom_target.X(), mom_target.Y(), mom_target.Z(), mom_dump.X(), mom_dump.Y(), mom_dump.Z());
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
+    insertQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
+    insertQuery += Form("%f,%f,%f),", chisq_target, chisq_dump, chisq_upstream);
+    if(!insertQuery.Contains("nan")) trackQuery += insertQuery;
 
     if(trackQuery.Length() > MaxQueryLen) commitInsertion(trackQuery);
 }
@@ -1173,12 +1174,13 @@ void MySQLSvc::writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString bakSuff
                                "isValid,isTarget,isDump) VALUES");
     }
 
-    dimuonQuery += Form(" (%d,%d,%d,%d,%d,%d,%d,", dimuonID, runID, spillID, eventIDs_loaded.back(), targetPos, dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks);
-    dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", x0, y0, z0, px0, py0, pz0);
-    dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dimuon.costh, dimuon.phi);
-    dimuonQuery += Form("%f,%f,", dz, dimuon.chisq_kf);
-    dimuonQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
-    dimuonQuery += Form("%i,%i,%i),", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
+    TString insertQuery = Form(" (%d,%d,%d,%d,%d,%d,%d,", dimuonID, runID, spillID, eventIDs_loaded.back(), targetPos, dimuon.trackID_pos+nTracks, dimuon.trackID_neg+nTracks);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", x0, y0, z0, px0, py0, pz0);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.mass, dimuon.xF, dimuon.x1, dimuon.x2, dimuon.costh, dimuon.phi);
+    insertQuery += Form("%f,%f,", dz, dimuon.chisq_kf);
+    insertQuery += Form("%f,%f,%f,%f,%f,%f,", dimuon.p_pos.Px(), dimuon.p_pos.Py(), dimuon.p_pos.Pz(), dimuon.p_neg.Px(), dimuon.p_neg.Py(), dimuon.p_neg.Pz());
+    insertQuery += Form("%i,%i,%i),", dimuon.isValid(), dimuon.isTarget(), dimuon.isDump());
+    if(!insertQuery.Contains("nan")) dimuonQuery += insertQuery;
 
     if(dimuonQuery.Length() > MaxQueryLen) commitInsertion(dimuonQuery);
 }
@@ -1242,7 +1244,7 @@ void MySQLSvc::commitInsertion(TString& insertion)
 #ifndef OUT_TO_SCREEN
     outputServer->Exec(insertion);
 #else
-    std::cout << varName(insertion) << ": " << insertion << std::endl;
+    std::cout << std::endl << __FUNCTION__ << " " << insertion.Length() << ": " << insertion << std::endl;
 #endif
 
     //clear up
