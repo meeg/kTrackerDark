@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     ///Initialize job option service
     JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-    p_jobOptsSvc->init(argv[1])
+    p_jobOptsSvc->init(argv[1]);
 
     ///Initialize the geometry service and output file
     GeomSvc* p_geomSvc = GeomSvc::instance();
