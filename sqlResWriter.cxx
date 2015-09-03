@@ -39,6 +39,9 @@ int main(int argc, char **argv)
     p_mysqlSvc->connectOutput(argv[3], atoi(argv[4]));
     p_mysqlSvc->setOutputSchema(argv[2]);
 
+    //Set the ktracked bit in summary table
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
+
     ///Retrieve data from file
     TClonesArray* tracklets = new TClonesArray("Tracklet");
     SRecEvent* recEvent = new SRecEvent();
@@ -90,6 +93,9 @@ int main(int argc, char **argv)
         cout << Form("Uploaded %s data events successfully", tableSuffix[i].Data()) << endl << endl;
     }
     cout << "sqlResWriter ends successfully." << endl;
+
+    //Set the ktracked bit in summary table
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
 
     delete p_mysqlSvc;
     delete p_geomSvc;

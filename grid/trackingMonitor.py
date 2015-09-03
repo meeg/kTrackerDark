@@ -105,4 +105,4 @@ while nExist != len(runIDs):
     time.sleep(600)
 
 fout.close()
-stopGridGuard()
+GridUtil.stopGridGuard()
