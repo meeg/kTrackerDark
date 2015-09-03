@@ -33,6 +33,7 @@ int main(int argc, char **argv)
 
     ///Initialize the geometry service and output file
     GeomSvc* p_geomSvc = GeomSvc::instance();
+    p_geomSvc->init();
 
     ///Intialize the mysql service
     MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
@@ -41,7 +42,7 @@ int main(int argc, char **argv)
     p_mysqlSvc->setOutputSchema(argv[3]);
 
     //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", argv[2]));
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", argv[3]));
 
     ///Retrieve data from file
     TClonesArray* tracklets = new TClonesArray("Tracklet");
