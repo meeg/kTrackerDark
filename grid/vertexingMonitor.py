@@ -51,7 +51,7 @@ while len(uploadedRuns) < len(runIDs):
         targetFile = os.path.join(conf.outdir, 'vertex', GridUtil.version, GridUtil.getSubDir(runID), 'vertex_%06d_%s.root' % (runID, GridUtil.version))
         nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStatus(conf.outdir, 'vertex', runID)
         if options.debug:
-            print runID, nTotalJobs, nFinishedJobs, failedOpts 
+            print runID, nTotalJobs, nFinishedJobs, failedOpts
         for opt in failedOpts:
             failedJobs.append(GridUtil.makeCommandFromOpts('vertex', opt, conf))
         if (not os.path.exists(targetFile)) or len(failedOpts) != 0:
@@ -61,6 +61,8 @@ while len(uploadedRuns) < len(runIDs):
             continue
 
         finishedRuns.append(runID)
+        if os.path.exists(os.path.join(GridUtil.workDir, 'log_upload_%06d' % runID)) or os.path.exists(os.path.join(GridUtil.workDir, 'err_upload_%06d' % runID)):
+            uploadedRuns.append(runID)
 
     # resubmit failed jobs if needed
     GridUtil.submitAllJobs(failedJobs, 'vertexMonitor_err.log_'+GridUtil.getTimeStamp())
