@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 
     ///Initialize job option service
     JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+    p_jobOptsSvc->init(argv[1])
 
     ///Initialize the geometry service and output file
     GeomSvc* p_geomSvc = GeomSvc::instance();
@@ -36,8 +37,8 @@ int main(int argc, char **argv)
     ///Intialize the mysql service
     MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
     p_mysqlSvc->setUserPasswd("production", "qqbar2mu+mu-");
-    p_mysqlSvc->connectOutput(argv[3], atoi(argv[4]));
-    p_mysqlSvc->setOutputSchema(argv[2]);
+    p_mysqlSvc->connectOutput(argv[4], atoi(argv[5]));
+    p_mysqlSvc->setOutputSchema(argv[3]);
 
     //Set the ktracked bit in summary table
     p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", argv[2]));
@@ -47,7 +48,7 @@ int main(int argc, char **argv)
     SRecEvent* recEvent = new SRecEvent();
 
     ///Get trees
-    TFile* dataFile = new TFile(argv[1], "READ");
+    TFile* dataFile = new TFile(argv[2], "READ");
     TTree* configTree = (TTree*)dataFile->Get("config");
     TTree* dataTree = (TTree*)dataFile->Get("save");
     TTree* mixTree = (TTree*)dataFile->Get("save_mix");

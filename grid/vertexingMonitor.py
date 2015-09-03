@@ -83,7 +83,7 @@ while len(uploadedRuns) < len(runIDs):
         uploadLog = os.path.join(GridUtil.workDir, 'log_upload_%06d' % runID)
         uploadErr = os.path.join(GridUtil.workDir, 'err_upload_%06d' % runID)
 
-        cmd = '%s %s %s %s %d 1> %s 2> %s &' % (uploader, sourceFile, targetSchema, options.server, options.port, uploadLog, uploadErr)
+        cmd = '%s %s %s %s %s %d 1> %s 2> %s &' % (uploader, conf.opts, sourceFile, targetSchema, options.server, options.port, uploadLog, uploadErr)
         print cmd
         os.system(cmd)
 
