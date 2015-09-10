@@ -387,7 +387,7 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
     int iStep_y = iStep;                  // both intialized with the most upstream position
     for(int i = 0; i < NSLICES_FMAG+NSTEPS_TARGET+1; ++i)
     {
-        if(charge*mom[i].Px() < 0.) continue;    // this is the upstream accidental cross, ignore
+        if(FMAGSTR*charge*mom[i].Px() < 0.) continue;    // this is the upstream accidental cross, ignore
 
         double dca = pos[i].Perp();
         if(dca < dca_min)
@@ -481,7 +481,7 @@ bool SRecDimuon::isValid()
     if(chisq_kf > 10. || chisq_kf < 0.) return false;
 
     //Kinematic cuts
-    if(p_pos.Px() < p_neg.Px()) return false;
+    if(FMAGSTR*(p_pos.Px() - p_neg.Px()) < 0.) return false;
     if(fabs(xF) > 1.) return false;
     if(x1 < 0. || x1 > 1.) return false;
     if(x2 < 0. || x2 > 1.) return false;

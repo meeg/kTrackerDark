@@ -11,6 +11,7 @@ parser = OptionParser('Usage: %prog [options]')
 parser.add_option('-r', '--range', type = 'string', dest = 'range', help = 'range of job ID, e.g. 101-202', default = '')
 parser.add_option('-p', '--pattern', type = 'string', dest = 'pattern', help = 'pattern of job name', default = '')
 parser.add_option('-s', '--status', type = 'string', dest = 'status', help = 'running status of jobs', default = '')
+parser.add_option('-l', '--list', type = 'string', dest = 'list', help = 'list of runIDs to be removed', default = '')
 parser.add_option('-d', '--debug', action = 'store_true', dest = 'debug', help = 'Enable massive debugging output', default = False)
 (options, args) = parser.parse_args()
 
@@ -27,6 +28,12 @@ if options.pattern != '':
     pattern = options.pattern
 
 status = options.status
+
+if options.list != '' and os.path.exists(options.list):
+    pattern = '['
+    for line in open(options.list).readlines():
+        pattern = pattern + line.strip() + '|'
+    pattern[-1] = ']'
 
 output, err = subprocess.Popen('jobsub_q | grep liuk', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
 jobDetails = []
