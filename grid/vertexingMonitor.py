@@ -49,7 +49,7 @@ while len(uploadedRuns) < len(runIDs):
             continue
 
         targetFile = os.path.join(conf.outdir, 'vertex', GridUtil.version, GridUtil.getSubDir(runID), 'vertex_%06d_%s.root' % (runID, GridUtil.version))
-        nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStatus(conf.outdir, 'vertex', runID)
+        nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStatus(conf, 'vertex', runID)
         if options.debug:
             print runID, nTotalJobs, nFinishedJobs, failedOpts
         for opt in failedOpts:

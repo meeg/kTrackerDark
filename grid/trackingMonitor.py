@@ -57,7 +57,7 @@ while nExist != len(runIDs):
             continue
 
         #check the running status
-        nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStatus(tconf.outdir, 'track', runID)
+        nTotalJobs, nFinishedJobs, failedOpts = GridUtil.getJobStatus(tconf, 'track', runID)
         if options.debug:
             print runID, nTotalJobs, nFinishedJobs, failedOpts
         for opt in failedOpts:

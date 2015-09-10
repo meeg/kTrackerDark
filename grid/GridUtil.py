@@ -228,10 +228,11 @@ def submitAllJobs(cmds, maxFailCounts = 10):
         print 'Sleep for 30 seconds ... '
         time.sleep(30)
 
-def getJobStatus(rootdir, jobType, runID):
+def getJobStatus(conf, jobType, runID):
     """Get the status of all jobs associated with one runID"""
 
-    optfiles = [os.path.join(rootdir, 'opts', version, getSubDir(runID), f) for f in os.listdir(os.path.join(rootdir, 'opts', version, getSubDir(runID))) if ('%06d' % runID) in f and auxPrefix[jobType] in f]
+    checkpoint = -1 if conf.osg else -3
+    optfiles = [os.path.join(conf.outdir, 'opts', version, getSubDir(runID), f) for f in os.listdir(os.path.join(rootdir, 'opts', version, getSubDir(runID))) if ('%06d' % runID) in f and auxPrefix[jobType] in f]
 
     nFinished = 0
     failedOpts = []
@@ -248,7 +249,7 @@ def getJobStatus(rootdir, jobType, runID):
             continue
 
         nFinished = nFinished + 1
-        if 'successfully' not in open(logfile).readlines()[-3]:
+        if 'successfully' not in open(logfile).readlines()[checkpoint]:
             failedOpts.append(optfile)
 
     return (len(optfiles), nFinished, failedOpts)
