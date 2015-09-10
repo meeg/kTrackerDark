@@ -12,6 +12,7 @@ warnings.filterwarnings(action = 'ignore', category = RuntimeWarning)
 
 workDir = os.getenv('HOME') + '/tmp'
 version = os.getenv("SEAQUEST_RELEASE")
+submissionLog = os.path.join(workDir, 'log')
 stopGrid = threading.Event()
 
 inputPrefix = {'track' : 'digit', 'vertex' : 'track'}
@@ -196,7 +197,7 @@ def submitOneJob(cmd):
         print cmd, 'failed, will try again later'
         return False
 
-def submitAllJobs(cmds, errlog):
+def submitAllJobs(cmds, maxFailCounts = 10):
     """Submit all jobs, retry the failed ones, and save the jobs in errlog when a jobs failed more than once"""
 
     totalFailCounts = 0
@@ -210,8 +211,8 @@ def submitAllJobs(cmds, errlog):
 
         if len(cmds_success) == 0:
             totalFailCounts = totalFailCounts + 1
-            if totalFailCounts > 10:
-                fout = open(os.path.join(workDir, errlog), 'w')
+            if totalFailCounts > maxFa:
+                fout = open(submissionLog, 'a')
                 fout.write(str(datetime.now()) + '\n')
                 for cmd in cmds:
                     fout.write(cmd + '\n')
@@ -224,7 +225,7 @@ def submitAllJobs(cmds, errlog):
         if len(cmds) == 0:
             return True
 
-        print 'Sleep for 10 seconds ... '
+        print 'Sleep for 30 seconds ... '
         time.sleep(30)
 
 def getJobStatus(rootdir, jobType, runID):
@@ -260,6 +261,19 @@ def runCommand(cmd):
     else:
         return False
 
-
 def getTimeStamp():
-    return datetime.now().strftime('%y%m%d-%H%M');
+    return datetime.now().strftime('%y%m%d-%H%M')
+
+def mergeFiles(targetFile, sourceFiles):
+    """use hadd to merge ROOT files"""
+
+    cmd = 'hadd ' + targetFile
+    for source in sourceFiles:
+        cmd = cmd + ' ' + source
+
+    output, error = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
+    for line in error:
+        if 'dictionary' not in line:
+            return False
+
+    return True

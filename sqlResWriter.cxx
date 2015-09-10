@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     cout << "sqlResWriter ends successfully." << endl;
 
     //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", argv[2]));
+    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", argv[3]));
 
     delete p_mysqlSvc;
     delete p_geomSvc;
