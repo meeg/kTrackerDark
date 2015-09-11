@@ -21,7 +21,8 @@ if len(sys.argv) < 2:
 jobIDmin = -1
 jobIDmax = 9999999
 if options.range != '':
-    jobIDmin, jobIDmax = options.range.split('-')
+    jobIDmin = int(options.range.split('-')[0])
+    jobIDmax = int(options.range.split('-')[1])
 
 pattern = '[a-z]'
 if options.pattern != '':

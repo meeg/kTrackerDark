@@ -231,13 +231,13 @@ def submitAllJobs(cmds, maxFailCounts = 10):
 def getJobStatus(conf, jobType, runID):
     """Get the status of all jobs associated with one runID"""
 
-    checkpoint = -1 if conf.osg else -3
+    checkpoint = -3
     optfiles = [os.path.join(conf.outdir, 'opts', version, getSubDir(runID), f) for f in os.listdir(os.path.join(rootdir, 'opts', version, getSubDir(runID))) if ('%06d' % runID) in f and auxPrefix[jobType] in f]
 
     nFinished = 0
     failedOpts = []
     for optfile in optfiles:
-        logfile = os.path.join(rootdir, 'log', version, getSubDir(runID), '%s_%06d_%s' % (auxPrefix[jobType], runID, version))
+        logfile = os.path.join(conf.outdir, 'log', version, getSubDir(runID), '%s_%06d_%s' % (auxPrefix[jobType], runID, version))
 
         outtag = re.findall(r'_(\d+).opts', optfile)
         if len(outtag) == 0:
