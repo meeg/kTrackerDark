@@ -232,7 +232,7 @@ def getJobStatus(conf, jobType, runID):
     """Get the status of all jobs associated with one runID"""
 
     checkpoint = -3
-    optfiles = [os.path.join(conf.outdir, 'opts', version, getSubDir(runID), f) for f in os.listdir(os.path.join(rootdir, 'opts', version, getSubDir(runID))) if ('%06d' % runID) in f and auxPrefix[jobType] in f]
+    optfiles = [os.path.join(conf.outdir, 'opts', version, getSubDir(runID), f) for f in os.listdir(os.path.join(conf.outdir, 'opts', version, getSubDir(runID))) if ('%06d' % runID) in f and auxPrefix[jobType] in f]
 
     nFinished = 0
     failedOpts = []

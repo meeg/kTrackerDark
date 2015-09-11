@@ -40,7 +40,7 @@ trackedRuns = []
 vertexedRuns = []
 uploadedRuns = []
 if options.record == '':
-    options.record = os.path.join(GU.workDir, 'record_%s_%s.log' % (options.list.replace('list_', '').replace('.txt', ''), GU.getTimeStamp()))
+    options.record = os.path.join(GU.workDir, 'record_%s.log' % (options.list.replace('list_', '').replace('.txt', '')))
 if os.path.exists(options.record):
     fin = open(options.record, 'r')
     for line in fin.readlines():
@@ -62,7 +62,7 @@ if options.debug:
     for runID in runIDs:
         print runID, runID in trackedRuns, runID in vertexedRuns, runID in uploadedRuns
 
-# initiaize grid
+# initialize grid
 GU.gridInit()
 
 # initialize all the log files, for job submittion and job monitoring
@@ -154,7 +154,7 @@ while len(uploadedRuns) != len(runIDs):
         frecord.write('v %06d' % runID)
 
         # if output is not set, then uploading is prohibited
-        if options.output = '':
+        if options.output == '':
             uploadedRuns.append(runID)
     print 'Vertexing [%s]: %d/%d vertexed' % (GU.getTimeStamp(), len(vertexedRuns), len(runID))
     fout.flush()
