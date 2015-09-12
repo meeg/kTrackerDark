@@ -273,7 +273,7 @@ def mergeFiles(targetFile, sourceFiles):
         cmd = cmd + ' ' + source
 
     output, error = subprocess.Popen(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
-    for line in error:
+    for line in error.strip().split('\n'):
         if 'dictionary' not in line:
             return False
 

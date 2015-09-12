@@ -21,6 +21,7 @@ parser.add_option('-o', '--output', type = 'string', dest = 'output', help = 'ou
 parser.add_option('-s', '--server', type = 'string', dest = 'server', help = 'MySQL server', default = 'seaquel.physics.illinois.edu')
 parser.add_option('-p', '--port', type = 'int', dest = 'port', help = 'MySQL port', default = 3283)
 parser.add_option('-m', '--max', type = 'int', dest = 'nJobsMax', help = 'maximum number of uploading instance', default = 8)
+(options, args) = parser.parse_args()
 
 if len(sys.argv) < 2:
     parser.parse_args(['--help'])
@@ -77,7 +78,7 @@ while len(uploadedRuns) != len(runIDs):
 
     # check the status of tracking jobs, this part handles mergeing/moving ROOT files, and prepare vertex jobs
     vertexJobs = []
-    for index, runID in runIDs:
+    for runID in runIDs:
         # make sure it has not been already processed
         if runID in trackedRuns:
             if not os.path.exists(os.path.join(vconf.outdir, 'opts', GU.version, GU.getSubDir(runID), '%s_%06d_%s.opts' % (GU.auxPrefix['vertex'], runID, GU.version))):
@@ -97,7 +98,12 @@ while len(uploadedRuns) != len(runIDs):
         elif nTotalJobs != nFinishedJobs:   # not completely finished
             continue
 
-        # merge the files
+        # merge and move the files
+        targetDir = os.path.join(vconf.indir, 'track', GU.version, GU.getSubDir(runID))
+        if not os.path.exists(targetDir):
+            GU.runCommand('mkdir -p ' + targetDir)
+            GU.runCommand('chmod 01755 ' + targetDir)
+
         targetFile = os.path.join(vconf.indir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s.root' % (runID, GU.version))
         mergedFile = os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s.root' % (runID, GU.version))
         sourceFiles = [os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s_%d.root' % (runID, GU.version, tag)) for tag in range(nTotalJobs)]
@@ -120,7 +126,7 @@ while len(uploadedRuns) != len(runIDs):
         else:
             print 'Tracking [%s]: Run %06d failed in merging' % (GU.getTimeStamp(), runID)
             fout.write('Tracking [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'merging failed'))
-    print 'Tracking [%s]: %d/%d tracked' % (GU.getTimeStamp(), len(trackedRuns), len(runID))
+    print 'Tracking [%s]: %d/%d tracked' % (GU.getTimeStamp(), len(trackedRuns), len(runIDs))
     fout.flush()
     frecord.flush()
 
@@ -156,7 +162,7 @@ while len(uploadedRuns) != len(runIDs):
         # if output is not set, then uploading is prohibited
         if options.output == '':
             uploadedRuns.append(runID)
-    print 'Vertexing [%s]: %d/%d vertexed' % (GU.getTimeStamp(), len(vertexedRuns), len(runID))
+    print 'Vertexing [%s]: %d/%d vertexed' % (GU.getTimeStamp(), len(vertexedRuns), len(runIDs))
     fout.flush()
     frecord.flush()
 
@@ -164,7 +170,7 @@ while len(uploadedRuns) != len(runIDs):
     GU.submitAllJobs(failedJobs)
 
     # upload the finished jobs
-    while len(uploadedRuns) < len(vertexRuns):
+    while len(uploadedRuns) < len(vertexedRuns):
         toBeUploadedRuns = [runID for runID in vertexedRuns if runID not in uploadedRuns]
 
         nRunning = int(os.popen('pgrep %s | wc -l' % uploader.split('/')[-1]).read().strip())
@@ -180,7 +186,7 @@ while len(uploadedRuns) != len(runIDs):
             uploadLog = os.path.join(GU.workDir, 'log_upload_%06d' % runID)
             uploadErr = os.path.join(GU.workDir, 'err_upload_%06d' % runID)
 
-            cmd = '%s %s %s %s %s %d 1> %s 2> %s &' % (uploader, conf.opts, sourceFile, targetSchema, options.server, options.port, uploadLog, uploadErr)
+            cmd = '%s %s %s %s %s %d 1> %s 2> %s &' % (uploader, vconf.opts, sourceFile, targetSchema, options.server, options.port, uploadLog, uploadErr)
             print cmd
             os.system(cmd)
 
