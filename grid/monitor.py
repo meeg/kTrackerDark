@@ -88,7 +88,7 @@ while len(uploadedRuns) != len(runIDs):
         # check the running status
         nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(tconf, 'track', runID)
         if options.debug:
-            print ' - Tracking status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
+            print ' --- Tracking status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
         if len(failedOpts) != 0:   # something wrong
             fout.write('Tracking [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'certain jobs failed'))
             fout.write('              ' + str(failedOpts) + '\n')
@@ -130,14 +130,14 @@ while len(uploadedRuns) != len(runIDs):
     fout.flush()
     frecord.flush()
 
+    #submit all failed tracking jobs
+    GU.submitAllJobs(failedJobs)
+
     #submit all the vertexing jobs
     GU.submitAllJobs(vertexJobs)
 
-    #submit all failed tracking jobs
-    GU.submitAllJobs(failedJobs)
-    failedJobs = []
-
     # check the status of vertexing jobs
+    failedJobs = []
     for index, runID in enumerate(trackedRuns):
         # make sure this run has not been processed before
         if runID in vertexedRuns or runID in uploadedRuns:
@@ -146,7 +146,7 @@ while len(uploadedRuns) != len(runIDs):
         # check running status
         nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(vconf, 'vertex', runID)
         if options.debug:
-            print 'Vertexing status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
+            print ' --- Vertexing status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
         if len(failedOpts) != 0:
             fout.write('Vertexing [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'certain jobs failed'))
             for opt in failedOpts:
@@ -156,8 +156,8 @@ while len(uploadedRuns) != len(runIDs):
             continue
 
         # label this run as vertexed
-        vertexedRuns.append(run)
-        frecord.write('v %06d' % runID)
+        vertexedRuns.append(runID)
+        frecord.write('v %06d\n' % runID)
 
         # if output is not set, then uploading is prohibited
         if options.output == '':
@@ -177,6 +177,8 @@ while len(uploadedRuns) != len(runIDs):
         nJobs = options.nJobsMax - nRunning
         if nJobs > len(toBeUploadedRuns):
             nJobs = len(toBeUploadedRuns)
+        if nJobs < 0:
+            nJobs = 0
 
         print 'Uploading [%s]: %d uploader running, will submit %d more, %d to go.' % (GU.getTimeStamp(), nRunning, nJobs, len(toBeUploadedRuns)-nJobs)
         for index in range(nJobs):
@@ -191,7 +193,11 @@ while len(uploadedRuns) != len(runIDs):
             os.system(cmd)
 
             uploadedRuns.append(runID)
-            frecord.write('u %06d' % runID)
+            frecord.write('u %06d\n' % runID)
+
+        # sleep for 1 minute
+        frecord.flush()
+        time.sleep(60)
 
     # sleep for 10 minutes
     fout.flush()
