@@ -86,8 +86,9 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
         recTrack.setZVertex(recTrack.getZVertex(), true);
     }
 
-    std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
-    std::vector<int> idx_neg = recEvent->getChargedTrackIDs(sign2);
+    int fmagsign = FMAGSTR > 0 ? 1 : -1;
+    std::vector<int> idx_pos = recEvent->getChargedTrackIDs(fmagsign*sign1);
+    std::vector<int> idx_neg = recEvent->getChargedTrackIDs(fmagsign*sign2);
 
     nPos = idx_pos.size();
     nNeg = idx_neg.size();
@@ -233,7 +234,7 @@ double VertexFit::findDimuonVertexFast(SRecTrack& track1, SRecTrack& track2)
     for(int iStep = 0; iStep < NSLICES_FMAG + NSTEPS_TARGET + 1; ++iStep)
     {
         double dist = (pos1[iStep] - pos2[iStep]).Perp();
-        if(dist < dist_min && charge1*mom1[iStep].Px() > 0 && charge2*mom2[iStep].Px() > 0)
+        if(dist < dist_min && FMAGSTR*charge1*mom1[iStep].Px() > 0 && FMAGSTR*charge2*mom2[iStep].Px() > 0)
         {
             iStep_min = iStep;
             dist_min = dist;

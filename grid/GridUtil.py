@@ -201,18 +201,18 @@ def submitAllJobs(cmds, maxFailCounts = 10):
     """Submit all jobs, retry the failed ones, and save the jobs in errlog when a jobs failed more than once"""
 
     totalFailCounts = 0
-    start = datetime.now()
     while len(cmds) != 0:
 
         cmds_success = []
+        start = datetime.now()
         for i, cmd in enumerate(cmds):
             print '%d/%d' % (i+1, len(cmds)),
             if submitOneJob(cmd):
                 cmds_success.append(cmd)
-            if i % 10 == 0 and i > 0:
-                passedTime = (datatime.now() - a).total_seconds();
+            if (i+1) % 10 == 0 and i > 0:
+                passedTime = (datetime.now() - start).seconds;
                 remainTime = (passedTime/i*(len(cmds) - i))/60.
-                print 'ETA: %.2f minuts.' % remainTime 
+                print 'ETA: %.2f minuts.' % remainTime
 
         if len(cmds_success) == 0:
             totalFailCounts = totalFailCounts + 1
@@ -221,7 +221,7 @@ def submitAllJobs(cmds, maxFailCounts = 10):
                 fout.write(str(datetime.now()) + '\n')
                 for cmd in cmds:
                     fout.write(cmd + '\n')
-                    fout.close()
+                fout.close()
                 return False
 
         for cmd in cmds_success:

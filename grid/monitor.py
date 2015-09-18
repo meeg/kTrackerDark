@@ -15,6 +15,7 @@ parser.add_option('-l', '--list', type = 'string', dest = 'list', help = 'List o
 parser.add_option('-t', '--tconfig', type = 'string', dest = 'tconfig', help = 'I/O configuration file for tracking', default = '')
 parser.add_option('-v', '--vconfig', type = 'string', dest = 'vconfig', help = 'I/O configuration file for vertexing', default = '')
 parser.add_option('-r', '--record', type = 'string', dest = 'record', help = 'Record of the submitted runs', default = '')
+parser.add_option('-e', '--exclude', type = 'string', dest = 'exclude', help = 'skip certain part of the work chain (t = tracking, v = vertexing, u = uploading)', default = '')
 parser.add_option('-d', '--debug', action = 'store_true', dest = 'debug', help = 'Enable massive debugging output', default = False)
 
 parser.add_option('-o', '--output', type = 'string', dest = 'output', help = 'output schema pattern, if not set, uploading will not start', default = '')
@@ -56,10 +57,24 @@ if os.path.exists(options.record):
         elif vals[0] == 'u':
             uploadedRuns.append(int(vals[1]))
     fin.close()
+
+# process excluded part, and make the list distinct
+for runID in runIDs:
+    if 't' in options.exclude:
+        trackedRuns.append(runID)
+    if 'v' in options.exclude:
+        vertexedRuns.append(runID)
+    if 'u' in options.exclude:
+        uploadedRuns.append(runID)
+trackedRuns = list(set(trackedRuns))
+vertexedRuns = list(set(vertexedRuns))
+uploadedRuns = list(set(uploadedRuns))
+
+print 'Initial status: %d runs, %d tracked, %d vertexed, %d uploaded' % (len(runIDs), len(trackedRuns), len(vertexedRuns), len(uploadedRuns))
 frecord = open(options.record, 'a')
 
 if options.debug:
-    print 'Initial status: '
+    print 'Detailed initial status: '
     for runID in runIDs:
         print runID, runID in trackedRuns, runID in vertexedRuns, runID in uploadedRuns
 
@@ -72,7 +87,7 @@ GU.submissionLog = logfile.replace('monitor', 'submission')
 fout = open(logfile, 'w')
 
 # loop until all jobs has been uploaded/tracked
-while len(uploadedRuns) != len(runIDs):
+while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len(vertexedRuns) != len(runIDs):
     # commands to be re-submitted
     failedJobs = []
 
@@ -140,7 +155,7 @@ while len(uploadedRuns) != len(runIDs):
     failedJobs = []
     for index, runID in enumerate(trackedRuns):
         # make sure this run has not been processed before
-        if runID in vertexedRuns or runID in uploadedRuns:
+        if runID in vertexedRuns:
             continue
 
         # check running status
@@ -159,9 +174,6 @@ while len(uploadedRuns) != len(runIDs):
         vertexedRuns.append(runID)
         frecord.write('v %06d\n' % runID)
 
-        # if output is not set, then uploading is prohibited
-        if options.output == '':
-            uploadedRuns.append(runID)
     print 'Vertexing [%s]: %d/%d vertexed' % (GU.getTimeStamp(), len(vertexedRuns), len(runIDs))
     fout.flush()
     frecord.flush()
