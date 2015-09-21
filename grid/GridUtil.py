@@ -71,14 +71,14 @@ def getNEvents(name):
     else:
         return 0
 
-def getOptimizedSize(name, nEvtMax):
+def getOptimizedSize(name, nEvtMax, nJobsMax = 10):
     """Optimize how a run is splitted into serveral jobs"""
 
     nEvents = getNEvents(name)
     nJobs = nEvents/nEvtMax + 1
-    if nJobs > 10:
-        print '%s has %d events and more than 10 jobs, redueced the number of jobs to 10' % (name, nEvents)
-        nJobs = 10
+    if nJobs > nJobsMax:
+        print '%s has %d events and more than %d jobs, redueced the number of jobs to %d' % (name, nEvents, nJobsMax, nJobsMax)
+        nJobs = nJobsMax
     nEvtMax_opt = nEvents/nJobs
 
     sizes = []

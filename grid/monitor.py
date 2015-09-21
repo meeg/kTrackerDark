@@ -72,6 +72,7 @@ uploadedRuns = list(set(uploadedRuns))
 
 print 'Initial status: %d runs, %d tracked, %d vertexed, %d uploaded' % (len(runIDs), len(trackedRuns), len(vertexedRuns), len(uploadedRuns))
 frecord = open(options.record, 'a')
+time.sleep(3)
 
 if options.debug:
     print 'Detailed initial status: '
@@ -182,7 +183,9 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
     GU.submitAllJobs(failedJobs)
 
     # upload the finished jobs
-    while len(uploadedRuns) < len(vertexedRuns):
+    nUploaderCycles = 0
+    maxCycles = 999999 if len(vertexedRuns) < len(runIDs) else 10
+    while len(uploadedRuns) < len(vertexedRuns) and nUploaderCycles < maxCycles:
         toBeUploadedRuns = [runID for runID in vertexedRuns if runID not in uploadedRuns]
 
         nRunning = int(os.popen('pgrep %s | wc -l' % uploader.split('/')[-1]).read().strip())
@@ -207,8 +210,20 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             uploadedRuns.append(runID)
             frecord.write('u %06d\n' % runID)
 
+        # reap IO dead process every 5 minutes
+        if (nUploaderCycles+1) % 5 == 0:
+            time.sleep(30)
+            processInfo = os.popen('ps eo comm,pid,pcpu,stat | grep sqlResWriter').readlines()
+            for process in processInfo:
+                vals = process.strip().split()
+                if 'D' in vals[3] and float(vals[2]) < 0.5:
+                    if options.debug:
+                        print ' --- kill process ' + vals[1]
+                    os.system('kill -9 ' + vals[1])
+
         # sleep for 1 minute
         frecord.flush()
+        nUploaderCycles = nUploaderCycles + 1
         time.sleep(60)
 
     # sleep for 10 minutes

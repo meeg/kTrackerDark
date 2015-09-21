@@ -12,6 +12,7 @@ parser.add_option('-l', '--list', type = 'string', dest = 'list', help = 'List o
 parser.add_option('-j', '--job', type = 'string', dest = 'job', help = 'Type of job: track, vertex, online, etc.', default = '')
 parser.add_option('-s', '--split', type = 'int', dest = 'nEvtMax', help = 'Constrain the single job to be less than certain events, default is no splitting', default = -1)
 parser.add_option('-c', '--config', type = 'string', dest = 'config', help = 'I/O configuration file', default = '')
+parser.add_option('-n', '--maxjobs', type = 'int', dest = 'nJobsMax', help = 'Maximum number of jobs to split one run', default = 10)
 parser.add_option('-r', '--resubmit', type = 'string', dest = 'resubmit', help = 'Catchup where it has been left', default = '')
 parser.add_option('-e', '--errlog', type = 'string', dest = 'errlog', help = 'Failed command log', default = 'submitAll_err.log')
 parser.add_option('-m', '--mc', action = 'store_true', dest = 'mc', help = 'MC mode', default = False)
@@ -52,7 +53,7 @@ for index, runID in enumerate(runIDs):
         cmd = GridUtil.makeCommand(options.job, runID, conf, infile = runFiles[index])
         cmds.append(cmd)
     else:
-        optSizes = GridUtil.getOptimizedSize(runFiles[index], options.nEvtMax)
+        optSizes = GridUtil.getOptimizedSize(runFiles[index], options.nEvtMax, options.nJobsMax)
         if options.debug:
             print index, runID, len(optSizes), optSizes[-1][1]
 
