@@ -54,6 +54,7 @@ MySQLSvc::MySQLSvc()
     readQIE = true;
     readTriggerHits = true;
     readTargetPos = true;
+    readTrackPos = true;
 
     subsetTableSuffix = getSubsetTableSuffix();
     subsetEventString = getMySQLEventSelection();
@@ -171,6 +172,24 @@ bool MySQLSvc::initReader()
     {
         std::cout << "MySQLSvc: essential information is missing in this schema. Will exit..." << std::endl;
         return false;
+    }
+
+    if(!inputServer->HasTable("mHit"))
+    {
+        readTrackPos = false;
+    }
+    else
+    {
+        sprintf(query, "SELECT * FROM mHit LIMIT 1");
+        if(makeQueryInput() == 0)
+        {
+            readTrackPos = false;
+        }
+        else
+        {
+            nextEntry();
+            if(getInt(0) == 0) readTrackPos = false;
+        }
     }
 
     //check additional information
@@ -554,6 +573,7 @@ bool MySQLSvc::getMCGenInfo(SRawMCEvent* mcEvent, int eventID)
     double py = getDouble(11);
     mcEvent->pT = sqrt(px*px + py*py);
 
+    if(!readTrackPos) return true;
     for(int i = 0; i < 2; ++i)
     {
         //At vertex

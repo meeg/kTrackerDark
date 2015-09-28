@@ -250,7 +250,7 @@ def getJobStatus(conf, jobType, runID):
         else:
             logfile = logfile + '_%s.log' % outtag[0]
 
-        if not os.path.exists(logfile):
+        if not os.path.exists(logfile) or sum(1 for line in open(logfile)) < abs(checkpoint):
             continue
 
         nFinished = nFinished + 1

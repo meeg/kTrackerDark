@@ -15,7 +15,7 @@ parser.add_option('-c', '--config', type = 'string', dest = 'config', help = 'I/
 parser.add_option('-n', '--maxjobs', type = 'int', dest = 'nJobsMax', help = 'Maximum number of jobs to split one run', default = 10)
 parser.add_option('-r', '--resubmit', type = 'string', dest = 'resubmit', help = 'Catchup where it has been left', default = '')
 parser.add_option('-e', '--errlog', type = 'string', dest = 'errlog', help = 'Failed command log', default = 'submitAll_err.log')
-parser.add_option('-m', '--mc', action = 'store_true', dest = 'mc', help = 'MC mode', default = False)
+parser.add_option('-m', '--mcid', type = 'int', dest = 'mcid', help = 'RunID for the job submission for MC', default = -1)
 parser.add_option('-d', '--debug', action = 'store_true', dest = 'debug', help = 'Enable massive debugging output', default = False)
 (options, args) = parser.parse_args()
 
@@ -38,13 +38,16 @@ conf = GridUtil.JobConfig(options.config)
 # process runID list, if in MC mode, initialize file list from options.list
 runIDs = []
 runFiles = []
-if not options.mc:
-    runIDs = [int(word.strip()) for word in open(options.list).readlines()]
+if options.mcid < 0:    # working with real data, runid is meaningful and is used to find the files
+    runIDs = [int(word.strip()) for word in open(options.list)]
     runFiles = [os.path.join(conf.indir, GridUtil.inputPrefix[options.job], conf.inv, GridUtil.getSubDir(runID), '%s_%06d_%s.root' % (GridUtil.inputPrefix[options.job], runID, conf.inv)) for runID in runIDs]
+else:                   # working with MC, when runid is fake but file list is real
+    runFiles = [os.path.join(conf.indir, line.strip()) for line in open(options.list)]
+    runIDs = [options.mcid + i for i in range(len(runFiles))]
 
 if options.debug:
-    for item in runFiles:
-        print item
+    for index, item in enumerate(runFiles):
+        print runIDs[index], item
 
 # prepare the job commands
 cmds = []

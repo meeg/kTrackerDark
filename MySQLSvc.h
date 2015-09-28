@@ -144,6 +144,7 @@ private:
     bool readQIE;
     bool readTriggerHits;
     bool readTargetPos;
+    bool readTrackPos;
     bool setTriggerEmu;
 
     //Random generator
