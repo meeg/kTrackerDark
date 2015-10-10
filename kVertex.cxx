@@ -33,15 +33,38 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2)
+    //Initialization
+    TString optfile;
+    TString inputFile;
+    TString outputFile;
+    int nEvents;
+    int startEvent;
+
+    JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+    if(argc == 2)    //initialization via opts file
+    {
+        optfile = argv[1];
+        jobOptsSvc->init(optfile.Data());
+
+        inputFile = jobOptsSvc->m_inputFile;
+        outputFile = jobOptsSvc->m_outputFile;
+        nEvents = jobOptsSvc->m_nEvents;
+        startEvent = jobOptsSvc->m_firstEvent;
+    }
+    else if(argc <= 5)
+    {
+        jobOptsSvc->init();
+
+        inputFile = argv[1];
+        outputFile = argv[2];
+        nEvents = argc >= 4 ? atoi(argv[3]) : -1;
+        startEvent = argc == 5 ? atoi(argv[4]) : 0;
+    }
+    else
     {
         cout << "Usage: " << argv[0] << "  <options file>" << endl;
         exit(EXIT_FAILURE);
     }
-
-    //Initialize job options
-    JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
-    jobOptsSvc->init(argv[1]);
 
     //Initialize the geometry service
     GeomSvc::instance()->init();
@@ -51,14 +74,14 @@ int main(int argc, char *argv[])
     SRecEvent* recEvent = new SRecEvent();
     TClonesArray* tracklets = new TClonesArray("Tracklet");
 
-    TFile* dataFile = new TFile(jobOptsSvc->m_inputFile.c_str(), "READ");
+    TFile* dataFile = new TFile(inputFile.Data(), "READ");
     TTree* dataTree = (TTree*)dataFile->Get("save");
 
     dataTree->SetBranchAddress("rawEvent", &rawEvent);
     dataTree->SetBranchAddress("recEvent", &recEvent);
     dataTree->SetBranchAddress("tracklets", &tracklets);
 
-    TFile* saveFile = new TFile(jobOptsSvc->m_outputFile.c_str(), "recreate");
+    TFile* saveFile = new TFile(outputFile.Data(), "recreate");
     TTree* saveTree = new TTree("save", "save");
 
     saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
@@ -89,8 +112,8 @@ int main(int argc, char *argv[])
         vtxfit->bookEvaluation(evalFileName.c_str());
     }
 
-    const int offset = jobOptsSvc->m_firstEvent;
-    int nEvtMax = jobOptsSvc->m_nEvents > 0 ? jobOptsSvc->m_nEvents + offset : dataTree->GetEntries();
+    const int offset = startEvent;
+    int nEvtMax = nEvents > 0 ? nEvents + offset : dataTree->GetEntries();
     if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
     LogInfo("Running from event " << offset << " through to event " << nEvtMax);
     for(int i = offset; i < nEvtMax; ++i)

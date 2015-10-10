@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     p_mysqlSvc->setOutputSchema(argv[3]);
 
     //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", argv[3]));
+    if(!p_jobOptsSvc->m_mcMode) p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0,kTrackStart=NOW(),kTrackEnd=NULL WHERE production='%s'", argv[3]));
 
     ///Retrieve data from file
     TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -64,13 +64,14 @@ int main(int argc, char **argv)
 
     ///Initialize data tables
     if(!p_mysqlSvc->initWriter()) exit(EXIT_FAILURE);
-    if(!p_mysqlSvc->initBakWriter()) exit(EXIT_FAILURE);
+    if(!p_jobOptsSvc->m_mcMode && !p_mysqlSvc->initBakWriter()) exit(EXIT_FAILURE);
 
     ///Write the tracker configuration table
     p_mysqlSvc->writeInfoTable(configTree);
 
     ///Upload all tables
-    for(int i = 0; i < 6; ++i)
+    int uploadListLen = p_jobOptsSvc->m_mcMode ? 1 : 6;
+    for(int i = 0; i < uploadListLen; ++i)
     {
         trees[i]->SetBranchAddress("recEvent", &recEvent);
 
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
     cout << "sqlResWriter ends successfully." << endl;
 
     //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", argv[3]));
+    if(!p_jobOptsSvc->m_mcMode) p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1,kTrackEnd=NOW() WHERE production='%s'", argv[3]));
 
     delete p_mysqlSvc;
     delete p_geomSvc;
