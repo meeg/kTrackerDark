@@ -86,9 +86,8 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
         recTrack.setZVertex(recTrack.getZVertex(), true);
     }
 
-    int fmagsign = FMAGSTR > 0 ? 1 : -1;
-    std::vector<int> idx_pos = recEvent->getChargedTrackIDs(fmagsign*sign1);
-    std::vector<int> idx_neg = recEvent->getChargedTrackIDs(fmagsign*sign2);
+    std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
+    std::vector<int> idx_neg = recEvent->getChargedTrackIDs(sign2);
 
     nPos = idx_pos.size();
     nNeg = idx_neg.size();
@@ -128,8 +127,16 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 
             //Start prepare the vertex fit
             init();
-            addTrack(0, track_pos);
-            addTrack(1, track_neg);
+            if(KMAGSTR > 0)
+            {
+                addTrack(0, track_pos);
+                addTrack(1, track_neg);
+            }
+            else
+            {
+                addTrack(0, track_neg);
+                addTrack(1, track_pos);
+            }
             addHypothesis(0.5*(dimuon.vtx_pos[2] + dimuon.vtx_neg[2]), 50.);
             addHypothesis(findDimuonVertexFast(track_pos, track_neg), 50.);
             choice_eval = processOnePair();

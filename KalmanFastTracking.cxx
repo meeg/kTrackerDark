@@ -302,6 +302,11 @@ void KalmanFastTracking::setRawEventDebug(SRawEvent* event_input)
 
 int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 {
+    //Initialize tracklet lists
+    for(int i = 0; i < 5; i++) trackletsInSt[i].clear();
+    stracks.clear();
+
+    //pre-tracking cuts
     rawEvent = event_input;
     if(!acceptEvent(rawEvent)) return TFEXIT_FAIL_MULTIPLICITY;
     hitAll = event_input->getAllHits();
@@ -338,10 +343,6 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 #endif
         return TFEXIT_FAIL_ROUGH_MUONID;
     }
-
-    //Initialize tracklet lists
-    for(int i = 0; i < 5; i++) trackletsInSt[i].clear();
-    stracks.clear();
 
     //Build tracklets in station 2, 3+, 3-
     //When i = 3, works for st3+, for i = 4, works for st3-
@@ -1101,10 +1102,12 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
     if(tracklet.stationID > 4)
     {
         if(!p_geomSvc->isInKMAG(tracklet.getExpPositionX(Z_KMAG_BEND), tracklet.getExpPositionY(Z_KMAG_BEND))) return false;
+#ifndef ALIGNMENT_MODE
         if(!muonID_comp(tracklet))
         {
             if(!muonID_search(tracklet)) return false;
         }
+#endif
     }
 
     //If everything is fine ...

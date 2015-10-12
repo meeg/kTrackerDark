@@ -137,6 +137,7 @@ public:
     std::vector<int> getDetectorIDs(std::string pattern);
     bool findPatternInDetector(int detectorID, std::string pattern);
 
+    Plane getPlane(int detectorID) const { return planes[detectorID]; }
     double getPlanePosition(int detectorID) const { return planes[detectorID].zc; }
     double getPlaneSpacing(int detectorID) const  { return planes[detectorID].spacing; }
     double getCellWidth(int detectorID)     { return planes[detectorID].cellWidth; }
