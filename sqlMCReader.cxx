@@ -26,39 +26,67 @@ int main(int argc, char **argv)
 
     ///Initialize the default job options
     JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-    p_jobOptsSvc->init();
 
+    //Initialization
+    TString inputSchema;
+    TString outputFile;
+    TString inputServer;
+    int inputPort;
+    int nEvents;
+    int startEvent;
+
+    JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+    if(argc == 2)    //initialization via opts file
+    {
+        jobOptsSvc->init(argv[1]);
+
+        inputSchema = jobOptsSvc->m_inputSchema;
+        outputFile = jobOptsSvc->m_outputFile;
+        inputServer = jobOptsSvc->m_mySQLInputServer;
+        inputPort = jobOptsSvc->m_mySQLInputPort;
+
+        nEvents = jobOptsSvc->m_nEvents;
+        startEvent = jobOptsSvc->m_firstEvent;
+    }
+    else if(argc <= 5)
+    {
+        jobOptsSvc->init();
+
+        inputSchema = argv[1];
+        outputFile = argv[2];
+        inputServer = argv[3];
+        inputPort = atoi(argv[4]);
+        nEvents = argc > 5 ? atoi(argv[5]) : -1;
+        startEvent = argc > 6 ? atoi(argv[6]) : 0;
+    }
+    else
+    {
+        cout << "Usage: " << argv[0] << "  <options file>" << endl;
+        exit(EXIT_FAILURE);
+    }
 
     ///Initialize the geometry service and output file
     GeomSvc* p_geomSvc = GeomSvc::instance();
     p_geomSvc->init();
 
     MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-    if(argc > 3)
-    {
-        p_mysqlSvc->connectInput(argv[3], atoi(argv[4]));
-    }
-    else
-    {
-        p_mysqlSvc->connectInput();
-    }
-    p_mysqlSvc->setInputSchema(argv[1]);
+    p_mysqlSvc->connectInput(inputServer.Data(), inputPort);
+    p_mysqlSvc->setInputSchema(inputSchema.Data());
     if(!p_mysqlSvc->initReader()) exit(EXIT_FAILURE);
 
     SRawMCEvent* rawEvent = new SRawMCEvent();
 
-    TFile *saveFile = new TFile(argv[2], "recreate");
+    TFile *saveFile = new TFile(outputFile.Data(), "recreate");
     TTree *saveTree = new TTree("save", "save");
 
     saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
 
-    int nEvents = p_mysqlSvc->getNEventsFast();
-    if(argc > 5) nEvents = nEvents < atoi(argv[5]) ? nEvents : atoi(argv[5]);
-    cout << "Totally " << nEvents << " events in this run" << endl;
-    for(int i = 0; i < nEvents; ++i)
+    int nEventsTotal = p_mysqlSvc->getNEventsFast(nEvents + startEvent, startEvent);
+    cout << "Totally " << nEventsTotal << " events in this run to be read" << endl;
+    for(int i = 0; i < nEventsTotal; ++i)
     {
         if(!p_mysqlSvc->getNextEvent(rawEvent)) continue;
-        cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEvents << "% finished." << flush;
+        cout << "\r Converting event " << rawEvent->getEventID() << ", " << (i+11)*100/nEventsTotal << "% finished." << flush;
 
         saveTree->Fill();
     }

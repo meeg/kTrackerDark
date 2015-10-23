@@ -49,7 +49,7 @@ class JobConfig:
         elif attr in self.switch:
             return True
         else:
-            return False
+            return None
 
     def __str__(self):
         suffix = ' '

@@ -105,6 +105,7 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
     for(int i = 0; i < nPos; ++i)
     {
         if(!recEvent->getTrack(idx_pos[i]).isValid()) continue;
+
         int j = sign1 + sign2 == 0 ? 0 : i + 1;      // this is to avoid using same track twice in like-sign mode
         for(; j < nNeg; ++j)
         {

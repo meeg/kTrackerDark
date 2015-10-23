@@ -40,10 +40,14 @@ runIDs = []
 runFiles = []
 if not options.mcmode:    # working with real data, runid is meaningful and is used to find the files
     runIDs = [int(word.strip()) for word in open(options.list)]
-    runFiles = [os.path.join(conf.indir, GridUtil.inputPrefix[options.job], conf.inv, GridUtil.getSubDir(runID), '%s_%06d_%s.root' % (GridUtil.inputPrefix[options.job], runID, conf.inv)) for runID in runIDs]
+
+    ver = GU.version
+    if conf.inv is not None:
+        ver = conf.inv
+    runFiles = [os.path.join(conf.indir, GridUtil.inputPrefix[options.job], ver, GridUtil.getSubDir(runID), '%s_%06d_%s.root' % (GridUtil.inputPrefix[options.job], runID, conf.inv)) for runID in runIDs]
 else:                   # working with MC, when runid is fake but file list is real
-    runFiles = [os.path.join(conf.indir, line.strip().split()[1]) for line in open(options.list)]
-    runIDs = [int(line.strip().split()[0]) for line in open(options.list)]
+    runFiles = [os.path.join(conf.indir, line.strip().split()[1]) for line in open(options.list) if '#' not in line]
+    runIDs = [int(line.strip().split()[0]) for line in open(options.list) if '#' not in line]
 
 if options.debug:
     for index, item in enumerate(runFiles):
@@ -64,5 +68,5 @@ for index, runID in enumerate(runIDs):
             cmd = GridUtil.makeCommand(options.job, runID, conf, firstEvent = item[0], nEvents = item[1], outtag = str(tag), infile = runFiles[index])
             cmds.append(cmd)
 
-GridUtil.submitAllJobs(cmds, options.errlog + GridUtil.getTimeStamp())
+GridUtil.submitAllJobs(cmds, 5)
 GridUtil.stopGridGuard()

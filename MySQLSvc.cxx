@@ -420,7 +420,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
     return true;
 }
 
-int MySQLSvc::getNEvents()
+int MySQLSvc::getNEvents(int event_hi, int event_lo)
 {
     TString eventQuery;
     if(!JobOptsSvc::instance()->m_mcMode)
@@ -436,6 +436,8 @@ int MySQLSvc::getNEvents()
     {
         eventQuery = "SELECT eventID FROM mDimuon WHERE acceptHodoAll=1 AND acceptDriftAll=1";
     }
+
+    if(event_hi > 0) eventQuery += Form(" AND eventID>=%d AND eventID<%d", event_lo, event_hi);
 
     //add eventID selection if appropriate
     if(!subsetEventString.empty()) eventQuery += " AND " + subsetEventString;
@@ -1054,6 +1056,9 @@ void MySQLSvc::writeInfoTable(TTree* config)
     sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
                    "VALUES('%s','%s')", "version", trackerVersion);
     outputServer->Exec(query);
+
+    //Run/upload time
+    outputServer->Exec("INSERT INTO kInfo (infoKey,infoValue) VALUES('LastUpdated',NOW())");
 }
 
 void MySQLSvc::writeEventTable(int eventID, int statusCode, TString tableSuffix)
@@ -1225,9 +1230,9 @@ void MySQLSvc::pushToFinalTables(bool dropSubsetTables)
     }//end loop over tables
 }//end pushToFinalTables
 
-int MySQLSvc::getNEventsFast()
+int MySQLSvc::getNEventsFast(int event_hi, int event_lo)
 {
-    if(nEvents < 1) nEvents = getNEvents();
+    if(nEvents < 1) nEvents = getNEvents(event_hi, event_lo);
     return nEvents;
 }
 

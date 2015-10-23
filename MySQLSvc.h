@@ -54,8 +54,8 @@ public:
     bool isRunStopped();
 
     //Get run info
-    int getNEventsFast();
-    int getNEvents();
+    int getNEventsFast(int event_hi = -1, int event_lo = 0);
+    int getNEvents(int event_hi = -1, int event_lo = 0);
 
     //Gets
     bool getEvent(SRawEvent* rawEvent, int eventID);
