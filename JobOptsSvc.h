@@ -1,7 +1,4 @@
 /*! @brief Read a job options file and apply choices at runtime.
-
-
-
 @author Brian G. Tice
 */
 
@@ -67,11 +64,13 @@ public:
     bool m_autoUpload;       ///< automatically upload the reconstructed data after kVertex is done
 
     int m_mySQLInputPort;    ///< mysql database input port
-    int m_mySQLOutputPort;    ///< mysql database output port
-    int m_nEvents;      ///< number of events to process
-    int m_firstEvent;   ///< first event to process
+    int m_mySQLOutputPort;   ///< mysql database output port
+    int m_nEvents;           ///< number of events to process
+    int m_firstEvent;        ///< first event to process
 
-    int m_triggerL1;    ///< L1 firmware version (trigger roads)
+    int m_triggerL1;         ///< L1 firmware version (trigger roads)
+
+    int m_timingOffset;      ///< timing offset for chamber hits (mostly)
 
     std::string m_inputFile;  ///< Name of the input file
     std::string m_outputFile; ///< Name of the output file

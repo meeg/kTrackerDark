@@ -111,6 +111,7 @@ bool JobOptsSvc::init(const char* configfile)
     intOpts["N_Events"] = &m_nEvents;
     intOpts["FirstEvent"] = &m_firstEvent;
     intOpts["Trigger_L1"] = &m_triggerL1;
+    intOpts["TimingOffset"] = &m_timingOffset;
 
     map<string, bool*> boolOpts;
     boolOpts["MCMode_enable"] = &m_mcMode;
@@ -276,6 +277,7 @@ void JobOptsSvc::save(TFile* saveFile)
     int s_hodomask = m_hodomask;
     int s_mergeHodo = m_mergeHodo;
     int s_realization = m_realization;
+    int s_timingOffset = m_timingOffset;
 
     TString s_mySQLInputURL = GetInputMySQLURL();
     TString s_mySQLOutputURL = GetOutputMySQLURL();
@@ -318,6 +320,7 @@ void JobOptsSvc::save(TFile* saveFile)
     saveTree->Branch("MySQLOutput", &s_mySQLOutputURL);
     saveTree->Branch("NEvents", &s_nevents);
     saveTree->Branch("FirstEvent", &s_firstEvent);
+    saveTree->Branch("TimingOffset", &s_timingOffset);
     saveTree->Branch("InputFile", &s_inputFile);
     saveTree->Branch("OutputFile", &s_outputFile);
     saveTree->Branch("RoadFilePT", &s_roadsPT);

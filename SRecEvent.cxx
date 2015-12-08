@@ -478,7 +478,7 @@ void SRecDimuon::calcVariables()
 bool SRecDimuon::isValid()
 {
     //Chisq of vertex fit
-    if(chisq_kf > 10. || chisq_kf < 0.) return false;
+    if(chisq_kf > 15. || chisq_kf < 0.) return false;
 
     //Kinematic cuts
     if(FMAGSTR*(p_pos.Px() - p_neg.Px()) < 0.) return false;
@@ -486,10 +486,15 @@ bool SRecDimuon::isValid()
     if(x1 < 0. || x1 > 1.) return false;
     if(x2 < 0. || x2 > 1.) return false;
     if(mass < 0. || mass > 10.) return false;
-    if(p_pos.Pz() + p_neg.Pz() > 120.) return false;
+    if(fabs(vtx.X()) > 2.) return false;
+    if(fabs(vtx.Y()) > 2.) return false;
+    if(fabs(p_pos.Px() + p_neg.Px()) > 3.) return false;
+    if(fabs(p_pos.Py() + p_neg.Py()) > 3.) return false;
+    if(vtx.Z() > 200. || vtx.Z() < -300.) return false;
+    if(p_pos.Pz() + p_neg.Pz() > 120. || p_pos.Pz() + p_neg.Pz() < 30.) return false;
 
     //Track separation cuts
-    if(fabs(vtx_pos.Z() - vtx_neg.Z()) > 175.) return false;
+    if(fabs(vtx_pos.Z() - vtx_neg.Z()) > 250.) return false;
 
     //Everything is fine
     return true;

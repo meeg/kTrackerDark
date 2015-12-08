@@ -30,11 +30,9 @@ if options.pattern != '':
 
 status = options.status
 
+killRunList = []
 if options.list != '' and os.path.exists(options.list):
-    pattern = '['
-    for line in open(options.list).readlines():
-        pattern = pattern + line.strip() + '|'
-    pattern[-1] = ']'
+    killRunList = [int(line.strip()) for line in open(options.list)]
 
 output, err = subprocess.Popen('jobsub_q | grep liuk', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
 jobDetails = []
@@ -44,7 +42,8 @@ for line in output.split('\n'):
         continue
 
     jobID = int(re.findall(r'^(\d{7})', vals[0])[0])
-    jobDetails.append((jobID, vals[0], vals[8], vals[5], line))
+    runID = int(re.findall(r'_(\d{6})_r'), vals[8])[0])
+    jobDetails.append((jobID, runID, vals[0], vals[8], vals[5], line))
 
 toBeKilled = []
 for job in jobDetails:

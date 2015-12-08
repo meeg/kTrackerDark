@@ -41,7 +41,7 @@ runFiles = []
 if not options.mcmode:    # working with real data, runid is meaningful and is used to find the files
     runIDs = [int(word.strip()) for word in open(options.list)]
 
-    ver = GU.version
+    ver = GridUtil.version
     if conf.inv is not None:
         ver = conf.inv
     runFiles = [os.path.join(conf.indir, GridUtil.inputPrefix[options.job], ver, GridUtil.getSubDir(runID), '%s_%06d_%s.root' % (GridUtil.inputPrefix[options.job], runID, conf.inv)) for runID in runIDs]

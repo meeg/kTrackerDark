@@ -490,11 +490,11 @@ void TriggerAnalyzer::buildTriggerTree()
             {
                 int uniqueID = iter->getDetectorID(j)*100 + iter->getElementID(j);
                 bool isNewNode = true;
-                for(std::list<TNode*>::iterator iter = parentNode[j]->children.begin(); iter != parentNode[j]->children.end(); ++iter)
+                for(std::list<TNode*>::iterator jter = parentNode[j]->children.begin(); jter != parentNode[j]->children.end(); ++jter)
                 {
-                    if(uniqueID == (*iter)->uniqueID)
+                    if(uniqueID == (*jter)->uniqueID)
                     {
-                        parentNode[j+1] = *iter;
+                        parentNode[j+1] = *jter;
                         isNewNode = false;
 
                         break;
