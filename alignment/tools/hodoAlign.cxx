@@ -26,6 +26,8 @@
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
+#include "EventReducer.h"
+#include "JobOptsSvc.h"
 
 using namespace std;
 
@@ -72,16 +74,17 @@ double findCenter(TH1D *hist, double spacing)
     double left_center = hist->GetBinCenter(index_max_left + nBinInSize/2);
     double right_center = hist->GetBinCenter(index_max_right - nBinInSize/2);
 
-
     if(fabs(left_center - right_center) > 5.*binWidth) return 9999.;
     return (left_center + right_center)/2.;
 }
 
 int main(int argc, char *argv[])
 {
+    JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+
     //Initialization of geometry and tracked data
     GeomSvc* p_geomSvc = GeomSvc::instance();
-    p_geomSvc->init(GEOMETRY_VERSION);
+    p_geomSvc->init();
 
     SRawEvent* rawEvent = new SRawEvent();
     TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -91,6 +94,8 @@ int main(int argc, char *argv[])
 
     dataTree->SetBranchAddress("rawEvent", &rawEvent);
     dataTree->SetBranchAddress("tracklets", &tracklets);
+
+    EventReducer* reducer = new EventReducer("ao");
 
     //Hodoscope IDs
     boost::array<int, 16> hodoIDs = {25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40};
@@ -119,9 +124,9 @@ int main(int argc, char *argv[])
     boost::array<double, nHodos> offset_all;
 
     //Offsets using each individual elements
-    boost::array<double, nHodos> offset_plane; //Global shifts extracted by fitting individual elements
-    boost::array<int, nHodos> nValidEntries;   //Number of effective hits on each element
-    boost::array<vector<TH1D*>, nHodos> hist;  //Residual hist
+    boost::array<double, nHodos> offset_plane; //Global shifts extracted by fitting individual elements and take weighted average
+    boost::array<int, nHodos> nValidEntries;   //Number of effective hits on each plane
+    boost::array<vector<TH1D*>, nHodos> hist;    //Residual hist
     boost::array<vector<double>, nHodos> offset; //Offset of each individual element
 
     //Other useful hodo properties
@@ -154,11 +159,14 @@ int main(int argc, char *argv[])
         dataTree->GetEntry(i);
         if(tracklets->GetEntries() < 1) continue;
 
-        rawEvent->reIndex("oa");
+        reducer->reduceEvent(rawEvent);
         vector<Hit> hitAll = rawEvent->getAllHits();
 
         //Only the first track is used, for simplicity
         Tracklet* _track = (Tracklet*)tracklets->At(0);
+        if(_track->getNHits() < 16) continue;
+        if(_track->getChisq() > 10.) continue;
+
         for(int j = 0; j < nHodos; ++j)
         {
             if((rawEvent->getNHitsInDetector(hodoIDs[j]) != 1) && (rawEvent->getNHitsInDetector(hodoIDs[j]) != 2)) continue;
@@ -181,8 +189,11 @@ int main(int argc, char *argv[])
             hodoID = hitAll[hitlist.front()].detectorID;
             elementID = hitAll[hitlist.front()].elementID;
             pos = p_geomSvc->getMeasurement(hodoIDs[j], elementID);
-            hist[j][elementID-1]->Fill(pos_exp - pos);
-            hist_all[j]->Fill(pos_exp - pos);
+            if(fabs(pos_exp - pos) < spacing[j])
+            {
+                hist[j][elementID-1]->Fill(pos_exp - pos);
+                hist_all[j]->Fill(pos_exp - pos);
+            }
             saveTree->Fill();
 
             //Fill the second hit if available
@@ -190,8 +201,11 @@ int main(int argc, char *argv[])
             hodoID = hitAll[hitlist.back()].detectorID;
             elementID = hitAll[hitlist.back()].elementID;
             pos = p_geomSvc->getMeasurement(hodoIDs[j], elementID);
-            hist[j][elementID-1]->Fill(pos_exp - pos);
-            hist_all[j]->Fill(pos_exp - pos);
+            if(fabs(pos_exp - pos) < spacing[j])
+            {
+                hist[j][elementID-1]->Fill(pos_exp - pos);
+                hist_all[j]->Fill(pos_exp - pos);
+            }
             saveTree->Fill();
         }
 
@@ -215,7 +229,7 @@ int main(int argc, char *argv[])
             }
 
             offset[i][j] = findCenter(hist[i][j], spacing[i]);
-            if(offset[i][j] < 100.)
+            if(offset[i][j] < 100.)  //means it's not 9999, the fail code
             {
                 offset_plane[i] += offset[i][j]*hist[i][j]->GetEntries();
                 nValidEntries[i] += int(hist[i][j]->GetEntries());
@@ -229,8 +243,6 @@ int main(int argc, char *argv[])
     ofstream fout(argv[2], ios::out);
     for(int i = 0; i < nHodos; i++)
     {
-        cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << offset_plane[i] << "  " << offset_all[i] << endl;
-
         double offset_final;
         if(fabs(offset_all[i]) < 5.)
         {
@@ -244,6 +256,8 @@ int main(int argc, char *argv[])
         {
             offset_final = 0.;
         }
+        cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " <<
+                offset_plane[i] << "  " << offset_all[i] << "  " << offset_final << endl;
 
         fout << offset_final + p_geomSvc->getPlaneWOffset(hodoIDs[i]) << endl;
         for(int j = 0; j < nElement[i]; j++)

@@ -353,7 +353,7 @@ void GeomSvc::init()
 
         planes[i].update();
     }
-
+    cout << "GeomSvc: loaded basic spectrometer setup from geometry schema " << p_jobOptsSvc->m_geomVersion << endl;
 
     //load the initial value in the planeOffsets table
     if(p_jobOptsSvc->m_enableOnlineAlignment)
