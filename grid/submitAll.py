@@ -44,7 +44,7 @@ if not options.mcmode:    # working with real data, runid is meaningful and is u
     ver = GridUtil.version
     if conf.inv is not None:
         ver = conf.inv
-    runFiles = [os.path.join(conf.indir, GridUtil.inputPrefix[options.job], ver, GridUtil.getSubDir(runID), '%s_%06d_%s.root' % (GridUtil.inputPrefix[options.job], runID, conf.inv)) for runID in runIDs]
+    runFiles = [os.path.join(conf.indir, GridUtil.inputPrefix[options.job], ver, GridUtil.getSubDir(runID), '%s_%06d_%s.root' % (GridUtil.inputPrefix[options.job], runID, ver)) for runID in runIDs]
 else:                   # working with MC, when runid is fake but file list is real
     runFiles = [os.path.join(conf.indir, line.strip().split()[1]) for line in open(options.list) if '#' not in line]
     runIDs = [int(line.strip().split()[0]) for line in open(options.list) if '#' not in line]
