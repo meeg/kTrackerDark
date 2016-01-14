@@ -335,6 +335,7 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
         }
     }
 
+#ifndef ALIGNMENT_MODE
     buildPropSegments();
     if(propSegs[0].empty() || propSegs[1].empty())
     {
@@ -343,6 +344,7 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 #endif
         return TFEXIT_FAIL_ROUGH_MUONID;
     }
+#endif
 
     //Build tracklets in station 2, 3+, 3-
     //When i = 3, works for st3+, for i = 4, works for st3-

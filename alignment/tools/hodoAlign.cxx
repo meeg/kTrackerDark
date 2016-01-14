@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
         {
             offset_final = 0.;
         }
-        cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " <<
+        cout << " === " << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << nValidEntries[i] << "  " <<
                 offset_plane[i] << "  " << offset_all[i] << "  " << offset_final << endl;
 
         fout << offset_final + p_geomSvc->getPlaneWOffset(hodoIDs[i]) << endl;
