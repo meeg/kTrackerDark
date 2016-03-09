@@ -11,11 +11,16 @@
 #include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "TriggerAnalyzer.h"
+#include "JobOptsSvc.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
+    //Init the job options
+    JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
+    p_jobOptsSvc->init();
+
     //parse the options
     TString options(argv[1]);
     options.ToLower();
@@ -31,8 +36,7 @@ int main(int argc, char *argv[])
 
     //Initialize geometry service
     GeomSvc* p_geomSvc = GeomSvc::instance();
-    p_geomSvc->init(GEOMETRY_VERSION);
-    p_geomSvc->loadCalibration("calibration.txt");
+    p_geomSvc->init();
 
     //Initialize the trigger analyzer
     TriggerAnalyzer* p_triggerAna = new TriggerAnalyzer();
@@ -40,11 +44,8 @@ int main(int argc, char *argv[])
     p_triggerAna->buildTriggerTree();
 
     //Input files
-#ifndef MC_MODE
-    SRawEvent* rawEvent = new SRawEvent();
-#else
-    SRawMCEvent* rawEvent = new SRawMCEvent();
-#endif
+    SRawEvent* rawEvent = p_jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
+
     TFile *dataFile = new TFile(argv[2], "READ");
     TTree *dataTree = (TTree *)dataFile->Get("save");
 
@@ -76,7 +77,8 @@ int main(int argc, char *argv[])
                 Hit h = rawEvent->getHit(j);
 
                 if(alignment) h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-                if(calibration && (h.detectorID <= 24 || h.detectorID >= 41) && h.isInTime() && p_geomSvc->isCalibrationLoaded())
+                //if(calibration && (h.detectorID <= 24 || h.detectorID >= 41) && h.isInTime() && p_geomSvc->isCalibrationLoaded())
+                if(calibration && h.detectorID <= 6 && h.isInTime() && p_geomSvc->isCalibrationLoaded())
                 {
                     h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
                 }

@@ -25,6 +25,8 @@
 #include "SRawEvent.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
+#include "JobOptsSvc.h"
+#include "EventReducer.h"
 
 using namespace std;
 
@@ -67,9 +69,11 @@ void linearFit(double* par, double& a, double& b)
 
 int main(int argc, char *argv[])
 {
+    JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
+
     //Initialization of geometry and tracked data
     GeomSvc* p_geomSvc = GeomSvc::instance();
-    p_geomSvc->init(GEOMETRY_VERSION);
+    p_geomSvc->init();
 
     SRawEvent* rawEvent = new SRawEvent();
     TClonesArray* tracklets = new TClonesArray("Tracklet");
@@ -79,6 +83,8 @@ int main(int argc, char *argv[])
 
     dataTree->SetBranchAddress("rawEvent", &rawEvent);
     dataTree->SetBranchAddress("tracklets", &tracklets);
+
+    EventReducer* reducer = new EventReducer("ao");
 
     //Hodoscope IDs
     int propIDs[8] = {41, 42, 43, 44, 45, 46, 47, 48};
@@ -135,7 +141,7 @@ int main(int argc, char *argv[])
         if(track->getChisq() > 10.) continue;
 
         //Loop over prop. tube hits on each plane
-        rawEvent->reIndex("oa");
+        reducer->reduceEvent(rawEvent);
         vector<Hit> hitAll = rawEvent->getAllHits();
         for(int j = 0; j < nProps; ++j)
         {
@@ -231,54 +237,6 @@ int main(int argc, char *argv[])
         }
     }
     saveFile->Close();
-
-
-    /*
-    TCanvas* c1 = new TCanvas();
-    c1->Divide(4, 4);
-    for(int i = 0; i < nHodos; ++i)
-      {
-        c1->cd(i+1);
-        hist_all[i]->Draw();
-
-        double y_max = hist_all[i]->GetBinContent(hist_all[i]->GetMaximumBin());
-        TArrow* ar_center = new TArrow(offset_all[i], y_max, offset_all[i], 0., 0.01, ">");
-        TArrow* ar_left = new TArrow(offset_all[i] - 0.5*spacing[i], y_max, offset_all[i] - 0.5*spacing[i], 0., 0.01, ">");
-        TArrow* ar_right = new TArrow(offset_all[i] + 0.5*spacing[i], y_max, offset_all[i] + 0.5*spacing[i], 0., 0.01, ">");
-
-        ar_center->SetLineWidth(2);
-        ar_left->SetLineWidth(2);
-        ar_right->SetLineWidth(2);
-
-        ar_center->SetLineColor(kRed);
-        ar_right->SetLineColor(kBlue);
-        ar_left->SetLineColor(kBlue);
-
-        ar_center->Draw();
-        ar_left->Draw();
-        ar_right->Draw();
-
-        char content[100];
-        sprintf(content, "Offsets: %f cm", offset_all[i]);
-        TText* text = new TText();
-        text->DrawTextNDC(0.1, 0.92, content);
-      }
-
-    //Save the temporary results into the ROOT file
-    saveFile->cd();
-    saveTree->Write();
-    c1->Write();
-    for(int i = 0; i < nHodos; i++)
-      {
-        hist_all[i]->Write();
-        for(int j = 0; j < nElement[i]; j++)
-    {
-      hist[i][j]->Write();
-            //cout << p_geomSvc->getDetectorName(hodoIDs[i]) << "  " << j << "  " << hist[i][j]->GetEntries() << "  " << findCenter(hist[i][j]) << endl;
-    }
-      }
-    saveFile->Close();
-    */
 
     return 1;
 }
