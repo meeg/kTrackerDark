@@ -61,6 +61,8 @@ for index, runID in enumerate(runIDs):
         cmds.append(cmd)
     else:
         optSizes = GridUtil.getOptimizedSize(runFiles[index], options.nEvtMax, options.nJobsMax)
+        if len(optSizes) == 0:
+            continue
         if options.debug:
             print index, runID, len(optSizes), optSizes[-1][1]
 
