@@ -57,6 +57,7 @@ public:
     bool hodoMask(Tracklet& tracklet);
     bool muonID_comp(Tracklet& tracklet);
     bool muonID_search(Tracklet& tracklet);
+    bool muonID_hodoAid(Tracklet& tracklet);
 
     void buildPropSegments();
 
@@ -112,6 +113,7 @@ private:
     //Prop. tube segments for muon id purposes
     // 0 for X-Z, 1 for Y-Z
     std::list<PropSegment> propSegs[2];
+
     ///Configurations of tracklet finding
     //Hodo. IDs for masking
     std::vector<int> detectorIDs_mask[4];
@@ -119,11 +121,13 @@ private:
     std::vector<int> detectorIDs_maskY[4];
     std::list<int> hitIDs_mask[4]; //hits in T/B, L/R are combined
     std::vector<int> stationIDs_mask[6];
+    std::vector<int> detectorIDs_muidHodoAid[2];  //Aux-hodoscope masking for muon ID
 
     //prop. tube IDs for MUID -- 0 for x-z, 1 for y-z
     int detectorIDs_muid[2][4];
     double z_ref_muid[2][4];
     std::list<int> hitIDs_muid[2][4];
+    std::list<int> hitIDs_muidHodoAid[2];
 
     //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
     double z_mask[24];

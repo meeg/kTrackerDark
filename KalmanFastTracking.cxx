@@ -86,6 +86,8 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     detectorIDs_maskY[1] = p_geomSvc->getDetectorIDs("H2[LR]");
     detectorIDs_maskY[2] = p_geomSvc->getDetectorIDs("H4Y1[LR]");
     detectorIDs_maskY[3] = p_geomSvc->getDetectorIDs("H4Y2[LR]");
+    detectorIDs_muidHodoAid[0] = p_geomSvc->getDetectorIDs("H4[TB]");
+    detectorIDs_muidHodoAid[1] = p_geomSvc->getDetectorIDs("H4Y");
 
     //Masking stations for tracklets in station-1, 2, 3+/-
     stationIDs_mask[0].push_back(1);
@@ -125,12 +127,13 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     z_ref_muid[1][2] = 0.5*(p_geomSvc->getPlanePosition(detectorIDs_muid[1][0]) + p_geomSvc->getPlanePosition(detectorIDs_muid[1][1]));
     z_ref_muid[1][3] = z_ref_muid[1][2];
 
-    //Initialize masking window sizes, with 15% contingency, for station-2, increase that to 20%
+    //Initialize masking window sizes, with optimized contingency
     for(int i = 25; i <= 48; i++)
     {
         double factor = 0.15;
-        if(i > 24 && i < 29) factor = 0.25; //for station-2
-        if(i > 28 && i < 33) factor = 0.2; //for station-2
+        if(i > 24 && i < 29) factor = 0.25; //for station-1
+        if(i > 28 && i < 33) factor = 0.2;  //for station-2
+        if(i > 34 && i < 41) factor = 0.;
 
         z_mask[i-25] = p_geomSvc->getPlanePosition(i);
         for(int j = 1; j <= p_geomSvc->getPlaneNElements(i); j++)
@@ -333,6 +336,8 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
             hitIDs_muid[i][j].clear();
             hitIDs_muid[i][j] = rawEvent->getHitsIndexInDetector(detectorIDs_muid[i][j]);
         }
+        hitIDs_muidHodoAid[i].clear();
+        hitIDs_muidHodoAid[i] = rawEvent->getHitsIndexInDetectors(detectorIDs_muidHodoAid[i]);
     }
 
 #ifndef ALIGNMENT_MODE
@@ -1226,6 +1231,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
         if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
     }
 
+    muonID_hodoAid(tracklet);
     if(segs[0]->getNHits() + segs[1]->getNHits() < 5) return false;
     return true;
 }
@@ -1283,7 +1289,54 @@ bool KalmanFastTracking::muonID_comp(Tracklet& tracklet)
         if(!segs[i]->isValid()) return false;
     }
 
+    muonID_hodoAid(tracklet);
     if(segs[0]->getNHits() + segs[1]->getNHits() < 5) return false;
+    return true;
+}
+
+bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
+{
+    double win = 0.03;
+    double factor = 5.;
+    if(tracklet.stationID == 6)
+    {
+        double win_the = MUID_THE_P0*tracklet.invP;
+        double win_emp = MUID_EMP_P0 + MUID_EMP_P1/tracklet.invP + MUID_EMP_P2/tracklet.invP/tracklet.invP;
+        win = MUID_REJECT*(win_the > win_emp ? win_the : win_emp);
+        factor = 3.;
+    }
+
+    PropSegment* segs[2] = {&(tracklet.seg_x), &(tracklet.seg_y)};
+    for(int i = 0; i < 2; ++i)
+    {
+        segs[i]->nHodoHits = 0;
+        for(std::list<int>::iterator iter = hitIDs_muidHodoAid[i].begin(); iter != hitIDs_muidHodoAid[i].end(); ++iter)
+        {
+            int detectorID = hitAll[*iter].detectorID;
+            int elementID = hitAll[*iter].elementID;
+
+            int idx1 = detectorID - 25;
+            int idx2 = elementID - 1;
+
+            double z_hodo = z_mask[idx1];
+            double x_hodo = tracklet.getExpPositionX(z_hodo);
+            double y_hodo = tracklet.getExpPositionY(z_hodo);
+            double err_x = factor*tracklet.getExpPosErrorX(z_hodo) + win*(z_hodo - MUID_Z_REF);
+            double err_y = factor*tracklet.getExpPosErrorY(z_hodo) + win*(z_hodo - MUID_Z_REF);
+
+            double x_min = x_mask_min[idx1][idx2] - err_x;
+            double x_max = x_mask_max[idx1][idx2] + err_x;
+            double y_min = y_mask_min[idx1][idx2] - err_y;
+            double y_max = y_mask_max[idx1][idx2] + err_y;
+
+            if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
+            {
+                segs[i]->nHodoHits++;
+                break;
+            }
+        }
+    }
+
     return true;
 }
 

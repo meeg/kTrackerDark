@@ -100,7 +100,6 @@ public:
     double rY;
     double rZ;
 
-
     //Geometric setup
     double nVec[3];             //Perpendicular to plane
     double uVec[3];             //measuring direction

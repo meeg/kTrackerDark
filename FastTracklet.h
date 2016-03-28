@@ -89,6 +89,9 @@ public:
     //chisq of the segment
     double chisq;
 
+    //Auxilary hodoscope hit counts
+    int nHodoHits;
+
     //Hit list -- only 4 hits at most
     SignedHit hits[4];
 
@@ -98,7 +101,7 @@ public:
     //static pointer to geometry
     static const GeomSvc* p_geomSvc;
 
-    ClassDef(PropSegment, 1)
+    ClassDef(PropSegment, 2)
 };
 
 class Tracklet : public TObject
