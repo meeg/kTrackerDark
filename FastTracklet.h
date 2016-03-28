@@ -91,6 +91,7 @@ public:
 
     //Auxilary hodoscope hit counts
     int nHodoHits;
+    Hit hodoHits[10];
 
     //Hit list -- only 4 hits at most
     SignedHit hits[4];
@@ -101,7 +102,7 @@ public:
     //static pointer to geometry
     static const GeomSvc* p_geomSvc;
 
-    ClassDef(PropSegment, 2)
+    ClassDef(PropSegment, 3)
 };
 
 class Tracklet : public TObject

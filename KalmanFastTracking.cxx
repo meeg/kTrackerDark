@@ -1331,8 +1331,8 @@ bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
 
             if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
             {
-                segs[i]->nHodoHits++;
-                break;
+                segs[i]->hodoHits[segs[i]->nHodoHits++] = hitAll[*iter];
+                //break;
             }
         }
     }

@@ -42,6 +42,7 @@ const GeomSvc* PropSegment::p_geomSvc = GeomSvc::instance();
 PropSegment::PropSegment() : a(-999.), b(-999.), err_a(100.), err_b(100.), chisq(1.E6), nHodoHits(0)
 {
     for(int i = 0; i < 4; ++i) hits[i].hit.index = -1;
+    for(int i = 0; i < 10; ++i) hodoHits[i].index = -1;
 }
 
 void PropSegment::init()
