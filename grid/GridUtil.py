@@ -62,6 +62,10 @@ class JobConfig:
 def getNEvents(name):
     """Find the number of events in either ROOT file or MySQL schema"""
 
+    if not os.path.exists(name):
+        print name, 'does not exist!'
+        return 0;
+
     if 'root' in name:
         dataFile = TFile(name, 'READ')
         if dataFile.GetListOfKeys().Contains('save'):
@@ -75,6 +79,9 @@ def getOptimizedSize(name, nEvtMax, nJobsMax = 10):
     """Optimize how a run is splitted into serveral jobs"""
 
     nEvents = getNEvents(name)
+    if nEvents < 1:
+        return []
+        
     nJobs = nEvents/nEvtMax + 1
     if nJobs > nJobsMax:
         print '%s has %d events and more than %d jobs, redueced the number of jobs to %d' % (name, nEvents, nJobsMax, nJobsMax)
