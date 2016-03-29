@@ -1324,6 +1324,9 @@ bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
             double err_x = factor*tracklet.getExpPosErrorX(z_hodo) + win*(z_hodo - MUID_Z_REF);
             double err_y = factor*tracklet.getExpPosErrorY(z_hodo) + win*(z_hodo - MUID_Z_REF);
 
+            err_x = err_x/(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]) > 0.25 ? 0.25*err_x/(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]) : err_x;
+            err_y = err_y/(y_mask_max[idx1][idx2] - y_mask_min[idx1][idx2]) > 0.25 ? 0.25*err_y/(y_mask_max[idx1][idx2] - y_mask_min[idx1][idx2]) : err_y;
+
             double x_min = x_mask_min[idx1][idx2] - err_x;
             double x_max = x_mask_max[idx1][idx2] + err_x;
             double y_min = y_mask_min[idx1][idx2] - err_y;
@@ -1332,7 +1335,7 @@ bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
             if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
             {
                 segs[i]->hodoHits[segs[i]->nHodoHits++] = hitAll[*iter];
-                //break;
+                if(segs[i]->nHodoHits > 9) break;
             }
         }
     }
