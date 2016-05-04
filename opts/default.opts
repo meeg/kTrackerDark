@@ -100,7 +100,9 @@ TriggerMask_enable 1
 # DO NOT toggle when OnlineAlignment_enable is 1
 UpdateAlignment 1
 
-# offset in TDC time, this is only useful when
+# offset in TDC time, this is intended to correct for the timing shifts
+# that happened from time to time, this number will be added to tdc time
+# before the drift distance is calculated
 TimingOffset 0
 
 # when set to 1, tracker will enable the sagitta hit reducer
