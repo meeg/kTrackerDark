@@ -70,7 +70,7 @@ public:
 
     int m_triggerL1;         ///< L1 firmware version (trigger roads)
 
-    int m_timingOffset;      ///< timing offset for chamber hits (mostly)
+    double m_timingOffset;   ///< timing offset for chamber hits (mostly)
 
     std::string m_inputFile;  ///< Name of the input file
     std::string m_outputFile; ///< Name of the output file

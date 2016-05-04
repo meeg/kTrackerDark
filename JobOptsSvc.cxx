@@ -111,7 +111,6 @@ bool JobOptsSvc::init(const char* configfile)
     intOpts["N_Events"] = &m_nEvents;
     intOpts["FirstEvent"] = &m_firstEvent;
     intOpts["Trigger_L1"] = &m_triggerL1;
-    intOpts["TimingOffset"] = &m_timingOffset;
 
     map<string, bool*> boolOpts;
     boolOpts["MCMode_enable"] = &m_mcMode;
@@ -127,6 +126,9 @@ bool JobOptsSvc::init(const char* configfile)
     boolOpts["MergeHodoHits"] = &m_mergeHodo;
     boolOpts["MCRealization"] = &m_realization;
     boolOpts["AutoUpload"] = &m_autoUpload;
+
+    map<string, double*> doubleOpts;
+    doubleOpts["TimingOffset"] = &m_timingOffset;
 
     //read the file and find matching options
     string line;
@@ -180,6 +182,17 @@ bool JobOptsSvc::init(const char* configfile)
             {
                 *(it->second) = atoi(val.c_str()); //todo:support true/false
                 if(debug()) cout << " ... assign bool key" << endl;
+                continue;
+            }
+        }
+
+        //is this a double option?
+        {
+            map<string,double*>::iterator it = doubleOpts.find(key);
+            if(doubleOpts.end() != it)
+            {
+                *(it->second) = atof(val.c_str()); //todo:support true/false
+                if(debug()) cout << " ... assign double key" << endl;
                 continue;
             }
         }
@@ -277,7 +290,6 @@ void JobOptsSvc::save(TFile* saveFile)
     int s_hodomask = m_hodomask;
     int s_mergeHodo = m_mergeHodo;
     int s_realization = m_realization;
-    int s_timingOffset = m_timingOffset;
 
     TString s_mySQLInputURL = GetInputMySQLURL();
     TString s_mySQLOutputURL = GetOutputMySQLURL();
@@ -303,6 +315,8 @@ void JobOptsSvc::save(TFile* saveFile)
 
     TString s_geomVersion = m_geomVersion;
 
+    double s_timingOffset = m_timingOffset;
+
     saveTree->Branch("ConfigFile", &s_configFile);
     saveTree->Branch("MCMode", &s_mcMode);
     saveTree->Branch("AlignmentMode", &s_alignmentMode);
@@ -320,7 +334,6 @@ void JobOptsSvc::save(TFile* saveFile)
     saveTree->Branch("MySQLOutput", &s_mySQLOutputURL);
     saveTree->Branch("NEvents", &s_nevents);
     saveTree->Branch("FirstEvent", &s_firstEvent);
-    saveTree->Branch("TimingOffset", &s_timingOffset);
     saveTree->Branch("InputFile", &s_inputFile);
     saveTree->Branch("OutputFile", &s_outputFile);
     saveTree->Branch("RoadFilePT", &s_roadsPT);
@@ -335,6 +348,7 @@ void JobOptsSvc::save(TFile* saveFile)
     saveTree->Branch("FMag", &s_fmagFile);
     saveTree->Branch("KMag", &s_kmagFile);
     saveTree->Branch("Geometry", &s_geomVersion);
+    saveTree->Branch("TimingOffset", &s_timingOffset);
 
     saveTree->Fill();
     saveTree->Write();

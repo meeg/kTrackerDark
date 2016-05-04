@@ -1,5 +1,8 @@
 #include <iostream>
+#include <stdlib.h>
+
 #include "EventReducer.h"
+#include "JobOptsSvc.h"
 
 EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), outoftime(false), decluster(false), mergehodo(false), triggermask(false), sagitta(false), hough(false), externalpar(false), realization(false), difnim(false)
 {
@@ -17,6 +20,8 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
     if(options.Contains("r")) realization = true;
     if(options.Contains("n")) difnim = true;
 
+    timeOffset = JobOptsSvc::instance()->m_timingOffset;
+
     //Screen output for all the methods enabled
     if(afterhit)      std::cout << "EventReducer: after-pulse removal enabled. " << std::endl;
     if(hodomask)      std::cout << "EventReducer: hodoscope masking enabled. " << std::endl;
@@ -29,6 +34,7 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
     if(externalpar)   std::cout << "EventReducer: will reset the alignment/calibration parameters. " << std::endl;
     if(realization)   std::cout << "EventReducer: realization enabled. " << std::endl;
     if(difnim)        std::cout << "EventReducer: trigger masking will be disabled in NIM events. " << std::endl;
+    if(fabs(timeOffset) > 0.01) std::cout << "EventReducer: " << timeOffset << " ns will be added to tdcTime. " << std::endl;
 
     //initialize services
     p_geomSvc = GeomSvc::instance();
@@ -79,7 +85,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
         if(externalpar)
         {
             iter->pos = p_geomSvc->getMeasurement(iter->detectorID, iter->elementID);
-            iter->driftDistance = p_geomSvc->getDriftDistance(iter->detectorID, iter->tdcTime);
+            iter->driftDistance = p_geomSvc->getDriftDistance(iter->detectorID, iter->tdcTime + timeOffset); // this is OK because hodoscopes don't have R-T curve anyways
             //iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
         }
 
