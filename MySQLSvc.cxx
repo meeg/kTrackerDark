@@ -1163,11 +1163,43 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
         hitQuery += TString("(runID,spillID,eventID,trackID,hitID,driftSign,residual,tdcTime,detectorName,elementID,driftDistance) VALUES");
     }
 
+    //chamber hits upload
     for(std::list<SignedHit>::iterator iter = tracklet->hits.begin(); iter != tracklet->hits.end(); ++iter)
     {
         if(iter->hit.index < 0) continue;
         hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, iter->hit.index, iter->sign, tracklet->residual[iter->hit.detectorID-1]);
         hitQuery += Form("%f,'%s',%d,%f),", iter->hit.tdcTime, p_geomSvc->getDetectorName(iter->hit.detectorID).c_str(), iter->hit.elementID, iter->hit.driftDistance);
+    }
+
+    //x-hodo hits upload -- NOTE: for now this is obtained by parsing the trigger road ID
+    int hitID = -1;
+    TriggerRoad road(*tracklet);
+    for(int i = 0; i < road.getNElements(); ++i)
+    {
+        int detectorID = road.getDetectorID(i);
+        int elementID = road.getElementID(i);
+        double res = tracklet->getExpPositionW(detectorID) - p_geomSvc->getMeasurement(detectorID, elementID);
+
+        hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, hitID--, 0, res);
+        hitQuery += Form("%f,'%s',%d,%f),", 0., p_geomSvc->getDetectorName(detectorID).c_str(), elementID, 0.);
+    }
+
+    //prop tube hits upload
+    for(int i = 0; i < 4; ++i)
+    {
+        SignedHit hit1 = tracklet->seg_x.hits[i];
+        if(hit1.hit.detectorID > 0)
+        {
+            hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, hit1.hit.index, hit1.sign, 0.);
+            hitQuery += Form("%f,'%s',%d,%f),", hit1.hit.tdcTime, p_geomSvc->getDetectorName(hit1.hit.detectorID).c_str(), hit1.hit.elementID, hit1.hit.driftDistance);
+        }
+
+        SignedHit hit2 = tracklet->seg_y.hits[i];
+        if(hit2.hit.detectorID > 0)
+        {
+            hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, hit2.hit.index, hit2.sign, 0.);
+            hitQuery += Form("%f,'%s',%d,%f),", hit2.hit.tdcTime, p_geomSvc->getDetectorName(hit2.hit.detectorID).c_str(), hit2.hit.elementID, hit2.hit.driftDistance);
+        }
     }
 
     if(hitQuery.Length() > MaxQueryLen) commitInsertion(hitQuery);
