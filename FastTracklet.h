@@ -62,7 +62,7 @@ public:
     double getClosestApproach(double z, double pos);
 
     //Get reference pos at first two planes
-    double getPosRef();
+    double getPosRef(double default_val = -9999.);
 
     //Number of hits
     int getNHits();

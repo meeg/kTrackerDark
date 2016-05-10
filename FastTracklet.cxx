@@ -80,9 +80,9 @@ double PropSegment::getClosestApproach(double z, double pos)
     return (a*z + b - pos)/sqrt(a*a + 1.);
 }
 
-double PropSegment::getPosRef()
+double PropSegment::getPosRef(double default_val)
 {
-    if(hits[0].hit.index < 0 && hits[1].hit.index < 0) return -9999.;
+    if(hits[0].hit.index < 0 && hits[1].hit.index < 0) return default_val;
 
     int nRefPoints = 0;
     double pos_exp = 0.;
