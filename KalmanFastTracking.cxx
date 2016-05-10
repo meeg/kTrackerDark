@@ -1196,7 +1196,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
         for(int j = 0; j < 4; ++j)
         {
             int index = detectorIDs_muid[i][j] - 25;
-            double pos_ref = j < 2 ? pos_absorb[i] : segs[i]->getPosRef();
+            double pos_ref = j < 2 ? pos_absorb[i] : segs[i]->getPosRef(pos_absorb[i] + slope[i]*(z_ref_muid[i][j] - MUID_Z_REF));
             double pos_exp = slope[i]*(z_mask[index] - z_ref_muid[i][j]) + pos_ref;
 
             if(!p_geomSvc->isInPlane(detectorIDs_muid[i][j], tracklet.getExpPositionX(z_mask[index]), tracklet.getExpPositionY(z_mask[index]))) continue;
@@ -1228,7 +1228,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
         }
 
         segs[i]->fit();
-        if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
+        //if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
     }
 
     muonID_hodoAid(tracklet);
