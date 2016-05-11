@@ -42,7 +42,7 @@ for line in output.split('\n'):
         continue
 
     jobID = int(re.findall(r'^(\d{7})', vals[0])[0])
-    runID = int(re.findall(r'_(\d{6})_r'), vals[8])[0])
+    runID = int(re.findall(r'_(\d{6})_r', vals[8])[0])
     jobDetails.append((jobID, runID, vals[0], vals[8], vals[5], line))
 
 toBeKilled = []
@@ -54,8 +54,8 @@ for job in jobDetails:
     if status not in job[3]:
         continue
 
-    print job[4]
-    toBeKilled.append(job[1])
+    print job[3]
+    toBeKilled.append(job[2])
 
 proceed = raw_input('Proceed (Y/N) ? ')
 if proceed.lower() == 'n':

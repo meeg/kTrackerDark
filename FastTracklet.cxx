@@ -285,7 +285,7 @@ void PropSegment::linearFit_simple()
     double syy = 0.;
     double sxy = 0.;
 
-    double x[4], y[4];
+    double x[14], y[14];
     for(int i = 0; i < 4; ++i)
     {
         if(hits[i].hit.index < 0) continue;
@@ -299,6 +299,20 @@ void PropSegment::linearFit_simple()
         sxx += (x[i]*x[i]);
         syy += (y[i]*y[i]);
         sxy += (x[i]*y[i]);
+    }
+
+    for(int i = 0; i < nHodoHits; ++i)
+    {
+        int idx = i + 4;
+        y[idx] = hodoHits[i].pos;
+        x[idx] = p_geomSvc->getPlanePosition(hodoHits[i].detectorID);
+
+        ++sum;
+        sx += x[idx];
+        sy += y[idx];
+        sxx += (x[idx]*x[idx]);
+        syy += (y[idx]*y[idx]);
+        sxy += (x[idx]*y[idx]);
     }
 
     double det = sum*sxx - sx*sx;
