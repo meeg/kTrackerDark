@@ -81,7 +81,7 @@ def getOptimizedSize(name, nEvtMax, nJobsMax = 10):
     nEvents = getNEvents(name)
     if nEvents < 1:
         return []
-        
+
     nJobs = nEvents/nEvtMax + 1
     if nJobs > nJobsMax:
         print '%s has %d events and more than %d jobs, redueced the number of jobs to %d' % (name, nEvents, nJobsMax, nJobsMax)

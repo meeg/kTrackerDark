@@ -369,74 +369,8 @@ int main(int argc, char *argv[])
     saveFile->cd();
     saveTree_mix_pp->Write();
     saveTree_mix_mm->Write();
-
-    //Now start the uploading part
-    if(!jobOptsSvc->m_autoUpload)
-    {
-        saveFile->Close();
-
-        delete vtxfit;
-        return EXIT_SUCCESS;
-    }
-
-    //Initialize the mysql server
-    MySQLSvc* p_mysqlSvc = MySQLSvc::instance();
-    p_mysqlSvc->setUserPasswd("production", "qqbar2mu+mu-");
-    p_mysqlSvc->connectOutput(jobOptsSvc->m_mySQLOutputServer, jobOptsSvc->m_mySQLOutputPort);
-    p_mysqlSvc->setOutputSchema(jobOptsSvc->m_outputSchema);
-
-    //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=0 WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackStart=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
-
-    //Table names and corresponding trees
-    TString tableSuffix[6] = {"", "Mix", "PP", "MM", "MixPP", "MixMM"};
-    TTree* trees[6] = {saveTree, saveTree_mix, saveTree_pp, saveTree_mm, saveTree_mix_pp, saveTree_mix_mm};
-
-    //Initialize the k* tables
-    if(!(p_mysqlSvc->initWriter() && p_mysqlSvc->initBakWriter()))
-    {
-        saveFile->Close();
-
-        delete p_mysqlSvc;
-        delete vtxfit;
-        return EXIT_FAILURE;
-    }
-
-    //Write the kInfo table
-    p_mysqlSvc->writeInfoTable((TTree*)saveFile->Get("config"));
-
-    //Upload all data
-    for(int i = 0; i < 6; ++i)
-    {
-        //test if tracklets exist, i.e. if it's data
-        TClonesArray* trackletArray = NULL;
-        if(trees[i]->GetListOfBranches()->Contains("tracklets"))
-        {
-            trackletArray = tracklets;
-        }
-
-        p_mysqlSvc->resetWriter();
-        int nEvents = trees[i]->GetEntries();
-        int printFreq = nEvents/100 > 1 ? nEvents/100 : 1;
-        for(int j = 0; j < nEvents; ++j)
-        {
-            trees[i]->GetEntry(j);
-            if(j % printFreq == 0) cout << Form("Uploading %s event, %d percent finished.", tableSuffix[i].Data(), (j+1)*100/nEvents) << endl;
-
-            p_mysqlSvc->writeTrackingRes(tableSuffix[i], recEvent, trackletArray);
-        }
-        p_mysqlSvc->finalizeWriter();
-        cout << Form("Uploaded %s data events successfully", tableSuffix[i].Data()) << endl << endl;
-    }
-    cout << "sql data uploaded successfully." << endl;
-
-    //Set the ktracked bit in summary table
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET ktracked=1 WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
-    p_mysqlSvc->getOutputServer()->Exec(Form("UPDATE summary.production SET kTrackEnd=NOW() WHERE production='%s'", jobOptsSvc->m_outputSchema.c_str()));
-
     saveFile->Close();
-    delete p_mysqlSvc;
+
     delete vtxfit;
     return EXIT_SUCCESS;
 }
