@@ -64,6 +64,9 @@ print options
 if len(sys.argv) < 2:
     parser.parse_args(['--help'])
 
+# initialize grid credetial
+GU.gridInit()
+
 # prepare the optimized submission sizes
 rawFile = 'run_%d_raw.root' % options.run
 optSizes = GU.getOptimizedSize(rawFile, options.split, 500)
@@ -80,11 +83,12 @@ for i in range(options.initial, options.nIter+1):
     runCmd('./update ac %s %s' % (rawFile, inputFile))
 
     # submit the tracking jobs
+    inputFile = os.path.abspath(inputFile)
     cmds = []
     for tag, item in enumerate(optSizes):
         cmd = GU.makeCommand('track', options.run, conf, firstEvent = item[0], nEvents = item[1], outtag = str(tag), infile = inputFile)
         cmds.append(cmd)
-    GU.submitAllJobs(cmd)
+    GU.submitAllJobs(cmds)
 
     # wait for it to finish
     time.sleep(300)
@@ -93,7 +97,7 @@ for i in range(options.initial, options.nIter+1):
         nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(conf, 'track', options.run)
         print ' --- Tracking status: ', options.run, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
 
-        nSuccess = nFinishedJobs - len(failedJobs)
+        nSuccess = nFinishedJobs - len(failedOpts)
         failedJobs = []
         for opt in failedOpts:
             failedJobs.append(GU.makeCommandFromOpts('track', opt, conf))
@@ -103,7 +107,7 @@ for i in range(options.initial, options.nIter+1):
 
     # combine the outputs
     outputFile = 'rec_%d_align_%d.root' % (options.run, i)
-    tempFiles = [os.path.join(conf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s_%d.root' % (runID, GU.version, tag)) for tag in range(nJobs)]
+    tempFiles = [os.path.join(conf.outdir, 'track', GU.version, GU.getSubDir(options.run), 'track_%06d_%s_%d.root' % (options.run, GU.version, tag)) for tag in range(nJobs)]
     if not GU.mergeFiles(outputFile, tempFiles):
         print 'Merging failed!'
         sys.exit()
@@ -125,8 +129,9 @@ for i in range(options.initial, options.nIter+1):
     runCmd('mv align_eval.root %s/align_eval_%d.root' % (options.work, i))
     runCmd('cp align_mille_%d.txt %s' % (i, options.work))
     runCmd('mv align_mille_%d.txt alignment/align_mille.txt' % i)
-    runCmd('mv increase.log_%d.txt %s' % (i, options.work))
-    runCmd('mv mille.conf mille.conf_%d_%d' % (i, nTry))
+    runCmd('mv increase.log_%d %s' % (i, options.work))
+    runCmd('mv mille.conf %s/mille.conf_%d_%d' % (options.work, i, nTry))
+    runCmd('rm %s' % inputFile)
 
     # chamber calibration
     if options.cali:
@@ -147,3 +152,8 @@ for i in range(options.initial, options.nIter+1):
         runCmd('mv prop_eval.root %s/prop_eval_%d.root' % (options.work, i))
         runCmd('cp alignment_prop_%d.txt %s' % (i, options.work))
         runCmd('mv alignment_prop_%d.txt alignment/alignment_prop.txt' % i)
+
+    # final clean up
+    runCmd('mv %s %s' % (outputFile, options.work))
+
+GU.stopGridGuard()
