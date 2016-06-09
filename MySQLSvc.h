@@ -85,7 +85,7 @@ public:
     void writeTrackTable(int trackID, SRecTrack* recTrack, TString tableSuffix);
     void writeTrackHitTable(int trackID, Tracklet* tracklet);
     void writeDimuonTable(int dimuonID, SRecDimuon dimuon, TString tableSuffix, int targetPos);
-    void writeEventTable(int eventID, int statusCode, TString tableSuffix);
+    void writeEventTable(int eventID, int statusCode, int source1, int source2, TString tableSuffix);
 
     //helper functions for creating tables
     /// Get the suffix to add to end of intermediate event subrange tables (if any)

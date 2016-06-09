@@ -872,6 +872,8 @@ std::string MySQLSvc::getTableDefinition(const TString tableType) const
                "spillID     INTEGER, "
                "eventID     INTEGER, "
                "status      SMALLINT, "
+               "source1     INTEGER,  "
+               "source2     INTEGER,  "
                "PRIMARY KEY(eventID), "
                "INDEX(spillID)";
     }
@@ -1006,7 +1008,7 @@ void MySQLSvc::writeTrackingRes(TString tableSuffix, SRecEvent* recEvent, TClone
     }
 
     //Write the general event table
-    writeEventTable(recEvent->getEventID(), recEvent->getRecStatus(), tableSuffix);
+    writeEventTable(recEvent->getEventID(), recEvent->getRecStatus(), recEvent->getSourceID1(), recEvent->getSourceID2(), tableSuffix);
 
     //Fill Track table/TrackHit table
     int nTracks_local = recEvent->getNTracks();
@@ -1061,15 +1063,15 @@ void MySQLSvc::writeInfoTable(TTree* config)
     outputServer->Exec("INSERT INTO kInfo (infoKey,infoValue) VALUES('LastUpdated',NOW())");
 }
 
-void MySQLSvc::writeEventTable(int eventID, int statusCode, TString tableSuffix)
+void MySQLSvc::writeEventTable(int eventID, int statusCode, int source1, int source2, TString tableSuffix)
 {
     if(tableSuffix != "") return;
     if(eventQuery.Length() == 0)
     {
-        eventQuery = TString("INSERT INTO kEvent (runID,spillID,eventID,status) VALUES");
+        eventQuery = TString("INSERT INTO kEvent (runID,spillID,eventID,status,source1,source2) VALUES");
     }
 
-    eventQuery += Form(" (%d,%d,%d,%d),", runID, spillID, eventID, statusCode);
+    eventQuery += Form(" (%d,%d,%d,%d,%d,%d),", runID, spillID, eventID, statusCode, source1, source2);
     if(eventQuery.Length() > MaxQueryLen) commitInsertion(eventQuery);
 }
 

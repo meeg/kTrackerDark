@@ -539,6 +539,9 @@ SRecEvent::SRecEvent()
     fEventID = -1;
     fRecStatus = 0;
 
+    fSource1 = -1;
+    fSource2 = -1;
+
     clear();
 }
 

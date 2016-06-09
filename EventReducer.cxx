@@ -63,6 +63,13 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 {
     int nHits_before = rawEvent->getNChamberHitsAll();
 
+    //temporarily disable trigger road masking if this event is not fired by any MATRIX triggers
+    bool triggermask_local = triggermask;
+    if(!(rawEvent->isTriggeredBy(SRawEvent::MATRIX1) || rawEvent->isTriggeredBy(SRawEvent::MATRIX2) || rawEvent->isTriggeredBy(SRawEvent::MATRIX3) || rawEvent->isTriggeredBy(SRawEvent::MATRIX4) || rawEvent->isTriggeredBy(SRawEvent::MATRIX5)))
+    {
+        triggermask_local = false;
+    }
+
     //dump the vector of hits from SRawEvent to a list first
     hitlist.clear();
     hodohitlist.clear();
@@ -79,7 +86,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
         else if(iter->detectorID > 24 && iter->detectorID <= 40)
         {
             // if trigger masking is enabled, all the X hodos are discarded
-            if(triggermask && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
+            if(triggermask_local && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
         }
 
         if(externalpar)
@@ -105,13 +112,13 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
     {
         for(std::vector<Hit>::iterator iter = rawEvent->fTriggerHits.begin(); iter != rawEvent->fTriggerHits.end(); ++iter)
         {
-            if(triggermask && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
+            if(triggermask_local && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
             hodohitlist.push_back(*iter);
         }
     }
 
     // manully create the X-hodo hits by the trigger roads
-    if(triggermask) p_triggerAna->trimEvent(rawEvent, hodohitlist, mergehodo ? (USE_HIT | USE_TRIGGER_HIT) : USE_TRIGGER_HIT);
+    if(triggermask_local) p_triggerAna->trimEvent(rawEvent, hodohitlist, mergehodo ? (USE_HIT | USE_TRIGGER_HIT) : USE_TRIGGER_HIT);
 
     //apply hodoscope mask
     hodohitlist.sort();

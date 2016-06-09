@@ -63,7 +63,7 @@ public:
 
     Double_t getMomentumSt3(Double_t& px, Double_t& py, Double_t& pz) { return getMomentum(fState.back(), px, py, pz); }
     Double_t getMomentumSt3() { Double_t px, py, pz; return getMomentumSt3(px, py, pz); }
-    TVector3 getMomentumVecSt3() { Double_t px, py, pz; getMomentumSt1(px, py, pz); return TVector3(px, py, pz); }
+    TVector3 getMomentumVecSt3() { Double_t px, py, pz; getMomentumSt3(px, py, pz); return TVector3(px, py, pz); }
 
     Double_t getPositionSt1(Double_t& x, Double_t& y) { return getPosition(fState.front(), x, y); }
     Double_t getPositionSt1() { Double_t x, y; return getPositionSt1(x, y); }
@@ -306,6 +306,11 @@ public:
 
     Int_t getLocalID(Int_t hitID) { return fLocalID[hitID]; }
 
+    //Event source set/get
+    void setEventSource(Int_t id1, Int_t id2) { fSource1 = id1; fSource2 = id2; }
+    Int_t getSourceID1() { return fSource1; }
+    Int_t getSourceID2() { return fSource2; }
+
     ///Get tracks
     Int_t getNTracks() { return fAllTracks.size(); }
     SRecTrack& getTrack(Int_t i) { return fAllTracks[i]; }
@@ -351,7 +356,11 @@ private:
     ///Mapping of hitID to local container ID in SRawEvent
     std::map<Int_t, Int_t> fLocalID;
 
-    ClassDef(SRecEvent, 4)
+    //Event source
+    Int_t fSource1;
+    Int_t fSource2;
+
+    ClassDef(SRecEvent, 5)
 };
 
 #endif
