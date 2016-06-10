@@ -80,8 +80,8 @@ public:
     void printAtDetectorBack(int stationID, std::string outputFileName);
 
     ///Track fitting stuff
-    //Convert Tracklet to KalmanTrack and solve left-right problem
-    void processOneTracklet(Tracklet& tracklet);
+    //Convert Tracklet to KalmanTrack and solve left-right problem, and eventually to a SRecTrack
+    SRecTrack processOneTracklet(Tracklet& tracklet);
 
     //Use Kalman fitter to fit a track
     bool fitTrack(KalmanTrack& kmtrk);

@@ -156,7 +156,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 #ifdef _DEBUG_ON
     cout << "========================" << endl;
     cout << "Hodo. masking settings: " << endl;
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 4; i++)
     {
         cout << "For station " << i+1 << endl;
         for(std::vector<int>::iterator iter = detectorIDs_mask[i].begin(); iter != detectorIDs_mask[i].end(); ++iter) cout << "All: " << *iter << endl;
@@ -428,7 +428,8 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
     //Build kalman tracks
     for(std::list<Tracklet>::iterator tracklet = trackletsInSt[4].begin(); tracklet != trackletsInSt[4].end(); ++tracklet)
     {
-        processOneTracklet(*tracklet);
+        SRecTrack strack = processOneTracklet(*tracklet);
+        stracks.push_back(strack);
     }
 
 #ifdef _DEBUG_ON
@@ -462,6 +463,7 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
     if(rawEvent->getNHitsInD2() > 160) return false;
     if(rawEvent->getNHitsInD3p() > 150) return false;
     if(rawEvent->getNHitsInD3m() > 150) return false;
+
     /*
     if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[0]) > 15) return false;
     if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[1]) > 10) return false;
@@ -1117,9 +1119,19 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 #endif
     }
 
+#ifndef ALIGNMENT_MODE
+    //For global tracks, require futher cuts
+    if(tracklet.stationID == 6)
+    {
+        SRecTrack track = processOneTracklet(tracklet);
+
+        track.setZVertex(track.getZVertex(), true);
+        if(!track.isValid()) return false;
+    }
+#endif
+
     //If everything is fine ...
     return true;
-
 }
 
 bool KalmanFastTracking::hodoMask(Tracklet& tracklet)
@@ -1596,7 +1608,7 @@ void KalmanFastTracking::printAtDetectorBack(int stationID, std::string outputFi
     c1.SaveAs(outputFileName.c_str());
 }
 
-void KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
+SRecTrack KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
 {
     //tracklet.print();
     KalmanTrack kmtrk;
@@ -1634,11 +1646,9 @@ void KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
     if(!fitTrack(kmtrk))
     {
         SRecTrack strack = tracklet.getSRecTrack();
-
         strack.setKalmanStatus(-1);
-        stracks.push_back(strack);
 
-        return;
+        return strack;
     }
 
     //Resolve left-right based on the current solution, re-fit if anything changed
@@ -1657,6 +1667,8 @@ void KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
 
         strack.setKalmanStatus(1);
         stracks.push_back(strack);
+
+        return strack;
     }
     else
     {
@@ -1664,6 +1676,8 @@ void KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
 
         strack.setKalmanStatus(-1);
         stracks.push_back(strack);
+
+        return strack;
     }
 }
 

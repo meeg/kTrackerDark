@@ -121,6 +121,7 @@ void SRecTrack::setVertexFast(TVector3 mom, TVector3 pos)
 bool SRecTrack::isVertexValid()
 {
     if(fChisqVertex > 50.) return false;
+    if(fVertexPos.Z() < -500. || fVertexPos.Z() > 300.) return false;
 
     return true;
 }
@@ -244,6 +245,9 @@ bool SRecTrack::isValid()
     //Number of hits cut
     Int_t nHits = getNHits();
     if(nHits < 14) return false;
+
+    //Trigger road cut
+    if(fTriggerID == 0) return false;
 
     //Total chisq, may change to cut on prob
     if(getChisq()/(nHits - 5) > 6.) return false;
