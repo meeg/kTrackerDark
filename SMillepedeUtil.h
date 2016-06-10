@@ -43,6 +43,12 @@ public:
     //Measurement (actually residual due to the definition of millepede)
     double meas;
 
+    //other auxilary info
+    int charge;
+    double tdctime;
+    double pos;
+    double drift;
+
     //Resolution of the measurement
     double sigma;
 
@@ -72,7 +78,7 @@ public:
     //Debugging output
     void print();
 
-    ClassDef(MPNode, 1)
+    ClassDef(MPNode, 2)
 };
 
 #endif

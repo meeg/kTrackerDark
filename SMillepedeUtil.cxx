@@ -31,6 +31,12 @@ MPNode::MPNode(Node& node_kalman)
     detectorID = node_kalman.getHit().detectorID;
     elementID = node_kalman.getHit().elementID;
     sign = node_kalman.getHit().driftDistance > 0 ? 1 : -1;
+
+    charge = node_kalman.getFiltered().get_charge();
+    tdctime = node_kalman.getHit().tdcTime;
+    drift = node_kalman.getHit().driftDistance;
+    pos = node_kalman.getHit().pos;
+
     if(detectorID >= 1 && detectorID <= 24)
     {
         flag = true;
@@ -72,6 +78,12 @@ MPNode::MPNode(SignedHit& hit_signed, Tracklet& trk)
     detectorID = hit_signed.hit.detectorID;
     elementID = hit_signed.hit.elementID;
     sign = hit_signed.sign;
+
+    charge = trk.getCharge();
+    tdctime = hit_signed.hit.tdcTime;
+    drift = hit_signed.hit.driftDistance;
+    pos = hit_signed.hit.pos;
+
     if(detectorID >= 1 && detectorID <= 24)
     {
         flag = true;
