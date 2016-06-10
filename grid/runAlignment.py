@@ -10,8 +10,8 @@ from optparse import OptionParser
 import GridUtil as GU
 
 def runCmd(cmd):
-    print cmd
-    #os.system(cmd)
+    print '>', cmd
+    os.system(cmd)
 
 def checkOverflow(output):
     if not os.path.exists(output):
@@ -31,18 +31,18 @@ def prepareConf(log_prev, conf, fudge = 1.):
         print 'Conf file exists, will continue'
         return
 
-    sigma = [[0.1, 0.005, 0.05] for i in range(24)]
+    sigma = [[0.5, 0.05, 0.005] for i in range(24)]
     if os.path.isfile(log_prev):
         for index, line in enumerate(open(log_prev).readlines()):
             delta = abs(float(line.strip().split()[3]))
             if delta < sigma[index][2]:
-                factor = fudge*delta/sigma[index][2]
+                factor = delta/sigma[index][2]
                 for i in range(3):
                     sigma[index][i] = sigma[index][i]*factor
 
     fout = open(conf, 'w')
     for index, line in enumerate(sigma):
-        fout.write('%d      %f       %f         %f\n' % (index+1, line[0], line[1], line[2]))
+        fout.write('%d      %f       %f         %f\n' % (index+1, fudge*line[0], fudge*line[1], fudge*line[2]))
     fout.close()
 
 
@@ -53,7 +53,9 @@ parser.add_option('-c', type = 'string', dest = 'config', help = 'I/O configurat
 parser.add_option('-n', type = 'int', dest = 'nIter', help = 'number of iterations to run', default = 10)
 parser.add_option('-i', type = 'int', dest = 'initial', help = 'initial iteration number', default = 1)
 parser.add_option('-s', type = 'int', dest = 'split', help = 'maximum number of events per job', default = 5000)
+parser.add_option('-t', type = 'int', dest = 'timeout', help = 'timeout option', default = 1000)
 parser.add_option('-w', type = 'string', dest = 'work', help = 'working directory of the outputs', default = '')
+parser.add_option('-e', type = 'string', dest = 'email', help = 'email notification when done', default = '')
 parser.add_option('--cali', action = 'store_true', dest = 'cali', help = 'enable chamber calibration', default = False)
 parser.add_option('--hodo', action = 'store_true', dest = 'hodo', help = 'enable hodoscope alignment', default = False)
 parser.add_option('--prop', action = 'store_true', dest = 'prop', help = 'enable prop tube alignment', default = False)
@@ -92,6 +94,7 @@ for i in range(options.initial, options.nIter+1):
 
     # wait for it to finish
     time.sleep(300)
+    nMinutes = 5
     nSuccess = 0
     while nSuccess != nJobs:
         nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(conf, 'track', options.run)
@@ -100,17 +103,21 @@ for i in range(options.initial, options.nIter+1):
         nSuccess = nFinishedJobs - len(failedOpts)
         failedJobs = []
         for opt in failedOpts:
-            failedJobs.append(GU.makeCommandFromOpts('track', opt, conf))
+            failedJobs.append(GU.makeCommandFromOpts('track', opt, conf) + ' --input='+inputFile)
         GU.submitAllJobs(failedJobs)
 
+        if nMinutes > options.timeout and float(nSuccess)/float(nJobs) > 0.8:
+            break
+
         time.sleep(60)
+        nMinutes = nMinutes + 1
 
     # combine the outputs
     outputFile = 'rec_%d_align_%d.root' % (options.run, i)
     tempFiles = [os.path.join(conf.outdir, 'track', GU.version, GU.getSubDir(options.run), 'track_%06d_%s_%d.root' % (options.run, GU.version, tag)) for tag in range(nJobs)]
-    if not GU.mergeFiles(outputFile, tempFiles):
+    if not GU.mergeFiles(outputFile, tempFiles, True):
         print 'Merging failed!'
-        sys.exit()
+        break
     for tempFile in tempFiles:
         os.remove(tempFile)
 
@@ -125,19 +132,21 @@ for i in range(options.initial, options.nIter+1):
         nTry = nTry + 1
 
     if not checkOverflow('increase.log_%d' % i):
-        sys.exit()
+        break
     runCmd('mv align_eval.root %s/align_eval_%d.root' % (options.work, i))
     runCmd('cp align_mille_%d.txt %s' % (i, options.work))
     runCmd('mv align_mille_%d.txt alignment/align_mille.txt' % i)
     runCmd('mv increase.log_%d %s' % (i, options.work))
     runCmd('mv mille.conf %s/mille.conf_%d_%d' % (options.work, i, nTry))
+    runCmd('mv log_mille_%d %s' % (i, options.work))
     runCmd('rm %s' % inputFile)
 
     # chamber calibration
     if options.cali:
-        runCmd('./makeRTv7 %d %d %s > log_calibration_%d' % (options.run, i, outputFile, i))
+        runCmd('./makeRTv7 %d %d %s > %s/log_calibration_%d' % (options.run, i, outputFile, options.work, i))
         runCmd('cp param_calib/calibration_%d.txt %s' % (i, options.work))
         runCmd('mv param_calib/calibration_%d.txt alignment/calibration.txt' % i)
+        runCmd('mv plot/* %s' % options.work)
 
     # hodo alignment
     if options.hodo:
@@ -154,6 +163,9 @@ for i in range(options.initial, options.nIter+1):
         runCmd('mv alignment_prop_%d.txt alignment/alignment_prop.txt' % i)
 
     # final clean up
+    runCmd('rm -r %s/*' % conf.outdir)
     runCmd('mv %s %s' % (outputFile, options.work))
 
 GU.stopGridGuard()
+if '@' in options.email:
+    runCmd('echo "%s" | mail -s "%s" %s' % (' '.join(sys.argv), 'Completed!', options.email))

@@ -277,10 +277,14 @@ def runCommand(cmd):
 def getTimeStamp():
     return datetime.now().strftime('%y%m%d-%H%M')
 
-def mergeFiles(targetFile, sourceFiles):
+def mergeFiles(targetFile, sourceFiles, ignoreCorrupted = False):
     """use hadd to merge ROOT files"""
 
-    cmd = 'hadd ' + targetFile
+    cmd = 'hadd '
+    if ignoreCorrupted:
+        cmd = cmd + '-k -f '
+
+    cmd = cmd + targetFile
     for source in sourceFiles:
         cmd = cmd + ' ' + source
 
