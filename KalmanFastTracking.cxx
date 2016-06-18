@@ -1671,7 +1671,6 @@ SRecTrack KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
         strack.setPTSlope(tracklet.seg_x.a, tracklet.seg_y.a);
 
         strack.setKalmanStatus(1);
-        stracks.push_back(strack);
 
         return strack;
     }
@@ -1680,7 +1679,6 @@ SRecTrack KalmanFastTracking::processOneTracklet(Tracklet& tracklet)
         SRecTrack strack = tracklet.getSRecTrack();
 
         strack.setKalmanStatus(-1);
-        stracks.push_back(strack);
 
         return strack;
     }
