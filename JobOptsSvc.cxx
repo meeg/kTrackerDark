@@ -125,7 +125,6 @@ bool JobOptsSvc::init(const char* configfile)
     boolOpts["HodoscopeMasking"] = &m_hodomask;
     boolOpts["MergeHodoHits"] = &m_mergeHodo;
     boolOpts["MCRealization"] = &m_realization;
-    boolOpts["AutoUpload"] = &m_autoUpload;
 
     map<string, double*> doubleOpts;
     doubleOpts["TimingOffset"] = &m_timingOffset;

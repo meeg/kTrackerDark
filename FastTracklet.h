@@ -67,6 +67,9 @@ public:
     //Number of hits
     int getNHits();
 
+    //Number of planes
+    int getNPlanes();
+
     //Fit the segment -- naive linear fit
     void fit();   // external call
     void fit_2hits();
@@ -89,9 +92,9 @@ public:
     //chisq of the segment
     double chisq;
 
-    //Auxilary hodoscope hit counts
+    //Auxilary hodoscope hit list, cannot be possibly more than 4 hodoscope hits
     int nHodoHits;
-    Hit hodoHits[10];
+    Hit hodoHits[4];
 
     //Hit list -- only 4 hits at most
     SignedHit hits[4];
@@ -102,7 +105,7 @@ public:
     //static pointer to geometry
     static const GeomSvc* p_geomSvc;
 
-    ClassDef(PropSegment, 3)
+    ClassDef(PropSegment, 4)
 };
 
 class Tracklet : public TObject

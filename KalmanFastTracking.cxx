@@ -1112,10 +1112,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
     {
         if(!p_geomSvc->isInKMAG(tracklet.getExpPositionX(Z_KMAG_BEND), tracklet.getExpPositionY(Z_KMAG_BEND))) return false;
 #ifndef ALIGNMENT_MODE
-        if(!muonID_comp(tracklet))
-        {
-            if(!muonID_search(tracklet)) return false;
-        }
+        if(!(muonID_comp(tracklet) || muonID_search(tracklet))) return false;
 #endif
     }
 
@@ -1202,7 +1199,8 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
     PropSegment* segs[2] = {&(tracklet.seg_x), &(tracklet.seg_y)};
     for(int i = 0; i < 2; ++i)
     {
-        if(segs[i]->getNHits() > 2 && segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
+        //this shorting circuting can only be done to X-Z, Y-Z needs more complicated thing
+        if(i == 0 && segs[i]->getNHits() > 2 && segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
 
         segs[i]->init();
         for(int j = 0; j < 4; ++j)
@@ -1238,14 +1236,22 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
                 }
             }
         }
-
         segs[i]->fit();
-        //if(!(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
+
+        //this shorting circuting can only be done to X-Z, Y-Z needs more complicated thing
+        if(i == 0 && !(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
     }
 
     muonID_hodoAid(tracklet);
-    if(segs[0]->getNHits() + segs[1]->getNHits() < 5) return false;
-    return true;
+    if(segs[0]->getNHits() + segs[1]->getNHits() >= 5)
+    {
+        return true;
+    }
+    else if(segs[1]->getNHits() == 1 || segs[1]->getNPlanes() == 1)
+    {
+        return segs[1]->nHodoHits >= 2;
+    }
+    return false;
 }
 
 bool KalmanFastTracking::muonID_comp(Tracklet& tracklet)
@@ -1301,7 +1307,6 @@ bool KalmanFastTracking::muonID_comp(Tracklet& tracklet)
         if(!segs[i]->isValid()) return false;
     }
 
-    muonID_hodoAid(tracklet);
     if(segs[0]->getNHits() + segs[1]->getNHits() < 5) return false;
     return true;
 }
@@ -1347,7 +1352,7 @@ bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
             if(x_hodo > x_min && x_hodo < x_max && y_hodo > y_min && y_hodo < y_max)
             {
                 segs[i]->hodoHits[segs[i]->nHodoHits++] = hitAll[*iter];
-                if(segs[i]->nHodoHits > 9) break;
+                if(segs[i]->nHodoHits > 4) break;
             }
         }
     }
