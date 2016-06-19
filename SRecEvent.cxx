@@ -250,7 +250,7 @@ bool SRecTrack::isValid()
     if(fTriggerID == 0) return false;
 
     //Total chisq, may change to cut on prob
-    if(getChisq()/(nHits - 5) > 6.) return false;
+    if(getChisq()/(nHits - 5) > 10.) return false;
 
     return true;
 }

@@ -374,6 +374,13 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
     //Build back partial tracks in station 2, 3+ and 3-
     buildBackPartialTracks();
+    if(trackletsInSt[3].empty())
+    {
+#ifdef _DEBUG_ON
+        LogInfo("Failed in connecting station-2 and 3 tracks");
+#endif
+        return TFEXIT_FAIL_BACKPARTIAL;
+    }
 
     //Connect tracklets in station 2/3 and station 1 to form global tracks
     buildGlobalTracks();
@@ -402,7 +409,7 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
     }
 #endif
 
-    if(trackletsInSt[4].empty()) return TFEXIT_FAIL_NO_TRACKS;
+    if(trackletsInSt[4].empty()) return TFEXIT_FAIL_GLOABL;
     if(!enable_KF) return TFEXIT_SUCCESS;
 
     //If there is no possibility of a dimuon, return
@@ -552,7 +559,7 @@ void KalmanFastTracking::buildBackPartialTracks()
             tracklet_23.print();
 #endif
             fitTracklet(tracklet_23);
-            if(tracklet_23.chisq > 3000.)
+            if(tracklet_23.chisq > 8000.)
             {
 #ifdef _DEBUG_ON
                 tracklet_23.print();
@@ -570,8 +577,8 @@ void KalmanFastTracking::buildBackPartialTracks()
             }
 
 #ifndef COARSE_MODE
-            resolveLeftRight(tracklet_23, 25.);
-            resolveLeftRight(tracklet_23, 100.);
+            resolveLeftRight(tracklet_23, 50.);
+            resolveLeftRight(tracklet_23, 200.);
 #endif
             ///Remove bad hits if needed
             removeBadHits(tracklet_23);
@@ -646,8 +653,8 @@ void KalmanFastTracking::buildGlobalTracks()
 
 #ifndef COARSE_MODE
             ///Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
-            resolveLeftRight(tracklet_global, 50.);
             resolveLeftRight(tracklet_global, 100.);
+            resolveLeftRight(tracklet_global, 200.);
             resolveSingleLeftRight(tracklet_global);
 #endif
             ///Remove bad hits if needed

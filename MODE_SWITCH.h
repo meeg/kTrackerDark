@@ -34,7 +34,7 @@
 #define INVP_MIN 0.01
 #define INVP_MAX 0.2
 #define PROB_LOOSE 0.0
-#define PROB_TIGHT 0.001
+#define PROB_TIGHT 1E-11
 #define HIT_REJECT 3.
 
 #define SAGITTA_TARGET_CENTER 1.85
@@ -73,14 +73,14 @@
 #define Z_DUMP 42.
 #define Z_ST1 600.
 #define Z_ST3 1910.
-#define RESOLUTION_DC 0.07
+#define RESOLUTION_DC 1.6
 
 #define BEAM_SPOT_X 0.5
 #define BEAM_SPOT_Y 0.5
 
 #define ST1_REJECT 0.13
 #define ST2_REJECT 0.18
-#define ST3_REJECT 0.16
+#define ST3_REJECT 0.15
 
 //-------------- Coarse swim setup --------------
 #define FMAG_HOLE_LENGTH 27.94
@@ -107,8 +107,9 @@
 #define TFEXIT_FAIL_ROUGH_MUONID -2;
 #define TFEXIT_FAIL_ST2_TRACKLET -3;
 #define TFEXIT_FAIL_ST3_TRACKLET -4;
-#define TFEXIT_FAIL_NO_TRACKS -5;
-#define TFEXIT_FAIL_NO_DIMUON -6;
+#define TFEXIT_FAIL_BACKPARTIAL -5;
+#define TFEXIT_FAIL_GLOABL -6;
+#define TFEXIT_FAIL_NO_DIMUON -7;
 #define VFEXIT_FAIL_DIMUONPAIR -10;
 #define VFEXIT_FAIL_ITERATION -20;
 

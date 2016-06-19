@@ -752,13 +752,13 @@ void GeomSvc::loadMilleAlignment(const std::string& alignmentFile_mille)
             planes[i].deltaY = planes[i].deltaW*planes[i].sintheta;
             planes[i].update();
 
-            if(planes[i].resolution < RESOLUTION_DC) planes[i].resolution = RESOLUTION_DC;
+            //if(planes[i].resolution < RESOLUTION_DC) planes[i].resolution = RESOLUTION_DC;
         }
         cout << "GeomSvc: loaded millepede-based alignment parameters from " << alignmentFile_mille << endl;
 
         for(int i = 1; i <= nChamberPlanes; i+=2)
         {
-            planes[i].resolution = 0.5*(planes[i].resolution + planes[i+1].resolution);
+            planes[i].resolution = RESOLUTION_DC*0.5*(planes[i].resolution + planes[i+1].resolution);
             planes[i+1].resolution = planes[i].resolution;
         }
     }
