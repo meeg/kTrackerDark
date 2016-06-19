@@ -197,6 +197,7 @@ int main(int argc, char *argv[])
         cout << endl;
     }
 
+    //fit the center values w.r.t moduleID
     double offsets_corr[4][9];
     for(int i = 0; i < 4; ++i)
     {
@@ -218,6 +219,7 @@ int main(int argc, char *argv[])
         cout << endl;
     }
 
+    //final output
     ofstream fout(argv[2], ios::out);
     for(int i = 0; i < 4; ++i)
     {
