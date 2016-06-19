@@ -150,17 +150,19 @@ for i in range(options.initial, options.nIter+1):
 
     # hodo alignment
     if options.hodo:
-        runCmd('./hodoAlign %s alignment_hodo_%d.txt' % (outputFile, i))
+        for m in range(10):
+            runCmd('./hodoAlign %s alignment_hodo_%d.txt' % (outputFile, i))
+            runCmd('cp alignment_hodo_%d.txt alignment/alignment_hodo.txt' % i)
         runCmd('mv hodo_eval.root %s/hodo_eval_%d.root' % (options.work, i))
-        runCmd('cp alignment_hodo_%d.txt %s' % (i, options.work))
-        runCmd('mv alignment_hodo_%d.txt alignment/alignment_hodo.txt' % i)
+        runCmd('mv alignment_hodo_%d.txt %s' % (i, options.work))
 
     # prop alignment
     if options.prop:
-        runCmd('./propAlign %s alignment_prop_%d.txt' % (outputFile, i))
+        for m in range(10):
+            runCmd('./propAlign %s alignment_prop_%d.txt' % (outputFile, i))
+            runCmd('cp alignment_prop_%d.txt alignment/alignment_prop.txt' % i)
         runCmd('mv prop_eval.root %s/prop_eval_%d.root' % (options.work, i))
-        runCmd('cp alignment_prop_%d.txt %s' % (i, options.work))
-        runCmd('mv alignment_prop_%d.txt alignment/alignment_prop.txt' % i)
+        runCmd('mv alignment_prop_%d.txt %s' % (i, options.work))
 
     # final clean up
     runCmd('rm -r %s/*' % conf.outdir)

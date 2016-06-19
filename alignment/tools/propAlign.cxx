@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
     EventReducer* reducer = new EventReducer("ao");
 
-    //Hodoscope IDs
+    //prop tube IDs
     int propIDs[8] = {41, 42, 43, 44, 45, 46, 47, 48};
     const int nProps = 8;
 
