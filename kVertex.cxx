@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
     saveTree_mm->Write();
 
     //Load track bank of mu+ and mu-
+    //flag is used to indicate 1. if this event has been used, 2. the eventID
     vector<SRecTrack> ptracks[7], mtracks[7];
     vector<int> pflags[7], mflags[7];
     for(int i = 0; i < 7; ++i)
@@ -214,12 +215,12 @@ int main(int argc, char *argv[])
         if(track.getCharge() > 0)
         {
             ptracks[index].push_back(track);
-            pflags[index].push_back(1);
+            pflags[index].push_back(rawEvent->getEventID());
         }
         else
         {
             mtracks[index].push_back(track);
-            mflags[index].push_back(1);
+            mflags[index].push_back(rawEvent->getEventID());
         }
 
         rawEvent->clear();
@@ -261,8 +262,9 @@ int main(int argc, char *argv[])
 
             recEvent->setEventInfo(runID, 0, eventID++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -1;
-            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -1;
+            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -pflags[i][idx1];
+            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -mflags[i][idx2];
+            recEvent->setEventSource(-pflags[i][idx1], -mflags[i][idx2]);
 
             vtxfit->setRecEvent(recEvent);
             if(eventID % 1000 == 0) saveTree_mix->AutoSave("SaveSelf");
@@ -293,7 +295,7 @@ int main(int argc, char *argv[])
     {
         //pp pairs
         int nPlus = ptracks[i].size();
-        for(int j = 0; j < nPlus; ++j) pflags[i][j] = 1;
+        for(int j = 0; j < nPlus; ++j) pflags[i][j] = -pflags[i][j];
 
         int nPairs = int(0.9*nPlus);
         cout << nPlus << " mu+ tracks with targetPos = " << i+1;
@@ -315,8 +317,9 @@ int main(int argc, char *argv[])
 
             recEvent->setEventInfo(runID, 0, eventID_pp++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -1;
-            recEvent->insertTrack(ptracks[i][idx2]); pflags[i][idx2] = -1;
+            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -pflags[i][idx1];
+            recEvent->insertTrack(ptracks[i][idx2]); pflags[i][idx2] = -pflags[i][idx2];
+            recEvent->setEventSource(-pflags[i][idx1], -pflags[i][idx2]);
 
             vtxfit->setRecEvent(recEvent, 1, 1);
             if(eventID_pp % 1000 == 0) saveTree_mix_pp->AutoSave("SaveSelf");
@@ -329,7 +332,7 @@ int main(int argc, char *argv[])
 
         //mm pairs
         int nMinus = mtracks[i].size();
-        for(int j = 0; j < nMinus; ++j) mflags[i][j] = 1;
+        for(int j = 0; j < nMinus; ++j) mflags[i][j] = -mflags[i][j];
 
         nPairs = int(0.9*nMinus);
         cout << nMinus << " mu- tracks with targetPos = " << i+1;
@@ -351,8 +354,9 @@ int main(int argc, char *argv[])
 
             recEvent->setEventInfo(runID, 0, eventID_mm++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(mtracks[i][idx1]); mflags[i][idx1] = -1;
-            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -1;
+            recEvent->insertTrack(mtracks[i][idx1]); mflags[i][idx1] = -mflags[i][idx1];
+            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -mflags[i][idx2];
+            recEvent->setEventSource(-mflags[i][idx1], -mflags[i][idx2]);
 
             vtxfit->setRecEvent(recEvent, -1, -1);
             if(eventID_mm % 1000 == 0) saveTree_mix_mm->AutoSave("SaveSelf");
