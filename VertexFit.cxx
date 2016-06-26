@@ -68,24 +68,6 @@ VertexFit::~VertexFit()
 
 int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 {
-    //if the single vertex is not set, set it first
-    int nTracks = recEvent->getNTracks();
-    for(int i = 0; i < nTracks; ++i)
-    {
-        SRecTrack& recTrack = recEvent->getTrack(i);
-
-        recTrack.setZVertex(Z_TARGET, false);
-        recTrack.setChisqTarget(recTrack.getChisqVertex());
-
-        recTrack.setZVertex(Z_DUMP, false);
-        recTrack.setChisqDump(recTrack.getChisqVertex());
-
-        recTrack.setZVertex(Z_UPSTREAM+10., false);
-        recTrack.setChisqUpstream(recTrack.getChisqVertex());
-
-        recTrack.setZVertex(recTrack.getZVertex(), true);
-    }
-
     std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
     std::vector<int> idx_neg = recEvent->getChargedTrackIDs(sign2);
 

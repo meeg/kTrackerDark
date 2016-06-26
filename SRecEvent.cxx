@@ -104,6 +104,20 @@ void SRecTrack::setZVertex(Double_t z, bool update)
     fCovarVertex = _node_vertex.getFiltered()._covar_kf;
 }
 
+void SRecTrack::updateVtxHypothesis()
+{
+    setZVertex(Z_TARGET, false);
+    setChisqTarget(fChisqVertex);
+
+    setZVertex(Z_DUMP, false);
+    setChisqDump(fChisqVertex);
+
+    setZVertex(Z_UPSTREAM+10., false);
+    setChisqUpstream(fChisqVertex);
+
+    setZVertex(getZVertex(), true);
+}
+
 void SRecTrack::setVertexFast(TVector3 mom, TVector3 pos)
 {
     fVertexPos = pos;
@@ -255,8 +269,10 @@ bool SRecTrack::isValid()
     //Check the px polarity
     if(FMAGSTR*getCharge()*fVertexMom.Px() < 0) return false;
 
+#ifdef _ENABLE_KF
     //Check source
     if(!(isTarget() || isDump())) return false;
+#endif
 
     return true;
 }
@@ -447,6 +463,10 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
     std::cout << "The one with minimum DCA is: " << iStep << ": " << std::endl;
     std::cout << mom[iStep][0]/mom[iStep][2] << "     " << mom[iStep][1]/mom[iStep][2] << "     " << mom[iStep][2] << "     ";
     std::cout << pos[iStep][0] << "  " << pos[iStep][1] << "   " << pos[iStep][2] << std::endl << std::endl;
+#endif
+
+#ifdef _ENABLE_KF
+    updateVtxHypothesis();
 #endif
 
     if(cleanupPos) delete[] pos;

@@ -97,6 +97,7 @@ public:
     ///Vertex stuff
     bool isVertexValid();
     void setZVertex(Double_t z, bool update = true);
+    void updateVtxHypothesis();
 
     ///Plain setting, no KF-related stuff
     void setVertexFast(TVector3 mom, TVector3 pos);
