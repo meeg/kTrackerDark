@@ -1129,7 +1129,17 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
     {
         SRecTrack track = processOneTracklet(tracklet);
 
+        track.setZVertex(Z_TARGET, false);
+        track.setChisqTarget(track.getChisqVertex());
+
+        track.setZVertex(Z_DUMP, false);
+        track.setChisqDump(track.getChisqVertex());
+
+        track.setZVertex(Z_UPSTREAM+10., false);
+        track.setChisqUpstream(track.getChisqVertex());
+
         track.setZVertex(track.getZVertex(), true);
+
         if(!track.isValid()) return false;
     }
 #endif

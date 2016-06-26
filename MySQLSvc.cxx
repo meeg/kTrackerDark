@@ -929,6 +929,7 @@ std::string MySQLSvc::getTableDefinition(const TString tableType) const
                "chisq_target     DOUBLE, "
                "chisq_dump       DOUBLE, "
                "chisq_upstream   DOUBLE, "
+               "kmstatus    SMALLINT,"
                "PRIMARY KEY(trackID), "
                "INDEX(eventID), "
                "INDEX(spillID)";
@@ -1083,6 +1084,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
 
     int charge;
     int roadID;
+    int kmstatus;
     int numHits, numHitsSt1, numHitsSt2, numHitsSt3, numHitsSt4H, numHitsSt4V;
     double chisq, chisq_target, chisq_dump, chisq_upstream;
 
@@ -1101,6 +1103,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     //Track related
     charge = recTrack->getCharge();
     roadID = recTrack->getTriggerRoad();
+    kmstatus = recTrack->isKalmanFitted();
     numHits = recTrack->getNHits();
     numHitsSt1 = recTrack->getNHitsInStation(1);
     numHitsSt2 = recTrack->getNHitsInStation(2);
@@ -1140,7 +1143,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
                               "x1,y1,z1,px1,py1,pz1,"
                               "x3,y3,z3,px3,py3,pz3,"
                               "thbend,tx_PT,ty_PT,"
-                              "chisq_target,chisq_dump,chisq_upstream) VALUES");
+                              "chisq_target,chisq_dump,chisq_upstream,kmstatus) VALUES");
     }
 
     TString insertQuery = Form(" (%d,%d,%d,%d,%d,%d,", trackID, runID, spillID, eventIDs_loaded.back(), charge, roadID);
@@ -1151,7 +1154,7 @@ void MySQLSvc::writeTrackTable(int trackID, SRecTrack* recTrack, TString bakSuff
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x1, y1, Z_ST1, px1, py1, pz1);
     insertQuery += Form("%f,%f,%f,%f,%f,%f,", x3, y3, Z_ST3, px3, py3, pz3);
     insertQuery += Form("%f,%f,%f,", atan(px3/pz3)-atan(px1/pz1), tx_prop, ty_prop);
-    insertQuery += Form("%f,%f,%f),", chisq_target, chisq_dump, chisq_upstream);
+    insertQuery += Form("%f,%f,%f,%d),", chisq_target, chisq_dump, chisq_upstream, kmstatus);
     if(!insertQuery.Contains("nan")) trackQuery += insertQuery;
 
     if(trackQuery.Length() > MaxQueryLen) commitInsertion(trackQuery);
@@ -1190,14 +1193,14 @@ void MySQLSvc::writeTrackHitTable(int trackID, Tracklet* tracklet)
     for(int i = 0; i < 4; ++i)
     {
         SignedHit hit1 = tracklet->seg_x.hits[i];
-        if(hit1.hit.detectorID > 0)
+        if(hit1.hit.index > 0)
         {
             hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, hit1.hit.index, hit1.sign, 0.);
             hitQuery += Form("%f,'%s',%d,%f),", hit1.hit.tdcTime, p_geomSvc->getDetectorName(hit1.hit.detectorID).c_str(), hit1.hit.elementID, hit1.hit.driftDistance);
         }
 
         SignedHit hit2 = tracklet->seg_y.hits[i];
-        if(hit2.hit.detectorID > 0)
+        if(hit2.hit.index > 0)
         {
             hitQuery += Form(" (%d,%d,%d,%d,%d,%d,%f,", runID, spillID, eventIDs_loaded.back(), trackID, hit2.hit.index, hit2.sign, 0.);
             hitQuery += Form("%f,'%s',%d,%f),", hit2.hit.tdcTime, p_geomSvc->getDetectorName(hit2.hit.detectorID).c_str(), hit2.hit.elementID, hit2.hit.driftDistance);

@@ -252,7 +252,23 @@ bool SRecTrack::isValid()
     //Total chisq, may change to cut on prob
     if(getChisq()/(nHits - 5) > 10.) return false;
 
+    //Check the px polarity
+    if(FMAGSTR*getCharge()*fVertexMom.Px() < 0) return false;
+
+    //Check source
+    if(!(isTarget() || isDump())) return false;
+
     return true;
+}
+
+bool SRecTrack::isTarget()
+{
+    return (fVertexPos.Z() > -300 && fVertexPos.Z() < 0. && fChisqDump - fChisqTarget > 10.);
+}
+
+bool SRecTrack::isDump()
+{
+    return (fVertexPos.Z() > 0. && fVertexPos.Z() < 150. && fChisqTarget - fChisqDump > 10.);
 }
 
 void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
