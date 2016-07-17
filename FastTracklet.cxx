@@ -408,7 +408,7 @@ void PropSegment::linearFit_iterative()
 const GeomSvc* Tracklet::p_geomSvc = GeomSvc::instance();
 const bool Tracklet::kmag_on = JobOptsSvc::instance()->m_enableKMag;
 
-Tracklet::Tracklet() : stationID(-1), nXHits(0), nUHits(0), nVHits(0), chisq(9999.), tx(0.), ty(0.), x0(0.), y0(0.), invP(0.02), err_tx(-1.), err_ty(-1.), err_x0(-1.), err_y0(-1.), err_invP(-1.)
+Tracklet::Tracklet() : stationID(-1), nXHits(0), nUHits(0), nVHits(0), chisq(9999.), chisq_vtx(9999.), tx(0.), ty(0.), x0(0.), y0(0.), invP(0.1), err_tx(-1.), err_ty(-1.), err_x0(-1.), err_y0(-1.), err_invP(-1.)
 {
     for(int i = 0; i < 24; i++) residual[i] = 999.;
 }
@@ -430,7 +430,7 @@ bool Tracklet::isValid()
     {
         if(nXHits < 1 || nUHits < 1 || nVHits < 1) return false;
         if(nHits < 4) return false;
-        if(chisq > 15.) return false;
+        if(chisq > 40.) return false; //an absolute upper limit
     }
     else
     {
@@ -484,6 +484,14 @@ double Tracklet::getProb() const
     }
 
     return TMath::Prob(chisq, ndf);
+}
+
+double Tracklet::getMomProb() const
+{
+    double weights[40] = {0, 0, 3.1292e-05, 0.00203877, 0.0147764, 0.0417885, 0.08536, 0.152212, 0.250242, 0.322011, 0.327125, 0.275443, 0.220316, 0.189932, 0.162112, 0.131674, 0.100102, 0.0736696, 0.0510353, 0.0364215, 0.0233914, 0.0152907, 0.00992716, 0.00601322, 0.00382757, 0.00239005, 0.00137169, 0.000768309, 0.000413311, 0.00019659, 8.31216e-05, 2.77721e-05, 7.93826e-06, 7.45884e-07, 2.57648e-08, 0, 6.00088e-09, 0, 0, 0};
+    int index = int(1./invP/2.5);
+
+    return (index >= 0 && index < 40) ? (weights[index] < 1.E-5 ? 1.E-5 : weights[index]) : 1.E-5;
 }
 
 double Tracklet::getExpPositionX(double z) const
@@ -547,13 +555,20 @@ double Tracklet::getExpPositionW(int detectorID)
 bool Tracklet::operator<(const Tracklet& elem) const
 {
     //return nXHits + nUHits + nVHits - 0.4*chisq > elem.nXHits + elem.nUHits + elem.nVHits - 0.4*elem.chisq;
-    if(getNHits() == elem.getNHits())
+    if(stationID == 6 && kmag_on)
     {
-        return chisq < elem.chisq;
+        return chisq_vtx < elem.chisq_vtx;
     }
     else
     {
-        return getProb() > elem.getProb();
+        if(getNHits() == elem.getNHits())
+        {
+            return chisq < elem.chisq;
+        }
+        else
+        {
+            return getProb() > elem.getProb();
+        }
     }
 }
 

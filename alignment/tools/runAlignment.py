@@ -1,12 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
-import random
 import time
+import subprocess
+from datetime import datetime
+from optparse import OptionParser
+
+import GridUtil as GU
 
 def runCmd(cmd):
-    print cmd
+    print '>', cmd
     os.system(cmd)
 
 def checkOverflow(output):
@@ -21,110 +25,149 @@ def checkOverflow(output):
     return True
 
 def prepareConf(log_prev, conf, fudge = 1.):
-    print 'Generating configuration file for millepede according to '+log_prev, 'with fudge factor of '+str(fudge)
+    print 'Generating conf file for millepede according to', log_prev, 'with fudge factor of', fudge
 
     if os.path.isfile(conf):
-    	return
+        print 'Conf file exists, will continue'
+        return
 
-    # read previous log and decide whether to turn on/off a detector alignment
-    sigma = [[0.1, 0.005, 0.05] for i in range(24)]
+    sigma = [[0.5, 0.05, 0.005] for i in range(24)]
     if os.path.isfile(log_prev):
-        fin = open(log_prev, 'r')
-        lines = fin.readlines()
-        for index, line in enumerate(lines):
-            delta = float(line.strip().split()[3])
+        for index, line in enumerate(open(log_prev).readlines()):
+            delta = abs(float(line.strip().split()[3]))
+            if delta < sigma[index][2]:
+                factor = delta/sigma[index][2]
+                for i in range(3):
+                    sigma[index][i] = sigma[index][i]*factor
 
-            if abs(delta) < sigma[index][2]:
-            	factor = fudge*abs(delta)/sigma[index][2]
-            	for i in range(3):
-            		sigma[index][i] = sigma[index][i]*factor
-
-    # save the results
     fout = open(conf, 'w')
-    for index, oneline in enumerate(sigma):
-        fout.write('%d      %f       %f         %f\n' % (index+1, oneline[0], oneline[1], oneline[2]))
+    for index, line in enumerate(sigma):
+        fout.write('%d      %f       %f         %f\n' % (index+1, fudge*line[0], fudge*line[1], fudge*line[2]))
     fout.close()
 
-## command line control
-runID = sys.argv[1]
-nCycle = int(sys.argv[2])
-if len(sys.argv) > 3:
-    offset = int(sys.argv[3])
-else:
-    offset = 1
-skipTracking = (len(sys.argv) > 4)
 
-## Key performance knob
-nEvtMax = 600000
-nJobs = 8
+# parse all the commandline controls
+parser = OptionParser('Usage: %prog [options]')
+parser.add_option('-r', type = 'int', dest = 'run', help = 'runID used for alignment', default = 0)
+parser.add_option('-c', type = 'string', dest = 'config', help = 'I/O configuration file for tracking', default = '')
+parser.add_option('-n', type = 'int', dest = 'nIter', help = 'number of iterations to run', default = 10)
+parser.add_option('-i', type = 'int', dest = 'initial', help = 'initial iteration number', default = 1)
+parser.add_option('-s', type = 'int', dest = 'split', help = 'maximum number of events per job', default = 5000)
+parser.add_option('-t', type = 'int', dest = 'timeout', help = 'timeout option', default = 1000)
+parser.add_option('-w', type = 'string', dest = 'work', help = 'working directory of the outputs', default = '')
+parser.add_option('-e', type = 'string', dest = 'email', help = 'email notification when done', default = '')
+parser.add_option('--cali', action = 'store_true', dest = 'cali', help = 'enable chamber calibration', default = False)
+parser.add_option('--hodo', action = 'store_true', dest = 'hodo', help = 'enable hodoscope alignment', default = False)
+parser.add_option('--prop', action = 'store_true', dest = 'prop', help = 'enable prop tube alignment', default = False)
+parser.add_option('--debug', action = 'store_true', dest = 'debug', help = 'enable massive debugging output', default = False)
+(options, args) = parser.parse_args()
+print options
 
-for i in range(offset, nCycle+1):
-    print 'Working on the '+str(i)+'th optimization cycle ... '
+if len(sys.argv) < 2:
+    parser.parse_args(['--help'])
 
-    # define the file names and apply the current alignment parameters
-    rawFile = 'run_'+runID+'_raw.root'
-    alignFile = 'run_'+runID+'_align_'+str(i)+'.root'
-    recFile_initial = 'rec_'+runID+'_align_'+str(i)
+# initialize grid credetial
+GU.gridInit()
 
-    if not skipTracking:
-        runCmd('./update ac '+rawFile+' '+alignFile)
+# prepare the optimized submission sizes
+rawFile = 'run_%d_raw.root' % options.run
+optSizes = GU.getOptimizedSize(rawFile, options.split, 500)
+nJobs = len(optSizes)
+if nJobs < 1:
+    sys.exit()
 
-    # divide the task to nJobs jobs and submit them all to background
-    nEvents_single = nEvtMax/nJobs
-    for j in range(nJobs):
-    	if not skipTracking:
-            runCmd('./kFastTracking %s %s_%02d.root %d %d > log_%s_%d &' % (alignFile, recFile_initial, j+1, nEvents_single, j*nEvents_single, runID, j+1))
+conf = GU.JobConfig(options.config)
+for i in range(options.initial, options.nIter+1):
+    print 'Working on alignment cycle', i
 
-    # check if all jobs are done running
-    nMinutes = 0
-    while int(os.popen('pgrep -u %s -g %d kFastTracking | wc -l' % (os.environ['USER'], os.getpgrp())).read().strip()) != 0:
-        nMinutes = nMinutes+1
-        sys.stdout.write('\r'+str(nMinutes)+' minutes passed and tracking is not finished, wait for another 1 minute ...')
-        sys.stdout.flush()
+    # build the raw file
+    inputFile = 'run_%d_align_%d.root' % (options.run, i)
+    runCmd('./update ac %s %s' % (rawFile, inputFile))
+
+    # submit the tracking jobs
+    inputFile = os.path.abspath(inputFile)
+    cmds = []
+    for tag, item in enumerate(optSizes):
+        cmd = GU.makeCommand('track', options.run, conf, firstEvent = item[0], nEvents = item[1], outtag = str(tag), infile = inputFile)
+        cmds.append(cmd)
+    GU.submitAllJobs(cmds)
+
+    # wait for it to finish
+    time.sleep(300)
+    nMinutes = 5
+    nSuccess = 0
+    while nSuccess != nJobs:
+        nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(conf, 'track', options.run)
+        print ' --- Tracking status: ', options.run, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
+
+        nSuccess = nFinishedJobs - len(failedOpts)
+        failedJobs = []
+        for opt in failedOpts:
+            failedJobs.append(GU.makeCommandFromOpts('track', opt, conf) + ' --input='+inputFile)
+        GU.submitAllJobs(failedJobs)
+
+        if nMinutes > options.timeout and float(nSuccess)/float(nJobs) > 0.8:
+            break
+
         time.sleep(60)
-    sys.stdout.write('\n')
+        nMinutes = nMinutes + 1
 
     # combine the outputs
-    if not skipTracking:
-        runCmd('hadd '+recFile_initial+'.root '+recFile_initial+'_*.root')
+    outputFile = 'rec_%d_align_%d.root' % (options.run, i)
+    tempFiles = [os.path.join(conf.outdir, 'track', GU.version, GU.getSubDir(options.run), 'track_%06d_%s_%d.root' % (options.run, GU.version, tag)) for tag in range(nJobs)]
+    if not GU.mergeFiles(outputFile, tempFiles, True):
+        print 'Merging failed!'
+        break
+    for tempFile in tempFiles:
+        os.remove(tempFile)
 
-    # clean up space
-    runCmd('rm log_'+str(runID)+'_*')
-    runCmd('rm '+recFile_initial+'_*.root')
-    runCmd('rm '+alignFile)
-
-    # reset the skip tracking flag so it's only effective in the first cycle
-    skipTracking = False
-
-    # chamber alignment based on millepede
+    # chamber alignment
     nTry = 1
     while nTry < 20:
-        prepareConf('increament.log_'+str(i-1), 'mille.conf', nTry)
-        runCmd('./milleAlign '+recFile_initial+'.root align_mille_'+str(i)+'.txt increament.log_'+str(i)+' > log_mille_'+str(i))
-        if checkOverflow('increament.log_'+str(i)):
+        prepareConf('%s/increase.log_%d' % (options.work, i-1), 'mille.conf', nTry)
+        runCmd('./milleAlign %s align_mille_%d.txt increase.log_%d > log_mille_%d' % (outputFile, i, i, i))
+        if checkOverflow('increase.log_%d' % i):
             break
         runCmd('rm mille.conf')
         nTry = nTry + 1
 
-    if not checkOverflow('increament.log_'+str(i)):
-        sys.exit()
-    runCmd('mv align_eval.root align_eval_'+str(i)+'.root')
-    runCmd('cp align_mille_'+str(i)+'.txt alignment/run4/align_mille.txt')
-    runCmd('mv mille.conf mille.conf_'+str(i)+'_'+str(nTry))
-
-    # hodoscope alignment
-    #runCmd('./hodoAlign '+recFile_initial+'.root alignment_hodo_'+str(i)+'.txt')
-    #runCmd('mv hodo_eval.root hodo_eval_'+str(i)+'.root')
-    #runCmd('cp alignment_hodo_'+str(i)+'.txt alignment_hodo.txt')
-
-    # prop. tube alignment
-    #for j in range(10):
-    #	runCmd('./propAlign '+recFile_initial+'.root alignment_prop_temp.txt')
-    #	runCmd('mv alignment_prop_temp.txt alignment_prop.txt')
-    #runCmd('mv prop_eval.root prop_eval_'+str(i)+'.root')
-    #runCmd('cp alignment_prop.txt alignment_prop_'+str(i)+'.txt')
+    if not checkOverflow('increase.log_%d' % i):
+        break
+    runCmd('mv align_eval.root %s/align_eval_%d.root' % (options.work, i))
+    runCmd('cp align_mille_%d.txt %s' % (i, options.work))
+    runCmd('mv align_mille_%d.txt alignment/align_mille.txt' % i)
+    runCmd('mv increase.log_%d %s' % (i, options.work))
+    runCmd('mv mille.conf %s/mille.conf_%d_%d' % (options.work, i, nTry))
+    runCmd('mv log_mille_%d %s' % (i, options.work))
+    runCmd('rm %s' % inputFile)
 
     # chamber calibration
-    #runCmd('./makeRTProfile '+recFile_initial+'.root calibration_'+str(i)+'.txt')
-    #runCmd('mv cali_eval.root cali_eval_'+str(i)+'.root')
-    #runCmd('cp calibration_'+str(i)+'.txt calibration.txt')
+    if options.cali:
+        runCmd('./makeRTv7 %d %d %s > %s/log_calibration_%d' % (options.run, i, outputFile, options.work, i))
+        runCmd('cp param_calib/calibration_%d.txt %s' % (i, options.work))
+        runCmd('mv param_calib/calibration_%d.txt alignment/calibration.txt' % i)
+        runCmd('mv plot/* %s' % options.work)
+
+    # hodo alignment
+    if options.hodo:
+        for m in range(10):
+            runCmd('./hodoAlign %s alignment_hodo_%d.txt' % (outputFile, i))
+            runCmd('cp alignment_hodo_%d.txt alignment/alignment_hodo.txt' % i)
+        runCmd('mv hodo_eval.root %s/hodo_eval_%d.root' % (options.work, i))
+        runCmd('mv alignment_hodo_%d.txt %s' % (i, options.work))
+
+    # prop alignment
+    if options.prop:
+        for m in range(10):
+            runCmd('./propAlign %s alignment_prop_%d.txt' % (outputFile, i))
+            runCmd('cp alignment_prop_%d.txt alignment/alignment_prop.txt' % i)
+        runCmd('mv prop_eval.root %s/prop_eval_%d.root' % (options.work, i))
+        runCmd('mv alignment_prop_%d.txt %s' % (i, options.work))
+
+    # final clean up
+    runCmd('rm -r %s/*' % conf.outdir)
+    runCmd('mv %s %s' % (outputFile, options.work))
+
+GU.stopGridGuard()
+if '@' in options.email:
+    runCmd('echo "%s" | mail -s "%s" %s' % (' '.join(sys.argv), 'Completed!', options.email))

@@ -125,6 +125,9 @@ public:
     //Get the probabilities
     double getProb() const;
 
+    //Get the momentum probabilities
+    double getMomProb() const;
+
     //Get the chi square
     double getChisq() const { return chisq; }
 
@@ -188,6 +191,9 @@ public:
     //Chi square
     double chisq;
 
+    //chisq at vertex
+    double chisq_vtx;
+
     //List of signed hits
     std::list<SignedHit> hits;
 
@@ -217,7 +223,7 @@ public:
     //static flag of kmag on/off
     static const bool kmag_on;
 
-    ClassDef(Tracklet, 3)
+    ClassDef(Tracklet, 4)
 };
 
 

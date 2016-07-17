@@ -1128,6 +1128,8 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
     if(tracklet.stationID == 6)
     {
         SRecTrack track = processOneTracklet(tracklet);
+        tracklet.chisq_vtx = track.getChisqVertex();
+        
         if(!track.isValid()) return false;
     }
 #endif
