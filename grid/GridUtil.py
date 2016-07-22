@@ -36,7 +36,7 @@ class JobConfig:
 
             vals = [val.strip() for val in line.strip().split('=')]
             if len(vals) == 2:
-                self.attr[vals[0]] = vals[1]
+                self.attr[vals[0]] = vals[1].replace('-eq-', '=')
             elif len(vals) == 1 and len(vals[0]) > 0:
                 self.switch.append(vals[0])
             else:
