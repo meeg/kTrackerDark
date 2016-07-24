@@ -342,6 +342,7 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
 #ifndef ALIGNMENT_MODE
     buildPropSegments();
+    /*
     if(propSegs[0].empty() || propSegs[1].empty())
     {
 #ifdef _DEBUG_ON
@@ -349,6 +350,7 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 #endif
         return TFEXIT_FAIL_ROUGH_MUONID;
     }
+    */
 #endif
 
     //Build tracklets in station 2, 3+, 3-
@@ -559,7 +561,7 @@ void KalmanFastTracking::buildBackPartialTracks()
             tracklet_23.print();
 #endif
             fitTracklet(tracklet_23);
-            if(tracklet_23.chisq > 8000.)
+            if(tracklet_23.chisq > 9000.)
             {
 #ifdef _DEBUG_ON
                 tracklet_23.print();
@@ -577,12 +579,11 @@ void KalmanFastTracking::buildBackPartialTracks()
             }
 
 #ifndef COARSE_MODE
-            resolveLeftRight(tracklet_23, 50.);
-            resolveLeftRight(tracklet_23, 200.);
+            resolveLeftRight(tracklet_23, 40.);
+            resolveLeftRight(tracklet_23, 150.);
 #endif
             ///Remove bad hits if needed
             removeBadHits(tracklet_23);
-
 
 #ifdef _DEBUG_ON
             LogInfo("New tracklet: ");
@@ -639,7 +640,7 @@ void KalmanFastTracking::buildGlobalTracks()
         trackletsInSt[0].clear();
         buildTrackletsInStation(1, pos_exp, window);
 
-        Tracklet tracklet_best;
+        Tracklet tracklet_best_vtx, tracklet_best_prob;
         for(std::list<Tracklet>::iterator tracklet1 = trackletsInSt[0].begin(); tracklet1 != trackletsInSt[0].end(); ++tracklet1)
         {
 #ifdef _DEBUG_ON
@@ -653,39 +654,67 @@ void KalmanFastTracking::buildGlobalTracks()
 
 #ifndef COARSE_MODE
             ///Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
-            resolveLeftRight(tracklet_global, 100.);
-            resolveLeftRight(tracklet_global, 200.);
+            resolveLeftRight(tracklet_global, 75.);
+            resolveLeftRight(tracklet_global, 150.);
             resolveSingleLeftRight(tracklet_global);
 #endif
             ///Remove bad hits if needed
             removeBadHits(tracklet_global);
 
+            //Most basic cuts
+            if(!acceptTracklet(tracklet_global)) continue;
+
+#ifndef ALIGNMENT_MODE
+            ///Set vertex information
+            SRecTrack recTrack = processOneTracklet(tracklet_global);
+            tracklet_global.chisq_vtx = recTrack.getChisqVertex();
+#endif
+
 #ifdef _DEBUG_ON
             LogInfo("New tracklet: ");
             tracklet_global.print();
 
-            LogInfo("Current best:");
-            tracklet_best.print();
+            LogInfo("Current best by prob:");
+            tracklet_best_prob.print();
 
-            LogInfo("Comparison: " << (tracklet_global < tracklet_best));
-            LogInfo("Quality   : " << acceptTracklet(tracklet_global));
+            LogInfo("Comparison I: " << (tracklet_global < tracklet_best_prob));
+            LogInfo("Quality I   : " << acceptTracklet(tracklet_global));
+
+#ifndef ALIGNMENT_MODE
+            LogInfo("Current best by vtx:");
+            tracklet_best_vtx.print();
+
+            LogInfo("Comparison II: " << (tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx));
+            LogInfo("Quality II   : " << recTrack.isValid());
 #endif
-            if(acceptTracklet(tracklet_global) && tracklet_global < tracklet_best)
+#endif
+
+            if(tracklet_global < tracklet_best_prob)
             {
-#ifdef _DEBUG_ON
-                LogInfo("Accepted!!!");
-#endif
-                tracklet_best = tracklet_global;
+                tracklet_best_prob = tracklet_global;
             }
-#ifdef _DEBUG_ON
-            else
+
+#ifndef ALIGNMENT_MODE
+            if(recTrack.isValid() && tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx)
             {
-                LogInfo("Rejected!!!");
+                tracklet_best_vtx = tracklet_global;
             }
 #endif
         }
 
-        if(tracklet_best.isValid()) trackletsInSt[4].push_back(tracklet_best);
+        //The selection logic is, prefer the tracks with best p-value, as long as it's not low-pz
+        if(tracklet_best_prob.isValid() && 1./tracklet_best_prob.invP > 18.)
+        {
+            trackletsInSt[4].push_back(tracklet_best_prob);
+        }
+        else if(tracklet_best_vtx.isValid()) //otherwise select the one with best vertex
+        {
+            trackletsInSt[4].push_back(tracklet_best_vtx);
+        }
+        else if(tracklet_best_prob.isValid()) //then fall back to the default only choice
+        {
+            trackletsInSt[4].push_back(tracklet_best_prob);
+        }
     }
 
     trackletsInSt[4].sort();
@@ -827,6 +856,9 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 #endif
 
     //Check if the track has beed updated
+    int signflipflag[24];
+    for(int i = 0; i < 24; ++i) signflipflag[i] = 0;
+
     bool isUpdated = true;
     while(isUpdated)
     {
@@ -835,16 +867,18 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 
         SignedHit* hit_remove = NULL;
         SignedHit* hit_neighbour = NULL;
-        double res_remove = -1.;
+        double res_remove1 = -1.;
+        double res_remove2 = -1.;
         for(std::list<SignedHit>::iterator hit_sign = tracklet.hits.begin(); hit_sign != tracklet.hits.end(); ++hit_sign)
         {
             if(hit_sign->hit.index < 0) continue;
 
             int detectorID = hit_sign->hit.detectorID;
             double res_curr = fabs(tracklet.residual[detectorID-1]);
-            if(res_remove < res_curr)
+            if(res_remove1 < res_curr)
             {
-                res_remove = res_curr;
+                res_remove1 = res_curr;
+                res_remove2 = fabs(tracklet.residual[detectorID-1] - 2.*hit_sign->sign*hit_sign->hit.driftDistance);
                 hit_remove = &(*hit_sign);
 
                 std::list<SignedHit>::iterator iter = hit_sign;
@@ -852,41 +886,55 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
             }
         }
         if(hit_remove == NULL) continue;
+        if(hit_remove->sign == 0 && tracklet.isValid()) continue;  //if sign is undecided, and chisq is OKay, then pass
 
         double cut = hit_remove->sign == 0 ? hit_remove->hit.driftDistance + resol_plane[hit_remove->hit.detectorID] : resol_plane[hit_remove->hit.detectorID];
-        if(res_remove > cut)
+        if(res_remove1 > cut)
         {
 #ifdef _DEBUG_ON
-            LogInfo("Dropping this hit: " << res_remove << "  " << HIT_REJECT*resol_plane[hit_remove->hit.detectorID]);
+            LogInfo("Dropping this hit: " << res_remove1 << "  " << res_remove2 << "   " << signflipflag[hit_remove->hit.detectorID-1] << "  " << cut);
             hit_remove->hit.print();
             hit_neighbour->hit.print();
 #endif
 
-            //Set the index of the hit to be removed to -1 so it's not used anymore
-            //also set the sign assignment of the neighbour hit to 0 (i.e. undecided)
-            hit_remove->hit.index = -1;
-            hit_neighbour->sign = 0;
-            int planeType = p_geomSvc->getPlaneType(hit_remove->hit.detectorID);
-            if(planeType == 1)
+            //can only be changed less than twice
+            if(res_remove2 < cut && signflipflag[hit_remove->hit.detectorID-1] < 2)
             {
-                --tracklet.nXHits;
-            }
-            else if(planeType == 2)
-            {
-                --tracklet.nUHits;
+                hit_remove->sign = -hit_remove->sign;
+                hit_neighbour->sign = 0;
+                ++signflipflag[hit_remove->hit.detectorID-1];
+#ifdef _DEBUG_ON
+                LogInfo("Only changing the sign.");
+#endif
             }
             else
             {
-                --tracklet.nVHits;
-            }
+                //Set the index of the hit to be removed to -1 so it's not used anymore
+                //also set the sign assignment of the neighbour hit to 0 (i.e. undecided)
+                hit_remove->hit.index = -1;
+                hit_neighbour->sign = 0;
+                int planeType = p_geomSvc->getPlaneType(hit_remove->hit.detectorID);
+                if(planeType == 1)
+                {
+                    --tracklet.nXHits;
+                }
+                else if(planeType == 2)
+                {
+                    --tracklet.nUHits;
+                }
+                else
+                {
+                    --tracklet.nVHits;
+                }
 
-            //If both hit pairs are not included, the track can be rejected
-            if(hit_neighbour->hit.index < 0)
-            {
+                //If both hit pairs are not included, the track can be rejected
+                if(hit_neighbour->hit.index < 0)
+                {
 #ifdef _DEBUG_ON
-                LogInfo("Both hits in a view are missing! Will exit the bad hit removal...");
+                    LogInfo("Both hits in a view are missing! Will exit the bad hit removal...");
 #endif
-                return;
+                    return;
+                }
             }
             isUpdated = true;
         }
@@ -1123,17 +1171,6 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
 #endif
     }
 
-#ifndef ALIGNMENT_MODE
-    //For global tracks, require futher cuts
-    if(tracklet.stationID == 6)
-    {
-        SRecTrack track = processOneTracklet(tracklet);
-        tracklet.chisq_vtx = track.getChisqVertex();
-        
-        if(!track.isValid()) return false;
-    }
-#endif
-
     //If everything is fine ...
     return true;
 }
@@ -1154,7 +1191,7 @@ bool KalmanFastTracking::hodoMask(Tracklet& tracklet)
             int idx2 = elementID - 1;
 
             double factor = tracklet.stationID == 2 ? 5. : 3.;
-            double xfudge = tracklet.stationID < 4 ? 0.5*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]) : 0.;
+            double xfudge = tracklet.stationID < 4 ? 0.5*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]) : 0.15*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]);
             double z_hodo = z_mask[idx1];
             double x_hodo = tracklet.getExpPositionX(z_hodo);
             double y_hodo = tracklet.getExpPositionY(z_hodo);

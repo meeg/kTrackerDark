@@ -555,20 +555,13 @@ double Tracklet::getExpPositionW(int detectorID)
 bool Tracklet::operator<(const Tracklet& elem) const
 {
     //return nXHits + nUHits + nVHits - 0.4*chisq > elem.nXHits + elem.nUHits + elem.nVHits - 0.4*elem.chisq;
-    if(stationID == 6 && kmag_on)
+    if(getNHits() == elem.getNHits())
     {
-        return chisq_vtx < elem.chisq_vtx;
+        return chisq < elem.chisq;
     }
     else
     {
-        if(getNHits() == elem.getNHits())
-        {
-            return chisq < elem.chisq;
-        }
-        else
-        {
-            return getProb() > elem.getProb();
-        }
+        return getProb() > elem.getProb();
     }
 }
 

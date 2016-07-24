@@ -80,7 +80,7 @@
 
 #define ST1_REJECT 0.13
 #define ST2_REJECT 0.18
-#define ST3_REJECT 0.15
+#define ST3_REJECT 0.16
 
 //-------------- Coarse swim setup --------------
 #define FMAG_HOLE_LENGTH 27.94
