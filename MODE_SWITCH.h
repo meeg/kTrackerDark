@@ -34,7 +34,7 @@
 #define INVP_MIN 0.01
 #define INVP_MAX 0.2
 #define PROB_LOOSE 0.0
-#define PROB_TIGHT 1E-11
+#define PROB_TIGHT 1E-12
 #define HIT_REJECT 3.
 
 #define SAGITTA_TARGET_CENTER 1.85

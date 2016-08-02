@@ -1244,7 +1244,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
     for(int i = 0; i < 2; ++i)
     {
         //this shorting circuting can only be done to X-Z, Y-Z needs more complicated thing
-        if(i == 0 && segs[i]->getNHits() > 2 && segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
+        //if(i == 0 && segs[i]->getNHits() > 2 && segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut) continue;
 
         segs[i]->init();
         for(int j = 0; j < 4; ++j)
@@ -1283,7 +1283,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
         segs[i]->fit();
 
         //this shorting circuting can only be done to X-Z, Y-Z needs more complicated thing
-        if(i == 0 && !(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
+        //if(i == 0 && !(segs[i]->isValid() && fabs(slope[i] - segs[i]->a) < cut)) return false;
     }
 
     muonID_hodoAid(tracklet);

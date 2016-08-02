@@ -264,15 +264,10 @@ bool SRecTrack::isValid()
     if(fTriggerID == 0) return false;
 
     //Total chisq, may change to cut on prob
-    if(getChisq()/(nHits - 5) > 10.) return false;
+    if(getChisq()/(nHits - 5) > 15.) return false;
 
     //Check the px polarity
     if(FMAGSTR*getCharge()*fVertexMom.Px() < 0) return false;
-
-#ifdef _ENABLE_KF
-    //Check source
-    if(!(isTarget() || isDump())) return false;
-#endif
 
     return true;
 }

@@ -311,6 +311,7 @@ void PropSegment::linearFit_simple()
         sxy += (x[i]*y[i]);
     }
 
+    /*
     for(int i = 0; i < nHodoHits; ++i)
     {
         int idx = i + 4;
@@ -324,6 +325,7 @@ void PropSegment::linearFit_simple()
         syy += (y[idx]*y[idx]);
         sxy += (x[idx]*y[idx]);
     }
+    */
 
     double det = sum*sxx - sx*sx;
     if(fabs(det) < 1E-20) return;
