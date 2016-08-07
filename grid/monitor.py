@@ -184,7 +184,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
 
     # upload the finished jobs
     nUploaderCycles = 0
-    maxCycles = 999999 if len(vertexedRuns) < len(runIDs) else 10
+    maxCycles = 10 if len(vertexedRuns) < len(runIDs) else 999999
     while len(uploadedRuns) < len(vertexedRuns) and nUploaderCycles < maxCycles:
         toBeUploadedRuns = [runID for runID in vertexedRuns if runID not in uploadedRuns]
 
