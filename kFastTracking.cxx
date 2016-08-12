@@ -12,6 +12,7 @@
 #include <TLorentzVector.h>
 #include <TClonesArray.h>
 #include <TStopwatch.h>
+#include <TTimeStamp.h>
 #include <TString.h>
 
 #include "GeomSvc.h"
@@ -27,7 +28,7 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     //Initialization
     TString optfile;
@@ -112,11 +113,12 @@ int main(int argc, char *argv[])
     EventReducer* eventReducer = new EventReducer(opt);
 
     TStopwatch timer;
+    TTimeStamp ts;
 
     const int offset = startEvent;
     int nEvtMax = nEvents > 0 ? nEvents + offset : dataTree->GetEntries();
     if(nEvtMax > dataTree->GetEntries()) nEvtMax = dataTree->GetEntries();
-    LogInfo("Running from event " << offset << " through to event " << nEvtMax);
+    LogInfo(ts.AsString() << ": Running from event " << offset << " through to event " << nEvtMax);
 
     const int printFreq = (nEvtMax - offset)/100 > 1 ? (nEvtMax - offset)/100 : 1;
     for(int i = offset; i < nEvtMax; ++i)
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
         if(0 == i % printFreq)
         {
             timer.Stop();
-            cout << Form( "Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq ) << endl;
+            ts.Set(); cout << Form(ts.AsString() << ": Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq ) << endl;
             timer.Print();
             timer.Start();
         }
@@ -181,7 +183,7 @@ int main(int argc, char *argv[])
     }
     saveTree->AutoSave("SaveSelf");
     cout << endl;
-    cout << "kFastTracking ends successfully." << endl;
+    ts.Set(); cout << ts.AsString() << ": kFastTracking ends successfully." << endl;
 
     saveFile->cd();
     saveTree->Write();
