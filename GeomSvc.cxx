@@ -271,7 +271,7 @@ void GeomSvc::init()
     //Make query to Planes table
     char query[300];
     const char* buf_planes = "SELECT detectorName,spacing,cellWidth,overlap,numElements,angleFromVert,"
-                             "xPrimeOffset,x0,y0,z0,planeWidth,planeHeight,theta_x,theta_y,theta_z from %s.Planes WHERE"
+                             "xPrimeOffset,x0,y0,z0,planeWidth,planeHeight,theta_x,theta_y,theta_z,resolution from %s.Planes WHERE"
                              " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR "
                              "detectorName LIKE 'P____'";
     sprintf(query, buf_planes, p_jobOptsSvc->m_geomVersion.c_str());
@@ -296,6 +296,7 @@ void GeomSvc::init()
         planes[detectorID].thetaX = atof(row->GetField(12));
         planes[detectorID].thetaY = atof(row->GetField(13));
         planes[detectorID].thetaZ = atof(row->GetField(14));
+        planes[detectorID].resolution = atof(row->GetField(15));
 
         //Following items need to be sumed or averaged over all modules
         planes[detectorID].nElements += atoi(row->GetField(4));
@@ -344,6 +345,13 @@ void GeomSvc::init()
     }
     delete res;
 
+    //For chambers, rearrange the resolution number
+    for(int i = 1; i <= nChamberPlanes; i+=2)
+    {
+        planes[i].resolution = RESOLUTION_DC*0.5*(planes[i].resolution + planes[i+1].resolution);
+        planes[i+1].resolution = planes[i].resolution;
+    }
+
     //For prop. tube only, average over 9 modules
     for(int i = 41; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
     {
@@ -358,6 +366,7 @@ void GeomSvc::init()
     //load the initial value in the planeOffsets table
     if(p_jobOptsSvc->m_enableOnlineAlignment)
     {
+        loadMilleAlignment(p_jobOptsSvc->m_alignmentFileMille);    //final chance of overwrite resolution numbers in online mode
         const char* buf_offsets = "SELECT detectorName,deltaX,deltaY,deltaZ,rotateAboutZ FROM %s.PlaneOffsets WHERE"
                                   " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR detectorName LIKE 'P____'";
         sprintf(query, buf_offsets, p_jobOptsSvc->m_geomVersion.c_str());
@@ -385,7 +394,6 @@ void GeomSvc::init()
 
             planes[detectorID].update();
             planes[detectorID].deltaW = planes[detectorID].getW(planes[detectorID].deltaX, planes[detectorID].deltaY);
-            if(detectorID <= 24) planes[detectorID].resolution = RESOLUTION_DC;
 
             delete row;
         }

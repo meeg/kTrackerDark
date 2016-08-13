@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
         if(0 == i % printFreq)
         {
             timer.Stop();
-            ts.Set(); cout << Form(ts.AsString() << ": Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", rawEvent->getEventID(), fracDone, printFreq ) << endl;
+            ts.Set(); cout << Form("%s: Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", ts.AsString(), rawEvent->getEventID(), fracDone, printFreq) << endl;
             timer.Print();
             timer.Start();
         }
