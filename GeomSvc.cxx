@@ -344,13 +344,6 @@ void GeomSvc::init()
     }
     delete res;
 
-    //For chambers, rearrange the resolution number
-    for(int i = 1; i <= nChamberPlanes; i+=2)
-    {
-        planes[i].resolution = RESOLUTION_DC*0.5*(planes[i].resolution + planes[i+1].resolution);
-        planes[i+1].resolution = planes[i].resolution;
-    }
-
     //For prop. tube only, average over 9 modules
     for(int i = 41; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
     {
