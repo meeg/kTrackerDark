@@ -271,7 +271,7 @@ void GeomSvc::init()
     //Make query to Planes table
     char query[300];
     const char* buf_planes = "SELECT detectorName,spacing,cellWidth,overlap,numElements,angleFromVert,"
-                             "xPrimeOffset,x0,y0,z0,planeWidth,planeHeight,theta_x,theta_y,theta_z,resolution from %s.Planes WHERE"
+                             "xPrimeOffset,x0,y0,z0,planeWidth,planeHeight,theta_x,theta_y,theta_z from %s.Planes WHERE"
                              " detectorName LIKE 'D%%' OR detectorName LIKE 'H__' OR detectorName LIKE 'H____' OR "
                              "detectorName LIKE 'P____'";
     sprintf(query, buf_planes, p_jobOptsSvc->m_geomVersion.c_str());
@@ -296,7 +296,6 @@ void GeomSvc::init()
         planes[detectorID].thetaX = atof(row->GetField(12));
         planes[detectorID].thetaY = atof(row->GetField(13));
         planes[detectorID].thetaZ = atof(row->GetField(14));
-        planes[detectorID].resolution = atof(row->GetField(15));
 
         //Following items need to be sumed or averaged over all modules
         planes[detectorID].nElements += atoi(row->GetField(4));
