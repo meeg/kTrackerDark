@@ -1146,6 +1146,13 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
     {
         iter->addDummyHits();
     }
+
+    //Only retain the best 200 tracklets if exceeded
+    if(trackletsInSt[listID].size() > 200)
+    {
+        trackletsInSt[listID].sort();
+        trackletsInSt[listID].resize(200);
+    }
 }
 
 bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
