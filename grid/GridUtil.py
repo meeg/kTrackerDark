@@ -250,18 +250,23 @@ def getJobStatus(conf, jobType, runID):
     failedOpts = []
     for optfile in optfiles:
         logfile = os.path.join(conf.outdir, 'log', version, getSubDir(runID), '%s_%06d_%s' % (auxPrefix[jobType], runID, version))
+        outfile = os.path.join(conf.outdir, jobType, version, getSubDir(runID), '%s_%06d_%s' % (jobType, runID, version))
 
         outtag = re.findall(r'_(\d+).opts', optfile)
         if len(outtag) == 0:
             logfile = logfile + '.log'
+            outfile = outfile + '.root'
         else:
             logfile = logfile + '_%s.log' % outtag[0]
+            outfile = outfile + '_%s.root' % outtag[0]
 
         if not os.path.exists(logfile) or sum(1 for line in open(logfile)) < abs(checkpoint):
             continue
 
         nFinished = nFinished + 1
         if 'successfully' not in open(logfile).readlines()[checkpoint]:
+            failedOpts.append(optfile)
+        elif not os.path.exists(outfile):
             failedOpts.append(optfile)
 
     return (len(optfiles), nFinished, failedOpts)
