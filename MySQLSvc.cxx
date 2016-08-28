@@ -761,10 +761,10 @@ bool MySQLSvc::initBakWriter()
     outputServer->Exec(query);
 
     //prepare the main output tables
-    string tableNames[10] = {"kTrackMix", "kDimuonMix", "kTrackPP", "kDimuonPP",
-                            "kTrackMM", "kDimuonMM", "kTrackMixPP", "kDimuonMixPP",
-                            "kTrackMixMM", "kDimuonMixMM"};
-    for(int i = 0; i != 10; ++i)
+    string tableNames[13] = {"kEventMix", "kTrackMix", "kDimuonMix", "kTrackPP", "kDimuonPP",
+                            "kTrackMM", "kDimuonMM", "kEventMixPP", "kTrackMixPP", "kDimuonMixPP",
+                            "kEventMixMM", "kTrackMixMM", "kDimuonMixMM"};
+    for(int i = 0; i != 13; ++i)
     {
         const string& tableName = tableNames[i];
 
@@ -772,11 +772,11 @@ bool MySQLSvc::initBakWriter()
         if(!useSubsetTables)
         {
             sprintf(query, "DROP TABLE IF EXISTS %s", tableName.c_str() );
-            #ifndef OUT_TO_SCREEN
+#ifndef OUT_TO_SCREEN
             outputServer->Exec(query);
-            #else
+#else
             std::cout << __FUNCTION__ << ": " << query << std::endl;
-            #endif
+#endif
         }
 
         //2. get definition of table's fields and keys
@@ -1066,10 +1066,10 @@ void MySQLSvc::writeInfoTable(TTree* config)
 
 void MySQLSvc::writeEventTable(int eventID, int statusCode, int source1, int source2, TString tableSuffix)
 {
-    if(tableSuffix != "") return;
+    if(tableSuffix != "" || (!tableSuffix.Contains("Mix"))) return;
     if(eventQuery.Length() == 0)
     {
-        eventQuery = TString("INSERT INTO kEvent (runID,spillID,eventID,status,source1,source2) VALUES");
+        eventQuery = TString(Form("INSERT INTO kEvent%s (runID,spillID,eventID,status,source1,source2) VALUES", tableSuffix.Data()));
     }
 
     eventQuery += Form(" (%d,%d,%d,%d,%d,%d),", runID, spillID, eventID, statusCode, source1, source2);
