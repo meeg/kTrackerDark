@@ -1066,7 +1066,7 @@ void MySQLSvc::writeInfoTable(TTree* config)
 
 void MySQLSvc::writeEventTable(int eventID, int statusCode, int source1, int source2, TString tableSuffix)
 {
-    if(tableSuffix != "" || (!tableSuffix.Contains("Mix"))) return;
+    if(!(tableSuffix == "" || tableSuffix.Contains("Mix"))) return;
     if(eventQuery.Length() == 0)
     {
         eventQuery = TString(Form("INSERT INTO kEvent%s (runID,spillID,eventID,status,source1,source2) VALUES", tableSuffix.Data()));
