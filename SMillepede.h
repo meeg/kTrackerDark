@@ -24,6 +24,7 @@ Created: Apr. 29, 2013
 #include "SRecEvent.h"
 #include "SMillepedeUtil.h"
 #include "FastTracklet.h"
+#include "KalmanFastTracking.h"
 
 ///Interface for cross-compilation with fortran millepede program
 extern "C"
@@ -157,6 +158,9 @@ private:
     //Number of tracks and hits used
     int nTracks;
     int nHits[MILLEPEDE::NPLAN];
+
+    //Tracker used for track re-fitting
+    KalmanFastTracking* tracker;
 
     //Evaluation files and trees
     TFile* evalFile;
