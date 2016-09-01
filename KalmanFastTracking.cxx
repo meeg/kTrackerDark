@@ -664,7 +664,7 @@ void KalmanFastTracking::buildGlobalTracks()
             //Most basic cuts
             if(!acceptTracklet(tracklet_global)) continue;
 
-#ifndef ALIGNMENT_MODE
+#if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
             ///Set vertex information
             SRecTrack recTrack = processOneTracklet(tracklet_global);
             tracklet_global.chisq_vtx = recTrack.getChisqVertex();
@@ -680,7 +680,7 @@ void KalmanFastTracking::buildGlobalTracks()
             LogInfo("Comparison I: " << (tracklet_global < tracklet_best_prob));
             LogInfo("Quality I   : " << acceptTracklet(tracklet_global));
 
-#ifndef ALIGNMENT_MODE
+#if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
             LogInfo("Current best by vtx:");
             tracklet_best_vtx.print();
 
@@ -689,12 +689,13 @@ void KalmanFastTracking::buildGlobalTracks()
 #endif
 #endif
 
+
             if(tracklet_global < tracklet_best_prob)
             {
                 tracklet_best_prob = tracklet_global;
             }
 
-#ifndef ALIGNMENT_MODE
+#if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
             if(recTrack.isValid() && tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx)
             {
                 tracklet_best_vtx = tracklet_global;
@@ -702,6 +703,7 @@ void KalmanFastTracking::buildGlobalTracks()
 #endif
         }
 
+#if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
         //The selection logic is, prefer the tracks with best p-value, as long as it's not low-pz
         if(tracklet_best_prob.isValid() && 1./tracklet_best_prob.invP > 18.)
         {
@@ -715,6 +717,13 @@ void KalmanFastTracking::buildGlobalTracks()
         {
             trackletsInSt[4].push_back(tracklet_best_prob);
         }
+#else
+        if(tracklet_best_prob.isValid()) //then fall back to the default only choice
+        {
+            trackletsInSt[4].push_back(tracklet_best_prob);
+        }
+#endif
+
     }
 
     trackletsInSt[4].sort();
