@@ -16,27 +16,31 @@ def compile(filename):
 
     ## BOOST part
     if 'BOOST' in os.environ:
-      cflags = cflags + ' -I' + os.environ['BOOST']
+        cflags = cflags + ' -I' + os.environ['BOOST']
 
     ## MySQL part
     if 'MYSQL_INCLUDE' in os.environ:
-      cflags = cflags + ' -I' + os.environ['MYSQL_INCLUDE']
-      ldflags = ldflags + ' -lz -L'+os.environ['MYSQL_LIB'] + ' -lmysqlclient'
+        cflags = cflags + ' -I' + os.environ['MYSQL_INCLUDE']
+        ldflags = ldflags + ' -lz -L'+os.environ['MYSQL_LIB'] + ' -lmysqlclient'
     else:
-      cflags = cflags + ' ' + os.popen('mysql_config --include').readline().strip()
-      ldflags = ldflags + ' ' + os.popen('mysql_config --libs').readline().strip()
+        cflags = cflags + ' ' + os.popen('mysql_config --include').readline().strip()
+        ldflags = ldflags + ' ' + os.popen('mysql_config --libs').readline().strip()
 
     ## kTracker part
     ldflags = ldflags + ' -L$KTRACKER_LIB -lkTracker'
+
+    ## additional dst data
+    if os.path.exists('dst/libAnaUtil.so'):
+        os.system('cp dst/libAnaUtil.so $KTRACKER_LIB')
+        ldflags = ldflags + ' -lAnaUtil'
 
     os.system('g++ '+cflags+' -c '+filename+'.cxx')
     os.system('g++ -o '+filename+' '+filename+'.o '+ldflags)
     os.system('rm '+filename+'.o')
 
-
 #check usage
 if len(sys.argv) < 2:
-  sys.exit("USAGE: compile <source file>")
+    sys.exit("USAGE: compile <source file>")
 
 arg_filename = sys.argv[1]
 
