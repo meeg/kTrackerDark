@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
 
     //Retrieve the raw event
     SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
+    SRawEvent* orgEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
 
     TFile* dataFile = new TFile(inputFile.Data(), "READ");
     TTree* dataTree = (TTree *)dataFile->Get("save");
@@ -87,6 +88,7 @@ int main(int argc, char* argv[])
 
     TTree* saveTree = new TTree("save", "save");
     saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+    saveTree->Branch("orgEvent", &orgEvent, 256000, 99);
     saveTree->Branch("recEvent", &recEvent, 256000, 99);
     saveTree->Branch("time", &time, "time/D");
     saveTree->Branch("nTracklets", &nTracklets, "nTracklets/I");
@@ -136,6 +138,7 @@ int main(int argc, char* argv[])
 
         clock_t time_single = clock();
 
+        *orgEvent = *rawEvent;
         eventReducer->reduceEvent(rawEvent);
         recEvent->setRecStatus(fastfinder->setRawEvent(rawEvent));
 
@@ -173,13 +176,18 @@ int main(int argc, char* argv[])
 
         // sort the track list, and empty the large hit list in rawEvent if needed
         recEvent->reIndex();
-        if(!jobOptsSvc->m_attachRawEvent) rawEvent->empty();
+        if(!jobOptsSvc->m_attachRawEvent)
+        {
+            rawEvent->empty();
+            orgEvent->empty();
+        }
 
         saveTree->Fill();
         if(saveTree->GetEntries() % 1000 == 0) saveTree->AutoSave("SaveSelf");
 
         recEvent->clear();
         rawEvent->clear();
+        orgEvent->clear();
     }
     saveTree->AutoSave("SaveSelf");
     cout << endl;
