@@ -22,6 +22,7 @@ Created: 06-17-2015
 #include "GeomSvc.h"
 #include "SRawEvent.h"
 #include "TriggerAnalyzer.h"
+#include "JobOptsSvc.h"
 
 class EventReducer
 {
@@ -51,6 +52,9 @@ public:
 private:
     //pointer to geometry service, inited outside
     GeomSvc* p_geomSvc;
+
+    //Pointer to job options
+    JobOptsSvc* p_jobOptsSvc;
 
     //pointer to trigger analyzer, inited inside
     TriggerAnalyzer* p_triggerAna;

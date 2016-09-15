@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #include "EventReducer.h"
-#include "JobOptsSvc.h"
 
 EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), outoftime(false), decluster(false), mergehodo(false), triggermask(false), sagitta(false), hough(false), externalpar(false), realization(false), difnim(false)
 {
@@ -20,7 +19,8 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
     if(options.Contains("r")) realization = true;
     if(options.Contains("n")) difnim = true;
 
-    timeOffset = JobOptsSvc::instance()->m_timingOffset;
+    p_jobOptsSvc = JobOptsSvc::instance();
+    timeOffset = p_jobOptsSvc->m_timingOffset;
 
     //Screen output for all the methods enabled
     if(afterhit)      std::cout << "EventReducer: after-pulse removal enabled. " << std::endl;
@@ -65,7 +65,8 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
     //temporarily disable trigger road masking if this event is not fired by any MATRIX triggers
     bool triggermask_local = triggermask;
-    if(!(rawEvent->isTriggeredBy(SRawEvent::MATRIX1) || rawEvent->isTriggeredBy(SRawEvent::MATRIX2) || rawEvent->isTriggeredBy(SRawEvent::MATRIX3) || rawEvent->isTriggeredBy(SRawEvent::MATRIX4) || rawEvent->isTriggeredBy(SRawEvent::MATRIX5)))
+    if(!(JobOptsSvc::instance()->m_mcMode || rawEvent->isTriggeredBy(SRawEvent::MATRIX1) || rawEvent->isTriggeredBy(SRawEvent::MATRIX2) ||
+         rawEvent->isTriggeredBy(SRawEvent::MATRIX3) || rawEvent->isTriggeredBy(SRawEvent::MATRIX4) || rawEvent->isTriggeredBy(SRawEvent::MATRIX5)))
     {
         triggermask_local = false;
     }
