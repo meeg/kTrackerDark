@@ -25,6 +25,8 @@
 #include "EventReducer.h"
 #include "JobOptsSvc.h"
 
+#include "dst/DataStruct.h"
+
 using namespace std;
 typedef pair<int, int> eventPair;
 
@@ -41,7 +43,8 @@ void generateEventIDPairs(int nSig, int nBkg, vector<eventPair>& eventIDs)
         pool.insert(int(rndm.Rndm()*nMax));
     }
 
-    //prepare the event list
+    //prepare the event list, very important to keep everything in acsending order
+    //note std::set is automatically sorted
     eventIDs.clear();
     int index = 0;
     for(set<int>::iterator iter = pool.begin(); iter != pool.end(); ++iter)
@@ -71,6 +74,7 @@ int main(int argc, char *argv[])
     triggerAna->init();
     triggerAna->buildTriggerTree();
 
+    //Event pre-processor
     EventReducer* reducer1 = new EventReducer("r");  //for MC
     EventReducer* reducer2 = new EventReducer("e");  //for Bkg
 
@@ -86,12 +90,15 @@ int main(int argc, char *argv[])
     SRawEvent* bkgEvent = new SRawEvent();
     bkgTree->SetBranchAddress("rawEvent", &bkgEvent);
 
+    //generate a random set of eventID pairs
     vector<eventPair> eventIDs;
     generateEventIDPairs(mcTree->GetEntries(), bkgTree->GetEntries(), eventIDs);
 
+    //clean output
     TFile* saveFile1 = new TFile(argv[3], "recreate");
     TTree* saveTree1 = mcTree->CloneTree(0);
 
+    //messy output
     TFile* saveFile2 = new TFile(argv[4], "recreate");
     TTree* saveTree2 = new TTree("save", "save");
 
