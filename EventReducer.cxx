@@ -65,7 +65,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
     //temporarily disable trigger road masking if this event is not fired by any MATRIX triggers
     bool triggermask_local = triggermask;
-    if(!(JobOptsSvc::instance()->m_mcMode || rawEvent->isTriggeredBy(SRawEvent::MATRIX1) || rawEvent->isTriggeredBy(SRawEvent::MATRIX2) ||
+    if(!(p_jobOptsSvc->m_mcMode || rawEvent->isTriggeredBy(SRawEvent::MATRIX1) || rawEvent->isTriggeredBy(SRawEvent::MATRIX2) ||
          rawEvent->isTriggeredBy(SRawEvent::MATRIX3) || rawEvent->isTriggeredBy(SRawEvent::MATRIX4) || rawEvent->isTriggeredBy(SRawEvent::MATRIX5)))
     {
         triggermask_local = false;

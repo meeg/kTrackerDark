@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 {
     //Initialize job options
     JobOptsSvc* jobOptsSvc = JobOptsSvc::instance();
-    jobOptsSvc->init();
+    jobOptsSvc->init(argv[1]);
 
     GeomSvc* p_geomSvc = GeomSvc::instance();
     p_geomSvc->init();
@@ -78,13 +78,13 @@ int main(int argc, char *argv[])
     EventReducer* reducer1 = new EventReducer("r");  //for MC
     EventReducer* reducer2 = new EventReducer("e");  //for Bkg
 
-    TFile* mcFile = new TFile(argv[1], "READ");
+    TFile* mcFile = new TFile(argv[2], "READ");
     TTree* mcTree = (TTree*)mcFile->Get("save");
 
     SRawMCEvent* mcEvent = new SRawMCEvent();
     mcTree->SetBranchAddress("rawEvent", &mcEvent);
 
-    TFile* bkgFile = new TFile(argv[2], "READ");
+    TFile* bkgFile = new TFile(argv[3], "READ");
     TTree* bkgTree = (TTree*)bkgFile->Get("save");
 
     SRawEvent* bkgEvent = new SRawEvent();
@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
     generateEventIDPairs(mcTree->GetEntries(), bkgTree->GetEntries(), eventIDs);
 
     //clean output
-    TFile* saveFile1 = new TFile(argv[3], "recreate");
+    TFile* saveFile1 = new TFile(argv[4], "recreate");
     TTree* saveTree1 = mcTree->CloneTree(0);
 
     //messy output
-    TFile* saveFile2 = new TFile(argv[4], "recreate");
+    TFile* saveFile2 = new TFile(argv[5], "recreate");
     TTree* saveTree2 = new TTree("save", "save");
 
     SRawMCEvent* rawEvent = new SRawMCEvent();
