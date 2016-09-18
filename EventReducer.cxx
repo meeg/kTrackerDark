@@ -21,6 +21,8 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
 
     p_jobOptsSvc = JobOptsSvc::instance();
     timeOffset = p_jobOptsSvc->m_timingOffset;
+    chamEff = 0.94;
+    chamResol = 0.04;
 
     //Screen output for all the methods enabled
     if(afterhit)      std::cout << "EventReducer: after-pulse removal enabled. " << std::endl;
@@ -80,7 +82,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
         if(iter->detectorID <= 24)    //chamber hits
         {
-            if(realization && rndm.Rndm() > 0.94) continue;
+            if(realization && rndm.Rndm() > chamEff) continue;
             //if(hodomask && (!iter->isHodoMask())) continue;
             //if(triggermask && (!iter->isTriggerMask())) continue;
         }
@@ -97,7 +99,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
             //iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
         }
 
-        if(realization && iter->detectorID <= 24) iter->driftDistance += rndm.Gaus(0., 0.04);
+        if(realization && iter->detectorID <= 24) iter->driftDistance += rndm.Gaus(0., chamResol);
 
         if(iter->detectorID >= 25 && iter->detectorID <= 40)
         {

@@ -33,6 +33,10 @@ public:
     //main external call
     int reduceEvent(SRawEvent* rawEvent);
 
+    //external handle to set chamber efficiency/resolution
+    void setChamEff(double val) { chamEff = val; }
+    void setChamResol(double val) { chamResol = val; }
+
     //sagitta ratio reducer
     void sagittaReducer();
 
@@ -84,7 +88,11 @@ private:
     bool externalpar;         //re-apply the alignment and calibration parameters
     bool realization;         //apply detector efficiency and resolution by dropping and smear
     bool difnim;              //treat the nim/FPGA triggered events differently, i.e. no trigger masking in NIM events
+
+    //Adjustable parameters
     double timeOffset;        //timing correction
+    double chamEff;           //chamber efficiency
+    double chamResol;         //chamber resolution
 };
 
 #endif

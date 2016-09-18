@@ -6,6 +6,7 @@
 #include <string>
 #include <set>
 #include <utility>
+#include <map>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -74,6 +75,24 @@ int main(int argc, char *argv[])
     triggerAna->init();
     triggerAna->buildTriggerTree();
 
+    //Load spill info
+    map<int, Spill> spillBank;
+    if(argc > 6) //spill info are provided
+    {
+        Spill* p_spill = new Spill; Spill& spill = *p_spill;
+        TFile* spillFile = new TFile(argv[6]);
+        TTree* spillTree = (TTree*)spillFile->Get("save");
+
+        spillTree->SetBranchAddress("spill", &p_spill);
+        for(int i = 0; i < spillTree->GetEntries(); ++i)
+        {
+            spillTree->GetEntry(i);
+            if(spill.goodSpill()) spillBank.insert(map<int, Spill>::value_type(spill.spillID, spill));
+        }
+
+        cout << "Loaded " << spillBank.size() << " spills from " << argv[6] << endl;
+    }
+
     //Event pre-processor
     EventReducer* reducer1 = new EventReducer("r");  //for MC
     EventReducer* reducer2 = new EventReducer("e");  //for Bkg
@@ -111,9 +130,15 @@ int main(int argc, char *argv[])
         bkgTree->GetEntry(eventIDs[i].second);
         if(i % 1000 == 0) cout << i << " " << eventIDs[i].first << " " << eventIDs[i].second << endl;
 
+        //set the intensity info to MC first
+        mcEvent->setEventInfo(bkgEvent);
+
+        //strip MC events to simulate efficiency, update the alignment parameters for the bkg events
+        if(argc > 6) reducer1->setChamEff(0.94*(1. - 0.1*mcEvent->getIntensity()*spillBank[bkgEvent->getSpillID()].QIEUnit()));
         reducer1->reduceEvent(mcEvent);
         reducer2->reduceEvent(bkgEvent);
 
+        //merge the bkg events with MC
         *rawEvent = *mcEvent;
         rawEvent->mergeEvent(*bkgEvent);
         rawEvent->setTriggerEmu(triggerAna->acceptEvent(rawEvent, USE_TRIGGER_HIT));
@@ -122,7 +147,7 @@ int main(int argc, char *argv[])
         rawEvent->setEventInfo(bkgEvent->getRunID(), bkgEvent->getSpillID(), bkgEvent->getEventID());
         saveTree2->Fill();
 
-        mcEvent->setEventInfo(bkgEvent);
+        //re-update the MC event trigger info, as it's contaminated by the bkg event info
         mcEvent->setTriggerEmu(triggerAna->acceptEvent(mcEvent, USE_TRIGGER_HIT));
         int nRoads2[4] = {triggerAna->getNRoadsPosTop(), triggerAna->getNRoadsPosBot(), triggerAna->getNRoadsNegTop(), triggerAna->getNRoadsNegBot()};
         mcEvent->setNRoads(nRoads2);

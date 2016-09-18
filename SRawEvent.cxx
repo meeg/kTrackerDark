@@ -481,7 +481,7 @@ void SRawEvent::setEventInfo(SRawEvent* event)
     //Set target position
     setTargetPos(event->getTargetPos());
 
-    //Set bean info
+    //Set beam info
     setTurnID(event->getTurnID());
     setRFID(event->getRFID());
     setIntensity(event->getIntensityAll());
