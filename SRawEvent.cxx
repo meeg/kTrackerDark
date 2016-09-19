@@ -424,6 +424,11 @@ Int_t SRawEvent::getNHitsInD2()
     return nHits;
 }
 
+Int_t SRawEvent::getNHitsInD3()
+{
+    return getNHitsInD3p() + getNHitsInD3m();
+}
+
 Int_t SRawEvent::getNHitsInD3p()
 {
     Int_t nHits = 0;
@@ -439,6 +444,72 @@ Int_t SRawEvent::getNHitsInD3m()
 {
     Int_t nHits = 0;
     for(Int_t i = 19; i <= 24; i++)
+    {
+        nHits += fNHits[i];
+    }
+
+    return nHits;
+}
+
+Int_t SRawEvent::getNHitsInH1()
+{
+    Int_t nHits = 0;
+    for(Int_t i = 25; i <= 28; i++)
+    {
+        nHits += fNHits[i];
+    }
+
+    return nHits;
+}
+
+Int_t SRawEvent::getNHitsInH2()
+{
+    Int_t nHits = 0;
+    for(Int_t i = 29; i <= 32; i++)
+    {
+        nHits += fNHits[i];
+    }
+
+    return nHits;
+}
+
+Int_t SRawEvent::getNHitsInH3()
+{
+    Int_t nHits = 0;
+    for(Int_t i = 33; i <= 34; i++)
+    {
+        nHits += fNHits[i];
+    }
+
+    return nHits;
+}
+
+Int_t SRawEvent::getNHitsInH4()
+{
+    Int_t nHits = 0;
+    for(Int_t i = 35; i <= 40; i++)
+    {
+        nHits += fNHits[i];
+    }
+
+    return nHits;
+}
+
+Int_t SRawEvent::getNHitsInP1()
+{
+    Int_t nHits = 0;
+    for(Int_t i = 41; i <= 44; i++)
+    {
+        nHits += fNHits[i];
+    }
+
+    return nHits;
+}
+
+Int_t SRawEvent::getNHitsInP2()
+{
+    Int_t nHits = 0;
+    for(Int_t i = 45; i <= 48; i++)
     {
         nHits += fNHits[i];
     }

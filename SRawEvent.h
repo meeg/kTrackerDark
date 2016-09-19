@@ -105,8 +105,15 @@ public:
     Int_t getNPropHitsAll();
     Int_t getNHitsInD1();
     Int_t getNHitsInD2();
+    Int_t getNHitsInD3();
     Int_t getNHitsInD3p();
     Int_t getNHitsInD3m();
+    Int_t getNHitsInH1();
+    Int_t getNHitsInH2();
+    Int_t getNHitsInH3();
+    Int_t getNHitsInH4();
+    Int_t getNHitsInP1();
+    Int_t getNHitsInP2();
 
     Int_t getNHitsInDetector(Short_t detectorID) { return fNHits[detectorID]; }
     Int_t getNHitsInSuperDetector(Short_t detectorID) { return fNHits[2*detectorID-1] + fNHits[2*detectorID]; }

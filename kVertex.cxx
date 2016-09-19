@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 
     //Retrieve the raw event
     SRawEvent* rawEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
+    SRawEvent* orgEvent = jobOptsSvc->m_mcMode ? (new SRawMCEvent()) : (new SRawEvent());
     SRecEvent* recEvent = new SRecEvent();
     TClonesArray* tracklets = new TClonesArray("Tracklet");
 
@@ -78,6 +79,7 @@ int main(int argc, char *argv[])
     TTree* dataTree = (TTree*)dataFile->Get("save");
 
     dataTree->SetBranchAddress("rawEvent", &rawEvent);
+    if(dataTree->FindBranch("orgEvent") != NULL) dataTree->SetBranchAddress("orgEvent", &orgEvent);   //backward compatibility
     dataTree->SetBranchAddress("recEvent", &recEvent);
     dataTree->SetBranchAddress("tracklets", &tracklets);
 
@@ -85,6 +87,7 @@ int main(int argc, char *argv[])
     TTree* saveTree = new TTree("save", "save");
 
     saveTree->Branch("rawEvent", &rawEvent, 256000, 99);
+    saveTree->Branch("orgEvent", &orgEvent, 256000, 99);
     saveTree->Branch("recEvent", &recEvent, 256000, 99);
     saveTree->Branch("tracklets", &tracklets, 256000, 99);
     tracklets->BypassStreamer();

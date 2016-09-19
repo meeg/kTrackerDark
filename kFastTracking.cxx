@@ -113,6 +113,7 @@ int main(int argc, char* argv[])
     if(jobOptsSvc->m_mergeHodo) opt = opt + "m";
     if(jobOptsSvc->m_realization) opt = opt + "r";
     EventReducer* eventReducer = new EventReducer(opt);
+    EventReducer* orgEvReducer = new EventReducer("o");
 
     TStopwatch timer;
     TTimeStamp ts;
@@ -140,6 +141,7 @@ int main(int argc, char* argv[])
 
         *orgEvent = *rawEvent;
         eventReducer->reduceEvent(rawEvent);
+        orgEvReducer->reduceEvent(orgEvent);
         recEvent->setRecStatus(fastfinder->setRawEvent(rawEvent));
 
         //Fill the TClonesArray
