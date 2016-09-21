@@ -102,7 +102,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             continue
 
         # check the running status
-        nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(tconf, 'track', runID)
+        nTotalJobs, nFinishedJobs, failedOpts, _ = GU.getJobStatus(tconf, 'track', runID)
         if options.debug:
             print ' --- Tracking status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
         if len(failedOpts) != 0:   # something wrong
@@ -160,7 +160,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             continue
 
         # check running status
-        nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(vconf, 'vertex', runID)
+        nTotalJobs, nFinishedJobs, failedOpts, _ = GU.getJobStatus(vconf, 'vertex', runID)
         if options.debug:
             print ' --- Vertexing status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
         if len(failedOpts) != 0:

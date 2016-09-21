@@ -248,6 +248,7 @@ def getJobStatus(conf, jobType, runID):
 
     nFinished = 0
     failedOpts = []
+    missingOpts = []
     for optfile in optfiles:
         logfile = os.path.join(conf.outdir, 'log', version, getSubDir(runID), '%s_%06d_%s' % (auxPrefix[jobType], runID, version))
         outfile = os.path.join(conf.outdir, jobType, version, getSubDir(runID), '%s_%06d_%s' % (jobType, runID, version))
@@ -261,6 +262,7 @@ def getJobStatus(conf, jobType, runID):
             outfile = outfile + '_%s.root' % outtag[0]
 
         if not os.path.exists(logfile) or sum(1 for line in open(logfile)) < abs(checkpoint):
+            missingOpts.append(optfile)
             continue
 
         nFinished = nFinished + 1
@@ -269,7 +271,7 @@ def getJobStatus(conf, jobType, runID):
         elif not os.path.exists(outfile):
             failedOpts.append(optfile)
 
-    return (len(optfiles), nFinished, failedOpts)
+    return (len(optfiles), nFinished, failedOpts, missingOpts)
 
 def runCommand(cmd):
     """Run a bash command and check if there is any stderr output, if not return True, otherwise return False"""
