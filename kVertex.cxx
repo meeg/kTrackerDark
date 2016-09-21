@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
     {
         //pp pairs
         int nPlus = ptracks[i].size();
-        for(int j = 0; j < nPlus; ++j) pflags[i][j] = -pflags[i][j];
+        for(int j = 0; j < nPlus; ++j) pflags[i][j] = abs(pflags[i][j]);
 
         int nPairs = int(0.9*nPlus);
         cout << nPlus << " mu+ tracks with targetPos = " << i+1;
@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
 
         //mm pairs
         int nMinus = mtracks[i].size();
-        for(int j = 0; j < nMinus; ++j) mflags[i][j] = -mflags[i][j];
+        for(int j = 0; j < nMinus; ++j) mflags[i][j] = abs(mflags[i][j]);
 
         nPairs = int(0.9*nMinus);
         cout << nMinus << " mu- tracks with targetPos = " << i+1;
