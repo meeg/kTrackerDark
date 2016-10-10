@@ -103,6 +103,8 @@ public:
     Int_t getNChamberHitsAll();
     Int_t getNHodoHitsAll();
     Int_t getNPropHitsAll();
+
+    Int_t getNHitsInD0();
     Int_t getNHitsInD1();
     Int_t getNHitsInD2();
     Int_t getNHitsInD3();

@@ -206,6 +206,38 @@ void GeomSvc::init()
     //Initialize the detectorID --- detectorName convention
     typedef std::map<std::string, int>::value_type nameToID;
 
+#ifdef INCLUDE_D0
+    map_detectorID.insert(nameToID("D0U", 1));
+    map_detectorID.insert(nameToID("D0Up", 2));
+    map_detectorID.insert(nameToID("D0X", 3));
+    map_detectorID.insert(nameToID("D0Xp", 4));
+    map_detectorID.insert(nameToID("D0V", 5));
+    map_detectorID.insert(nameToID("D0Vp", 6));
+    map_detectorID.insert(nameToID("D1V", 7));
+    map_detectorID.insert(nameToID("D1Vp", 8));
+    map_detectorID.insert(nameToID("D1X", 9));
+    map_detectorID.insert(nameToID("D1Xp", 10));
+    map_detectorID.insert(nameToID("D1U", 11));
+    map_detectorID.insert(nameToID("D1Up", 12));
+    map_detectorID.insert(nameToID("D2V", 13));
+    map_detectorID.insert(nameToID("D2Vp", 14));
+    map_detectorID.insert(nameToID("D2Xp", 15));
+    map_detectorID.insert(nameToID("D2X", 16));
+    map_detectorID.insert(nameToID("D2U", 17));
+    map_detectorID.insert(nameToID("D2Up", 18));
+    map_detectorID.insert(nameToID("D3pVp", 19));
+    map_detectorID.insert(nameToID("D3pV", 20));
+    map_detectorID.insert(nameToID("D3pXp", 21));
+    map_detectorID.insert(nameToID("D3pX", 22));
+    map_detectorID.insert(nameToID("D3pUp", 23));
+    map_detectorID.insert(nameToID("D3pU", 24));
+    map_detectorID.insert(nameToID("D3mVp", 25));
+    map_detectorID.insert(nameToID("D3mV", 26));
+    map_detectorID.insert(nameToID("D3mXp", 27));
+    map_detectorID.insert(nameToID("D3mX", 28));
+    map_detectorID.insert(nameToID("D3mUp", 29));
+    map_detectorID.insert(nameToID("D3mU", 30));
+#else
     map_detectorID.insert(nameToID("D1U", 1));
     map_detectorID.insert(nameToID("D1Up", 2));
     map_detectorID.insert(nameToID("D1X", 3));
@@ -230,32 +262,34 @@ void GeomSvc::init()
     map_detectorID.insert(nameToID("D3mX", 22));
     map_detectorID.insert(nameToID("D3mUp", 23));
     map_detectorID.insert(nameToID("D3mU", 24));
+#endif
 
-    map_detectorID.insert(nameToID("H1B", 25));
-    map_detectorID.insert(nameToID("H1T", 26));
-    map_detectorID.insert(nameToID("H1L", 27));
-    map_detectorID.insert(nameToID("H1R", 28));
-    map_detectorID.insert(nameToID("H2L", 29));
-    map_detectorID.insert(nameToID("H2R", 30));
-    map_detectorID.insert(nameToID("H2B", 31));
-    map_detectorID.insert(nameToID("H2T", 32));
-    map_detectorID.insert(nameToID("H3B", 33));
-    map_detectorID.insert(nameToID("H3T", 34));
-    map_detectorID.insert(nameToID("H4Y1L", 35));
-    map_detectorID.insert(nameToID("H4Y1R", 36));
-    map_detectorID.insert(nameToID("H4Y2L", 37));
-    map_detectorID.insert(nameToID("H4Y2R", 38));
-    map_detectorID.insert(nameToID("H4B", 39));
-    map_detectorID.insert(nameToID("H4T", 40));
+    map_detectorID.insert(nameToID("H1B", nChamberPlanes+1));
+    map_detectorID.insert(nameToID("H1T", nChamberPlanes+2));
+    map_detectorID.insert(nameToID("H1L", nChamberPlanes+3));
+    map_detectorID.insert(nameToID("H1R", nChamberPlanes+4));
+    map_detectorID.insert(nameToID("H2L", nChamberPlanes+5));
+    map_detectorID.insert(nameToID("H2R", nChamberPlanes+6));
+    map_detectorID.insert(nameToID("H2B", nChamberPlanes+7));
+    map_detectorID.insert(nameToID("H2T", nChamberPlanes+8));
+    map_detectorID.insert(nameToID("H3B", nChamberPlanes+9));
+    map_detectorID.insert(nameToID("H3T", nChamberPlanes+10));
+    map_detectorID.insert(nameToID("H4Y1L", nChamberPlanes+11));
+    map_detectorID.insert(nameToID("H4Y1R", nChamberPlanes+12));
+    map_detectorID.insert(nameToID("H4Y2L", nChamberPlanes+13));
+    map_detectorID.insert(nameToID("H4Y2R", nChamberPlanes+14));
+    map_detectorID.insert(nameToID("H4B", nChamberPlanes+15));
+    map_detectorID.insert(nameToID("H4T", nChamberPlanes+16));
 
-    map_detectorID.insert(nameToID("P1Y1", 41));
-    map_detectorID.insert(nameToID("P1Y2", 42));
-    map_detectorID.insert(nameToID("P1X1", 43));
-    map_detectorID.insert(nameToID("P1X2", 44));
-    map_detectorID.insert(nameToID("P2X1", 45));
-    map_detectorID.insert(nameToID("P2X2", 46));
-    map_detectorID.insert(nameToID("P2Y1", 47));
-    map_detectorID.insert(nameToID("P2Y2", 48));
+    map_detectorID.insert(nameToID("P1Y1", nChamberPlanes+nHodoPlanes+1));
+    map_detectorID.insert(nameToID("P1Y2", nChamberPlanes+nHodoPlanes+2));
+    map_detectorID.insert(nameToID("P1X1", nChamberPlanes+nHodoPlanes+3));
+    map_detectorID.insert(nameToID("P1X2", nChamberPlanes+nHodoPlanes+4));
+    map_detectorID.insert(nameToID("P2X1", nChamberPlanes+nHodoPlanes+5));
+    map_detectorID.insert(nameToID("P2X2", nChamberPlanes+nHodoPlanes+6));
+    map_detectorID.insert(nameToID("P2Y1", nChamberPlanes+nHodoPlanes+7));
+    map_detectorID.insert(nameToID("P2Y2", nChamberPlanes+nHodoPlanes+8));
+
 
     typedef std::map<int, std::string>::value_type idToName;
     for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
@@ -345,7 +379,7 @@ void GeomSvc::init()
     delete res;
 
     //For prop. tube only, average over 9 modules
-    for(int i = 41; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
+    for(int i = nChamberPlanes+nHodoPlanes+1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
     {
         planes[i].x0 = planes[i].x0/9.;
         planes[i].y0 = planes[i].y0/9.;
@@ -365,7 +399,7 @@ void GeomSvc::init()
         res = con->Query(query);
 
         nRows = res->GetRowCount();
-        if(nRows >= 24) cout << "GeomSvc: loaded chamber alignment parameters from database: " << p_jobOptsSvc->m_geomVersion.c_str() << endl;
+        if(nRows >= nChamberPlanes) cout << "GeomSvc: loaded chamber alignment parameters from database: " << p_jobOptsSvc->m_geomVersion.c_str() << endl;
         for(unsigned int i = 0; i < nRows; ++i)
         {
             TSQLRow* row = res->Next();
@@ -373,7 +407,7 @@ void GeomSvc::init()
             toLocalDetectorName(detectorName, dummy);
 
             int detectorID = map_detectorID[detectorName];
-            if(detectorID > 40)
+            if(detectorID > nChamberPlanes) // ?? WTF?
             {
                 delete row;
                 continue;
@@ -514,7 +548,7 @@ double GeomSvc::getMeasurement(int detectorID, int elementID)
 
 int GeomSvc::getExpElementID(int detectorID, double pos_exp)
 {
-    if(detectorID <= 40)
+    if(detectorID <= nChamberPlanes+nHodoPlanes)
     {
         int elementID_lo = int((pos_exp - planes[detectorID].xoffset - planes[detectorID].x0*planes[detectorID].costheta - planes[detectorID].y0*planes[detectorID].sintheta - planes[detectorID].deltaW + 0.5*(planes[detectorID].nElements + 1.)*planes[detectorID].spacing)/planes[detectorID].spacing);
 

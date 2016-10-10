@@ -21,6 +21,9 @@
 //==== Turn on/off KMag
 #define KMAG_ON 1
 
+//==== Special mode which includes two chambers at the same time
+#define INCLUDE_D0
+
 //==== Enable massive debugging output, disabled by default
 //#define _DEBUG_ON
 //#define _DEBUG_ON_LEVEL_2
@@ -52,7 +55,13 @@
 #define MUID_R_CUT 3.0
 
 //--------------- Geometry setup -----------------
+#ifdef INCLUDE_D0
+#define nStations 7
+#define nChamberPlanes 30
+#else
+#define nStations 6
 #define nChamberPlanes 24
+#endif
 #define nHodoPlanes 16
 #define nPropPlanes 8
 

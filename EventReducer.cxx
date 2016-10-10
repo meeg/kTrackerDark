@@ -21,8 +21,8 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
 
     p_jobOptsSvc = JobOptsSvc::instance();
     timeOffset = p_jobOptsSvc->m_timingOffset;
-    chamEff = 0.94;
-    chamResol = 0.04;
+    chamEff    = 0.94;
+    chamResol  = 0.04;
 
     //Screen output for all the methods enabled
     if(afterhit)      std::cout << "EventReducer: after-pulse removal enabled. " << std::endl;
@@ -67,8 +67,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
     //temporarily disable trigger road masking if this event is not fired by any MATRIX triggers
     bool triggermask_local = triggermask;
-    if(!(p_jobOptsSvc->m_mcMode || rawEvent->isTriggeredBy(SRawEvent::MATRIX1) || rawEvent->isTriggeredBy(SRawEvent::MATRIX2) ||
-         rawEvent->isTriggeredBy(SRawEvent::MATRIX3) || rawEvent->isTriggeredBy(SRawEvent::MATRIX4) || rawEvent->isTriggeredBy(SRawEvent::MATRIX5)))
+    if(!(p_jobOptsSvc->m_mcMode || rawEvent->isFPGATriggered()))
     {
         triggermask_local = false;
     }
@@ -80,13 +79,13 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
     {
         if(outoftime && (!iter->isInTime())) continue;
 
-        if(iter->detectorID <= 24)    //chamber hits
+        if(iter->detectorID <= nChamberPlanes)    //chamber hits
         {
             if(realization && rndm.Rndm() > chamEff) continue;
             //if(hodomask && (!iter->isHodoMask())) continue;
             //if(triggermask && (!iter->isTriggerMask())) continue;
         }
-        else if(iter->detectorID > 24 && iter->detectorID <= 40)
+        else if(iter->detectorID > nChamberPlanes && iter->detectorID <= nChamberPlanes+nHodoPlanes)
         {
             // if trigger masking is enabled, all the X hodos are discarded
             if(triggermask_local && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
@@ -99,9 +98,9 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
             //iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
         }
 
-        if(realization && iter->detectorID <= 24) iter->driftDistance += rndm.Gaus(0., chamResol);
+        if(realization && iter->detectorID <= nChamberPlanes) iter->driftDistance += rndm.Gaus(0., chamResol);
 
-        if(iter->detectorID >= 25 && iter->detectorID <= 40)
+        if(iter->detectorID >= nChamberPlanes+1 && iter->detectorID <= nChamberPlanes+nHodoPlanes)
         {
             hodohitlist.push_back(*iter);
         }
@@ -152,14 +151,23 @@ void EventReducer::sagittaReducer()
     int nHits_D1 = 0;
     int nHits_D2 = 0;
     int nHits_D3 = 0;
+#ifdef INCLUDE_D0
+    int detectorID_st1_max = 12;
+    int detectorID_st2_max = 18;
+#else
+    int detectorID_st1_max = 6;
+    int detectorID_st2_max = 12;
+#endif
+
+    //hitlist here needs to be sorted of course
     for(std::list<Hit>::iterator iter = hitlist.begin(); iter != hitlist.end(); ++iter)
     {
-        if(iter->detectorID > 24) break;
-        if(iter->detectorID <= 6)
+        if(iter->detectorID > nChamberPlanes) break;
+        if(iter->detectorID <= detectorID_st1_max)
         {
             ++nHits_D1;
         }
-        else if(iter->detectorID <= 12)
+        else if(iter->detectorID <= detectorID_st2_max)
         {
             ++nHits_D2;
         }
@@ -334,7 +342,20 @@ void EventReducer::initHodoMaskLUT()
     h2celementID_lo.clear();
     h2celementID_hi.clear();
 
-    int hodoIDs[8] = {25, 26, 31, 32, 33, 34, 39, 40};
+    TString hodoNames[8] = {"H1B", "H1T", "H2B", "H2T", "H3B", "H3T", "H4B", "H4T"};
+    int hodoIDs[8];
+    for(int i = 0; i < 8; ++i) hodoIDs[i] = p_geomSvc->getDetectorID(hodoNames[i].Data());
+
+#ifdef INCLUDE_D0
+    int chamIDs[8][12] = { {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+                           {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+                           {13, 14, 15, 16, 17, 18, 0, 0, 0, 0, 0, 0},
+                           {13, 14, 15, 16, 17, 18, 0, 0, 0, 0, 0, 0},
+                           {0, 0, 0, 0, 0, 0, 25, 26, 27, 28, 29, 30},
+                           {19, 20, 21, 22, 23, 24, 0, 0, 0, 0, 0, 0},
+                           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+#else
     int chamIDs[8][12] = { {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0},
                            {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0},
                            {7, 8, 9, 10, 11, 12, 0, 0, 0, 0, 0, 0},
@@ -343,6 +364,7 @@ void EventReducer::initHodoMaskLUT()
                            {13, 14, 15, 16, 17, 18, 0, 0, 0, 0, 0, 0},
                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+#endif
 
     for(int i = 0; i < 8; ++i)
     {
@@ -422,7 +444,7 @@ void EventReducer::hodoscopeMask(std::list<Hit>& chamberhits, std::list<Hit>& ho
 {
     for(std::list<Hit>::iterator iter = chamberhits.begin(); iter != chamberhits.end(); )
     {
-        if(iter->detectorID > 40)
+        if(iter->detectorID > nChamberPlanes)
         {
             ++iter;
             continue;

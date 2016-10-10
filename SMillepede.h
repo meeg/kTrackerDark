@@ -64,7 +64,7 @@ extern "C"
 namespace MILLEPEDE
 {
     //Maximum number of detector planes
-    static const int NPLAN = 24;
+    static const int NPLAN = nChamberPlanes;
 
     //Number of track parameters
     static const int NPARTRK = 4;

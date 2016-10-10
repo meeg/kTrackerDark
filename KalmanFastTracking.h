@@ -73,8 +73,8 @@ public:
     int reduceTrackletList(std::list<Tracklet>& tracklets);
 
     //Get exp postion and window using sagitta method in station 1
-    void getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window);
-    void getExtrapoWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window);
+    void getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window, int st1ID);
+    void getExtrapoWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window, int st1ID);
 
     //Print the distribution of tracklets at detector back/front
     void printAtDetectorBack(int stationID, std::string outputFileName);
@@ -115,13 +115,15 @@ private:
     std::list<PropSegment> propSegs[2];
 
     ///Configurations of tracklet finding
-    //Hodo. IDs for masking
+    //Hodo. IDs for masking, 4 means we have 4 hodo stations
     std::vector<int> detectorIDs_mask[4];
     std::vector<int> detectorIDs_maskX[4];
     std::vector<int> detectorIDs_maskY[4];
-    std::list<int> hitIDs_mask[4]; //hits in T/B, L/R are combined
-    std::vector<int> stationIDs_mask[6];
+    std::list<int>   hitIDs_mask[4];              //hits in T/B, L/R are combined
     std::vector<int> detectorIDs_muidHodoAid[2];  //Aux-hodoscope masking for muon ID
+
+    //register difference hodo masking stations for different chamber detectors
+    std::vector<int> stationIDs_mask[nStations];
 
     //prop. tube IDs for MUID -- 0 for x-z, 1 for y-z
     int detectorIDs_muid[2][4];
@@ -130,42 +132,42 @@ private:
     std::list<int> hitIDs_muidHodoAid[2];
 
     //Masking window sizes, index is the uniqueID defined by nElement*detectorID + elementID
-    double z_mask[24];
-    double x_mask_min[24][72];
-    double x_mask_max[24][72];
-    double y_mask_min[24][72];
-    double y_mask_max[24][72];
+    double z_mask[nHodoPlanes+nPropPlanes];
+    double x_mask_min[nHodoPlanes+nPropPlanes][72];
+    double x_mask_max[nHodoPlanes+nPropPlanes][72];
+    double y_mask_min[nHodoPlanes+nPropPlanes][72];
+    double y_mask_max[nHodoPlanes+nPropPlanes][72];
 
     ///For following part, id = 0, 1, 2, 3, 4, 5 stand for station 1, 2, 3+, 3-, and prop tubes X-Z and Y-Z
     //Super plane IDs for DCs
-    std::vector<int> superIDs[6];
+    std::vector<int> superIDs[nChamberPlanes/6+2];
 
     //Window sizes for X-U combination
-    double u_win[4];
-    double u_costheta[4];
-    double u_sintheta[4];
+    double u_win[nChamberPlanes/6];
+    double u_costheta[nChamberPlanes/6];
+    double u_sintheta[nChamberPlanes/6];
+    double z_plane_x[nChamberPlanes/6];
+    double z_plane_u[nChamberPlanes/6];
+    double z_plane_v[nChamberPlanes/6];
 
     //Plane angles for all planes
-    double costheta_plane[25];
-    double sintheta_plane[25];
+    double costheta_plane[nChamberPlanes+1];
+    double sintheta_plane[nChamberPlanes+1];
 
     //Z positions
-    double z_plane_x[4];
-    double z_plane_u[4];
-    double z_plane_v[4];
-    double z_plane[25];
+    double z_plane[nChamberPlanes+1];
 
     //Maximum slope and intersection in each view
-    double slope_max[25];
-    double intersection_max[25];
+    double slope_max[nChamberPlanes+1];
+    double intersection_max[nChamberPlanes+1];
 
     //Resolutions of all planes
-    double resol_plane[25];
+    double resol_plane[nChamberPlanes+1];
 
     //Cell width of all planes
-    double spacing_plane[25];
+    double spacing_plane[nChamberPlanes+1];
 
-    //Sagitta ratio in station 1 U/X/V
+    //Sagitta ratio in station 1, index 0, 1, 2 are for X/U/V
     int s_detectorID[3];
 
     //Current tracklets being processed

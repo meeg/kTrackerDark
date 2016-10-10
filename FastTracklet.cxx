@@ -412,12 +412,12 @@ const bool Tracklet::kmag_on = JobOptsSvc::instance()->m_enableKMag;
 
 Tracklet::Tracklet() : stationID(-1), nXHits(0), nUHits(0), nVHits(0), chisq(9999.), chisq_vtx(9999.), tx(0.), ty(0.), x0(0.), y0(0.), invP(0.1), err_tx(-1.), err_ty(-1.), err_x0(-1.), err_y0(-1.), err_invP(-1.)
 {
-    for(int i = 0; i < 24; i++) residual[i] = 999.;
+    for(int i = 0; i < nChamberPlanes; i++) residual[i] = 999.;
 }
 
 bool Tracklet::isValid()
 {
-    if(stationID < 1 || stationID > 6) return false;
+    if(stationID < 1 || stationID > nStations) return false;
 
     if(fabs(tx) > TX_MAX || fabs(x0) > X0_MAX) return false;
     if(fabs(ty) > TY_MAX || fabs(y0) > Y0_MAX) return false;
@@ -428,7 +428,7 @@ bool Tracklet::isValid()
 
     //Tracklets in each station
     int nHits = nXHits + nUHits + nVHits;
-    if(stationID < 5)
+    if(stationID < nStations-1)
     {
         if(nXHits < 1 || nUHits < 1 || nVHits < 1) return false;
         if(nHits < 4) return false;
@@ -436,7 +436,7 @@ bool Tracklet::isValid()
     }
     else
     {
-        //Number of hits cuts, second index is X, U, V, second index is station-1, 2, 3
+        //Number of hits cuts, second index is X, U, V, first index is station-1, 2, 3
         int nRealHits[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
         for(std::list<SignedHit>::iterator iter = hits.begin(); iter != hits.end(); ++iter)
         {
@@ -444,8 +444,11 @@ bool Tracklet::isValid()
 
             int idx1 = (iter->hit.detectorID - 1)/6;
             int idx2 = p_geomSvc->getPlaneType(iter->hit.detectorID) - 1;
-            if(idx1 > 2) idx1 = 2;
-
+#ifdef INCLUDE_D0
+            idx1 = idx1 < 2 ? 0 : (idx1 == 2 ? 1 : 2);
+#else
+            idx1 = idx1 > 2 ? 2 : idx1;
+#endif
             ++nRealHits[idx1][idx2];
         }
 
@@ -457,7 +460,7 @@ bool Tracklet::isValid()
         }
 
         //for global tracks only
-        if(stationID == 6)
+        if(stationID == nStations)
         {
             if(nRealHits[0][0] < 1 || nRealHits[0][1] < 1 || nRealHits[0][2] < 1) return false;
             if(nRealHits[0][0] + nRealHits[0][1] + nRealHits[0][2] < 4) return false;
@@ -476,7 +479,7 @@ bool Tracklet::isValid()
 double Tracklet::getProb() const
 {
     int ndf;
-    if(stationID == 6 && kmag_on)
+    if(stationID == nStations && kmag_on)
     {
         ndf = getNHits() - 5;
     }
@@ -498,7 +501,7 @@ double Tracklet::getMomProb() const
 
 double Tracklet::getExpPositionX(double z) const
 {
-    if(kmag_on && stationID >= 5 && z < Z_KMAG_BEND - 1.)
+    if(kmag_on && stationID >= nStations-1 && z < Z_KMAG_BEND - 1.)
     {
         double tx_st1 = tx + PT_KICK_KMAG*invP*getCharge();
         double x0_st1 = tx*Z_KMAG_BEND + x0 - tx_st1*Z_KMAG_BEND;
@@ -514,7 +517,7 @@ double Tracklet::getExpPositionX(double z) const
 double Tracklet::getExpPosErrorX(double z) const
 {
     double err_x;
-    if(kmag_on && stationID >= 5 && z < Z_KMAG_BEND - 1.)
+    if(kmag_on && stationID >= nStations-1 && z < Z_KMAG_BEND - 1.)
     {
         double err_kick = fabs(err_invP*PT_KICK_KMAG);
         double err_tx_st1 = err_tx + err_kick;
@@ -659,7 +662,7 @@ void Tracklet::getXZErrorInSt1(double& err_tx_st1, double& err_x0_st1)
 Tracklet Tracklet::operator+(const Tracklet& elem) const
 {
     Tracklet tracklet;
-    tracklet.stationID = 5;
+    tracklet.stationID = nStations - 1;
 
     tracklet.nXHits = nXHits + elem.nXHits;
     tracklet.nUHits = nUHits + elem.nUHits;
@@ -695,7 +698,7 @@ Tracklet Tracklet::operator+(const Tracklet& elem) const
 Tracklet Tracklet::operator*(const Tracklet& elem) const
 {
     Tracklet tracklet;
-    tracklet.stationID = 6;
+    tracklet.stationID = nStations;
 
     tracklet.nXHits = nXHits + elem.nXHits;
     tracklet.nUHits = nUHits + elem.nUHits;
@@ -711,7 +714,7 @@ Tracklet Tracklet::operator*(const Tracklet& elem) const
         tracklet.hits.insert(tracklet.hits.begin(), elem.hits.begin(), elem.hits.end());
     }
 
-    if(elem.stationID == 5)
+    if(elem.stationID == nStations - 1)
     {
         tracklet.tx = elem.tx;
         tracklet.ty = elem.ty;
@@ -747,7 +750,7 @@ Tracklet Tracklet::operator*(const Tracklet& elem) const
 void Tracklet::addDummyHits()
 {
     std::vector<int> detectorIDs_all;
-    for(int i = stationID*6 - 5; i <= stationID*6; i++) detectorIDs_all.push_back(i);
+    for(int i = stationID*6 - 5; i <= stationID*6; ++i) detectorIDs_all.push_back(i);
 
     std::vector<int> detectorIDs_now;
     for(std::list<SignedHit>::const_iterator iter = hits.begin(); iter != hits.end(); ++iter)
@@ -775,7 +778,7 @@ double Tracklet::calcChisq()
     chisq = 0.;
 
     double tx_st1, x0_st1;
-    if(stationID == 6 && kmag_on)
+    if(stationID == nStations && kmag_on)
     {
         getXZInfoInSt1(tx_st1, x0_st1);
     }
@@ -797,7 +800,11 @@ double Tracklet::calcChisq()
         if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
         double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
-        if(kmag_on && stationID == 6 && detectorID <= 6)
+#ifdef INCLUDE_D0
+        if(kmag_on && stationID == nStations && detectorID <= 12)
+#else
+        if(kmag_on && stationID == nStations && detectorID <= 6)
+#endif
         {
             residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
         }

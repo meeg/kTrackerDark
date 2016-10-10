@@ -133,8 +133,8 @@ public:
     void getSagittaInSuperDetector(int detectorID, double& pos_exp, double& window);
 
     ///Get Nodes in both upstream and downstream which are closest to KMag
-    Node *getNodeDownstream();
-    Node *getNodeUpstream();
+    Node* getNodeDownstream();
+    Node* getNodeUpstream();
 
     ///Overriden operators
     bool operator<(const KalmanTrack& elem) const;
@@ -147,10 +147,10 @@ public:
 
     ///Quality monitoring methods
     int getNodeChisq(double *chisqs);
-    int getAlignment(int level, int *detectorID, double *res, double *R, double *T);
-    int getPositions(int level, double *x, double *y, double *z);
-    int getMomentums(int level, double *px, double *py, double *pz);
-    int getHitsIndex(int *index);
+    int getAlignment(int level, int *detectorID, double* res, double* R, double* T);
+    int getPositions(int level, double* x, double* y, double* z);
+    int getMomentums(int level, double* px, double* py, double* pz);
+    int getHitsIndex(int* index);
     TGraph getXZProjection();
 
     ///Output to SRecTrack

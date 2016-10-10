@@ -89,32 +89,40 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     detectorIDs_muidHodoAid[0] = p_geomSvc->getDetectorIDs("H4[TB]");
     detectorIDs_muidHodoAid[1] = p_geomSvc->getDetectorIDs("H4Y");
 
-    //Masking stations for tracklets in station-1, 2, 3+/-
+    //Register masking stations for tracklets in station-0/1, 2, 3+/-
+#ifdef INCLUDE_D0
+    stationIDs_mask[0].push_back(1);
+    stationIDs_mask[1].push_back(1);
+    stationIDs_mask[2].push_back(2);
+    stationIDs_mask[3].push_back(3);
+    stationIDs_mask[4].push_back(3);
+#else
     stationIDs_mask[0].push_back(1);
     stationIDs_mask[1].push_back(2);
     stationIDs_mask[2].push_back(3);
     stationIDs_mask[3].push_back(3);
+#endif
 
     //Masking stations for back partial
-    stationIDs_mask[4].push_back(2);
-    stationIDs_mask[4].push_back(3);
-    stationIDs_mask[4].push_back(4);
+    stationIDs_mask[nChamberPlanes/6].push_back(2);
+    stationIDs_mask[nChamberPlanes/6].push_back(3);
+    stationIDs_mask[nChamberPlanes/6].push_back(4);
 
     //Masking stations for global track
-    stationIDs_mask[5].push_back(1);
-    stationIDs_mask[5].push_back(2);
-    stationIDs_mask[5].push_back(3);
-    stationIDs_mask[5].push_back(4);
+    stationIDs_mask[nChamberPlanes/6+1].push_back(1);
+    stationIDs_mask[nChamberPlanes/6+1].push_back(2);
+    stationIDs_mask[nChamberPlanes/6+1].push_back(3);
+    stationIDs_mask[nChamberPlanes/6+1].push_back(4);
 
     //prop. tube IDs for mu id
-    detectorIDs_muid[0][0] = 43;
-    detectorIDs_muid[0][1] = 44;
-    detectorIDs_muid[0][2] = 45;
-    detectorIDs_muid[0][3] = 46;
-    detectorIDs_muid[1][0] = 41;
-    detectorIDs_muid[1][1] = 42;
-    detectorIDs_muid[1][2] = 47;
-    detectorIDs_muid[1][3] = 48;
+    detectorIDs_muid[0][0] = p_geomSvc->getDetectorID("P1X1");
+    detectorIDs_muid[0][1] = p_geomSvc->getDetectorID("P1X2");
+    detectorIDs_muid[0][2] = p_geomSvc->getDetectorID("P2X1");
+    detectorIDs_muid[0][3] = p_geomSvc->getDetectorID("P2X2");
+    detectorIDs_muid[1][0] = p_geomSvc->getDetectorID("P1Y1");
+    detectorIDs_muid[1][1] = p_geomSvc->getDetectorID("P1Y2");
+    detectorIDs_muid[1][2] = p_geomSvc->getDetectorID("P2Y1");
+    detectorIDs_muid[1][3] = p_geomSvc->getDetectorID("P2Y2");
 
     //Reference z_ref for mu id
     z_ref_muid[0][0] = MUID_Z_REF;
@@ -128,14 +136,16 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     z_ref_muid[1][3] = z_ref_muid[1][2];
 
     //Initialize masking window sizes, with optimized contingency
-    for(int i = 25; i <= 48; i++)
+    for(int i = nChamberPlanes+1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; i++)
     {
-        double factor = 0.15;
-        if(i > 24 && i < 29) factor = 0.25; //for station-1
-        if(i > 28 && i < 33) factor = 0.2;  //for station-2
-        if(i > 34 && i < 41) factor = 0.;
+        double factor = 0.;
+        if(i > nChamberPlanes    && i <= nChamberPlanes+4)           factor = 0.25;    //for station-1 hodo
+        if(i > nChamberPlanes+4  && i <= nChamberPlanes+8)           factor = 0.2;     //for station-2 hodo
+        if(i > nChamberPlanes+8  && i <= nChamberPlanes+10)          factor = 0.15;    //for station-3 hodo
+        if(i > nChamberPlanes+10 && i <= nChamberPlanes+nHodoPlanes) factor = 0.;      //for station-4 hodo
+        if(i > nChamberPlanes+nHodoPlanes)                           factor = 0.15;    //for station-4 proptube
 
-        z_mask[i-25] = p_geomSvc->getPlanePosition(i);
+        z_mask[i-nChamberPlanes-1] = p_geomSvc->getPlanePosition(i);
         for(int j = 1; j <= p_geomSvc->getPlaneNElements(i); j++)
         {
             double x_min, x_max, y_min, y_max;
@@ -146,10 +156,10 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
             y_min -= (factor*(y_max - y_min));
             y_max += (factor*(y_max - y_min));
 
-            x_mask_min[i-25][j-1] = x_min;
-            x_mask_max[i-25][j-1] = x_max;
-            y_mask_min[i-25][j-1] = y_min;
-            y_mask_max[i-25][j-1] = y_max;
+            x_mask_min[i-nChamberPlanes-1][j-1] = x_min;
+            x_mask_max[i-nChamberPlanes-1][j-1] = x_max;
+            y_mask_min[i-nChamberPlanes-1][j-1] = y_min;
+            y_mask_max[i-nChamberPlanes-1][j-1] = y_max;
         }
     }
 
@@ -159,12 +169,12 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     for(int i = 0; i < 4; i++)
     {
         cout << "For station " << i+1 << endl;
-        for(std::vector<int>::iterator iter = detectorIDs_mask[i].begin(); iter != detectorIDs_mask[i].end(); ++iter) cout << "All: " << *iter << endl;
-        for(std::vector<int>::iterator iter = detectorIDs_maskX[i].begin(); iter != detectorIDs_maskX[i].end(); ++iter) cout << "X: " << *iter << endl;
-        for(std::vector<int>::iterator iter = detectorIDs_maskY[i].begin(); iter != detectorIDs_maskY[i].end(); ++iter) cout << "Y: " << *iter << endl;
+        for(std::vector<int>::iterator iter = detectorIDs_mask[i].begin();  iter != detectorIDs_mask[i].end();  ++iter) cout << "All: " << *iter << endl;
+        for(std::vector<int>::iterator iter = detectorIDs_maskX[i].begin(); iter != detectorIDs_maskX[i].end(); ++iter) cout << "X:   " << *iter << endl;
+        for(std::vector<int>::iterator iter = detectorIDs_maskY[i].begin(); iter != detectorIDs_maskY[i].end(); ++iter) cout << "Y:   " << *iter << endl;
     }
 
-    for(int i = 0; i < 6; ++i)
+    for(int i = 0; i < nStations; ++i)
     {
         std::cout << "Masking stations for tracklets with stationID = " << i + 1 << ": " << std::endl;
         for(std::vector<int>::iterator iter = stationIDs_mask[i].begin(); iter != stationIDs_mask[i].end(); ++iter)
@@ -173,11 +183,27 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
         }
         std::cout << std::endl;
     }
-
 #endif
 
     //Initialize super stationIDs
-    for(int i = 0; i < 6; i++) superIDs[i].clear();
+    for(int i = 0; i < nChamberPlanes/6+2; i++) superIDs[i].clear();
+#ifdef INCLUDE_D0
+    superIDs[0].push_back((p_geomSvc->getDetectorIDs("D0X")[0] + 1)/2);
+    superIDs[0].push_back((p_geomSvc->getDetectorIDs("D0U")[0] + 1)/2);
+    superIDs[0].push_back((p_geomSvc->getDetectorIDs("D0V")[0] + 1)/2);
+    superIDs[1].push_back((p_geomSvc->getDetectorIDs("D1X")[0] + 1)/2);
+    superIDs[1].push_back((p_geomSvc->getDetectorIDs("D1U")[0] + 1)/2);
+    superIDs[1].push_back((p_geomSvc->getDetectorIDs("D1V")[0] + 1)/2);
+    superIDs[2].push_back((p_geomSvc->getDetectorIDs("D2X")[0] + 1)/2);
+    superIDs[3].push_back((p_geomSvc->getDetectorIDs("D2U")[0] + 1)/2);
+    superIDs[3].push_back((p_geomSvc->getDetectorIDs("D2V")[0] + 1)/2);
+    superIDs[3].push_back((p_geomSvc->getDetectorIDs("D3pX")[0] + 1)/2);
+    superIDs[3].push_back((p_geomSvc->getDetectorIDs("D3pU")[0] + 1)/2);
+    superIDs[3].push_back((p_geomSvc->getDetectorIDs("D3pV")[0] + 1)/2);
+    superIDs[4].push_back((p_geomSvc->getDetectorIDs("D3mX")[0] + 1)/2);
+    superIDs[4].push_back((p_geomSvc->getDetectorIDs("D3mU")[0] + 1)/2);
+    superIDs[4].push_back((p_geomSvc->getDetectorIDs("D3mV")[0] + 1)/2);
+#else
     superIDs[0].push_back((p_geomSvc->getDetectorIDs("D1X")[0] + 1)/2);
     superIDs[0].push_back((p_geomSvc->getDetectorIDs("D1U")[0] + 1)/2);
     superIDs[0].push_back((p_geomSvc->getDetectorIDs("D1V")[0] + 1)/2);
@@ -190,21 +216,23 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     superIDs[3].push_back((p_geomSvc->getDetectorIDs("D3mX")[0] + 1)/2);
     superIDs[3].push_back((p_geomSvc->getDetectorIDs("D3mU")[0] + 1)/2);
     superIDs[3].push_back((p_geomSvc->getDetectorIDs("D3mV")[0] + 1)/2);
-    superIDs[4].push_back((p_geomSvc->getDetectorIDs("P1X")[0] + 1)/2);
-    superIDs[4].push_back((p_geomSvc->getDetectorIDs("P2X")[0] + 1)/2);
-    superIDs[5].push_back((p_geomSvc->getDetectorIDs("P1Y")[0] + 1)/2);
-    superIDs[5].push_back((p_geomSvc->getDetectorIDs("P2Y")[0] + 1)/2);
+#endif
+
+    superIDs[nChamberPlanes/6].push_back((p_geomSvc->getDetectorIDs("P1X")[0] + 1)/2);
+    superIDs[nChamberPlanes/6].push_back((p_geomSvc->getDetectorIDs("P2X")[0] + 1)/2);
+    superIDs[nChamberPlanes/6+1].push_back((p_geomSvc->getDetectorIDs("P1Y")[0] + 1)/2);
+    superIDs[nChamberPlanes/6+1].push_back((p_geomSvc->getDetectorIDs("P2Y")[0] + 1)/2);
 
 #ifdef _DEBUG_ON
     cout << "=============" << endl;
     cout << "Chamber IDs: " << endl;
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < nChamberPlanes/6; i++)
     {
         for(int j = 0; j < 3; j++) cout << i << "  " << j << ": " << superIDs[i][j] << endl;
     }
 
     cout << "Proptube IDs: " << endl;
-    for(int i = 4; i < 6; i++)
+    for(int i = nChamberPlanes/6; i < nChamberPlanes/6+2; i++)
     {
         for(int j = 0; j < 2; j++) cout << i << "  " << j << ": " << superIDs[i][j] << endl;
     }
@@ -213,8 +241,13 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     cout << "======================" << endl;
     cout << "U plane window sizes: " << endl;
 #endif
+
+#ifdef INCLUDE_D0
+    double u_factor[] = {5., 5., 5., 15., 15.};
+#else
     double u_factor[] = {5., 5., 15., 15.};
-    for(int i = 0; i < 4; i++)
+#endif
+    for(int i = 0; i < nChamberPlanes/6; i++)
     {
         int xID = 2*superIDs[i][0] - 1;
         int uID = 2*superIDs[i][1] - 1;
@@ -238,30 +271,21 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     }
 
     //Initialize Z positions and maximum parameters of all planes
-    for(int i = 1; i <= 24; i++)
+    for(int i = 1; i <= nChamberPlanes; i++)
     {
         z_plane[i] = p_geomSvc->getPlanePosition(i);
         slope_max[i] = costheta_plane[i]*TX_MAX + sintheta_plane[i]*TY_MAX;
         intersection_max[i] = costheta_plane[i]*X0_MAX + sintheta_plane[i]*Y0_MAX;
 
 #ifdef COARSE_MODE
-        resol_plane[i] = p_geomSvc->getPlaneSpacing(i)/sqrt(12.);
+        resol_plane[i] = 3.*p_geomSvc->getPlaneSpacing(i)/sqrt(12.);
 #else
-        //resol_plane[i] = p_geomSvc->getPlaneResolution(i);
-        if(i <= 6)
-        {
-            resol_plane[i] = ST1_REJECT;
-        }
-        else if(i <= 12)
-        {
-            resol_plane[i] = ST2_REJECT;
-        }
-        else
-        {
-            resol_plane[i] = ST3_REJECT;
-        }
+#ifdef INCLUDE_D0
+        resol_plane[i] = i <= 12 ? ST1_REJECT : (i <= 18 ? ST2_REJECT : ST3_REJECT);
+#else
+        resol_plane[i] = i <= 6  ? ST1_REJECT : (i <= 12 ? ST2_REJECT : ST3_REJECT);
 #endif
-
+#endif
         spacing_plane[i] = p_geomSvc->getPlaneSpacing(i);
     }
 
@@ -269,7 +293,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
     cout << "======================================" << endl;
     cout << "Maximum local slope and intersection: " << endl;
 #endif
-    for(int i = 1; i <= 12; i++)
+    for(int i = 1; i <= nChamberPlanes/2; i++)
     {
         double d_slope = (p_geomSvc->getPlaneResolution(2*i - 1) + p_geomSvc->getPlaneResolution(2*i))/(z_plane[2*i] - z_plane[2*i-1]);
         double d_intersection = d_slope*z_plane[2*i];
@@ -284,10 +308,10 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 #endif
     }
 
-    //Initialize sagitta ratios, index 0, 1, 2 are for U, X, V
-    s_detectorID[0] = 12;
-    s_detectorID[1] = 10;
-    s_detectorID[2] = 8;
+    //Initialize sagitta ratios, index 0, 1, 2 are for X, U, V, this is the incrementing order of plane type
+    s_detectorID[0] = p_geomSvc->getDetectorID("D2X");
+    s_detectorID[1] = p_geomSvc->getDetectorID("D2Up");
+    s_detectorID[2] = p_geomSvc->getDetectorID("D2Vp");
 }
 
 KalmanFastTracking::~KalmanFastTracking()
@@ -322,7 +346,14 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
     {
         //std::cout << "For station " << i << std::endl;
         hitIDs_mask[i].clear();
-        hitIDs_mask[i] = rawEvent->getHitsIndexInDetectors(detectorIDs_maskX[i]);
+        if(p_jobOptsSvc->m_mcMode || rawEvent->isFPGATriggered())
+        {
+            hitIDs_mask[i] = rawEvent->getHitsIndexInDetectors(detectorIDs_maskX[i]);
+        }
+        else
+        {
+            hitIDs_mask[i] = rawEvent->getHitsIndexInDetectors(detectorIDs_maskY[i]);
+        }
 
         //for(std::list<int>::iterator iter = hitIDs_mask[i].begin(); iter != hitIDs_mask[i].end(); ++iter) std::cout << *iter << " " << hitAll[*iter].detectorID << " === ";
         //std::cout << std::endl;
@@ -355,7 +386,7 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
 
     //Build tracklets in station 2, 3+, 3-
     //When i = 3, works for st3+, for i = 4, works for st3-
-    buildTrackletsInStation(2);
+    buildTrackletsInStation(nStations-2-2);
     if(trackletsInSt[1].empty())
     {
 #ifdef _DEBUG_ON
@@ -364,8 +395,8 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
         return TFEXIT_FAIL_ST2_TRACKLET;
     }
 
-    buildTrackletsInStation(3);
-    buildTrackletsInStation(4);
+    buildTrackletsInStation(nStations-2-1);
+    buildTrackletsInStation(nStations-2);
     if(trackletsInSt[2].empty())
     {
 #ifdef _DEBUG_ON
@@ -468,10 +499,18 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
     LogInfo("NRoadsNeg: " << rawEvent->getNRoadsNeg());
 #endif
 
+#ifdef INCLUDE_D0
+    if(rawEvent->getNHitsInD0() > 350) return false;
     if(rawEvent->getNHitsInD1() > 350) return false;
     if(rawEvent->getNHitsInD2() > 170) return false;
     if(rawEvent->getNHitsInD3p() > 140) return false;
     if(rawEvent->getNHitsInD3m() > 140) return false;
+#else
+    if(rawEvent->getNHitsInD1() > 350) return false;
+    if(rawEvent->getNHitsInD2() > 170) return false;
+    if(rawEvent->getNHitsInD3p() > 140) return false;
+    if(rawEvent->getNHitsInD3m() > 140) return false;
+#endif
 
     /*
     if(rawEvent->getNHitsInDetectors(detectorIDs_maskX[0]) > 15) return false;
@@ -483,6 +522,7 @@ bool KalmanFastTracking::acceptEvent(SRawEvent* rawEvent)
     if(rawEvent->getNRoadsPos() > 5) return false;
     if(rawEvent->getNRoadsNeg() > 5) return false;
     */
+
     return true;
 }
 
@@ -538,7 +578,7 @@ void KalmanFastTracking::buildBackPartialTracks()
             int nPropHits = 0;
             for(int i = 0; i < 4; ++i)
             {
-                double x_exp = a*z_mask[detectorIDs_muid[0][i] - 25] + b;
+                double x_exp = a*z_mask[detectorIDs_muid[0][i] - nChamberPlanes - 1] + b;
                 for(std::list<int>::iterator iter = hitIDs_muid[0][i].begin(); iter != hitIDs_muid[0][i].end(); ++iter)
                 {
                     if(fabs(hitAll[*iter].pos - x_exp) < 5.08)
@@ -618,27 +658,39 @@ void KalmanFastTracking::buildBackPartialTracks()
 
 void KalmanFastTracking::buildGlobalTracks()
 {
-    double pos_exp[3], window[3];
+    double pos_exp1[3], window1[3];
+    double pos_exp2[3], window2[3];
     for(std::list<Tracklet>::iterator tracklet23 = trackletsInSt[3].begin(); tracklet23 != trackletsInSt[3].end(); ++tracklet23)
     {
+        trackletsInSt[0].clear();
+
         //Calculate the window in station 1
         if(p_jobOptsSvc->m_enableKMag)
         {
-            getSagittaWindowsInSt1(*tracklet23, pos_exp, window);
+            getSagittaWindowsInSt1(*tracklet23, pos_exp1, window1, 1);
+#ifdef INCLUDE_D0
+            getSagittaWindowsInSt1(*tracklet23, pos_exp2, window2, 2);
+#endif
         }
         else
         {
-            getExtrapoWindowsInSt1(*tracklet23, pos_exp, window);
+            getExtrapoWindowsInSt1(*tracklet23, pos_exp1, window1, 1);
+#ifdef INCLUDE_D0
+            getExtrapoWindowsInSt1(*tracklet23, pos_exp2, window2, 2);
+#endif
         }
 
 #ifdef _DEBUG_ON
         LogInfo("Using this back partial: ");
         tracklet23->print();
-        for(int i = 0; i < 3; i++) LogInfo("Extrapo: " << pos_exp[i] << "  " << window[i]);
+        for(int i = 0; i < 3; i++) LogInfo("Extrapo I : " << pos_exp1[i] << "  " << window1[i]);
+        for(int i = 0; i < 3; i++) LogInfo("Extrapo II: " << pos_exp2[i] << "  " << window2[i]);
 #endif
 
-        trackletsInSt[0].clear();
-        buildTrackletsInStation(1, pos_exp, window);
+        buildTrackletsInStation(1, pos_exp1, window1);
+#ifdef INCLUDE_D0
+        buildTrackletsInStation(2, pos_exp2, window2);
+#endif
 
         Tracklet tracklet_best_vtx, tracklet_best_prob;
         for(std::list<Tracklet>::iterator tracklet1 = trackletsInSt[0].begin(); tracklet1 != trackletsInSt[0].end(); ++tracklet1)
@@ -688,7 +740,6 @@ void KalmanFastTracking::buildGlobalTracks()
             LogInfo("Quality II   : " << recTrack.isValid());
 #endif
 #endif
-
 
             if(tracklet_global < tracklet_best_prob)
             {
@@ -841,7 +892,6 @@ void KalmanFastTracking::resolveSingleLeftRight(Tracklet& tracklet)
 
     //Check if the track has been updated
     bool isUpdated = false;
-
     for(std::list<SignedHit>::iterator hit_sign = tracklet.hits.begin(); hit_sign != tracklet.hits.end(); ++hit_sign)
     {
         if(hit_sign->hit.index < 0 || hit_sign->sign != 0) continue;
@@ -865,8 +915,8 @@ void KalmanFastTracking::removeBadHits(Tracklet& tracklet)
 #endif
 
     //Check if the track has beed updated
-    int signflipflag[24];
-    for(int i = 0; i < 24; ++i) signflipflag[i] = 0;
+    int signflipflag[nChamberPlanes];
+    for(int i = 0; i < nChamberPlanes; ++i) signflipflag[i] = 0;
 
     bool isUpdated = true;
     while(isUpdated)
@@ -1004,8 +1054,11 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
 
     //actuall ID of the tracklet lists
     int sID = stationID - 1;
-    int listID = sID;
-    if(listID == 3) listID = 2;
+#ifdef INCLUDE_D0
+    int listID = sID == 2 ? 1 : ( sID < 2 ? 0 : 2);
+#else
+    int listID = sID == 3 ? 2 : sID;
+#endif
 
     //Extract the X, U, V hit pairs
     std::list<SRawEvent::hit_pair> pairs_X, pairs_U, pairs_V;
@@ -1017,9 +1070,9 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, double* pos_exp,
     }
     else
     {
-        //Note that in pos_exp[], index 0 stands for U, index 1 stands for X, index 2 stands for V
-        pairs_X = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][0], pos_exp[1], window[1]);
-        pairs_U = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][1], pos_exp[0], window[0]);
+        //Note that in pos_exp[], index 0 stands for X, index 1 stands for U, index 2 stands for V
+        pairs_X = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][0], pos_exp[0], window[0]);
+        pairs_U = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][1], pos_exp[1], window[1]);
         pairs_V = rawEvent->getPartialHitPairsInSuperDetector(superIDs[sID][2], pos_exp[2], window[2]);
     }
 
@@ -1179,7 +1232,7 @@ bool KalmanFastTracking::acceptTracklet(Tracklet& tracklet)
     if(!hodoMask(tracklet)) return false;
 
     //For back partials, require projection inside KMAG, and muon id in prop. tubes
-    if(tracklet.stationID > 4)
+    if(tracklet.stationID > nStations-2)
     {
         if(!p_geomSvc->isInKMAG(tracklet.getExpPositionX(Z_KMAG_BEND), tracklet.getExpPositionY(Z_KMAG_BEND))) return false;
 #ifndef ALIGNMENT_MODE
@@ -1203,11 +1256,11 @@ bool KalmanFastTracking::hodoMask(Tracklet& tracklet)
             int detectorID = hitAll[*iter].detectorID;
             int elementID = hitAll[*iter].elementID;
 
-            int idx1 = detectorID - 25;
+            int idx1 = detectorID - nChamberPlanes - 1;
             int idx2 = elementID - 1;
 
-            double factor = tracklet.stationID == 2 ? 5. : 3.;
-            double xfudge = tracklet.stationID < 4 ? 0.5*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]) : 0.15*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]);
+            double factor = tracklet.stationID == nChamberPlanes/6-2 ? 5. : 3.;   //special for station-2, based on real data tuning
+            double xfudge = tracklet.stationID < nStations-1 ? 0.5*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]) : 0.15*(x_mask_max[idx1][idx2] - x_mask_min[idx1][idx2]);
             double z_hodo = z_mask[idx1];
             double x_hodo = tracklet.getExpPositionX(z_hodo);
             double y_hodo = tracklet.getExpPositionY(z_hodo);
@@ -1247,7 +1300,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
     //Set the cut value on multiple scattering
     //multiple scattering: sigma = 0.0136*sqrt(L/L0)*(1. + 0.038*ln(L/L0))/P, L = 1m, L0 = 1.76cm
     double cut = 0.03;
-    if(tracklet.stationID == 6)
+    if(tracklet.stationID == nStations)
     {
         double cut_the = MUID_THE_P0*tracklet.invP;
         double cut_emp = MUID_EMP_P0 + MUID_EMP_P1/tracklet.invP + MUID_EMP_P2/tracklet.invP/tracklet.invP;
@@ -1265,7 +1318,7 @@ bool KalmanFastTracking::muonID_search(Tracklet& tracklet)
         segs[i]->init();
         for(int j = 0; j < 4; ++j)
         {
-            int index = detectorIDs_muid[i][j] - 25;
+            int index = detectorIDs_muid[i][j] - nChamberPlanes - 1;
             double pos_ref = j < 2 ? pos_absorb[i] : segs[i]->getPosRef(pos_absorb[i] + slope[i]*(z_ref_muid[i][j] - MUID_Z_REF));
             double pos_exp = slope[i]*(z_mask[index] - z_ref_muid[i][j]) + pos_ref;
 
@@ -1319,7 +1372,7 @@ bool KalmanFastTracking::muonID_comp(Tracklet& tracklet)
     //Set the cut value on multiple scattering
     //multiple scattering: sigma = 0.0136*sqrt(L/L0)*(1. + 0.038*ln(L/L0))/P, L = 1m, L0 = 1.76cm
     double cut = 0.03;
-    if(tracklet.stationID == 6)
+    if(tracklet.stationID == nStations)
     {
         double cut_the = MUID_THE_P0*tracklet.invP;
         double cut_emp = MUID_EMP_P0 + MUID_EMP_P1/tracklet.invP + MUID_EMP_P2/tracklet.invP/tracklet.invP;
@@ -1375,7 +1428,7 @@ bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
 {
     double win = 0.03;
     double factor = 5.;
-    if(tracklet.stationID == 6)
+    if(tracklet.stationID == nStations)
     {
         double win_the = MUID_THE_P0*tracklet.invP;
         double win_emp = MUID_EMP_P0 + MUID_EMP_P1/tracklet.invP + MUID_EMP_P2/tracklet.invP/tracklet.invP;
@@ -1392,7 +1445,7 @@ bool KalmanFastTracking::muonID_hodoAid(Tracklet& tracklet)
             int detectorID = hitAll[*iter].detectorID;
             int elementID = hitAll[*iter].elementID;
 
-            int idx1 = detectorID - 25;
+            int idx1 = detectorID - nChamberPlanes - 1;
             int idx2 = elementID - 1;
 
             double z_hodo = z_mask[idx1];
@@ -1431,7 +1484,7 @@ void KalmanFastTracking::buildPropSegments()
         propSegs[i].clear();
 
         //note for prop tubes superID index starts from 4
-        std::list<SRawEvent::hit_pair> pairs_forward = rawEvent->getPartialHitPairsInSuperDetector(superIDs[i+4][0]);
+        std::list<SRawEvent::hit_pair> pairs_forward  = rawEvent->getPartialHitPairsInSuperDetector(superIDs[i+4][0]);
         std::list<SRawEvent::hit_pair> pairs_backward = rawEvent->getPartialHitPairsInSuperDetector(superIDs[i+4][1]);
 
 #ifdef _DEBUG_ON
@@ -1486,7 +1539,7 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
     //idx = 0, using simplex; idx = 1 using migrad
     int idx = 1;
 #ifdef _ENABLE_MULTI_MINI
-    if(tracklet.stationID < 5) idx = 0;
+    if(tracklet.stationID < nStations-1) idx = 0;
 #endif
 
     minimizer[idx]->SetLimitedVariable(0, "tx", tracklet.tx, 0.001, -TX_MAX, TX_MAX);
@@ -1509,7 +1562,7 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
     tracklet.err_x0 = minimizer[idx]->Errors()[2];
     tracklet.err_y0 = minimizer[idx]->Errors()[3];
 
-    if(p_jobOptsSvc->m_enableKMag && tracklet.stationID == 6)
+    if(p_jobOptsSvc->m_enableKMag && tracklet.stationID == nStations)
     {
         tracklet.invP = minimizer[idx]->X()[4];
         tracklet.err_invP = minimizer[idx]->Errors()[4];
@@ -1558,43 +1611,43 @@ int KalmanFastTracking::reduceTrackletList(std::list<Tracklet>& tracklets)
     return 0;
 }
 
-void KalmanFastTracking::getExtrapoWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window)
+void KalmanFastTracking::getExtrapoWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window, int st1ID)
 {
-    if(tracklet.stationID != 5)
+    if(tracklet.stationID != nStations-1)
     {
         for(int i = 0; i < 3; i++)
         {
             pos_exp[i] = 9999.;
             window[i] = 0.;
         }
-
         return;
     }
 
     for(int i = 0; i < 3; i++)
     {
-        int detectorID = 2*i+2;
+        int detectorID = (st1ID-1)*6 + 2*i + 2;
+        int idx = p_geomSvc->getPlaneType(detectorID) - 1;
+
         double z_st1 = z_plane[detectorID];
         double x_st1 = tracklet.getExpPositionX(z_st1);
         double y_st1 = tracklet.getExpPositionY(z_st1);
         double err_x = tracklet.getExpPosErrorX(z_st1);
         double err_y = tracklet.getExpPosErrorY(z_st1);
 
-        pos_exp[i] = p_geomSvc->getUinStereoPlane(detectorID, x_st1, y_st1);
-        window[i] = 5.*(fabs(costheta_plane[detectorID]*err_x) + fabs(sintheta_plane[detectorID]*err_y));
+        pos_exp[idx] = p_geomSvc->getUinStereoPlane(detectorID, x_st1, y_st1);
+        window[idx]  = 5.*(fabs(costheta_plane[detectorID]*err_x) + fabs(sintheta_plane[detectorID]*err_y));
     }
 }
 
-void KalmanFastTracking::getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window)
+void KalmanFastTracking::getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window, int st1ID)
 {
-    if(tracklet.stationID != 5)
+    if(tracklet.stationID != nStations-1)
     {
         for(int i = 0; i < 3; i++)
         {
             pos_exp[i] = 9999.;
             window[i] = 0.;
         }
-
         return;
     }
 
@@ -1605,27 +1658,29 @@ void KalmanFastTracking::getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_
     //For U, X, and V planes
     for(int i = 0; i < 3; i++)
     {
-        double pos_st3 = p_geomSvc->getUinStereoPlane(s_detectorID[i], x_st3, y_st3);
+        int detectorID = (st1ID-1)*6 + 2*i + 2;
+        int idx = p_geomSvc->getPlaneType(detectorID) - 1;
+        double pos_st3 = p_geomSvc->getUinStereoPlane(s_detectorID[idx], x_st3, y_st3);
 
-        double z_st1 = z_plane[2*i+2];
-        double z_st2 = z_plane[s_detectorID[i]];
+        double z_st1 = z_plane[detectorID];
+        double z_st2 = z_plane[s_detectorID[idx]];
         double x_st2 = tracklet.getExpPositionX(z_st2);
         double y_st2 = tracklet.getExpPositionY(z_st2);
-        double pos_st2 = p_geomSvc->getUinStereoPlane(s_detectorID[i], x_st2, y_st2);
+        double pos_st2 = p_geomSvc->getUinStereoPlane(s_detectorID[idx], x_st2, y_st2);
 
         double s2_target = pos_st2 - pos_st3*(z_st2 - Z_TARGET)/(z_st3 - Z_TARGET);
-        double s2_dump = pos_st2 - pos_st3*(z_st2 - Z_DUMP)/(z_st3 - Z_DUMP);
+        double s2_dump   = pos_st2 - pos_st3*(z_st2 - Z_DUMP)/(z_st3 - Z_DUMP);
 
         double pos_exp_target = SAGITTA_TARGET_CENTER*s2_target + pos_st3*(z_st1 - Z_TARGET)/(z_st3 - Z_TARGET);
-        double pos_exp_dump = SAGITTA_DUMP_CENTER*s2_dump + pos_st3*(z_st1 - Z_DUMP)/(z_st3 - Z_DUMP);
+        double pos_exp_dump   = SAGITTA_DUMP_CENTER*s2_dump + pos_st3*(z_st1 - Z_DUMP)/(z_st3 - Z_DUMP);
         double win_target = fabs(s2_target*SAGITTA_TARGET_WIN);
-        double win_dump = fabs(s2_dump*SAGITTA_DUMP_WIN);
+        double win_dump   = fabs(s2_dump*SAGITTA_DUMP_WIN);
 
         double p_min = std::min(pos_exp_target - win_target, pos_exp_dump - win_dump);
         double p_max = std::max(pos_exp_target + win_target, pos_exp_dump + win_dump);
 
-        pos_exp[i] = 0.5*(p_max + p_min);
-        window[i] = 0.5*(p_max - p_min);
+        pos_exp[idx] = 0.5*(p_max + p_min);
+        window[idx]  = 0.5*(p_max - p_min);
     }
 }
 

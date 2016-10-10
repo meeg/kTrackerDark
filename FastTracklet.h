@@ -180,7 +180,7 @@ public:
     //Convert to a SRecTrack
     SRecTrack getSRecTrack();
 
-    //Station ID
+    //Station ID, ranging from 1 to nStation, nStation-1 means back partial track, nStation means global track
     int stationID;
 
     //Number of hits
@@ -215,7 +215,7 @@ public:
     double err_invP;
 
     //Residuals of all pos
-    double residual[24];
+    double residual[nChamberPlanes];
 
     //static pointer to geomtry service
     static const GeomSvc* p_geomSvc;

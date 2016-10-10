@@ -162,7 +162,7 @@ KalmanTrack::KalmanTrack(Seed _seed_input)
 
     GeomSvc *p_geomSvc = GeomSvc::instance();
 
-    _trkpar_curr._z = p_geomSvc->getPlanePosition(41);
+    _trkpar_curr._z = p_geomSvc->getPlanePosition(nChamberPlanes+nHodoPlanes+1);
     _trkpar_curr._state_kf[0][0] = _seed.charge/_seed.p;
     _trkpar_curr._state_kf[1][0] = _seed.axz;
     _trkpar_curr._state_kf[2][0] = _seed.ayz;

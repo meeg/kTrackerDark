@@ -53,6 +53,8 @@ for job in jobDetails:
         continue
     if status not in job[3]:
         continue
+    if len(killRunList) > 0 and (job[1] not in killRunList):
+        continue
 
     print job[3]
     toBeKilled.append(job[2])

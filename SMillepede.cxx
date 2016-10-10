@@ -151,7 +151,7 @@ void SMillepede::addTrack(Tracklet& trk)
     }
 
     //Push dummy nodes
-    int detectorID_s3 = trk.hits.back().hit.detectorID > 18 ? 13 : 19;
+    int detectorID_s3 = trk.hits.back().hit.detectorID > nChamberPlanes-6 ? nChamberPlanes-11 : nChamberPlanes-5;
     for(int i = 0; i < 6; i++)
     {
         MPNode node_dummy(detectorID_s3 + i);
@@ -195,7 +195,7 @@ void SMillepede::addTrack(SRecTrack& trk)
     std::sort(detectorIDs.begin(), detectorIDs.end());
 
     //Insert dummy MPNodes for the detectors without hits
-    std::vector<int> detectorIDs_miss(24);
+    std::vector<int> detectorIDs_miss(nChamberPlanes);
     std::vector<int>::iterator iter = std::set_difference(detectorIDs_all.begin(), detectorIDs_all.end(), detectorIDs.begin(), detectorIDs.end(), detectorIDs_miss.begin());
     detectorIDs_miss.resize(iter - detectorIDs_miss.begin());
     for(unsigned int i = 0; i < detectorIDs_miss.size(); i++)
@@ -580,7 +580,7 @@ void SMillepede::printQAPlots()
     if(evalTree == NULL) return;
 
     TCanvas* c4 = new TCanvas("residuals", "residuals");
-    c4->Divide(6, 4);
+    c4->Divide(6, nChamberPlanes/6);
     for(int i = 0; i < MILLEPEDE::NPLAN; i++)
     {
         c4->cd(i+1);

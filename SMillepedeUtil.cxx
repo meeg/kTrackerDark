@@ -37,7 +37,7 @@ MPNode::MPNode(Node& node_kalman)
     drift = node_kalman.getHit().driftDistance;
     pos = node_kalman.getHit().pos;
 
-    if(detectorID >= 1 && detectorID <= 24)
+    if(detectorID >= 1 && detectorID <= nChamberPlanes)
     {
         flag = true;
     }
@@ -84,7 +84,7 @@ MPNode::MPNode(SignedHit& hit_signed, Tracklet& trk)
     drift = hit_signed.hit.driftDistance;
     pos = hit_signed.hit.pos;
 
-    if(detectorID >= 1 && detectorID <= 24)
+    if(detectorID >= 1 && detectorID <= nChamberPlanes)
     {
         flag = true;
     }

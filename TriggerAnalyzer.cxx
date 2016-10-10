@@ -98,6 +98,15 @@ bool TriggerAnalyzer::init()
 
     JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
 
+    int H1TID = p_geomSvc->getDetectorID("H1T");
+    int H2TID = p_geomSvc->getDetectorID("H2T");
+    int H3TID = p_geomSvc->getDetectorID("H3T");
+    int H4TID = p_geomSvc->getDetectorID("H4T");
+    int H1BID = p_geomSvc->getDetectorID("H1B");
+    int H2BID = p_geomSvc->getDetectorID("H2B");
+    int H3BID = p_geomSvc->getDetectorID("H3B");
+    int H4BID = p_geomSvc->getDetectorID("H4B");
+
     std::string fileNames[4] = {p_jobOptsSvc->GetRoadsFilePlusTop(), p_jobOptsSvc->GetRoadsFilePlusBottom(), p_jobOptsSvc->GetRoadsFileMinusTop(), p_jobOptsSvc->GetRoadsFileMinusBottom()};
     char buffer[300];
     int pRoads = 0;
@@ -120,19 +129,19 @@ bool TriggerAnalyzer::init()
             road_new.groupID = groupID;
             if(i == 0 || i == 2)
             {
-                road_new.addElement(26, elementIDs[0]);
-                road_new.addElement(32, elementIDs[1]);
-                road_new.addElement(34, elementIDs[2]);
-                road_new.addElement(40, elementIDs[3]);
+                road_new.addElement(H1TID, elementIDs[0]);
+                road_new.addElement(H2TID, elementIDs[1]);
+                road_new.addElement(H3TID, elementIDs[2]);
+                road_new.addElement(H4TID, elementIDs[3]);
             }
             else
             {
-                road_new.addElement(25, elementIDs[0]);
-                road_new.addElement(31, elementIDs[1]);
-                road_new.addElement(33, elementIDs[2]);
-                road_new.addElement(39, elementIDs[3]);
+                road_new.addElement(H1BID, elementIDs[0]);
+                road_new.addElement(H2BID, elementIDs[1]);
+                road_new.addElement(H3BID, elementIDs[2]);
+                road_new.addElement(H4BID, elementIDs[3]);
 
-                road_new.groupID *= -1;
+                road_new.groupID = -road_new.groupID;
             }
 
             if(i < 2)
@@ -329,11 +338,11 @@ bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent, int mode)
     {
         for(std::vector<Hit>::iterator iter = rawEvent->getAllHits().begin(); iter != rawEvent->getAllHits().end(); ++iter)
         {
-            if(iter->detectorID < 25 || iter->detectorID > 40) continue;
+            if(iter->detectorID <= nChamberPlanes || iter->detectorID > nChamberPlanes+nHodoPlanes) continue;
             if(!iter->isInTime()) continue;
 
             detectorIDs[nHits] = iter->detectorID;
-            elementIDs[nHits] = iter->elementID;
+            elementIDs[nHits]  = iter->elementID;
 
             ++nHits;
         }
@@ -346,7 +355,7 @@ bool TriggerAnalyzer::acceptEvent(SRawEvent* rawEvent, int mode)
             if(!iter->isInTime()) continue;
 
             detectorIDs[nHits] = iter->detectorID;
-            elementIDs[nHits] = iter->elementID;
+            elementIDs[nHits]  = iter->elementID;
 
             ++nHits;
         }
@@ -461,7 +470,6 @@ void TriggerAnalyzer::printTree(TNode* root)
 void TriggerAnalyzer::clearTree(TNode* root)
 {
     if(root == NULL) return;
-
     if(root->children.empty())
     {
         delete root;

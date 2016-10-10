@@ -34,7 +34,7 @@ public:
     int reduceEvent(SRawEvent* rawEvent);
 
     //external handle to set chamber efficiency/resolution
-    void setChamEff(double val) { chamEff = val; }
+    void setChamEff(double val)   { chamEff = val;   }
     void setChamResol(double val) { chamResol = val; }
 
     //sagitta ratio reducer
