@@ -42,7 +42,7 @@ SRecTrack::SRecTrack()
 
 bool SRecTrack::operator<(const SRecTrack& elem) const
 {
-    return getNHits() == elem.getNHits() ? fChisq < elem.fChisq : getProb() > elem.getProb();
+    return getNHits() == elem.getNHits() ? (fChisq < elem.fChisq) : (getProb() > elem.getProb());
 }
 
 Int_t SRecTrack::getNHitsInStation(Int_t stationID)
