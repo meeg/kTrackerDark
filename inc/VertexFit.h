@@ -29,7 +29,7 @@ Created: 2-8-2012
 #include "KalmanTrack.h"
 #include "SRecEvent.h"
 #include "FastTracklet.h"
-#include "TrackExtrapolator/TrackExtrapolator.hh"
+#include "TrackExtrapolator.hh"
 
 class VtxPar
 {

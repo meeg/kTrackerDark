@@ -14,7 +14,6 @@ Created: 10-13-2011
 #include <TMatrixD.h>
 #include <TMatrixDSym.h>
 
-#include "../MODE_SWITCH.h"
 #include "Settings.hh"
 #include "TrackExtrapolator.hh"
 #include "TPhysicsList.hh"

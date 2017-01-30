@@ -3,7 +3,7 @@ Version 05/12/2008
 Larry Isenhower modified by Aldo Raeliarijaona
 */
 #include "Field.hh"
-#include "../MODE_SWITCH.h"
+#include "MODE_SWITCH.h"
 
 Field::Field(Settings* settings)
 {
@@ -14,32 +14,32 @@ Field::Field(Settings* settings)
     long size;
     bool errorFlag = true;
 
-    cout << "Preparing to read magnetic field map file...\n"; 
+    cout << "Preparing to read magnetic field map file...\n";
 
     // get path name for directory in which to look for the field map file
     gmcroot = (char *)getenv("GMCROOT");
 
     size = 1000;
-    originalpath = getcwd(buf, size);   
+    originalpath = getcwd(buf, size);
 
     errorFlag = false;
-	  
+
     cout << "Reading field maps..." << endl;
-    //                             zOffset, nx, ny, nz, fmag, settings    
+    //                             zOffset, nx, ny, nz, fmag, settings
     Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
     Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
-   
-    // This exception prevents an error by keeping physiWorld from trying 
+
+    // This exception prevents an error by keeping physiWorld from trying
     // to acces a world volume if no file input was read
     if(errorFlag)
       cout << "No magnetic field input file found! \nPlease check your field map file location and your GMCROOT environment variable." << endl;
-   
+
    // Move back to original working directory
     chdir(originalpath);
   }
   else // if reading in field map from MySQL
   {
-    G4cout << "Preparing to read magnetic field map files...\n"; 
+    G4cout << "Preparing to read magnetic field map files...\n";
     G4cout << "Reading field maps...\n";
     Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
     Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);

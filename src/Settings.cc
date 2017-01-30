@@ -1,6 +1,6 @@
 #include "Settings.hh"
-#include "../JobOptsSvc.h"
-#include "../MODE_SWITCH.h"
+#include "JobOptsSvc.h"
+#include "MODE_SWITCH.h"
 
 Settings::Settings()
 {
@@ -43,7 +43,7 @@ Settings::Settings()
       kMagMultiplier = KMAGSTR;
       fMagMultiplier = FMAGSTR;
     }
-  
+
   geometrySchema = p_jobOptsSvc->m_geomVersion;
   magnetSchema = "geometry_R996_magneticFields";
   target = 1;

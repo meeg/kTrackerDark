@@ -21,7 +21,7 @@ Created: 10-14-2011
 
 #include "GeomSvc.h"
 #include "KalmanUtil.h"
-#include "TrackExtrapolator/TrackExtrapolator.hh"
+#include "TrackExtrapolator.hh"
 
 class KalmanFilter
 {

@@ -6,6 +6,9 @@ import re
 
 # compile with ROOT, Geant4, MySQL and BOOST
 def compile(filename):
+
+    cflags = '-I' + os.environ['KTRACKER_INCLUDE']
+
 	## ROOT part
     cflags = os.popen('root-config --cflags').readline().strip()
     ldflags = os.popen('root-config --ldflags --libs').readline().strip()

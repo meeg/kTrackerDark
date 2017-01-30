@@ -314,6 +314,12 @@ void JobOptsSvc::save(TFile* saveFile)
 
     TString s_geomVersion = m_geomVersion;
 
+#ifdef GIT_VERSION
+    TString s_softver = GIT_VERSION;
+#else
+    TString s_softver = "Unknown";
+#endif
+
     double s_timingOffset = m_timingOffset;
 
     saveTree->Branch("ConfigFile", &s_configFile);
@@ -348,6 +354,7 @@ void JobOptsSvc::save(TFile* saveFile)
     saveTree->Branch("KMag", &s_kmagFile);
     saveTree->Branch("Geometry", &s_geomVersion);
     saveTree->Branch("TimingOffset", &s_timingOffset);
+    saveTree->Branch("kTrackerVer", &s_softver);
 
     saveTree->Fill();
     saveTree->Write();

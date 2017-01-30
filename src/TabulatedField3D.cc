@@ -35,9 +35,9 @@
 // GEANT4 tag $Name: geant4-09-01-patch-02 $
 
 #include "TabulatedField3D.hh"
-#include "../MODE_SWITCH.h"
+#include "MODE_SWITCH.h"
 
-TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool fMagnet, Settings* settings) 
+TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool fMagnet, Settings* settings)
 {
   mySettings = settings;
   if (mySettings->asciiFieldMap)
@@ -56,11 +56,11 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     else
       filename = settings->kMagName;
 
-    double fieldUnit= tesla; 
+    double fieldUnit= tesla;
     G4cout << "\n-----------------------------------------------------------"
 	   << "\n      Magnetic field"
 	   << "\n-----------------------------------------------------------"
-	   << "\n ---> " "Reading the field grid from " << filename << " ... " << endl; 
+	   << "\n ---> " "Reading the field grid from " << filename << " ... " << endl;
     ifstream file( filename );
     if (!file.good())
       cout << "Field map input file error." << endl;
@@ -68,7 +68,7 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     char buffer[256];
     file.getline(buffer,256);
 
-    G4cout << "  [ Number of values x,y,z: " 
+    G4cout << "  [ Number of values x,y,z: "
 	   << nx << " " << ny << " " << nz << " ] "
 	   << endl;
 
@@ -137,21 +137,21 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
     MYSQL_ROW row;
 
     con = mysql_init(NULL);
-    mysql_real_connect(con, mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->magnetSchema, 
+    mysql_real_connect(con, mySettings->sqlServer, mySettings->login, mySettings->password, mySettings->magnetSchema,
 		       mySettings->sqlPort, NULL, 0);
 
     cout << mysql_error(con) << endl;
     cout << mySettings->magnetSchema << endl;
-  
+
     fmag = fMagnet;
 
-    double fieldUnit= tesla; 
+    double fieldUnit= tesla;
 
     G4cout << "\n-----------------------------------------------------------"
 	   << "\n      Magnetic field"
 	   << "\n-----------------------------------------------------------\n";
 
-    G4cout << "  [ Number of values x,y,z: " 
+    G4cout << "  [ Number of values x,y,z: "
 	   << nx << " " << ny << " " << nz << " ] "
 	   << endl;
 
@@ -239,9 +239,9 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
 
   // This code is run whether it is loaded from ascii or MySQL
 
-  G4cout << "\n ---> Min values x,y,z: " 
+  G4cout << "\n ---> Min values x,y,z: "
 	 << minx/cm << " " << miny/cm << " " << minz/cm << " cm "
-	 << "\n ---> Max values x,y,z: " 
+	 << "\n ---> Max values x,y,z: "
 	 << maxx/cm << " " << maxy/cm << " " << maxz/cm << " cm "
 	 << "\n ---> The field will be offset by " << zOffset/cm << " cm " << endl;
 
@@ -249,7 +249,7 @@ TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool 
   dy = maxy - miny;
   dz = maxz - minz;
 
-  G4cout << "\n ---> Dif values x,y,z (range): " 
+  G4cout << "\n ---> Dif values x,y,z (range): "
 	 << dx/cm << " " << dy/cm << " " << dz/cm << " cm in z "
 	 << "\n-----------------------------------------------------------" << endl;
 }
@@ -266,33 +266,33 @@ void TabulatedField3D::GetFieldValue(const double point[3], double *Bfield ) con
   y = point[1];
   z = point[2] + fZoffset;
 
-  // Check that the point is within the defined region 
+  // Check that the point is within the defined region
   if ( x>=minx && x<=maxx &&
-       y>=miny && y<=maxy && 
+       y>=miny && y<=maxy &&
        z>=minz && z<=maxz )
-  {    
+  {
     // Position of given point within region, normalized to the range
     // [0,1]
     double xfraction = (x - minx) / dx;
-    double yfraction = (y - miny) / dy; 
+    double yfraction = (y - miny) / dy;
     double zfraction = (z - minz) / dz;
 
     // Need addresses of these to pass to modf below.
     // modf uses its second argument as an OUTPUT argument.
     double xdIndex, ydIndex, zdIndex;
-    
+
     // Position of the point within the cuboid defined by the
     // nearest surrounding tabulated points
     double xlocal = ( std::modf(xfraction*(nx-1), &xdIndex));
     double ylocal = ( std::modf(yfraction*(ny-1), &ydIndex));
     double zlocal = ( std::modf(zfraction*(nz-1), &zdIndex));
-    
+
     // The indices of the nearest tabulated point whose coordinates
     // are all less than those of the given point
     int xindex = static_cast<int>(xdIndex);
     int yindex = static_cast<int>(ydIndex);
     int zindex = static_cast<int>(zdIndex);
-    
+
     // Full 3-dimensional version
     Bfield[0] =
       xField[xindex  ][yindex  ][zindex  ] * (1-xlocal) * (1-ylocal) * (1-zlocal) +

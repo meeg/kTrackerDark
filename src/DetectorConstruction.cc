@@ -3,14 +3,14 @@
 //
 // This file performs the main fucntion of constructing and configuring
 // the physical model of the experiment used in the GMC.  Even though it
-// is called DetectorConstruction it constructs all of the geometry, detectors, 
+// is called DetectorConstruction it constructs all of the geometry, detectors,
 // magnets, magnetic fields, concrete barriers, target, etc.  It uses SQL
 // databases to construct the shapes, sizes, positions and materials of the
 // experiment components, sets up magnetic fields, sets display attributes of
 // the physical componets, and assigns which components will be detectors.
 
 #include "DetectorConstruction.hh"
-#include "../MODE_SWITCH.h"
+#include "MODE_SWITCH.h"
 
 DetectorConstruction::DetectorConstruction(Settings* settings)
 {
@@ -190,7 +190,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     solidVec[id] = new G4Tubs(name, radiusMin, radiusMax, zLength/2.0, 0, 360*deg);
   }
   mysql_free_result(res);
-      
+
   mysql_query(con, "SELECT sID, sName, shellID, holeID, rotX, rotY, rotZ, posX, posY, posZ FROM SubtractionSolids");
   if (mysql_errno(con) != 0)
     cout << mysql_error(con) << endl;
@@ -299,7 +299,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
       rotationMatrixVec.back()->rotateY(atof(row[8]));
       rotationMatrixVec.back()->rotateX(atof(row[7]));
 
-      new G4PVPlacement(rotationMatrixVec.back(), pos, logicalVolumeVec[logicalID], name, 
+      new G4PVPlacement(rotationMatrixVec.back(), pos, logicalVolumeVec[logicalID], name,
                         logicalVolumeVec[motherID], 0, copy[logicalID]);
 
       copy[logicalID]++;
@@ -338,21 +338,21 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   mysql_free_result(res);
 
   mysql_close(con);
- 
+
   //  This manages the physical volumes that are sensitive detectors (particle passing through triggers a hit)
 
   G4cout << "Initializing sensitive detector manager...\n";
-  G4SDManager* SDman = G4SDManager::GetSDMpointer(); 
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
   G4String sta_SDname = "E906/StationSD";
   staSD = new GenericSD(sta_SDname);
   SDman->AddNewDetector(staSD);
   G4cout << "Finished initializing sensitive detector manager!\n";
-   
+
   // Execute a function to recursively sort through all Volumes and assign proper display and sensitive detector attributes to each component
-  G4cout << "Setting attributes...\n";   
+  G4cout << "Setting attributes...\n";
   AssignAttributes(physiWorld);
   G4cout << "Finished setting attributes!\n";
-   
+
   // Magnetic Field
   // For details see Field and TabulatedField3D .cc and .hh
 
@@ -362,7 +362,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   G4FieldManager* fieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
   fieldMgr->SetDetectorField(myField);
 
-  G4Mag_UsualEqRhs* fEquation = new G4Mag_UsualEqRhs(myField); 
+  G4Mag_UsualEqRhs* fEquation = new G4Mag_UsualEqRhs(myField);
   G4MagIntegratorStepper* pStepper = new G4ClassicalRK4(fEquation);
   G4ChordFinder* pChordFinder = new G4ChordFinder(myField,0.01*mm, pStepper);
   fieldMgr->SetChordFinder(pChordFinder);
@@ -391,19 +391,19 @@ int DetectorConstruction::AssignAttributes(G4VPhysicalVolume* mother_phy)
   G4VisAttributes* detVisAtt = new G4VisAttributes(G4Colour(0.3,0.5,1.0));
   G4VisAttributes* absWallVisAtt = new G4VisAttributes(G4Colour(0.9,0.88,0.7));
   absWallVisAtt->SetForceSolid(true);
-   
+
   // check for daughter volumes
 
   G4LogicalVolume *mother_vol = mother_phy->GetLogicalVolume();
   G4String pName = mother_phy->GetName();
   G4String lName = mother_vol->GetName();
-  G4int nDaughters = mother_vol->GetNoDaughters(); 
+  G4int nDaughters = mother_vol->GetNoDaughters();
   G4Material* mat =  mother_vol->GetMaterial();
   G4String matName = mat->GetName();
   G4int exit = 0;
 
   bool overDet = lName.contains("osta");
-  bool det = ( pName.contains("H1") || pName.contains("H2") || pName.contains("H3") || pName.contains("H4") 
+  bool det = ( pName.contains("H1") || pName.contains("H2") || pName.contains("H3") || pName.contains("H4")
             || pName.contains("C1") || pName.contains("C2") || pName.contains("C3")
             || pName.contains("P1") || pName.contains("P2"));
 
@@ -448,7 +448,7 @@ int DetectorConstruction::AssignAttributes(G4VPhysicalVolume* mother_phy)
 
   // 'exit' returns a zero if all componets were assigned attributes or
   // the number of componets missing assigment if some were not assigned
-  return exit;   
+  return exit;
 }
 
 // This is called if someone changes the target material through the UI
@@ -491,7 +491,7 @@ void DetectorConstruction::ReloadMagField()
   G4FieldManager* fieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
   fieldMgr->SetDetectorField(myField);
 
-  G4Mag_UsualEqRhs* fEquation = new G4Mag_UsualEqRhs(myField); 
+  G4Mag_UsualEqRhs* fEquation = new G4Mag_UsualEqRhs(myField);
   G4MagIntegratorStepper* pStepper = new G4ClassicalRK4(fEquation);
   G4ChordFinder* pChordFinder = new G4ChordFinder(myField,1.e-1*mm, pStepper);
 
