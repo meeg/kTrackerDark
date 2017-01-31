@@ -1054,10 +1054,15 @@ void MySQLSvc::writeInfoTable(TTree* config)
     }
 
     //Tracker version from software release
+#ifdef GIT_VERSION
+    sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
+                   "VALUES('%s','%s')", "version", GIT_VERSION);
+#else
     char* trackerVersion = getenv("SEAQUEST_RELEASE");
     if(!trackerVersion) sprintf(trackerVersion, "unknown.version");
     sprintf(query, "INSERT INTO kInfo (infoKey,infoValue) "
                    "VALUES('%s','%s')", "version", trackerVersion);
+#endif
     outputServer->Exec(query);
 
     //Run/upload time

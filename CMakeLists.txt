@@ -16,8 +16,6 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # Command line options
-option(ALIGNMENT "Enable Alignment tools compilation" OFF)
-
 # Additional compile targets
 set(ADDTIONAL "" CACHE STRING "Additional compilation targets to build")
 set(ADDTGTLIST "")
