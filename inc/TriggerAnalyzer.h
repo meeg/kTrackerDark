@@ -6,6 +6,7 @@
 #include <list>
 #include <string>
 #include <set>
+#include <map>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -38,11 +39,9 @@ public:
     ~TriggerAnalyzer();
 
     //initialization
-    bool init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad> m_roads, double cut_td = 0., double cut_gun = 1E8); //init by road lists
     bool init(std::string fileName, double cut_td = 0., double cut_gun = 1E8); //init by root files
-    bool init(std::string schemaName); //init by MySQL database
     bool init(); //init by ascii file in the same directory
-    void filterRoads(double cut_td, double cut_gun);
+    //void filterRoads(double cut_td, double cut_gun);
     void makeRoadPairs();
 
     //Accept a event
@@ -54,10 +53,11 @@ public:
     void trimEvent(SRawEvent* rawEvent, std::list<Hit>& hitlist, int mode = USE_TRIGGER_HIT);
 
     //Get the road list of +/-
-    std::list<TriggerRoad>& getRoadsAll(int charge) { return roads[(-charge+1)/2]; }
-    std::list<TriggerRoad>& getRoadsFound(int charge) { return roads_found[(-charge+1)/2]; }
-    std::list<TriggerRoad>& getRoadsEnabled(int charge) { return roads_enabled[(-charge+1)/2]; }
-    std::list<TriggerRoad>& getRoadsDisabled(int charge) { return roads_disabled[(-charge+1)/2]; }
+    std::map<int, TriggerRoad>& getRoadsAll(int charge)      { return roads[(-charge+1)/2]; }
+    std::map<int, TriggerRoad>& getRoadsEnabled(int charge)  { return roads_enabled[(-charge+1)/2]; }
+    std::map<int, TriggerRoad>& getRoadsDisabled(int charge) { return roads_disabled[(-charge+1)/2]; }
+    std::list<TriggerRoad>& getRoadsFound(int charge)        { return roads_found[(-charge+1)/2]; }
+
 
     int getNRoadsPosTop() { return nRoads[0][0]; }
     int getNRoadsPosBot() { return nRoads[0][1]; }
@@ -91,9 +91,9 @@ private:
     GeomSvc* p_geomSvc;
 
     //Single muon roads
-    std::list<TriggerRoad> roads[2];
-    std::list<TriggerRoad> roads_enabled[2];
-    std::list<TriggerRoad> roads_disabled[2];
+    std::map<int, TriggerRoad> roads[2];
+    std::map<int, TriggerRoad> roads_enabled[2];
+    std::map<int, TriggerRoad> roads_disabled[2];
 
     //Counters of single roads
     int nRoads[2][2];  //first index stands for +/-, second stands for top/bottom

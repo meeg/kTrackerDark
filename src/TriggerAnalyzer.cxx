@@ -46,52 +46,6 @@ TriggerAnalyzer::~TriggerAnalyzer()
     clear(-1);
 }
 
-bool TriggerAnalyzer::init(std::string schemaName)
-{
-    JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
-    p_geomSvc = GeomSvc::instance();
-
-    char query[300];
-    sprintf(query, "SELECT charge,St1DetectorName,St1ElementID,St2DetectorName,St2ElementID,"
-            "St3DetectorName,St3ElementID,St4DetectorName,St4ElementID FROM %s.TriggerRoads", schemaName.c_str());
-
-    TSQLServer* server = TSQLServer::Connect(p_jobOptsSvc->GetInputMySQLURL().c_str(), "seaguest","qqbar2mu+mu-");
-    if(server == NULL) return false;
-
-    TSQLResult* res = server->Query(query);
-    if(res == NULL) return false;
-
-    unsigned int nRoads = res->GetRowCount();
-    for(unsigned int i = 0; i < nRoads; ++i)
-    {
-        TSQLRow* row = res->Next();
-
-        TriggerRoad road_new;
-        for(int j = 1; j <= 4; ++j)
-        {
-            road_new.addElement(p_geomSvc->getDetectorID(row->GetField(2*j-1)), atoi(row->GetField(2*j)));
-        }
-        road_new.enable();
-
-        int charge = atoi(row->GetField(0));
-        if(charge > 0)
-        {
-            roads_enabled[0].push_back(road_new);
-        }
-        else
-        {
-            roads_enabled[1].push_back(road_new);
-        }
-
-        delete row;
-    }
-
-    delete res;
-    delete server;
-
-    return true;
-}
-
 bool TriggerAnalyzer::init()
 {
     using namespace std;
@@ -147,12 +101,12 @@ bool TriggerAnalyzer::init()
             if(i < 2)
             {
                 road_new.roadID = pRoads++;
-                roads_enabled[0].push_back(road_new);
+                roads_enabled[0].insert(map<int, TriggerRoad>::value_type(road_new.getRoadID(), road_new));
             }
             else
             {
                 road_new.roadID = mRoads++;
-                roads_enabled[1].push_back(road_new);
+                roads_enabled[1].insert(map<int, TriggerRoad>::value_type(road_new.getRoadID(), road_new));
             }
         }
     }
@@ -178,7 +132,7 @@ bool TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
     for(int i = 0; i < p_dataTree->GetEntries(); i++)
     {
         p_dataTree->GetEntry(i);
-        if(road->isValid()) roads[0].push_back(*road);
+        if(road->isValid()) roads[0].insert(std::map<int, TriggerRoad>::value_type(road->getRoadID(), *road));
         road->clear();
     }
 
@@ -186,28 +140,16 @@ bool TriggerAnalyzer::init(std::string fileName, double cut_td, double cut_gun)
     for(int i = 0; i < m_dataTree->GetEntries(); i++)
     {
         m_dataTree->GetEntry(i);
-        if(road->isValid()) roads[1].push_back(*road);
+        if(road->isValid()) roads[1].insert(std::map<int, TriggerRoad>::value_type(road->getRoadID(), *road));
         road->clear();
     }
 
-    filterRoads(cut_td, cut_gun);
+    //filterRoads(cut_td, cut_gun);
     makeRoadPairs();
     return true;
 }
 
-bool TriggerAnalyzer::init(std::list<TriggerRoad> p_roads, std::list<TriggerRoad> m_roads, double cut_td, double cut_gun)
-{
-    roads[0].clear();
-    roads[0].assign(p_roads.begin(), p_roads.end());
-
-    roads[1].clear();
-    roads[1].assign(m_roads.begin(), m_roads.end());
-
-    filterRoads(cut_td, cut_gun);
-    makeRoadPairs();
-    return true;
-}
-
+/*
 void TriggerAnalyzer::filterRoads(double cut_td, double cut_gun)
 {
     //Filter road list
@@ -246,6 +188,7 @@ void TriggerAnalyzer::filterRoads(double cut_td, double cut_gun)
     std::cout << "Loaded " << roads[0].size() << " positive roads and " << roads[1].size() << " negative roads" << std::endl;
     std::cout << roads_enabled[0].size() << " positive roads and " << roads_enabled[1].size() << " negative roads are activated." << std::endl;
 }
+*/
 
 void TriggerAnalyzer::makeRoadPairs()
 {
@@ -272,14 +215,10 @@ void TriggerAnalyzer::makeRoadPairs()
 
 bool TriggerAnalyzer::acceptEvent(TriggerRoad& p_road, TriggerRoad& m_road)
 {
-    std::list<TriggerRoad>::iterator p_iter = std::find(roads[0].begin(), roads[0].end(), p_road);
-    std::list<TriggerRoad>::iterator m_iter = std::find(roads[1].begin(), roads[1].end(), m_road);
+    bool pRoadFound = roads_enabled[0].find(p_road.getRoadID()) != roads_enabled[0].end();
+    bool mRoadFound = roads_enabled[1].find(m_road.getRoadID()) != roads_enabled[1].end();
 
-    if(p_iter != roads_enabled[0].end() && m_iter != roads_enabled[1].end())
-    {
-        return true;
-    }
-    return false;
+    return pRoadFound && mRoadFound;
 }
 
 bool TriggerAnalyzer::buildData(int nHits, int detectorIDs[], int elementIDs[])
@@ -390,23 +329,22 @@ bool TriggerAnalyzer::acceptEvent(int nHits, int detectorIDs[], int elementIDs[]
     {
         for(std::list<TriggerRoad>::iterator iter = roads_found[i].begin(); iter != roads_found[i].end(); )
         {
-            std::list<TriggerRoad>::iterator road = std::find(roads_enabled[i].begin(), roads_enabled[i].end(), *iter);
-            if(road == roads_enabled[i].end())
+            if(roads_enabled[i].find(iter->getRoadID()) == roads_enabled[i].end())
             {
                 iter = roads_found[i].erase(iter);
                 continue;
             }
             else
             {
-                *iter = *road;
+                *iter = roads_enabled[i][iter->getRoadID()];
                 iter->groupID > 0 ? ++nRoads[i][0] : ++nRoads[i][1];
 
 #ifndef REQUIRE_TB
                 //Don't separate top/bottom
-                groupIDs[i].insert(abs(road->groupID));
+                groupIDs[i].insert(abs(iter->groupID));
 #else
                 //Separate top/bottom
-                groupIDs[i].insert(road->groupID);
+                groupIDs[i].insert(iter->groupID);
 #endif
                 ++iter;
             }
@@ -433,7 +371,8 @@ void TriggerAnalyzer::search(TNode* root, DataMatrix& data, int level, int charg
     if(root->children.empty())
     {
         //printRoadFound();
-        roads_found[charge].push_back(TriggerRoad(roads_temp));
+        TriggerRoad road_found(roads_temp);
+        if(roads_enabled[charge].find(road_found.getRoadID()) != roads_enabled[charge].end()) roads_found[charge].push_back(road_found);
         roads_temp.pop_back();
 
         return;
@@ -488,15 +427,15 @@ void TriggerAnalyzer::buildTriggerTree()
     for(int i = 0; i < 2; i++)
     {
         root[i] = new TNode(-1);
-        for(std::list<TriggerRoad>::iterator iter = roads_enabled[i].begin(); iter != roads_enabled[i].end(); ++iter)
+        for(std::map<int, TriggerRoad>::iterator iter = roads_enabled[i].begin(); iter != roads_enabled[i].end(); ++iter)
         {
-            if(!iter->isEnabled()) continue;
+            if(!iter->second.isEnabled()) continue;
 
             TNode* parentNode[5]; //note: index 4 is useless, just to keep the following code simpler
             parentNode[0] = root[i];
             for(int j = 0; j < 4; j++)
             {
-                int uniqueID = iter->getDetectorID(j)*100 + iter->getElementID(j);
+                int uniqueID = iter->second.getDetectorID(j)*100 + iter->second.getElementID(j);
                 bool isNewNode = true;
                 for(std::list<TNode*>::iterator jter = parentNode[j]->children.begin(); jter != parentNode[j]->children.end(); ++jter)
                 {
@@ -555,16 +494,16 @@ void TriggerAnalyzer::outputEnabled()
     fout_road[1][0].open("roads_minus_top.txt", ios::out);
     fout_road[1][1].open("roads_minus_bottom.txt", ios::out);
 
-    roads_enabled[0].sort(TriggerRoad::byPt);
-    roads_enabled[1].sort(TriggerRoad::byPt);
+    //roads_enabled[0].sort(TriggerRoad::byPt);
+    //roads_enabled[1].sort(TriggerRoad::byPt);
     for(int i = 0; i < 2; i++)
     {
-        for(std::list<TriggerRoad>::iterator iter = roads_enabled[i].begin(); iter != roads_enabled[i].end(); ++iter)
+        for(std::map<int, TriggerRoad>::iterator iter = roads_enabled[i].begin(); iter != roads_enabled[i].end(); ++iter)
         {
-            if(!iter->isEnabled()) continue;
+            if(!iter->second.isEnabled()) continue;
 
-            int tb = iter->getTB() > 0 ? 0 : 1;
-            fout_road[i][tb] << *iter << endl;
+            int tb = iter->second.getTB() > 0 ? 0 : 1;
+            fout_road[i][tb] << iter->second << endl;
         }
     }
 

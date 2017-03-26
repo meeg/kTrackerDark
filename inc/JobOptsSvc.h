@@ -9,6 +9,8 @@
 #include <TFile.h>
 #include <TString.h>
 
+#include "MODE_SWITCH.h"
+
 class JobOptsSvc
 {
 public:
