@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(kTracker CXX C Fortran)
 
 # Put executables into a bin
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_MACOSX_RPATH 1)  # only needed to suppress cmake warning
 
 if(APPLE)
@@ -126,7 +126,7 @@ foreach(TGT ${TARGETLIST})
   message(STATUS "Adding targets to the compile list: ${TGT}")
 
   # add executables
-  add_executable(${TGT} ${TGT}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+  add_executable(${TGT} ${PROJECT_SOURCE_DIR}/exe/${TGT}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
   #target_link_libraries(${TGTNAME} ${ROOT_LINK} ${Geant4_LIBRARIES})
 endforeach(TGT)
 add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
@@ -136,5 +136,5 @@ foreach(TGT ${ADDTGTLIST})
   message(STATUS "Adding additional targets to the compile list: ${TGT}")
 
   # add executables
-  add_executable(${TGT} ${TGT}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+  add_executable(${TGT} ${PROJECT_SOURCE_DIR}/exe/${TGT}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
 endforeach(TGT)
