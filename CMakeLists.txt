@@ -15,14 +15,6 @@ if(UNIX AND NOT APPLE)
   set(CMAKE_Fortran_COMPILER g++)
 endif()
 
-# Command line options
-# Additional compile targets
-set(ADDTIONAL "" CACHE STRING "Additional compilation targets to build")
-set(ADDTGTLIST "")
-if(NOT("${ADDTIONAL}" STREQUAL ""))
-  string(REPLACE "," ";" ADDTGTLIST ${ADDTIONAL})
-endif()
-
 # Add version number from git if exists
 if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
   execute_process(COMMAND git rev-parse --abbrev-ref HEAD OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -122,19 +114,11 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}" )
 
 set(TARGETLIST "kFastTracking;kVertex;milleAlign;sqlDataReader;sqlMCReader;sqlResWriter")
-foreach(TGT ${TARGETLIST})
-  message(STATUS "Adding targets to the compile list: ${TGT}")
-
-  # add executables
-  add_executable(${TGT} ${PROJECT_SOURCE_DIR}/exe/${TGT}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
-  #target_link_libraries(${TGTNAME} ${ROOT_LINK} ${Geant4_LIBRARIES})
-endforeach(TGT)
+file(GLOB execs ${PROJECT_SOURCE_DIR}/exe/*.cxx)
+foreach(exec ${execs})
+  string(REPLACE  "${PROJECT_SOURCE_DIR}/exe/" "" exec ${exec})
+  string(REPLACE  ".cxx" "" exec ${exec})
+  message(STATUS "Adding targets to the compile list: ${exec}")
+  add_executable(${exec} ${PROJECT_SOURCE_DIR}/exe/${exec}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+endforeach(exec)
 add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
-
-# add additional targets
-foreach(TGT ${ADDTGTLIST})
-  message(STATUS "Adding additional targets to the compile list: ${TGT}")
-
-  # add executables
-  add_executable(${TGT} ${PROJECT_SOURCE_DIR}/exe/${TGT}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
-endforeach(TGT)
