@@ -1,8 +1,8 @@
 #Set locations
 export KTRACKER_ROOT=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
-export KTRACKER_LIB=$KTRACKER_ROOT/build/lib  #todo test for opt/dbg
+export KTRACKER_LIB=$KTRACKER_ROOT/lib  #todo test for opt/dbg
 export KTRACKER_INCLUDE=$KTRACKER_ROOT/include
-export KTRACKER_BIN=$KTRACKER_ROOT/build/bin
+export KTRACKER_BIN=$KTRACKER_ROOT/bin
 
 #this package needs the geometry package.  check for it and try to find it
 if [ ! -d "$GEOMETRY_ROOT" ]; then
