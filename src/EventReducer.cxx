@@ -151,15 +151,10 @@ void EventReducer::sagittaReducer()
     int nHits_D1 = 0;
     int nHits_D2 = 0;
     int nHits_D3 = 0;
-#ifdef INCLUDE_D0
     int detectorID_st1_max = 12;
     int detectorID_st2_max = 18;
-#else
-    int detectorID_st1_max = 6;
-    int detectorID_st2_max = 12;
-#endif
 
-    //hitlist here needs to be sorted of course
+    //hitlist here is assumed to be sorted of course
     for(std::list<Hit>::iterator iter = hitlist.begin(); iter != hitlist.end(); ++iter)
     {
         if(iter->detectorID > nChamberPlanes) break;
@@ -346,7 +341,6 @@ void EventReducer::initHodoMaskLUT()
     int hodoIDs[8];
     for(int i = 0; i < 8; ++i) hodoIDs[i] = p_geomSvc->getDetectorID(hodoNames[i].Data());
 
-#ifdef INCLUDE_D0
     int chamIDs[8][12] = { {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
                            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
                            {13, 14, 15, 16, 17, 18, 0, 0, 0, 0, 0, 0},
@@ -355,16 +349,6 @@ void EventReducer::initHodoMaskLUT()
                            {19, 20, 21, 22, 23, 24, 0, 0, 0, 0, 0, 0},
                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-#else
-    int chamIDs[8][12] = { {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0},
-                           {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0, 0},
-                           {7, 8, 9, 10, 11, 12, 0, 0, 0, 0, 0, 0},
-                           {7, 8, 9, 10, 11, 12, 0, 0, 0, 0, 0, 0},
-                           {0, 0, 0, 0, 0, 0, 19, 20, 21, 22, 23, 24},
-                           {13, 14, 15, 16, 17, 18, 0, 0, 0, 0, 0, 0},
-                           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-#endif
 
     for(int i = 0; i < 8; ++i)
     {

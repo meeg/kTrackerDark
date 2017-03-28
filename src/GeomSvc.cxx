@@ -206,7 +206,6 @@ void GeomSvc::init()
     //Initialize the detectorID --- detectorName convention
     typedef std::map<std::string, int>::value_type nameToID;
 
-#ifdef INCLUDE_D0
     map_detectorID.insert(nameToID("D0U", 1));
     map_detectorID.insert(nameToID("D0Up", 2));
     map_detectorID.insert(nameToID("D0X", 3));
@@ -237,32 +236,6 @@ void GeomSvc::init()
     map_detectorID.insert(nameToID("D3mX", 28));
     map_detectorID.insert(nameToID("D3mUp", 29));
     map_detectorID.insert(nameToID("D3mU", 30));
-#else
-    map_detectorID.insert(nameToID("D1U", 1));
-    map_detectorID.insert(nameToID("D1Up", 2));
-    map_detectorID.insert(nameToID("D1X", 3));
-    map_detectorID.insert(nameToID("D1Xp", 4));
-    map_detectorID.insert(nameToID("D1V", 5));
-    map_detectorID.insert(nameToID("D1Vp", 6));
-    map_detectorID.insert(nameToID("D2V", 7));
-    map_detectorID.insert(nameToID("D2Vp", 8));
-    map_detectorID.insert(nameToID("D2Xp", 9));
-    map_detectorID.insert(nameToID("D2X", 10));
-    map_detectorID.insert(nameToID("D2U", 11));
-    map_detectorID.insert(nameToID("D2Up", 12));
-    map_detectorID.insert(nameToID("D3pVp", 13));
-    map_detectorID.insert(nameToID("D3pV", 14));
-    map_detectorID.insert(nameToID("D3pXp", 15));
-    map_detectorID.insert(nameToID("D3pX", 16));
-    map_detectorID.insert(nameToID("D3pUp", 17));
-    map_detectorID.insert(nameToID("D3pU", 18));
-    map_detectorID.insert(nameToID("D3mVp", 19));
-    map_detectorID.insert(nameToID("D3mV", 20));
-    map_detectorID.insert(nameToID("D3mXp", 21));
-    map_detectorID.insert(nameToID("D3mX", 22));
-    map_detectorID.insert(nameToID("D3mUp", 23));
-    map_detectorID.insert(nameToID("D3mU", 24));
-#endif
 
     map_detectorID.insert(nameToID("H1B", nChamberPlanes+1));
     map_detectorID.insert(nameToID("H1T", nChamberPlanes+2));

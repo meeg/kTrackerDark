@@ -235,17 +235,10 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
     std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
     //Temp solutions here, some number that is definitely larger than 0.5*spacing
-#ifdef INCLUDE_D0
     double spacing[(nChamberPlanes+nHodoPlanes+nPropPlanes)/2+1] =
                          {0., 0.40, 0.40, 0.40, 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
                           4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
                           3.0, 3.0, 3.0, 3.0};
-#else
-    double spacing[(nChamberPlanes+nHodoPlanes+nPropPlanes)/2+1] =
-                         {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
-                          4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
-                          3.0, 3.0, 3.0, 3.0};                                                //prop tubes
-#endif
 
     int index1 = -1;
     int index2 = -1;
@@ -291,17 +284,10 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
     std::vector<int> _hitflag2(_hitlist2.size(), -1);
 
     //Temp solutions here, some number that is definitely larger than 0.5*spacing
-#ifdef INCLUDE_D0
     double spacing[(nChamberPlanes+nHodoPlanes+nPropPlanes)/2+1] =
                          {0., 0.40, 0.40, 0.40, 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
                           4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
-                          3.0, 3.0, 3.0, 3.0};
-#else
-    double spacing[(nChamberPlanes+nHodoPlanes+nPropPlanes)/2+1] =
-                         {0., 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
-                          4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
                           3.0, 3.0, 3.0, 3.0};                                                //prop tubes
-#endif                                             //prop tubes
 
     int index1 = -1;
     int index2 = -1;
@@ -432,11 +418,7 @@ Int_t SRawEvent::getNHitsInD0()
 Int_t SRawEvent::getNHitsInD1()
 {
     Int_t nHits = 0;
-#ifdef INCLUDE_D0
     for(Int_t i = 7; i <= 12; i++)
-#else
-    for(Int_t i = 1; i <= 6; i++)
-#endif
     {
         nHits += fNHits[i];
     }
@@ -447,11 +429,7 @@ Int_t SRawEvent::getNHitsInD1()
 Int_t SRawEvent::getNHitsInD2()
 {
     Int_t nHits = 0;
-#ifdef INCLUDE_D0
     for(Int_t i = 13; i <= 18; i++)
-#else
-    for(Int_t i = 7; i <= 12; i++)
-#endif
     {
         nHits += fNHits[i];
     }
@@ -467,11 +445,7 @@ Int_t SRawEvent::getNHitsInD3()
 Int_t SRawEvent::getNHitsInD3p()
 {
     Int_t nHits = 0;
-#ifdef INCLUDE_D0
     for(Int_t i = 19; i <= 24; i++)
-#else
-    for(Int_t i = 13; i <= 18; i++)
-#endif
     {
         nHits += fNHits[i];
     }
@@ -482,11 +456,7 @@ Int_t SRawEvent::getNHitsInD3p()
 Int_t SRawEvent::getNHitsInD3m()
 {
     Int_t nHits = 0;
-#ifdef INCLUDE_D0
     for(Int_t i = 25; i <= 30; i++)
-#else
-    for(Int_t i = 19; i <= 24; i++)
-#endif
     {
         nHits += fNHits[i];
     }

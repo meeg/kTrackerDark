@@ -444,11 +444,7 @@ bool Tracklet::isValid()
 
             int idx1 = (iter->hit.detectorID - 1)/6;
             int idx2 = p_geomSvc->getPlaneType(iter->hit.detectorID) - 1;
-#ifdef INCLUDE_D0
             idx1 = idx1 < 2 ? 0 : (idx1 == 2 ? 1 : 2);
-#else
-            idx1 = idx1 > 2 ? 2 : idx1;
-#endif
             ++nRealHits[idx1][idx2];
         }
 
@@ -800,11 +796,7 @@ double Tracklet::calcChisq()
         if(iter->sign != 0) sigma = p_geomSvc->getPlaneResolution(detectorID);
 
         double p = iter->hit.pos + iter->sign*fabs(iter->hit.driftDistance);
-#ifdef INCLUDE_D0
         if(kmag_on && stationID == nStations && detectorID <= 12)
-#else
-        if(kmag_on && stationID == nStations && detectorID <= 6)
-#endif
         {
             residual[index] = p - p_geomSvc->getInterception(detectorID, tx_st1, ty, x0_st1, y0);
         }

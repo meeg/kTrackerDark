@@ -41,7 +41,7 @@ public:
 
     ///Tracklet finding stuff
     //Build tracklets in a station
-    void buildTrackletsInStation(int stationID, double* pos_exp = NULL, double* window = NULL);
+    void buildTrackletsInStation(int stationID, int listID, double* pos_exp = NULL, double* window = NULL);
 
     //Build back partial tracks using tracklets in station 2 & 3
     void buildBackPartialTracks();
@@ -103,7 +103,7 @@ private:
     SRawEvent* rawEvent;
     std::vector<Hit> hitAll;
 
-    //Tracklets in one event, id = 0, 1, 2 for station 1, 2, 3+/-, id = 3 for station 2&3 combined, id = 4 for global tracks
+    //Tracklets in one event, id = 0, 1, 2 for station 0/1, 2, 3+/-, id = 3 for station 2&3 combined, id = 4 for global tracks
     //Likewise for the next part
     std::list<Tracklet> trackletsInSt[5];
 
@@ -138,7 +138,7 @@ private:
     double y_mask_min[nHodoPlanes+nPropPlanes][72];
     double y_mask_max[nHodoPlanes+nPropPlanes][72];
 
-    ///For following part, id = 0, 1, 2, 3, 4, 5 stand for station 1, 2, 3+, 3-, and prop tubes X-Z and Y-Z
+    ///For following part, id = 0, 1, 2, 3, 4, 5, 6 stand for station 0, 1, 2, 3+, 3-, and prop tubes X-Z and Y-Z
     //Super plane IDs for DCs
     std::vector<int> superIDs[nChamberPlanes/6+2];
 
