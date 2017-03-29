@@ -263,7 +263,6 @@ void GeomSvc::init()
     map_detectorID.insert(nameToID("P2Y1", nChamberPlanes+nHodoPlanes+7));
     map_detectorID.insert(nameToID("P2Y2", nChamberPlanes+nHodoPlanes+8));
 
-
     typedef std::map<int, std::string>::value_type idToName;
     for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
     {

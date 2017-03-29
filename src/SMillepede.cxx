@@ -125,37 +125,39 @@ void SMillepede::setEvent(TClonesArray* trks)
 void SMillepede::addTrack(Tracklet& trk)
 {
     //Push meanningful nodes
+    std::vector<int> detectorIDs;
+    detectorIDs.clear();
     nodes.clear();
     for(std::list<SignedHit>::iterator iter = trk.hits.begin(); iter != trk.hits.end(); ++iter)
     {
-        if(iter->hit.index < 0)
-        {
-            MPNode node_dummy(iter->hit.detectorID);
-            nodes.push_back(node_dummy);
-        }
-        else
-        {
+        if(iter->hit.index < 0) continue;
+
 #ifdef ENABLE_REFIT
-            //Temporarily disable this hit, re-fit the track, turn on the hit, and calc chisq
-            iter->hit.index = -iter->hit.index;
-            tracker->fitTracklet(trk);
-            iter->hit.index = -iter->hit.index;
-            trk.calcChisq();
+        //Temporarily disable this hit, re-fit the track, turn on the hit, and calc chisq
+        iter->hit.index = -iter->hit.index;
+        tracker->fitTracklet(trk);
+        iter->hit.index = -iter->hit.index;
+        trk.calcChisq();
 #endif
 
-            MPNode node_real(*iter, trk);
-            nodes.push_back(node_real);
+        MPNode node_real(*iter, trk);
+        nodes.push_back(node_real);
+        detectorIDs.push_back(iter->hit.detectorID);
 
-            ++nHits[iter->hit.detectorID - 1];
-        }
+        ++nHits[iter->hit.detectorID - 1];
     }
 
     //Push dummy nodes
-    int detectorID_s3 = trk.hits.back().hit.detectorID > nChamberPlanes-6 ? nChamberPlanes-11 : nChamberPlanes-5;
-    for(int i = 0; i < 6; i++)
+    std::vector<int> detectorIDs_all;
+    for(int i = 1; i < MILLEPEDE::NPLAN; i++) detectorIDs_all.push_back(i);
+
+    std::vector<int> detectorIDs_miss(nChamberPlanes);
+    std::vector<int>::iterator iter = std::set_difference(detectorIDs_all.begin(), detectorIDs_all.end(), detectorIDs.begin(), detectorIDs.end(), detectorIDs_miss.begin());
+    detectorIDs_miss.resize(iter - detectorIDs_miss.begin());
+    for(unsigned int i = 0; i < detectorIDs_miss.size(); i++)
     {
-        MPNode node_dummy(detectorID_s3 + i);
-        nodes.push_back(node_dummy);
+        MPNode node_mp(detectorIDs_miss[i]);
+        nodes.push_back(node_mp);
     }
     std::sort(nodes.begin(), nodes.end());
 
@@ -327,9 +329,10 @@ void SMillepede::initMillepede(std::string configFileName)
         setDetectorParError(i, 2, err_w[i-1]);
     }
 
-    fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 0, 0.);
-    fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 1, 0.);
-    fixDetectorParameter(p_geomSvc->getDetectorID("D1U"), 2, 0.);
+    //fix one detector as-is, it needs to be done here as it sets the center value as well
+    fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 0, 0.);
+    fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 1, 0.);
+    fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 2, 0.);
 
     // Now pass the info above to millepede
     parglo_(par_align);
@@ -347,12 +350,12 @@ void SMillepede::initMillepede(std::string configFileName)
         constrainDetectors(i, i+1, 1);
         //constrainDetectors(i, i+1, 2);
 
-        //for station 3, w offset is also fixed together
-        if(i > 12) constrainDetectors(i, i+1, 2);
+        //for station 1 or 3+/-, w offset is also fixed together
+        if((i > 6 && i < 13) || i > 18) constrainDetectors(i, i+1, 2);
     }
 
-    //2. Fix all 6 planes of station 3+/3- to be the same in z and phi
-    for(int i = 14; i < 17; i += 2)
+    //2. Fix all 6 planes of station 1/3+/3- to be the same in z and phi
+    for(int i = 2; i < 5; i += 2)
     {
         constrainDetectors(i, i+1, 0);
         constrainDetectors(i, i+1, 1);
@@ -364,27 +367,42 @@ void SMillepede::initMillepede(std::string configFileName)
         constrainDetectors(i, i+1, 1);
     }
 
-    //3. a special one: the global offsets of station 3+ and 3- is fixed
+    for(int i = 26; i < 29; i += 2)
+    {
+        constrainDetectors(i, i+1, 0);
+        constrainDetectors(i, i+1, 1);
+    }
+
+    //3. the global offsets of station 1, 3+ and 3- is fixed
     float rhs = 0.;
     float dercs[MILLEPEDE::NGLB];
 
+    //1
+    for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
+    dercs[MILLEPEDE::NPARPLAN*0 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*2 + 2] = -(p_geomSvc->getCostheta(13) + p_geomSvc->getCostheta(17));
+    dercs[MILLEPEDE::NPARPLAN*4 + 2] = 1.;
+
+    constf_(dercs, &rhs);
+
     //3+
     for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
-    dercs[MILLEPEDE::NPARPLAN*12 + 2] = 1.;
-    dercs[MILLEPEDE::NPARPLAN*14 + 2] = -(p_geomSvc->getCostheta(13) + p_geomSvc->getCostheta(17));
-    dercs[MILLEPEDE::NPARPLAN*16 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*18 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*20 + 2] = -(p_geomSvc->getCostheta(13) + p_geomSvc->getCostheta(17));
+    dercs[MILLEPEDE::NPARPLAN*22 + 2] = 1.;
 
     constf_(dercs, &rhs);
 
     //3-
     for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
-    dercs[MILLEPEDE::NPARPLAN*18 + 2] = 1.;
-    dercs[MILLEPEDE::NPARPLAN*20 + 2] = -(p_geomSvc->getCostheta(19) + p_geomSvc->getCostheta(23));
-    dercs[MILLEPEDE::NPARPLAN*22 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*24 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*26 + 2] = -(p_geomSvc->getCostheta(19) + p_geomSvc->getCostheta(23));
+    dercs[MILLEPEDE::NPARPLAN*28 + 2] = 1.;
 
     constf_(dercs, &rhs);
 
     //Fix global positions
+    /*
     for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
     for(int i = 0; i < MILLEPEDE::NPLAN; i++) dercs[i*MILLEPEDE::NPARPLAN + 0] = 1.;
     constf_(dercs, &rhs);
@@ -396,6 +414,7 @@ void SMillepede::initMillepede(std::string configFileName)
     //for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
     //for(int i = 0; i < MILLEPEDE::NPLAN; i++) dercs[i*MILLEPEDE::NPARPLAN + 2] = 1.;
     //constf_(dercs, &rhs);
+    */
 
     //Initialize the iteration setting
     int iUnit = 11;

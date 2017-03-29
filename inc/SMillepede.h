@@ -125,11 +125,11 @@ public:
     void printQAPlots();
 
     int getNHitsOnDetector(int detectorID) { return nHits[detectorID-1]; }
-    double getZOffsetVal(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0]; }
-    double getWOffsetVal(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2]; }
+    double getZOffsetVal(int detectorID)   { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0]; }
+    double getWOffsetVal(int detectorID)   { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2]; }
     double getPhiOffsetVal(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1]; }
-    double getZOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0]; }
-    double getWOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2]; }
+    double getZOffsetErr(int detectorID)   { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 0]; }
+    double getWOffsetErr(int detectorID)   { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 2]; }
     double getPhiOffsetErr(int detectorID) { return err_align[(detectorID-1)*MILLEPEDE::NPARPLAN + 1]; }
 
     //Wrapping with precision conversion and clearer method name
