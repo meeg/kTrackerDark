@@ -727,6 +727,7 @@ void KalmanFastTracking::buildGlobalTracks()
 
     }
 
+    reduceTrackletList(trackletsInSt[4]);
     trackletsInSt[4].sort();
 }
 
