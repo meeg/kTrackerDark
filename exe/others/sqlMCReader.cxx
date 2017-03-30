@@ -48,16 +48,16 @@ int main(int argc, char **argv)
         nEvents = jobOptsSvc->m_nEvents;
         startEvent = jobOptsSvc->m_firstEvent;
     }
-    else if(argc <= 5)
+    else if(argc <= 8)
     {
-        jobOptsSvc->init();
+        jobOptsSvc->init(argv[1]);
 
-        inputSchema = argv[1];
-        outputFile = argv[2];
-        inputServer = argv[3];
-        inputPort = atoi(argv[4]);
-        nEvents = argc > 5 ? atoi(argv[5]) : -1;
-        startEvent = argc > 6 ? atoi(argv[6]) : 0;
+        inputSchema = argv[2];
+        outputFile = argv[3];
+        inputServer = argv[4];
+        inputPort = atoi(argv[5]);
+        nEvents = argc > 6 ? atoi(argv[6]) : -1;
+        startEvent = argc > 6 ? atoi(argv[7]) : 0;
     }
     else
     {
