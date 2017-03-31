@@ -8,6 +8,26 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_MACOSX_RPATH 1)  # only needed to suppress cmake warning
 
+# command line options to turn on DEBUG level
+option(DEBUG1 "Enable debug level 1" OFF)
+option(DEBUG2 "Enable debug level 2" OFF)
+if(DEBUG1)
+  add_definitions(-D_DEBUG_ON)
+endif()
+if(DEBUG2)
+  add_definitions(-D_DEBUG_ON_LEVEL_2)
+endif()
+
+# command line option to turn off KMAG
+option(KMAG "Turn KMAG ON/OFF" ON)
+if(KMAG)
+  add_definitions(-DKMAG_ON=1)
+else()
+  message("-- Turning KMAG off")
+  add_definitions(-DKMAG_ON=0)
+endif()
+
+
 # Add version number from git if exists
 if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
   execute_process(COMMAND git rev-parse --abbrev-ref HEAD OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)

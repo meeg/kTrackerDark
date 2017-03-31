@@ -18,13 +18,6 @@
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0
 
-//==== Turn on/off KMag
-#define KMAG_ON 1
-
-//==== Enable massive debugging output, disabled by default
-//#define _DEBUG_ON
-//#define _DEBUG_ON_LEVEL_2
-
 //---------------------FOLLOWING PART SHOULD NOT BE CHANGED FOR NO GOOD REASON -----------------------
 //--------------- Fast tracking configuration ----
 #define TX_MAX 0.15
