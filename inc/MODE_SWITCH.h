@@ -9,12 +9,6 @@
 //=== Coarse mode, no driftTime info is used, disabled by default
 //#define COARSE_MODE
 
-//=== Enable alignment mode
-//#define ALIGNMENT_MODE
-
-//=== Enable Kalman fitting in fast tracking and alignment, enabled by default
-#define _ENABLE_KF
-
 //==== Enable/disable dimuon mode
 #define DIMUON_MODE 0
 

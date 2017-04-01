@@ -12,9 +12,11 @@ set(CMAKE_MACOSX_RPATH 1)  # only needed to suppress cmake warning
 option(DEBUG1 "Enable debug level 1" OFF)
 option(DEBUG2 "Enable debug level 2" OFF)
 if(DEBUG1)
+  message("-- IMPORTANT! Enabled debuging info level-1")
   add_definitions(-D_DEBUG_ON)
 endif()
 if(DEBUG2)
+  message("-- IMPORTANT! Enabled debuging info level-2")
   add_definitions(-D_DEBUG_ON_LEVEL_2)
 endif()
 
@@ -23,8 +25,23 @@ option(KMAG "Turn KMAG ON/OFF" ON)
 if(KMAG)
   add_definitions(-DKMAG_ON=1)
 else()
-  message("-- Turning KMAG off")
+  message("-- IMPORTANT! Turning KMAG off")
   add_definitions(-DKMAG_ON=0)
+endif()
+
+# command line option to turn off KMAG
+option(KFENABLE "Enable Kalman filter fitting in track fitting" ON)
+if(KFENABLE)
+  add_definitions(-D_ENABLE_KF)
+else()
+  message("-- IMPORTANT! Kalman filter fitting is disabled")
+endif()
+
+# command line option to enable alignment mode
+option(ALIGNMENTMODE "Enable alignment mode" OFF)
+if(ALIGNMENTMODE)
+  message("-- IMPORTANT! Alignment mode is enabled")
+  add_definitions(-DALIGNMENT_MODE)
 endif()
 
 

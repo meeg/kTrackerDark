@@ -197,9 +197,10 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 #ifdef _DEBUG_ON
     cout << "=============" << endl;
     cout << "Chamber IDs: " << endl;
+    TString stereoNames[3] = {"X", "U", "V"};
     for(int i = 0; i < nChamberPlanes/6; i++)
     {
-        for(int j = 0; j < 3; j++) cout << i << "  " << j << ": " << superIDs[i][j] << endl;
+        for(int j = 0; j < 3; j++) cout << i << "  " << stereoNames[j].Data() << ": " << superIDs[i][j] << endl;
     }
 
     cout << "Proptube IDs: " << endl;
