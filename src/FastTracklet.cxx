@@ -424,7 +424,7 @@ bool Tracklet::isValid()
     if(err_tx < 0 || err_ty < 0 || err_x0 < 0 || err_y0 < 0) return false;
 
     double prob = getProb();
-    if(prob < PROB_LOOSE) return false;
+    if(stationID != nStations && prob < PROB_LOOSE) return false;
 
     //Tracklets in each station
     int nHits = nXHits + nUHits + nVHits;
@@ -438,14 +438,29 @@ bool Tracklet::isValid()
     {
         //Number of hits cuts, second index is X, U, V, first index is station-1, 2, 3
         int nRealHits[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+        nXHits = 0;
+        nUHits = 0;
+        nVHits = 0;
         for(std::list<SignedHit>::iterator iter = hits.begin(); iter != hits.end(); ++iter)
         {
             if(iter->hit.index < 0) continue;
 
-            int idx1 = (iter->hit.detectorID - 1)/6;
+            int idx1 = iter->hit.detectorID <= 12 ? 0 : (iter->hit.detectorID <= 18 ? 1 : 2);
             int idx2 = p_geomSvc->getPlaneType(iter->hit.detectorID) - 1;
-            idx1 = idx1 < 2 ? 0 : (idx1 == 2 ? 1 : 2);
+
             ++nRealHits[idx1][idx2];
+            if(idx2 == 0)
+            {
+                ++nXHits;
+            }
+            else if(idx2 == 1)
+            {
+                ++nUHits;
+            }
+            else
+            {
+                ++nVHits;
+            }
         }
 
         //Number of hits cut after removing bad hits
@@ -455,7 +470,7 @@ bool Tracklet::isValid()
             if(nRealHits[i][0] + nRealHits[i][1] + nRealHits[i][2] < 4) return false;
         }
 
-        //for global tracks only
+        //for global tracks only -- TODO: may need to set a new station-1 cut
         if(stationID == nStations)
         {
             if(nRealHits[0][0] < 1 || nRealHits[0][1] < 1 || nRealHits[0][2] < 1) return false;
@@ -484,7 +499,8 @@ double Tracklet::getProb() const
         ndf = getNHits() - 4;
     }
 
-    return TMath::Prob(chisq, ndf);
+    //return TMath::Prob(chisq, ndf);
+    return chisq/ndf;
 }
 
 double Tracklet::getMomProb() const
@@ -743,6 +759,39 @@ Tracklet Tracklet::operator*(const Tracklet& elem) const
     return tracklet;
 }
 
+Tracklet Tracklet::merge(Tracklet& elem)
+{
+    Tracklet tracklet;
+    tracklet.stationID = stationID;
+
+    tracklet.tx = tx;
+    tracklet.ty = ty;
+    tracklet.x0 = x0;
+    tracklet.y0 = y0;
+    tracklet.invP = 1./getMomentum();
+
+    tracklet.err_tx = err_tx;
+    tracklet.err_ty = err_ty;
+    tracklet.err_x0 = err_x0;
+    tracklet.err_y0 = err_y0;
+    tracklet.err_invP = 0.25*tracklet.invP;
+
+    tracklet.chisq_vtx = chisq_vtx;
+
+    tracklet.seg_x = seg_x;
+    tracklet.seg_y = seg_y;
+
+    std::list<SignedHit>::iterator elemend = elem.hits.begin();
+    for(int i = 0; i < 6; ++i) ++elemend;
+    tracklet.hits.insert(tracklet.hits.begin(), hits.begin(), hits.end());
+    tracklet.hits.insert(tracklet.hits.begin(), elem.hits.begin(), elemend);
+    tracklet.hits.sort();
+
+    tracklet.calcChisq();
+    tracklet.isValid();
+    return tracklet;
+}
+
 void Tracklet::addDummyHits()
 {
     std::vector<int> detectorIDs_all;
@@ -848,7 +897,7 @@ SRecTrack Tracklet::getSRecTrack()
 
         double z = p_geomSvc->getPlanePosition(iter->hit.detectorID);
         double tx_val, tx_err, x0_val, x0_err;
-        if(iter->hit.detectorID <= 6)
+        if(iter->hit.detectorID <= 12)
         {
             getXZInfoInSt1(tx_val, x0_val);
             getXZErrorInSt1(tx_err, x0_err);

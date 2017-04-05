@@ -615,120 +615,147 @@ void KalmanFastTracking::buildBackPartialTracks()
 
 void KalmanFastTracking::buildGlobalTracks()
 {
-    double pos_exp1[3], window1[3];
-    double pos_exp2[3], window2[3];
+    double pos_exp[3], window[3];
     for(std::list<Tracklet>::iterator tracklet23 = trackletsInSt[3].begin(); tracklet23 != trackletsInSt[3].end(); ++tracklet23)
     {
-        trackletsInSt[0].clear();
+        Tracklet tracklet_best[2];
+        for(int i = 0; i < 2; ++i) //for two station-1 chambers
+        {
+            trackletsInSt[0].clear();
 
-        //Calculate the window in station 1
-        if(p_jobOptsSvc->m_enableKMag)
-        {
-            getSagittaWindowsInSt1(*tracklet23, pos_exp1, window1, 1);
-            getSagittaWindowsInSt1(*tracklet23, pos_exp2, window2, 2);
-        }
-        else
-        {
-            getExtrapoWindowsInSt1(*tracklet23, pos_exp1, window1, 1);
-            getExtrapoWindowsInSt1(*tracklet23, pos_exp2, window2, 2);
-        }
+            //Calculate the window in station 1
+            if(p_jobOptsSvc->m_enableKMag)
+            {
+                getSagittaWindowsInSt1(*tracklet23, pos_exp, window, i+1);
+            }
+            else
+            {
+                getExtrapoWindowsInSt1(*tracklet23, pos_exp, window, i+1);
+            }
 
 #ifdef _DEBUG_ON
-        LogInfo("Using this back partial: ");
-        tracklet23->print();
-        for(int i = 0; i < 3; i++) LogInfo("Extrapo I : " << pos_exp1[i] << "  " << window1[i]);
-        for(int i = 0; i < 3; i++) LogInfo("Extrapo II: " << pos_exp2[i] << "  " << window2[i]);
+            LogInfo("Using this back partial: ");
+            tracklet23->print();
+            for(int j = 0; j < 3; j++) LogInfo("Extrapo: " << pos_exp[j] << "  " << window[j]);
 #endif
 
-        buildTrackletsInStation(1, 0, pos_exp1, window1);
-        buildTrackletsInStation(2, 0, pos_exp2, window2);
-
-        Tracklet tracklet_best_vtx, tracklet_best_prob;
-        for(std::list<Tracklet>::iterator tracklet1 = trackletsInSt[0].begin(); tracklet1 != trackletsInSt[0].end(); ++tracklet1)
-        {
+            buildTrackletsInStation(i+1, 0, pos_exp, window);
+            Tracklet tracklet_best_prob, tracklet_best_vtx;
+            for(std::list<Tracklet>::iterator tracklet1 = trackletsInSt[0].begin(); tracklet1 != trackletsInSt[0].end(); ++tracklet1)
+            {
 #ifdef _DEBUG_ON
-            LogInfo("With this station 1 track:");
-            tracklet1->print();
+                LogInfo("With this station 1 track:");
+                tracklet1->print();
 #endif
 
-            Tracklet tracklet_global = (*tracklet23) * (*tracklet1);
-            fitTracklet(tracklet_global);
-            if(!hodoMask(tracklet_global)) continue;
+                Tracklet tracklet_global = (*tracklet23) * (*tracklet1);
+                fitTracklet(tracklet_global);
+                if(!hodoMask(tracklet_global)) continue;
 
 #ifndef COARSE_MODE
-            ///Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
-            resolveLeftRight(tracklet_global, 75.);
-            resolveLeftRight(tracklet_global, 150.);
-            resolveSingleLeftRight(tracklet_global);
+                ///Resolve the left-right with a tight pull cut, then a loose one, then resolve by single projections
+                resolveLeftRight(tracklet_global, 75.);
+                resolveLeftRight(tracklet_global, 150.);
+                resolveSingleLeftRight(tracklet_global);
 #endif
-            ///Remove bad hits if needed
-            removeBadHits(tracklet_global);
+                ///Remove bad hits if needed
+                removeBadHits(tracklet_global);
 
-            //Most basic cuts
-            if(!acceptTracklet(tracklet_global)) continue;
+                //Most basic cuts
+                if(!acceptTracklet(tracklet_global)) continue;
+
+                //Get the tracklets that has the best prob
+                if(tracklet_global < tracklet_best_prob) tracklet_best_prob = tracklet_global;
 
 #if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
-            ///Set vertex information
-            SRecTrack recTrack = processOneTracklet(tracklet_global);
-            tracklet_global.chisq_vtx = recTrack.getChisqVertex();
+                ///Set vertex information
+                SRecTrack recTrack = processOneTracklet(tracklet_global);
+                tracklet_global.chisq_vtx = recTrack.getChisqVertex();
+
+                if(recTrack.isValid() && tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx) tracklet_best_vtx = tracklet_global;
 #endif
 
 #ifdef _DEBUG_ON
-            LogInfo("New tracklet: ");
-            tracklet_global.print();
+                LogInfo("New tracklet: ");
+                tracklet_global.print();
 
-            LogInfo("Current best by prob:");
-            tracklet_best_prob.print();
+                LogInfo("Current best by prob:");
+                tracklet_best_prob.print();
 
-            LogInfo("Comparison I: " << (tracklet_global < tracklet_best_prob));
-            LogInfo("Quality I   : " << acceptTracklet(tracklet_global));
+                LogInfo("Comparison I: " << (tracklet_global < tracklet_best_prob));
+                LogInfo("Quality I   : " << acceptTracklet(tracklet_global));
 
 #if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
-            LogInfo("Current best by vtx:");
-            tracklet_best_vtx.print();
+                LogInfo("Current best by vtx:");
+                tracklet_best_vtx.print();
 
-            LogInfo("Comparison II: " << (tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx));
-            LogInfo("Quality II   : " << recTrack.isValid());
+                LogInfo("Comparison II: " << (tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx));
+                LogInfo("Quality II   : " << recTrack.isValid());
 #endif
 #endif
-
-            if(tracklet_global < tracklet_best_prob)
-            {
-                tracklet_best_prob = tracklet_global;
             }
 
 #if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
-            if(recTrack.isValid() && tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx)
+            //The selection logic is, prefer the tracks with best p-value, as long as it's not low-pz
+            if(tracklet_best_prob.isValid() && 1./tracklet_best_prob.invP > 18.)
             {
-                tracklet_best_vtx = tracklet_global;
+                tracklet_best[i] = tracklet_best_prob;
             }
-#endif
-        }
-
-#if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
-        //The selection logic is, prefer the tracks with best p-value, as long as it's not low-pz
-        if(tracklet_best_prob.isValid() && 1./tracklet_best_prob.invP > 18.)
-        {
-            trackletsInSt[4].push_back(tracklet_best_prob);
-        }
-        else if(tracklet_best_vtx.isValid()) //otherwise select the one with best vertex
-        {
-            trackletsInSt[4].push_back(tracklet_best_vtx);
-        }
-        else if(tracklet_best_prob.isValid()) //then fall back to the default only choice
-        {
-            trackletsInSt[4].push_back(tracklet_best_prob);
-        }
+            else if(tracklet_best_vtx.isValid()) //otherwise select the one with best vertex chisq, TODO: maybe add a z-vtx constraint
+            {
+                tracklet_best[i] = tracklet_best_vtx;
+            }
+            else if(tracklet_best_prob.isValid()) //then fall back to the default only choice
+            {
+                tracklet_best[i] = tracklet_best_prob;
+            }
 #else
-        if(tracklet_best_prob.isValid()) //then fall back to the default only choice
-        {
-            trackletsInSt[4].push_back(tracklet_best_prob);
-        }
+            if(tracklet_best_prob.isValid()) //then fall back to the default only choice
+            {
+                tracklet_best[i] = tracklet_best_prob;
+            }
 #endif
+        }
 
+        //Merge the tracklets from two stations if necessary
+        Tracklet tracklet_merge;
+        if(fabs(tracklet_best[0].getMomentum() - tracklet_best[1].getMomentum())/tracklet_best[0].getMomentum() < MERGE_THRES)
+        {
+            //Merge the track and re-fit
+            tracklet_merge = tracklet_best[0].merge(tracklet_best[1]);
+            fitTracklet(tracklet_merge);
+
+#ifdef _DEBUG_ON
+            LogInfo("Merging two track candidates with momentum: " << tracklet_best[0].getMomentum() << "  " << tracklet_best[1].getMomentum());
+            LogInfo("tracklet_best_1:"); tracklet_best[0].print();
+            LogInfo("tracklet_best_2:"); tracklet_best[1].print();
+            LogInfo("tracklet_merge:"); tracklet_merge.print();
+#endif
+        }
+
+        if(tracklet_merge.isValid() && tracklet_merge < tracklet_best[0] && tracklet_merge < tracklet_best[1])
+        {
+#ifdef _DEBUG_ON
+            LogInfo("Choose merged tracklet");
+#endif
+            trackletsInSt[4].push_back(tracklet_merge);
+        }
+        else if(tracklet_best[0].isValid() && tracklet_best[0] < tracklet_best[1])
+        {
+#ifdef _DEBUG_ON
+            LogInfo("Choose tracklet with station-0");
+#endif
+            trackletsInSt[4].push_back(tracklet_best[0]);
+        }
+        else if(tracklet_best[1].isValid())
+        {
+#ifdef _DEBUG_ON
+            LogInfo("Choose tracklet with station-1");
+#endif
+            trackletsInSt[4].push_back(tracklet_best[1]);
+        }
     }
 
-    reduceTrackletList(trackletsInSt[4]);
     trackletsInSt[4].sort();
 }
 

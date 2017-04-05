@@ -122,6 +122,9 @@ public:
     //Get number of real hits
     int getNHits() const { return nXHits + nUHits + nVHits; }
 
+    //Number of all hits (even excluded)
+    int getNAllHits() { return hits.size(); }
+
     //Get the probabilities
     double getProb() const;
 
@@ -167,6 +170,9 @@ public:
 
     //For reducing similar tracklets
     bool similarity(const Tracklet& elem) const;
+
+    //Merge the hit list from two tracklets
+    Tracklet merge(Tracklet& elem);
 
     //For adding two tracklets together to form a back partial track
     Tracklet operator+(const Tracklet& elem) const;
