@@ -776,7 +776,7 @@ Tracklet Tracklet::merge(Tracklet& elem)
     tracklet.err_y0 = err_y0;
     tracklet.err_invP = 0.25*tracklet.invP;
 
-    tracklet.chisq_vtx = chisq_vtx;
+    tracklet.chisq_vtx = chisq_vtx < 999 ? chisq_vtx : elem.chisq_vtx;
 
     tracklet.seg_x = seg_x;
     tracklet.seg_y = seg_y;

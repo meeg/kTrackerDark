@@ -261,7 +261,7 @@ bool SRecTrack::isValid()
     if(nHits < 14) return false;
 
     //Trigger road cut
-    if(fTriggerID == 0) return false;
+    //if(fTriggerID == 0) return false;
 
     //Total chisq, may change to cut on prob
     if(getChisq()/(nHits - 5) > 15.) return false;
