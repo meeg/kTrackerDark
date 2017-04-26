@@ -65,8 +65,8 @@ void SRecTrack::setZVertex(Double_t z, bool update)
     _node_vertex.setZ(z);
 
     TMatrixD m(2, 1), cov(2, 2),  proj(2, 5);
-    m[0][0] = 0.;
-    m[1][0] = 0.;
+    m[0][0] = X_VTX;
+    m[1][0] = Y_VTX;
 
     cov.Zero();
     cov[0][0] = BEAM_SPOT_X*BEAM_SPOT_X;
@@ -420,22 +420,24 @@ void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
     {
         if(FMAGSTR*charge*mom[i].Px() < 0.) continue;    // this is the upstream accidental cross, ignore
 
-        double dca = pos[i].Perp();
+        double dca = (pos[i] - TVector3(X_VTX, Y_VTX, pos[i].Z())).Perp();
         if(dca < dca_min)
         {
             dca_min = dca;
             iStep = i;
         }
 
-        if(fabs(pos[i].X()) < dca_xmin)
+        double dca_x = fabs(pos[i].X() - X_VTX);
+        if(dca_x < dca_xmin)
         {
-            dca_xmin = fabs(pos[i].X());
+            dca_xmin = dca_x;
             iStep_x = i;
         }
 
-        if(fabs(pos[i].Y()) < dca_ymin)
+        double dca_y = fabs(pos[i].Y() - Y_VTX);
+        if(dca_y < dca_ymin)
         {
-            dca_ymin = fabs(pos[i].Y());
+            dca_ymin = dca_y;
             iStep_y = i;
         }
     }

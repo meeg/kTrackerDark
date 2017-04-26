@@ -63,6 +63,8 @@
 #define Z_ST3 1910.
 #define RESOLUTION_DC 1.6
 
+#define X_VTX       0.
+#define Y_VTX       1.6
 #define BEAM_SPOT_X 0.5
 #define BEAM_SPOT_Y 0.5
 

@@ -20,9 +20,15 @@ VertexFit::VertexFit()
     JobOptsSvc* p_jobOptsSvc = JobOptsSvc::instance();
 
     ///In construction, initialize the projector for the vertex node
-    TMatrixD proj(2, 5);
-    proj.Zero();
+    TMatrixD m(2, 1), cov(2, 2), proj(2, 5);
+    m[0][0] = X_VTX;
+    m[1][0] = Y_VTX;
 
+    cov.Zero();
+    cov[0][0] = BEAM_SPOT_X*BEAM_SPOT_X;
+    cov[1][1] = BEAM_SPOT_Y*BEAM_SPOT_Y;
+
+    proj.Zero();
     proj[0][3] = 1.;
     proj[1][4] = 1.;
 
@@ -30,11 +36,9 @@ VertexFit::VertexFit()
     _node_vertex.getMeasurementCov().ResizeTo(2, 2);
     _node_vertex.getProjector().ResizeTo(2, 5);
 
+    _node_vertex.getMeasurement() = m;
+    _node_vertex.getMeasurementCov() = cov;
     _node_vertex.getProjector() = proj;
-
-    _node_vertex.getMeasurementCov().Zero();
-    _node_vertex.getMeasurementCov()[0][0] = 1.;
-    _node_vertex.getMeasurementCov()[1][1] = 1.;
 
     _max_iteration = 200;
     _tolerance = .05;
