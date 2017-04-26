@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
         time = double(time_single)/CLOCKS_PER_SEC;
 
         // sort the track list, and empty the large hit list in rawEvent if needed
-        recEvent->reIndex();
+        //recEvent->reIndex();
         if(!jobOptsSvc->m_attachRawEvent)
         {
             rawEvent->empty();
