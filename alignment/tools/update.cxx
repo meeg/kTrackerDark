@@ -77,8 +77,7 @@ int main(int argc, char *argv[])
                 Hit h = rawEvent->getHit(j);
 
                 if(alignment) h.pos = p_geomSvc->getMeasurement(h.detectorID, h.elementID);
-                //if(calibration && (h.detectorID <= 24 || h.detectorID >= 41) && h.isInTime() && p_geomSvc->isCalibrationLoaded())
-                if(calibration && h.detectorID <= 6 && h.isInTime() && p_geomSvc->isCalibrationLoaded())
+                if(calibration && (h.detectorID <= 30 || h.detectorID >= 47) && h.isInTime() && p_geomSvc->isCalibrationLoaded())
                 {
                     h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);
                 }

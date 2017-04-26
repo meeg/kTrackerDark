@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     EventReducer* reducer = new EventReducer("ao");
 
     //prop tube IDs
-    int propIDs[8] = {41, 42, 43, 44, 45, 46, 47, 48};
+    int propIDs[8] = {47, 48, 49, 50, 51, 52, 53, 54};
     const int nProps = 8;
 
     //Evaluation tree structure
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
             {
                 saveTree->Fill();
 
-                int histID = (propID - 41)/2;
+                int histID = (propID - 47)/2;
                 int moduleID = 8 - int(elementID - 1)/8;
                 if(fabs(pos_exp - pos) < 5.08) hists[histID][moduleID]->Fill(pos_exp - pos);
             }
