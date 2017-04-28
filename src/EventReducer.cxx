@@ -242,7 +242,7 @@ void EventReducer::deClusterize()
     for(std::list<Hit>::iterator hit = hitlist.begin(); hit != hitlist.end(); ++hit)
     {
         //if we already reached the hodo part, stop
-        if(hit->detectorID > 24) break;
+        if(hit->detectorID > nChamberPlanes) break;
 
         if(cluster.size() == 0)
         {

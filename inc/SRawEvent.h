@@ -140,7 +140,7 @@ public:
 
     ///Insert a new hit
     void insertHit(Hit h);
-    void insertTriggerHit(Hit h) { if(h.detectorID >= 25 && h.detectorID <= 40) fTriggerHits.push_back(h); }
+    void insertTriggerHit(Hit h) { if(h.detectorID >= nChamberPlanes+1 && h.detectorID <= nChamberPlanes+nHodoPlanes) fTriggerHits.push_back(h); }
 
     ///Find a hit -- binary search since hit list is sorted
     Int_t findHit(Short_t detectorID, Short_t elementID);

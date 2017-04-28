@@ -384,7 +384,7 @@ bool MySQLSvc::getEvent(SRawEvent* rawEvent, int eventID)
 
         if(p_geomSvc->isCalibrationLoaded())
         {
-            if((h.detectorID >= 1 && h.detectorID <= 24) || (h.detectorID >= 41))
+            if((h.detectorID >= 1 && h.detectorID <= nChamberPlanes) || (h.detectorID >= nChamberPlanes+nHodoPlanes+1))
             {
                 h.setInTime(p_geomSvc->isInTime(h.detectorID, h.tdcTime));
                 if(h.isInTime()) h.driftDistance = p_geomSvc->getDriftDistance(h.detectorID, h.tdcTime);

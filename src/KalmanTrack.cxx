@@ -98,7 +98,7 @@ bool Seed::similarity(Seed& elem)
     if(fabs(p - elem.p) > .2*p) return false;
 
     GeomSvc *p_geomSvc = GeomSvc::instance();
-    double z = p_geomSvc->getPlanePosition(41);
+    double z = p_geomSvc->getPlanePosition(nChamberPlanes+nHodoPlanes+1);
     double dx = getExpPositionX(z) - elem.getExpPositionX(z);
     double dy = getExpPositionY(z) - elem.getExpPositionY(z);
     if(dx*dx + dy*dy > 100.) return false;

@@ -448,6 +448,13 @@ void GeomSvc::init()
 
     zmin_kmag = 1064.26 - 120.*2.54;
     zmax_kmag = 1064.26 + 120.*2.54;
+
+#ifdef _DEBUG_ON
+    for(int i = 1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; ++i)
+    {
+        cout << planes[i] << endl;
+    }
+#endif
 }
 
 std::vector<int> GeomSvc::getDetectorIDs(std::string pattern)
