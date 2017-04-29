@@ -282,7 +282,7 @@ void EventReducer::processCluster(std::vector<std::list<Hit>::iterator>& cluster
         {
             cluster.front()->driftDistance > cluster.back()->driftDistance ? hitlist.erase(cluster.front()) : hitlist.erase(cluster.back());
         }
-        else if(fabs(cluster.front()->tdcTime - cluster.back()->tdcTime) < 8. && cluster.front()->detectorID >= 13 && cluster.front()->detectorID <= 18)
+        else if(fabs(cluster.front()->tdcTime - cluster.back()->tdcTime) < 8. && cluster.front()->detectorID >= 19 && cluster.front()->detectorID <= 24)
         {
             hitlist.erase(cluster.front());
             hitlist.erase(cluster.back());

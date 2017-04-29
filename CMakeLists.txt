@@ -29,7 +29,7 @@ else()
   add_definitions(-DKMAG_ON=0)
 endif()
 
-# command line option to turn off KMAG
+# command line option to turn off KF
 option(KFENABLE "Enable Kalman filter fitting in track fitting" ON)
 if(KFENABLE)
   add_definitions(-D_ENABLE_KF)

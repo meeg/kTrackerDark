@@ -499,8 +499,8 @@ double Tracklet::getProb() const
         ndf = getNHits() - 4;
     }
 
-    //return TMath::Prob(chisq, ndf);
-    return chisq/ndf;
+    return TMath::Prob(chisq, ndf);
+    //return -chisq/ndf;
 }
 
 double Tracklet::getMomProb() const
