@@ -6,6 +6,7 @@ project(kTracker CXX C Fortran)
 set(CMAKE_Fortran_COMPILER gfortran)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_MACOSX_RPATH 1)  # only needed to suppress cmake warning
 
 # command line options to turn on DEBUG level
@@ -143,11 +144,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEANT4_CFLAGS} ${ROOT_CFLAGS} ${MYSQL_
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran" )
 
+add_library(kTracker STATIC ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+
 file(GLOB execs ${PROJECT_SOURCE_DIR}/exe/*.cxx)
 foreach(exec ${execs})
   string(REPLACE  "${PROJECT_SOURCE_DIR}/exe/" "" exec ${exec})
   string(REPLACE  ".cxx" "" exec ${exec})
   message(STATUS "Adding targets to the compile list: ${exec}")
-  add_executable(${exec} ${PROJECT_SOURCE_DIR}/exe/${exec}.cxx ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+
+  add_executable(${exec} ${PROJECT_SOURCE_DIR}/exe/${exec}.cxx)
+  add_dependencies(${exec} kTracker)
 endforeach(exec)
-add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
