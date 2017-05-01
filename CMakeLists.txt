@@ -153,5 +153,6 @@ foreach(exec ${execs})
   message(STATUS "Adding targets to the compile list: ${exec}")
 
   add_executable(${exec} ${PROJECT_SOURCE_DIR}/exe/${exec}.cxx)
+  target_link_libraries(${exec} ${PROJECT_SOURCE_DIR}/lib/libkTracker.a)
   add_dependencies(${exec} kTracker)
 endforeach(exec)
