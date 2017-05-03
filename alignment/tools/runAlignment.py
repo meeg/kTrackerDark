@@ -81,8 +81,8 @@ for i in range(options.initial, options.nIter+1):
     print 'Working on alignment cycle', i
 
     # build the raw file
-    inputFile = 'run_%d_align_%d.root' % (options.run, i)
-    runCmd('./update ac %s %s' % (rawFile, inputFile))
+    inputFile = rawFile
+    #runCmd('./update ac %s %s' % (rawFile, inputFile))
 
     # submit the tracking jobs
     inputFile = os.path.abspath(inputFile)
@@ -139,7 +139,7 @@ for i in range(options.initial, options.nIter+1):
     runCmd('mv increase.log_%d %s' % (i, options.work))
     runCmd('mv mille.conf %s/mille.conf_%d_%d' % (options.work, i, nTry))
     runCmd('mv log_mille_%d %s' % (i, options.work))
-    runCmd('rm %s' % inputFile)
+    #runCmd('rm %s' % inputFile)
 
     # chamber calibration
     if options.cali:
