@@ -3,6 +3,7 @@ export KTRACKER_ROOT=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
 export KTRACKER_LIB=$KTRACKER_ROOT/lib  #todo test for opt/dbg
 export KTRACKER_INCLUDE=$KTRACKER_ROOT/include
 export KTRACKER_BIN=$KTRACKER_ROOT/bin
+export PYTHONPATH=$PYTHONPATH:$KTRACKER_ROOT/script/grid
 
 #this package needs the geometry package.  check for it and try to find it
 if [ ! -d "$GEOMETRY_ROOT" ]; then

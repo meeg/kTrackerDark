@@ -30,7 +30,7 @@ def compile(filename):
         ldflags = ldflags + ' ' + os.popen('mysql_config --libs').readline().strip()
 
     ## kTracker part
-    ldflags = ldflags + ' -L$KTRACKER_LIB -lkTracker'
+    ldflags = ldflags + ' $KTRACKER_LIB/libkTracker.a'
 
     ## additional dst data
     if os.path.exists('dst/libAnaUtil.so'):
