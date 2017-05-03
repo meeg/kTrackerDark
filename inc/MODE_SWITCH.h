@@ -9,9 +9,6 @@
 //=== Coarse mode, no driftTime info is used, disabled by default
 //#define COARSE_MODE
 
-//==== Enable/disable dimuon mode
-#define DIMUON_MODE 0
-
 //---------------------FOLLOWING PART SHOULD NOT BE CHANGED FOR NO GOOD REASON -----------------------
 //--------------- Fast tracking configuration ----
 #define TX_MAX 0.15

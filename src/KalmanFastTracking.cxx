@@ -408,26 +408,6 @@ int KalmanFastTracking::setRawEvent(SRawEvent* event_input)
     if(trackletsInSt[4].empty()) return TFEXIT_FAIL_GLOABL;
     if(!enable_KF) return TFEXIT_SUCCESS;
 
-    //If there is no possibility of a dimuon, return
-    if(DIMUON_MODE == 1)
-    {
-        int nPlus = 0;
-        int nMinus = 0;
-        for(std::list<Tracklet>::iterator tracklet = trackletsInSt[4].begin(); tracklet != trackletsInSt[4].end(); ++tracklet)
-        {
-            if(tracklet->getCharge() > 0)
-            {
-                ++nPlus;
-            }
-            else
-            {
-                ++nMinus;
-            }
-        }
-
-        if(nPlus < 1 || nMinus < 1) return TFEXIT_FAIL_NO_DIMUON;
-    }
-
     //Build kalman tracks
     for(std::list<Tracklet>::iterator tracklet = trackletsInSt[4].begin(); tracklet != trackletsInSt[4].end(); ++tracklet)
     {
