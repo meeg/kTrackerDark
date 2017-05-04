@@ -172,6 +172,21 @@ int main(int argc, char* argv[])
         }
 #endif
 
+        if(jobOptsSvc->m_enableEvaluation)
+        {
+            for(int j = 3; j != 0; --j)
+            {
+                std::list<Tracklet>& tracklets_temp = fastfinder->getTrackletList(j);
+                for(std::list<Tracklet>::iterator iter = tracklets_temp.begin(); iter != tracklets_temp.end(); ++iter)
+                {
+                    iter->calcChisq();
+                    
+                    new(arr_tracklets[nTracklets]) Tracklet(*iter);
+                    ++nTracklets;
+                }
+            }
+        }
+
         // time of each event
         time_single = clock() - time_single;
         time = double(time_single)/CLOCKS_PER_SEC;

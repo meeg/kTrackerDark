@@ -92,6 +92,7 @@ public:
     ///Final output
     std::list<Tracklet>& getFinalTracklets() { return trackletsInSt[4]; }
     std::list<Tracklet>& getBackPartials() { return trackletsInSt[3]; }
+    std::list<Tracklet>& getTrackletList(int i) { return trackletsInSt[i]; }
     std::list<SRecTrack>& getSRecTracks() { return stracks; }
     std::list<PropSegment>& getPropSegments(int i) { return propSegs[i]; }
 
