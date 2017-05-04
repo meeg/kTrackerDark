@@ -97,7 +97,7 @@ for i in range(options.initial, options.nIter+1):
     nMinutes = 5
     nSuccess = 0
     while nSuccess != nJobs:
-        nTotalJobs, nFinishedJobs, failedOpts = GU.getJobStatus(conf, 'track', options.run)
+        nTotalJobs, nFinishedJobs, failedOpts, _ = GU.getJobStatus(conf, 'track', options.run)
         print ' --- Tracking status: ', options.run, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
 
         nSuccess = nFinishedJobs - len(failedOpts)
