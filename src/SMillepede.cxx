@@ -330,9 +330,9 @@ void SMillepede::initMillepede(std::string configFileName)
     }
 
     //fix one detector as-is, it needs to be done here as it sets the center value as well
-    fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 0, 0.);
-    fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 1, 0.);
-    fixDetectorParameter(p_geomSvc->getDetectorID("D2U"), 2, 0.);
+    fixDetectorParameter(p_geomSvc->getDetectorID("D2X"), 0, 0.);
+    fixDetectorParameter(p_geomSvc->getDetectorID("D2X"), 1, 0.);
+    fixDetectorParameter(p_geomSvc->getDetectorID("D2X"), 2, 0.);
 
     // Now pass the info above to millepede
     parglo_(par_align);
@@ -355,7 +355,7 @@ void SMillepede::initMillepede(std::string configFileName)
     }
 
     //2. Fix all 6 planes of station 1/3+/3- to be the same in z and phi
-    for(int i = 2; i < 5; i += 2)
+    for(int i = 7; i < 10; i += 2)
     {
         constrainDetectors(i, i+1, 0);
         constrainDetectors(i, i+1, 1);
@@ -379,16 +379,16 @@ void SMillepede::initMillepede(std::string configFileName)
 
     //1
     for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
-    dercs[MILLEPEDE::NPARPLAN*0 + 2] = 1.;
-    dercs[MILLEPEDE::NPARPLAN*2 + 2] = -(p_geomSvc->getCostheta(13) + p_geomSvc->getCostheta(17));
-    dercs[MILLEPEDE::NPARPLAN*4 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*6 + 2] = 1.;
+    dercs[MILLEPEDE::NPARPLAN*8 + 2] = -(p_geomSvc->getCostheta(7) + p_geomSvc->getCostheta(11));
+    dercs[MILLEPEDE::NPARPLAN*10 + 2] = 1.;
 
     constf_(dercs, &rhs);
 
     //3+
     for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
     dercs[MILLEPEDE::NPARPLAN*18 + 2] = 1.;
-    dercs[MILLEPEDE::NPARPLAN*20 + 2] = -(p_geomSvc->getCostheta(13) + p_geomSvc->getCostheta(17));
+    dercs[MILLEPEDE::NPARPLAN*20 + 2] = -(p_geomSvc->getCostheta(19) + p_geomSvc->getCostheta(23));
     dercs[MILLEPEDE::NPARPLAN*22 + 2] = 1.;
 
     constf_(dercs, &rhs);
@@ -396,7 +396,7 @@ void SMillepede::initMillepede(std::string configFileName)
     //3-
     for(int k = 0; k < MILLEPEDE::NGLB; k++) dercs[k] = 0.;
     dercs[MILLEPEDE::NPARPLAN*24 + 2] = 1.;
-    dercs[MILLEPEDE::NPARPLAN*26 + 2] = -(p_geomSvc->getCostheta(19) + p_geomSvc->getCostheta(23));
+    dercs[MILLEPEDE::NPARPLAN*26 + 2] = -(p_geomSvc->getCostheta(25) + p_geomSvc->getCostheta(29));
     dercs[MILLEPEDE::NPARPLAN*28 + 2] = 1.;
 
     constf_(dercs, &rhs);
