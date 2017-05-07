@@ -31,7 +31,7 @@ def prepareConf(log_prev, conf, fudge = 1.):
         print 'Conf file exists, will continue'
         return
 
-    sigma = [[0.5, 0.05, 0.005] for i in range(24)]
+    sigma = [[0.5, 0.05, 0.005] for i in range(30)]
     if os.path.isfile(log_prev):
         for index, line in enumerate(open(log_prev).readlines()):
             delta = abs(float(line.strip().split()[3]))
