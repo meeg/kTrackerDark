@@ -109,6 +109,7 @@ MPNode::MPNode(SignedHit& hit_signed, Tracklet& trk)
     ty = trk.ty;
     x0 = trk.x0;
     y0 = trk.y0;
+    if(trk.kmag_on && detectorID <= 12) trk.getXZInfoInSt1(tx, x0);
 
     //Plane tilt angles
     double cosphi = p_geomSvc->getCostheta(detectorID);
