@@ -5,20 +5,21 @@ import sys
 import re
 
 sourceDir = sys.argv[1]
-rt_inputFiles = ['rt_curve_D1.txt', 'rt_curve_D2.txt', 'rt_curve_D3p.txt', 'rt_curve_D3m.txt']
-t0_inputFiles = ['time_window_D1.txt', 'time_window_D2.txt', 'time_window_D3p.txt', 'time_window_D3m.txt']
+rt_inputFiles = ['rt_curve_D0.txt', 'rt_curve_D1.txt', 'rt_curve_D2.txt', 'rt_curve_D3p.txt', 'rt_curve_D3m.txt']
+t0_inputFiles = ['time_window_D0.txt', 'time_window_D1.txt', 'time_window_D2.txt', 'time_window_D3p.txt', 'time_window_D3m.txt']
 
-map_detectorID = {'D1U': 1, 'D1Up': 2, 'D1X': 3, 'D1Xp': 4, 'D1V': 5, 'D1Vp': 6, 
-                  'D2V': 7, 'D2Vp': 8, 'D2Xp': 9, 'D2X': 10, 'D2U': 11, 'D2Up': 12, 
-                  'D3pVp': 13, 'D3pV': 14, 'D3pXp': 15, 'D3pX': 16, 'D3pUp': 17, 'D3pU': 18, 
-                  'D3mVp': 19, 'D3mV': 20, 'D3mXp': 21, 'D3mX': 22, 'D3mUp': 23, 'D3mU': 24}
+map_detectorID = {'D0U': 1, 'D0Up': 2, 'D0X': 3, 'D0Xp': 4, 'D0V': 5, 'D0Vp': 6,
+                   'D1V': 7, 'D1Vp': 8, 'D1X': 9, 'D1Xp': 10, 'D1U': 11, 'D1Up': 12,
+                   'D2V': 13, 'D2Vp': 14, 'D2Xp': 15, 'D2X': 16, 'D2U': 17, 'D2Up': 18,
+                   'D3pVp': 19, 'D3pV': 20, 'D3pXp': 21, 'D3pX': 22, 'D3pUp': 23, 'D3pU': 24,
+                   'D3mVp': 25, 'D3mV': 26, 'D3mXp': 27, 'D3mX': 28, 'D3mUp': 29, 'D3mU': 30}
 map_detectorName = {}
 for (key, val) in map_detectorID.iteritems():
 	map_detectorName[val] = key
 
 # read t0
 t0 = {}
-for t0_input in t0_inputFiles:	
+for t0_input in t0_inputFiles:
 	fin = open(sourceDir+'/'+t0_input, 'r')
 	for line in fin.readlines():
 		data = line.strip().split()
@@ -26,7 +27,7 @@ for t0_input in t0_inputFiles:
 	fin.close()
 
 # read rt curves
-rt_curve = {} # key = detectorID, val = dictionary from tdcTime to 
+rt_curve = {} # key = detectorID, val = dictionary from tdcTime to
 for rt_input in rt_inputFiles:
 	fin = open(sourceDir+'/'+rt_input, 'r')
 	for line in fin.readlines():

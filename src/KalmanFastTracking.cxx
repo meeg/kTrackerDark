@@ -248,7 +248,22 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 #ifdef COARSE_MODE
         resol_plane[i] = 3.*p_geomSvc->getPlaneSpacing(i)/sqrt(12.);
 #else
-        resol_plane[i] = i <= 12 ? ST1_REJECT : (i <= 18 ? ST2_REJECT : ST3_REJECT);
+        if(i <= 6)
+        {
+            resol_plane[i] = ST0_REJECT;
+        }
+        else if(i <= 12)
+        {
+            resol_plane[i] = ST1_REJECT;
+        }
+        else if(i <= 18)
+        {
+            resol_plane[i] = ST2_REJECT;
+        }
+        else
+        {
+            resol_plane[i] = ST3_REJECT;
+        }
 #endif
         spacing_plane[i] = p_geomSvc->getPlaneSpacing(i);
     }

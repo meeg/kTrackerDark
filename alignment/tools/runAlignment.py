@@ -20,7 +20,7 @@ def checkOverflow(output):
     for line in open(output).readlines():
         vals = [float(val) for val in line.strip().split()]
         for val in vals:
-            if abs(val) > 1.:
+            if abs(val) > 2.:
                 return False
     return True
 
@@ -35,7 +35,7 @@ def prepareConf(log_prev, conf, fudge = 1.):
     if os.path.isfile(log_prev):
         for index, line in enumerate(open(log_prev).readlines()):
             delta = abs(float(line.strip().split()[3]))
-            if delta < sigma[index][2]:
+            if delta < sigma[index][2] and delta > 1E-5:
                 factor = delta/sigma[index][2]
                 for i in range(3):
                     sigma[index][i] = sigma[index][i]*factor
