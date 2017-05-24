@@ -267,7 +267,7 @@ bool SRecTrack::isValid()
     if(getChisq()/(nHits - 5) > 15.) return false;
 
     //Check the px polarity
-    if(FMAGSTR*getCharge()*fVertexMom.Px() < 0) return false;
+    //if(FMAGSTR*getCharge()*fVertexMom.Px() < 0) return false;
 
     return true;
 }
