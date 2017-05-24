@@ -144,7 +144,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEANT4_CFLAGS} ${ROOT_CFLAGS} ${MYSQL_
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran" )
 
-add_library(kTracker STATIC ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
 
 file(GLOB execs ${PROJECT_SOURCE_DIR}/exe/*.cxx)
 foreach(exec ${execs})
@@ -153,6 +153,6 @@ foreach(exec ${execs})
   message(STATUS "Adding targets to the compile list: ${exec}")
 
   add_executable(${exec} ${PROJECT_SOURCE_DIR}/exe/${exec}.cxx)
-  target_link_libraries(${exec} ${PROJECT_SOURCE_DIR}/lib/libkTracker.a)
+  target_link_libraries(${exec} ${PROJECT_SOURCE_DIR}/lib/libkTracker.so)
   add_dependencies(${exec} kTracker)
 endforeach(exec)
