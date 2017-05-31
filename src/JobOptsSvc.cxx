@@ -128,6 +128,10 @@ bool JobOptsSvc::init(const char* configfile)
 
     map<string, double*> doubleOpts;
     doubleOpts["TimingOffset"] = &m_timingOffset;
+    doubleOpts["ST0_Reject"] = &m_st0_reject;
+    doubleOpts["ST1_Reject"] = &m_st1_reject;
+    doubleOpts["ST2_Reject"] = &m_st2_reject;
+    doubleOpts["ST3_Reject"] = &m_st3_reject;
 
     //read the file and find matching options
     string line;

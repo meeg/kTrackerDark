@@ -65,11 +65,6 @@
 #define BEAM_SPOT_X 0.5
 #define BEAM_SPOT_Y 0.5
 
-#define ST0_REJECT 0.13
-#define ST1_REJECT 0.25
-#define ST2_REJECT 0.18
-#define ST3_REJECT 0.16
-
 #define MERGE_THRES 0.015
 
 //-------------- Coarse swim setup --------------

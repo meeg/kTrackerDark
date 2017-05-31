@@ -73,6 +73,11 @@ public:
 
     double m_timingOffset;   ///< timing offset for chamber hits (mostly)
 
+    double m_st0_reject;     ///< Station-0 rejection window
+    double m_st1_reject;     ///< station-1 rejection window
+    double m_st2_reject;     ///< Station-2 rejection window
+    double m_st3_reject;     ///< Station-3 rejection window
+
     std::string m_inputFile;  ///< Name of the input file
     std::string m_outputFile; ///< Name of the output file
     std::string m_inputSchema; ///< Name of the input schema
