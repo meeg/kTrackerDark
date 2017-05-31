@@ -41,8 +41,8 @@
 #define nHodoPlanes 16
 #define nPropPlanes 8
 
-#define FMAGSTR 1.054
-#define KMAGSTR 0.951
+#define FMAGSTR -1.054
+#define KMAGSTR -0.951
 
 #define Z_KMAG_BEND 1064.26
 #define Z_FMAG_BEND 251.4
@@ -65,7 +65,7 @@
 #define BEAM_SPOT_X 0.5
 #define BEAM_SPOT_Y 0.5
 
-#define ST0_REJECT 0.10
+#define ST0_REJECT 0.13
 #define ST1_REJECT 0.25
 #define ST2_REJECT 0.18
 #define ST3_REJECT 0.16
