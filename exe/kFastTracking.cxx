@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
     saveFile->Close();
 
     delete fastfinder;
-    delete eventReducer;
+    //delete eventReducer;
 #ifdef _ENABLE_KF
     filter->close();
 #endif
