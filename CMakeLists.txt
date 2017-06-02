@@ -45,7 +45,6 @@ if(ALIGNMENTMODE)
   add_definitions(-DALIGNMENT_MODE)
 endif()
 
-
 # Add version number from git if exists
 if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
   execute_process(COMMAND git rev-parse --abbrev-ref HEAD OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -80,16 +79,24 @@ add_custom_command (
   ARGS -f ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx -c ${PROJECT_SOURCE_DIR}/inc/TriggerRoad.h ${PROJECT_SOURCE_DIR}/inc/TriggerRoadLinkDef.h
   )
 
-add_custom_command (
-  OUTPUT ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.h
-  COMMAND rootcint
-  ARGS -f ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx -c ${PROJECT_SOURCE_DIR}/inc/SMillepedeUtil.h ${PROJECT_SOURCE_DIR}/inc/SMillepedeUtilLinkDef.h
-  )
+if(ALIGNMENTMODE)
+  add_custom_command (
+    OUTPUT ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.h
+    COMMAND rootcint
+    ARGS -f ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx -c ${PROJECT_SOURCE_DIR}/inc/SMillepedeUtil.h ${PROJECT_SOURCE_DIR}/inc/SMillepedeUtilLinkDef.h
+    )
+endif()
 
 # DPSim source code
 include_directories(${PROJECT_SOURCE_DIR}/inc)
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cxx   ${PROJECT_SOURCE_DIR}/src/*.cc     ${PROJECT_SOURCE_DIR}/src/*.f)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cxx   ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/include/*.hh)
+if(ALIGNMENTMODE)
+  list(APPEND sources ${PROJECT_SOURCE_DIR}/src/millepede.f)
+else()
+  list(REMOVE_ITEM sources ${PROJECT_SOURCE_DIR}/src/SMillepede.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtil.cxx)
+  list(REMOVE_ITEM headers ${PROJECT_SOURCE_DIR}/inc/SMillepede.h   ${PROJECT_SOURCE_DIR}/src/SMillepedeUtil.h)
+endif()
 
 # ROOT
 find_program(ROOTCONF "root-config")
@@ -141,10 +148,15 @@ else()
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEANT4_CFLAGS} ${ROOT_CFLAGS} ${MYSQL_CFLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran" )
-
-add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+if(ALIGNMENTMODE)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
+  add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+else()
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}")
+  add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+endif()
 
 file(GLOB execs ${PROJECT_SOURCE_DIR}/exe/*.cxx)
 foreach(exec ${execs})
