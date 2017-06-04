@@ -47,7 +47,7 @@ if os.path.exists(options.record):
     fin = open(options.record, 'r')
     for line in fin.readlines():
         vals = line.strip().split()
-        if len(vals) != 2:
+        if len(vals) < 2:
             continue
 
         if vals[0] == 't':
@@ -121,14 +121,14 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             GU.runCommand('chmod 01755 ' + targetDir)
 
         targetFile = os.path.join(vconf.indir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s.root' % (runID, GU.version))
-        mergedFile = os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s.root' % (runID, GU.version))
+        mergedFile = os.path.join('/tmp', 'track_%06d_%s.root' % (runID, GU.version))
         sourceFiles = [os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s_%d.root' % (runID, GU.version, tag)) for tag in range(nTotalJobs)]
         if GU.mergeFiles(mergedFile, sourceFiles):
             print 'Tracking [%s]: Run %06d finished and merged' % (GU.getTimeStamp(), runID)
             if targetFile == mergedFile or GU.runCommand('mv %s %s' % (mergedFile, targetFile)):
                 # label this run as tracked in both runtime list and file recorder
                 trackedRuns.append(runID)
-                frecord.write('t %06d\n' % runID)
+                frecord.write('t %06d %s\n' % (runID, GU.getTimeStamp()))
 
                 # submit the vertexing job
                 vertexJobs.append(GU.makeCommand('vertex', runID, vconf))
@@ -139,9 +139,11 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             else:
                 print 'Tracking [%s]: Run %06d failed in moving to pnfs' % (GU.getTimeStamp(), runID)
                 fout.write('Tracking [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'moving to pnfs failed'))
+                os.remove(mergedFile)
         else:
             print 'Tracking [%s]: Run %06d failed in merging' % (GU.getTimeStamp(), runID)
             fout.write('Tracking [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'merging failed'))
+            os.remove(mergedFile)
     print 'Tracking [%s]: %d/%d tracked' % (GU.getTimeStamp(), len(trackedRuns), len(runIDs))
     fout.flush()
     frecord.flush()
@@ -173,7 +175,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
 
         # label this run as vertexed
         vertexedRuns.append(runID)
-        frecord.write('v %06d\n' % runID)
+        frecord.write('v %06d %s\n' % (runID, GU.getTimeStamp()))
 
     print 'Vertexing [%s]: %d/%d vertexed' % (GU.getTimeStamp(), len(vertexedRuns), len(runIDs))
     fout.flush()
@@ -208,7 +210,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             os.system(cmd)
 
             uploadedRuns.append(runID)
-            frecord.write('u %06d\n' % runID)
+            frecord.write('u %06d %s\n' % (runID, GU.getTimeStamp()))
 
         # reap IO dead process every 5 minutes
         if (nUploaderCycles+1) % 5 == 0:
