@@ -231,7 +231,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
     # sleep for 10 minutes only if we have no runs to upload
     fout.flush()
     frecord.flush()
-    if len(uploadRuns) == len(vertexedRuns):
+    if len(uploadedRuns) == len(vertexedRuns):
         time.sleep(600)
 
 fout.close()
