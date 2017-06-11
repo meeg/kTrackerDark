@@ -121,7 +121,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             GU.runCommand('chmod 01755 ' + targetDir)
 
         targetFile = os.path.join(vconf.indir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s.root' % (runID, GU.version))
-        mergedFile = os.path.join('/tmp', 'track_%06d_%s.root' % (runID, GU.version))
+        mergedFile = os.path.join(GU.workDir, 'track_%06d_%s.root' % (runID, GU.version))
         sourceFiles = [os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s_%d.root' % (runID, GU.version, tag)) for tag in range(nTotalJobs)]
         if GU.mergeFiles(mergedFile, sourceFiles):
             print 'Tracking [%s]: Run %06d finished and merged' % (GU.getTimeStamp(), runID)
