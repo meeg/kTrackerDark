@@ -260,9 +260,13 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
         {
             resol_plane[i] = p_jobOptsSvc->m_st2_reject;
         }
+        else if(i <= 24)
+        {
+            resol_plane[i] = p_jobOptsSvc->m_st3p_reject;
+        }
         else
         {
-            resol_plane[i] = p_jobOptsSvc->m_st3_reject;
+            resol_plane[i] = p_jobOptsSvc->m_st3m_reject;
         }
 #endif
         spacing_plane[i] = p_geomSvc->getPlaneSpacing(i);

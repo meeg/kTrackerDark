@@ -131,7 +131,8 @@ bool JobOptsSvc::init(const char* configfile)
     doubleOpts["ST0_Reject"] = &m_st0_reject;
     doubleOpts["ST1_Reject"] = &m_st1_reject;
     doubleOpts["ST2_Reject"] = &m_st2_reject;
-    doubleOpts["ST3_Reject"] = &m_st3_reject;
+    doubleOpts["ST3p_Reject"] = &m_st3p_reject;
+    doubleOpts["ST3m_Reject"] = &m_st3m_reject;
 
     //read the file and find matching options
     string line;
