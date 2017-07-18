@@ -218,8 +218,8 @@ Double_t SRecTrack::getMomentum(TMatrixD& state, Double_t& px, Double_t& py, Dou
 {
     Double_t p = 1./fabs(state[0][0]);
     pz = p/sqrt(1. + state[1][0]*state[1][0] + state[2][0]*state[2][0]);
-    px = p*state[1][0];
-    py = p*state[2][0];
+    px = pz*state[1][0];
+    py = pz*state[2][0];
 
     return p;
 }
