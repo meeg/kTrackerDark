@@ -32,3 +32,11 @@ Following parameters could be used in CMake:
 - ALIGNMENTMODE: add the alignment tools to the build, also disables a lot of features in kTracker, for alignment program only, default OFF
 
 Eventually all the switches in MODE_SWITCH.h will be moved to CMakeList.txt file
+
+### Remaining tweaks in MODE_SWITCH.h
+
+As for now, there are still a couple of things that are hard coded in MODE_SWITCH.h, they are:
+- FMAGSTR and KMAGSTR: the magnetic field strength multiplier;
+- X_VTX and Y_VTX: the center of beam position;
+- BEAM_SPOT_X and BEAM_SPOT_Y: the size, or sigma of the beam spot assuming beam has 2-D gaussian shape;
+- MERGE_THRES: threshold for merging station-0 and station-1 tracks
