@@ -27,7 +27,7 @@
 #include "SMillepedeUtil.h"
 #include "JobOptsSvc.h"
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 int main(int argc, char *argv[])
 {

@@ -9,7 +9,7 @@
 #include <TFile.h>
 #include <TString.h>
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 class JobOptsSvc
 {

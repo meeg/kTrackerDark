@@ -14,7 +14,7 @@ Created: 01-21-2013
 #ifndef _SRECTRACK_H
 #define _SRECTRACK_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <iostream>
 #include <vector>

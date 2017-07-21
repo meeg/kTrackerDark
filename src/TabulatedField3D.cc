@@ -35,7 +35,7 @@
 // GEANT4 tag $Name: geant4-09-01-patch-02 $
 
 #include "TabulatedField3D.hh"
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 TabulatedField3D::TabulatedField3D(double zOffset, int nX, int nY, int nZ, bool fMagnet, Settings* settings)
 {

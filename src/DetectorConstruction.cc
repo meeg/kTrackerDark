@@ -10,7 +10,7 @@
 // the physical componets, and assigns which components will be detectors.
 
 #include "DetectorConstruction.hh"
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 DetectorConstruction::DetectorConstruction(Settings* settings)
 {

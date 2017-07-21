@@ -24,7 +24,7 @@
 #include "VertexFit.h"
 #include "EventReducer.h"
 #include "JobOptsSvc.h"
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 using namespace std;
 

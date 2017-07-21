@@ -18,7 +18,7 @@ Created: 2-8-2012
 #include <iostream>
 #include <vector>
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <TFile.h>
 #include <TTree.h>

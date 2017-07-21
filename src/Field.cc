@@ -3,7 +3,7 @@ Version 05/12/2008
 Larry Isenhower modified by Aldo Raeliarijaona
 */
 #include "Field.hh"
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 Field::Field(Settings* settings)
 {

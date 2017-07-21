@@ -12,7 +12,7 @@ Created: 07-02-2012
 #ifndef _SRAWEVENT_H
 #define _SRAWEVENT_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <iostream>
 #include <vector>

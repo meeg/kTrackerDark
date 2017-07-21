@@ -27,7 +27,7 @@
 #include "FastTracklet.h"
 #include "MySQLSvc.h"
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 using namespace std;
 

@@ -11,7 +11,7 @@ Created: Apr. 29, 2013
 #ifndef _SMILLEPEDE_H
 #define _SMILLEPEDE_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <string>
 

@@ -19,7 +19,7 @@ and then prop. tubes
 #ifndef _GEOMSVC_H
 #define _GEOMSVC_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <iostream>
 #include <vector>

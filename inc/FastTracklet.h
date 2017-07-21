@@ -10,7 +10,7 @@ Created: 06-09-2013
 #ifndef _FASTTRACKLET_H
 #define _FASTTRACKLET_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <list>
 #include <vector>

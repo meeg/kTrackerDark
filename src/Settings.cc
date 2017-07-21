@@ -1,6 +1,6 @@
 #include "Settings.hh"
 #include "JobOptsSvc.h"
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 Settings::Settings()
 {

@@ -10,7 +10,7 @@ Created: Apr. 29, 2013
 #ifndef _SMILLEPEDEUTIL_H
 #define _SMILLEPEDEUTIL_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <TObject.h>
 #include <TROOT.h>

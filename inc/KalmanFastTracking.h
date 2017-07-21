@@ -10,7 +10,7 @@ Created: 05-24-2013
 #ifndef _KALMANFASTTRACKING_H
 #define _KALMANFASTTRACKING_H
 
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #include <list>
 #include <vector>
