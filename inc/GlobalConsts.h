@@ -1,5 +1,5 @@
-#ifndef _MODE_SWITCH_H
-#define _MODE_SWITCH_H
+#ifndef _GLOBALCONSTS_H
+#define _GLOBALCONSTS_H
 
 //--------------- Mode controls, experts only  ------------------
 //Will be removed eventually

@@ -33,7 +33,7 @@ Created: 10-13-2011
 #include <TVector3.h>
 
 #include "DetectorConstruction.hh"
-#include "MODE_SWITCH.h"
+#include "GlobalConsts.h"
 
 #define LogDebug(message) std::cout << "DEBUG: " << __FILE__ << "  " << __LINE__ << "  " << __FUNCTION__ << " :::  " << message << std::endl
 
