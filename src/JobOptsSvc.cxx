@@ -275,10 +275,10 @@ bool JobOptsSvc::ProcessAllEvents() const
     return true;
 }
 
-void JobOptsSvc::save(TFile* saveFile)
+void JobOptsSvc::save(TFile* saveFile, TString name)
 {
     saveFile->cd();
-    TTree* saveTree = new TTree("config", "config");
+    TTree* saveTree = new TTree(name.Data(), name.Data());
 
     TString s_configFile = m_configFile;
 
@@ -318,6 +318,12 @@ void JobOptsSvc::save(TFile* saveFile)
     TString s_kmagFile = m_kMagFile;
     TString s_fmagStr  = Form("%.3f", FMAGSTR);
     TString s_kmagStr  = Form("%.3f", KMAGSTR);
+
+    TString s_st0Reject = Form("%.4f", m_st0_reject);
+    TString s_st1Reject = Form("%.4f", m_st1_reject);
+    TString s_st2Reject = Form("%.4f", m_st2_reject);
+    TString s_st3pReject = Form("%.4f", m_st3p_reject);
+    TString s_st3mReject = Form("%.4f", m_st3m_reject);
 
     TString s_geomVersion = m_geomVersion;
 
@@ -364,6 +370,12 @@ void JobOptsSvc::save(TFile* saveFile)
     saveTree->Branch("Geometry", &s_geomVersion);
     saveTree->Branch("TimingOffset", &s_timingOffset);
     saveTree->Branch("kTrackerVer", &s_softver);
+
+    saveTree->Branch("ST0RejectWin", &s_st0Reject);
+    saveTree->Branch("ST1RejectWin", &s_st1Reject);
+    saveTree->Branch("ST2RejectWin", &s_st2Reject);
+    saveTree->Branch("ST3pRejectWin", &s_st3pReject);
+    saveTree->Branch("ST3mRejectWin", &s_st3mReject);
 
     saveTree->Fill();
     saveTree->Write();

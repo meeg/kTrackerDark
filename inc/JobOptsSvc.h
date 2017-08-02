@@ -25,7 +25,7 @@ public:
     void close();
 
     ///Save the content to a TFile
-    void save(TFile* saveFile);
+    void save(TFile* saveFile, TString name = "config");
 
     ///Return a string with environmental variables expanded
     std::string ExpandEnvironmentals( const std::string& input ) const;

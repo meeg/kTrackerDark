@@ -100,10 +100,7 @@ int main(int argc, char *argv[])
         saveFile->cd();
         configTree->CloneTree()->Write();
     }
-    else
-    {
-        jobOptsSvc->save(saveFile);
-    }
+    jobOptsSvc->save(saveFile);
 
     //Initialize track finder
     LogInfo("Initializing the track finder and kalman filter ... ");
