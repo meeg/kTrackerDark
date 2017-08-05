@@ -33,7 +33,7 @@ Following parameters could be used in CMake:
 
 Eventually all the switches in MODE_SWITCH.h will be moved to CMakeList.txt file
 
-### Remaining tweaks in MODE_SWITCH.h
+### Remaining tweaks in GlobalConsts.h (before called MODE_SWITCH.h)
 
 As for now, there are still a couple of things that are hard coded in MODE_SWITCH.h, they are:
 - FMAGSTR and KMAGSTR: the magnetic field strength multiplier;
