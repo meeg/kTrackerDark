@@ -385,6 +385,9 @@ void JobOptsSvc::save(TFile* saveFile, TString name)
     TString s_st3pReject = Form("%.4f", m_st3p_reject);
     TString s_st3mReject = Form("%.4f", m_st3m_reject);
 
+    TString s_x_vtx = Form("%.4f", X_VTX);
+    TString s_y_vtx = Form("%.4f", Y_VTX);
+
     TString s_geomVersion = m_geomVersion;
 
 #ifdef GIT_VERSION
@@ -436,6 +439,9 @@ void JobOptsSvc::save(TFile* saveFile, TString name)
     saveTree->Branch("ST2RejectWin", &s_st2Reject);
     saveTree->Branch("ST3pRejectWin", &s_st3pReject);
     saveTree->Branch("ST3mRejectWin", &s_st3mReject);
+
+    saveTree->Branch("X_VTX", &s_x_vtx);
+    saveTree->Branch("Y_VTX", &s_y_vtx);
 
     saveTree->Fill();
     saveTree->Write();
