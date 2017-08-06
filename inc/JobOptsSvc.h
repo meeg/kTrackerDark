@@ -17,6 +17,9 @@ public:
     ///singlton instance
     static JobOptsSvc* instance();
 
+    ///Constructor for default values
+    JobOptsSvc();
+
     ///Initialization with defaults
     bool init(bool forceInit = false);
     ///Initialization using this config file
@@ -78,6 +81,11 @@ public:
     double m_st2_reject;     ///< Station-2 rejection window
     double m_st3p_reject;     ///< Station-3 rejection window
     double m_st3m_reject;     ///< Station-3 rejection window
+
+    double m_x_vtx;          ///< Beam X offset
+    double m_y_vtx;          ///< Beam Y offset
+    double m_x_spot_size;    ///< Beam spot size in X
+    double m_y_spot_size;    ///< Beam spot size in X
 
     std::string m_inputFile;  ///< Name of the input file
     std::string m_outputFile; ///< Name of the output file
