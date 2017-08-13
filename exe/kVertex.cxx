@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         saveFile->cd();
         configTree->CloneTree()->Write();
     }
-    jobOptsSvc->save(saveFile);
+    jobOptsSvc->save(saveFile, "vconfig");
 
     //Initialize track finder
     LogInfo("Initializing the track finder and kalman filter ... ");

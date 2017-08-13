@@ -259,7 +259,8 @@ void VertexFit::init()
 void VertexFit::setStartingVertex(double z_start, double sigz_start)
 {
     ///Initialize the starting vertex with a guess and large error
-    _vtxpar_curr._r.Zero();
+    _vtxpar_curr._r[0][0] = X_VTX;
+    _vtxpar_curr._r[1][0] = Y_VTX;
     _vtxpar_curr._r[2][0] = z_start;
 
     _vtxpar_curr._cov.Zero();
