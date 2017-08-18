@@ -143,20 +143,19 @@ bool SRecTrack::isVertexValid()
 Int_t SRecTrack::getNearestNode(Double_t z)
 {
     Int_t nNodes = getNHits();
-    Double_t deltaZ_curr = 0;
-    Double_t deltaZ_prev = 1E6;
-    for(Int_t i = 0; i < nNodes; i++)
+    Int_t index_min = 0;
+    Double_t dist_min = 1E6;
+    for(Int_t i = 0; i < nNodes; ++i)
     {
-        deltaZ_curr = fabs(z - fZ[i]);
-        if(deltaZ_curr > deltaZ_prev)
+        Double_t dist = fabs(z - fZ[i]);
+        if(dist < dist_min)
         {
-            return i - 1;
+            dist_min = dist;
+            index_min = i;
         }
-
-        deltaZ_prev = deltaZ_curr;
     }
 
-    return nNodes - 1;
+    return index_min;
 }
 
 void SRecTrack::getExpPositionFast(Double_t z, Double_t& x, Double_t& y, Int_t iNode)
