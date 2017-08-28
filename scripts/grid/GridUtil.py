@@ -75,10 +75,12 @@ def getNEvents(name):
     else:
         return 0
 
-def getOptimizedSize(name, nEvtMax, nJobsMax = 10):
+def getOptimizedSize(name, nEvtMax, nJobsMax = 10, nEvents_default = -1):
     """Optimize how a run is splitted into serveral jobs"""
 
-    nEvents = getNEvents(name)
+    nEvents = nEvents_default
+    if nEvents < 0:
+        nEvents = getNEvents(name)
     if nEvents < 1:
         return []
 

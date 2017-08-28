@@ -38,11 +38,20 @@ conf = GridUtil.JobConfig(options.config)
 # process runID list, if in MC mode, initialize file list from options.list
 runIDs = []
 runFiles = []
+runLengths = []
 if not options.mcmode:    # working with real data, runid is meaningful and is used to find the files
     if os.path.exists(options.list):
-        runIDs = [int(word.strip()) for word in open(options.list)]
+        for line in open(options.list):
+            vals = line.strip().split()
+            if len(vals) == 2:
+                runIDs.append(int(vals[0]))
+                runLengths.append(int(vals[1]))
+            else:
+                runIDs.append(int(vals[0]))
+                runLengths.append(-1)
     else:
         runIDs = [int(word.strip()) for word in options.list.split(',')]
+        runLengths = [-1 for i in range(runIDs)]
 
     ver = GridUtil.version
     if conf.inv is not None:
@@ -63,7 +72,7 @@ for index, runID in enumerate(runIDs):
         cmd = GridUtil.makeCommand(options.job, runID, conf, infile = runFiles[index])
         cmds.append(cmd)
     else:
-        optSizes = GridUtil.getOptimizedSize(runFiles[index], options.nEvtMax, options.nJobsMax)
+        optSizes = GridUtil.getOptimizedSize(runFiles[index], options.nEvtMax, options.nJobsMax, runLengths[index])
         if len(optSizes) == 0:
             continue
 
