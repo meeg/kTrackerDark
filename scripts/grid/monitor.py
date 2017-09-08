@@ -35,7 +35,7 @@ vconf = GU.JobConfig(options.vconfig)
 uploader = os.path.join(os.getenv('KTRACKER_ROOT'), 'sqlResWriter')
 
 # initialize the runlist
-runIDs = [int(line.strip()) for line in open(options.list).readlines()]
+runIDs = [int(line.strip(),split()[0]) for line in open(options.list).readlines()]
 
 # initialize the history record
 trackedRuns = []
