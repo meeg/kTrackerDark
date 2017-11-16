@@ -45,6 +45,13 @@ if(ALIGNMENTMODE)
   add_definitions(-DALIGNMENT_MODE)
 endif()
 
+# command line option to enable DC0 fix in Run4 -- i.e. shift tdcTime and fake DC0 hit
+option(RUN4DC0FIX "Enable Run4 DC0 fix" OFF)
+if(RUN4DC0FIX)
+  message("-- IMPORTANT! Run4 DC0 fix is enabled")
+  add_definitions(-DRUN4DC0FIX)
+endif()
+
 # Add version number from git if exists
 if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
   execute_process(COMMAND git rev-parse --abbrev-ref HEAD OUTPUT_VARIABLE GIT_BRANCH OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -108,6 +115,7 @@ endif()
 execute_process(COMMAND root-config --prefix OUTPUT_VARIABLE ROOT_PREFIX  OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND root-config --cflags OUTPUT_VARIABLE ROOT_CFLAGS  OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(COMMAND root-config --libs   OUTPUT_VARIABLE ROOT_LINK    OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(ROOT_LINK "${ROOT_LINK} -lMinuit2")  ## because somehow root-config does not include Minuit2 library
 
 # the rest packages are not needed for libonly mode
 # Geant4
@@ -149,13 +157,11 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GEANT4_CFLAGS} ${ROOT_CFLAGS} ${MYSQL_CFLAGS}")
 if(ALIGNMENTMODE)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
   add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SMillepedeUtilDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+  target_link_libraries(kTracker "${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK} -lgfortran")
 else()
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}")
   add_library(kTracker SHARED ${sources} ${headers} ${PROJECT_SOURCE_DIR}/src/FastTrackletDict.cxx ${PROJECT_SOURCE_DIR}/src/SRawEventDict.cxx ${PROJECT_SOURCE_DIR}/src/SRecEventDict.cxx ${PROJECT_SOURCE_DIR}/src/TriggerRoadDict.cxx)
+  target_link_libraries(kTracker "${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}")
 endif()
 
 file(GLOB execs ${PROJECT_SOURCE_DIR}/exe/*.cxx)
@@ -166,5 +172,9 @@ foreach(exec ${execs})
 
   add_executable(${exec} ${PROJECT_SOURCE_DIR}/exe/${exec}.cxx)
   target_link_libraries(${exec} ${PROJECT_SOURCE_DIR}/lib/libkTracker.so)
+  target_link_libraries(${exec} "${GEANT4_LINK} ${ROOT_LINK} ${MYSQL_LINK}")
+  if(ALIGNMENTMODE)
+    target_link_libraries(${exec} "-lgfortran")
+  endif()
   add_dependencies(${exec} kTracker)
 endforeach(exec)
