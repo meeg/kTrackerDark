@@ -65,6 +65,7 @@ JobOptsSvc::JobOptsSvc()
     m_triggerL1 = 67;
 
     m_timingOffset = 0;
+    m_tdcTimeRejWin = 0;
 
     m_st0_reject = 0.13;
     m_st1_reject = 0.25;
@@ -188,6 +189,7 @@ bool JobOptsSvc::init(const char* configfile)
 
     map<string, double*> doubleOpts;
     doubleOpts["TimingOffset"] = &m_timingOffset;
+    doubleOpts["TDCTimeRejWin"] = &m_tdcTimeRejWin;
     doubleOpts["ST0_Reject"] = &m_st0_reject;
     doubleOpts["ST1_Reject"] = &m_st1_reject;
     doubleOpts["ST2_Reject"] = &m_st2_reject;

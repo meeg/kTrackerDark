@@ -21,6 +21,7 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
 
     p_jobOptsSvc = JobOptsSvc::instance();
     timeOffset = p_jobOptsSvc->m_timingOffset;
+    tdcTimeRejWin = p_jobOptsSvc->m_tdcTimeRejWin;
     chamEff    = 0.94;
     chamResol  = 0.04;
 
@@ -129,7 +130,8 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
     //Remove after hits
     hitlist.sort();
     hitlist.merge(hodohitlist);
-    if(afterhit) hitlist.unique();
+    //if(afterhit) hitlist.unique();
+    if(afterhit) afterPulseReducer();
 
     //Remove hit clusters
     if(decluster) deClusterize();
@@ -143,6 +145,45 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
 
     rawEvent->reIndex();
     return nHits_before - rawEvent->getNChamberHitsAll();
+}
+
+void EventReducer::afterPulseReducer()
+{
+    int uniqueID_curr = -1;
+    double tdcTime_curr = 0;
+    for(std::list<Hit>::iterator iter = hitlist.begin(); iter != hitlist.end(); )
+    {
+        //Skip the hodoscope part
+        if(iter->detectorID >= 31 && iter->detectorID <= 46)
+        {
+            ++iter;
+            continue;
+        }
+
+        //continue if this is a new wire
+        int uniqueID = iter->uniqueID();
+        if(uniqueID != uniqueID_curr)
+        {
+            uniqueID_curr = uniqueID;
+            tdcTime_curr = iter->tdcTime;
+
+            ++iter;
+            continue;
+        }
+
+        //If it's the same wire -- check the time
+        if(fabs(iter->tdcTime - tdcTime_curr) < tdcTimeRejWin || iter->detectorID > 36) //if the time is within the window, or it's a prop tube hit
+        {
+            //remove the hit if it's too close
+            iter = hitlist.erase(iter);
+        }
+        else
+        {
+            //keep the hit, update the tdc time window base
+            tdcTime_curr = iter->tdcTime;
+            ++iter;
+        }
+    }
 }
 
 void EventReducer::sagittaReducer()

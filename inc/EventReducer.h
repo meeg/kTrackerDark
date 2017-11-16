@@ -37,6 +37,9 @@ public:
     void setChamEff(double val)   { chamEff = val;   }
     void setChamResol(double val) { chamResol = val; }
 
+    //after pulse removal -- remove the hits within a certain window, probably will be set via job option cards 
+    void afterPulseReducer();
+
     //sagitta ratio reducer
     void sagittaReducer();
 
@@ -91,6 +94,7 @@ private:
 
     //Adjustable parameters
     double timeOffset;        //timing correction
+    double tdcTimeRejWin;     //after pulse removal win
     double chamEff;           //chamber efficiency
     double chamResol;         //chamber resolution
 };
