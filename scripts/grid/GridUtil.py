@@ -54,7 +54,8 @@ class JobConfig:
     def __str__(self):
         suffix = ' '
         for key in self.attr:
-            suffix = suffix + '--%s=%s ' % (key, self.attr[key])
+            for item in self.attr[key].split(','):
+                suffix = suffix + '--%s=%s ' % (key, item)
         for item in self.switch:
             suffix = suffix + '--%s ' % item
         return suffix
