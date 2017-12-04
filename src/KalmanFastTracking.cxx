@@ -755,7 +755,8 @@ void KalmanFastTracking::buildGlobalTracks()
         }
     }
 
-    trackletsInSt[4].sort();
+    //trackletsInSt[4].sort();
+    reduceTrackletList(trackletsInSt[4], 0.34)
 }
 
 void KalmanFastTracking::resolveLeftRight(Tracklet& tracklet, double threshold)
@@ -1176,7 +1177,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, int listID, doub
     }
 
     //Reduce the tracklet list and add dummy hits
-    reduceTrackletList(trackletsInSt[listID], 0.34);
+    //reduceTrackletList(trackletsInSt[listID], 0.34);
     for(std::list<Tracklet>::iterator iter = trackletsInSt[listID].begin(); iter != trackletsInSt[listID].end(); ++iter)
     {
         iter->addDummyHits();
