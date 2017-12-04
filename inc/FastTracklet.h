@@ -17,6 +17,7 @@ Created: 06-09-2013
 
 #include <TObject.h>
 #include <TVector3.h>
+#include <TString.h>
 
 #include "GeomSvc.h"
 #include "SRawEvent.h"
@@ -169,7 +170,7 @@ public:
     bool operator<(const Tracklet& elem) const;
 
     //For reducing similar tracklets
-    bool similarity(const Tracklet& elem) const;
+    double similarity(const Tracklet& elem) const;
 
     //Merge the hit list from two tracklets
     Tracklet merge(Tracklet& elem);
@@ -179,7 +180,7 @@ public:
 
     //For adding two tracklets together to form a global track
     Tracklet operator*(const Tracklet& elem) const;
-
+    
     //Debuggin output
     void print();
 

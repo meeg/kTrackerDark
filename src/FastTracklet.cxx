@@ -582,7 +582,7 @@ bool Tracklet::operator<(const Tracklet& elem) const
     }
 }
 
-bool Tracklet::similarity(const Tracklet& elem) const
+double Tracklet::similarity(const Tracklet& elem) const
 {
     int nCommonHits = 0;
     std::list<SignedHit>::const_iterator first = hits.begin();
@@ -606,8 +606,7 @@ bool Tracklet::similarity(const Tracklet& elem) const
         }
     }
 
-    if(nCommonHits/double(elem.getNHits()) > 0.33333) return true;
-    return false;
+    return double(nCommonHits)/double(elem.getNHits());
 }
 
 double Tracklet::getMomentum() const

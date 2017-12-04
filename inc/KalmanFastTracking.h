@@ -70,7 +70,7 @@ public:
     void removeBadHits(Tracklet& tracklet);
 
     //Reduce the list of tracklets, returns the number of elements reduced
-    int reduceTrackletList(std::list<Tracklet>& tracklets);
+    int reduceTrackletList(std::list<Tracklet>& tracklets, double threshold);
 
     //Get exp postion and window using sagitta method in station 1
     void getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_exp, double* window, int st1ID);

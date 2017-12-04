@@ -608,7 +608,7 @@ void KalmanFastTracking::buildBackPartialTracks()
         if(tracklet_best.isValid()) trackletsInSt[3].push_back(tracklet_best);
     }
 
-    reduceTrackletList(trackletsInSt[3]);
+    reduceTrackletList(trackletsInSt[3], 0.34);
     trackletsInSt[3].sort();
 }
 
@@ -1176,7 +1176,7 @@ void KalmanFastTracking::buildTrackletsInStation(int stationID, int listID, doub
     }
 
     //Reduce the tracklet list and add dummy hits
-    //reduceTrackletList(trackletsInSt[listID]);
+    reduceTrackletList(trackletsInSt[listID], 0.34);
     for(std::list<Tracklet>::iterator iter = trackletsInSt[listID].begin(); iter != trackletsInSt[listID].end(); ++iter)
     {
         iter->addDummyHits();
@@ -1547,7 +1547,7 @@ int KalmanFastTracking::fitTracklet(Tracklet& tracklet)
     return status;
 }
 
-int KalmanFastTracking::reduceTrackletList(std::list<Tracklet>& tracklets)
+int KalmanFastTracking::reduceTrackletList(std::list<Tracklet>& tracklets, double threshold)
 {
     std::list<Tracklet> targetList;
 
@@ -1564,7 +1564,7 @@ int KalmanFastTracking::reduceTrackletList(std::list<Tracklet>& tracklets)
 
         for(std::list<Tracklet>::iterator iter = tracklets.begin(); iter != tracklets.end(); )
         {
-            if(iter->similarity(targetList.back()))
+            if(iter->similarity(targetList.back()) > threshold)
             {
 #ifdef _DEBUG_ON_LEVEL_2
                 LogInfo("Removing this tracklet: ");
