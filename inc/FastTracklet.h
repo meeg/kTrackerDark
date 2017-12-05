@@ -169,6 +169,9 @@ public:
     //For sorting tracklet list
     bool operator<(const Tracklet& elem) const;
 
+    //For hit list comparison
+    bool operator==(const Tracklet& elem) const;
+
     //For reducing similar tracklets
     double similarity(const Tracklet& elem) const;
 
@@ -180,7 +183,7 @@ public:
 
     //For adding two tracklets together to form a global track
     Tracklet operator*(const Tracklet& elem) const;
-    
+
     //Debuggin output
     void print();
 

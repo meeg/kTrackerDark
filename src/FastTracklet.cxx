@@ -582,6 +582,20 @@ bool Tracklet::operator<(const Tracklet& elem) const
     }
 }
 
+bool Tracklet::operator==(const Tracklet& elem) const
+{
+    if(hits.size() != elem.hits.size()) return false;
+
+    std::list<SignedHit>::const_iterator iter = hits.begin();
+    std::list<SignedHit>::const_iterator jter = elem.hits.begin();
+    for(; iter != hits.end() && jter != elem.hits.end(); ++iter, ++jter)
+    {
+        if(iter->hit.index < 0) continue;
+        if(iter->hit.index != jter->hit.index) return false;
+    }
+    return true;
+}
+
 double Tracklet::similarity(const Tracklet& elem) const
 {
     int nCommonHits = 0;

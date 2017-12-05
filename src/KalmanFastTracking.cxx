@@ -615,6 +615,7 @@ void KalmanFastTracking::buildBackPartialTracks()
 void KalmanFastTracking::buildGlobalTracks()
 {
     double pos_exp[3], window[3];
+    std::list<Tracklet> tracklets_st1_used;
     for(std::list<Tracklet>::iterator tracklet23 = trackletsInSt[3].begin(); tracklet23 != trackletsInSt[3].end(); ++tracklet23)
     {
         Tracklet tracklet_best[2];
@@ -640,12 +641,15 @@ void KalmanFastTracking::buildGlobalTracks()
 
             buildTrackletsInStation(i+1, 0, pos_exp, window);
             Tracklet tracklet_best_prob, tracklet_best_vtx;
+            Tracklet tracklet1_best_prob, tracklet1_best_vtx;
             for(std::list<Tracklet>::iterator tracklet1 = trackletsInSt[0].begin(); tracklet1 != trackletsInSt[0].end(); ++tracklet1)
             {
 #ifdef _DEBUG_ON
                 LogInfo("With this station 1 track:");
                 tracklet1->print();
 #endif
+
+                if(std::find(tracklets_st1_used.begin(), tracklets_st1_used.end(), *tracklet1) != tracklets_st1_used.end()) continue;
 
                 Tracklet tracklet_global = (*tracklet23) * (*tracklet1);
                 fitTracklet(tracklet_global);
@@ -664,14 +668,22 @@ void KalmanFastTracking::buildGlobalTracks()
                 if(!acceptTracklet(tracklet_global)) continue;
 
                 //Get the tracklets that has the best prob
-                if(tracklet_global < tracklet_best_prob) tracklet_best_prob = tracklet_global;
+                if(tracklet_global < tracklet_best_prob) 
+                {
+                    tracklet_best_prob = tracklet_global;
+                    tracklet1_best_prob = *tracklet1;
+                }
 
 #if !defined(ALIGNMENT_MODE) && defined(_ENABLE_KF)
                 ///Set vertex information
                 SRecTrack recTrack = processOneTracklet(tracklet_global);
                 tracklet_global.chisq_vtx = recTrack.getChisqVertex();
 
-                if(recTrack.isValid() && tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx) tracklet_best_vtx = tracklet_global;
+                if(recTrack.isValid() && tracklet_global.chisq_vtx < tracklet_best_vtx.chisq_vtx) 
+                {
+                    tracklet_best_vtx = tracklet_global;
+                    tracklet1_best_vtx = *tracklet1;
+                }
 #endif
 
 #ifdef _DEBUG_ON
@@ -699,19 +711,23 @@ void KalmanFastTracking::buildGlobalTracks()
             if(tracklet_best_prob.isValid() && 1./tracklet_best_prob.invP > 18.)
             {
                 tracklet_best[i] = tracklet_best_prob;
+                tracklets_st1_used.push_back(tracklet1_best_prob);
             }
             else if(tracklet_best_vtx.isValid()) //otherwise select the one with best vertex chisq, TODO: maybe add a z-vtx constraint
             {
                 tracklet_best[i] = tracklet_best_vtx;
+                tracklets_st1_used.push_back(tracklet1_best_vtx);
             }
             else if(tracklet_best_prob.isValid()) //then fall back to the default only choice
             {
                 tracklet_best[i] = tracklet_best_prob;
+                tracklets_st1_used.push_back(tracklet1_best_prob);
             }
 #else
             if(tracklet_best_prob.isValid()) //then fall back to the default only choice
             {
                 tracklet_best[i] = tracklet_best_prob;
+                tracklets_st1_used.push_back(tracklet1_best_prob);
             }
 #endif
         }
@@ -756,7 +772,7 @@ void KalmanFastTracking::buildGlobalTracks()
     }
 
     //trackletsInSt[4].sort();
-    reduceTrackletList(trackletsInSt[4], 0.34)
+    reduceTrackletList(trackletsInSt[4], 0.34);
 }
 
 void KalmanFastTracking::resolveLeftRight(Tracklet& tracklet, double threshold)
