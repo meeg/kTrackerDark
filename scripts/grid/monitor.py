@@ -143,7 +143,10 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
         else:
             print 'Tracking [%s]: Run %06d failed in merging' % (GU.getTimeStamp(), runID)
             fout.write('Tracking [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'merging failed'))
-            os.remove(mergedFile)
+            
+            if os.path.exists(mergedFile):
+                os.remove(mergedFile)
+                
     print 'Tracking [%s]: %d/%d tracked' % (GU.getTimeStamp(), len(trackedRuns), len(runIDs))
     fout.flush()
     frecord.flush()

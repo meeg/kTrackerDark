@@ -156,6 +156,7 @@ def gridGuard():
 def startGridGuard():
     """Start a new thread used to refresh the gridGuard"""
     guardThread = threading.Thread(name = 'gridGuard', target = gridGuard)
+    guardThread.daemon = True
     guardThread.start()
 
 def stopGridGuard():
