@@ -273,12 +273,14 @@ bool SRecTrack::isValid()
 
 bool SRecTrack::isTarget()
 {
-    return (fVertexPos.Z() > -300 && fVertexPos.Z() < 0. && fChisqDump - fChisqTarget > 10.);
+    //return (fVertexPos.Z() > -300 && fVertexPos.Z() < 0. && fChisqDump - fChisqTarget > 10.);
+    return fChisqDump > fChisqTarget;
 }
 
 bool SRecTrack::isDump()
 {
-    return (fVertexPos.Z() > 0. && fVertexPos.Z() < 150. && fChisqTarget - fChisqDump > 10.);
+    //return (fVertexPos.Z() > 0. && fVertexPos.Z() < 150. && fChisqTarget - fChisqDump > 10.);
+    return fChisqDump < fChisqTarget;
 }
 
 void SRecTrack::swimToVertex(TVector3* pos, TVector3* mom)
