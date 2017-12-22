@@ -94,7 +94,7 @@ private:
 
     //Adjustable parameters
     double timeOffset;        //timing correction
-    double tdcTimeRejWin;     //after pulse removal win
+    double timeRejWin;     //after pulse removal win
     double chamEff;           //chamber efficiency
     double chamResol;         //chamber resolution
 };

@@ -21,7 +21,7 @@ EventReducer::EventReducer(TString options) : afterhit(false), hodomask(false), 
 
     p_jobOptsSvc = JobOptsSvc::instance();
     timeOffset = p_jobOptsSvc->m_timingOffset;
-    tdcTimeRejWin = p_jobOptsSvc->m_tdcTimeRejWin;
+    timeRejWin = p_jobOptsSvc->m_timingRejWin;
     chamEff    = 0.94;
     chamResol  = 0.04;
 
@@ -172,7 +172,7 @@ void EventReducer::afterPulseReducer()
         }
 
         //If it's the same wire -- check the time
-        if(fabs(iter->tdcTime - tdcTime_curr) < tdcTimeRejWin || iter->detectorID > 36) //if the time is within the window, or it's a prop tube hit
+        if(fabs(iter->tdcTime - tdcTime_curr) < timeRejWin || iter->detectorID > 36) //if the time is within the window, or it's a prop tube hit
         {
             //remove the hit if it's too close
             iter = hitlist.erase(iter);

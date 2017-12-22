@@ -104,7 +104,7 @@ UpdateAlignment 1
 # that happened from time to time, this number will be added to tdc time
 # before the drift distance is calculated
 TimingOffset 0
-TDCTimeRejWin 200
+TimingRejWin 80
 
 # when set to 1, tracker will enable the sagitta hit reducer
 SagittaReducer 1

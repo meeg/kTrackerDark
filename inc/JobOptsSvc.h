@@ -75,7 +75,7 @@ public:
     int m_triggerL1;         ///< L1 firmware version (trigger roads)
 
     double m_timingOffset;   ///< timing offset for chamber hits (mostly)
-    double m_tdcTimeRejWin;  ///< rejection window for after pulse removal
+    double m_timingRejWin;  ///< rejection window for after pulse removal
 
     double m_st0_reject;     ///< Station-0 rejection window
     double m_st1_reject;     ///< station-1 rejection window
