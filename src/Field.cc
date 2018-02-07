@@ -27,7 +27,7 @@ Field::Field(Settings* settings)
     cout << "Reading field maps..." << endl;
     //                             zOffset, nx, ny, nz, fmag, settings
     Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
-    Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
+    Mag2Field= new TabulatedField3D(-Z_KMAG_BEND*cm, 49, 37, 81, false, settings);
 
     // This exception prevents an error by keeping physiWorld from trying
     // to acces a world volume if no file input was read
@@ -42,7 +42,7 @@ Field::Field(Settings* settings)
     G4cout << "Preparing to read magnetic field map files...\n";
     G4cout << "Reading field maps...\n";
     Mag1Field= new TabulatedField3D(0.0, 131, 121, 73, true, settings);
-    Mag2Field= new TabulatedField3D(-1064.26*cm, 49, 37, 81, false, settings);
+    Mag2Field= new TabulatedField3D(-Z_KMAG_BEND*cm, 49, 37, 81, false, settings);
   }
   G4cout << "Finished loading magnetic field map files!\n";
 

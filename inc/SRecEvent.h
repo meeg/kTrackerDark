@@ -42,7 +42,7 @@ public:
     Int_t getNHits() const { return fHitIndex.size(); }
     Int_t getNHitsInStation(Int_t stationID);
     Double_t getChisq() const { return fChisq; }
-    Double_t getProb() const { return KMAG_ON == 1 ? TMath::Prob(fChisq, getNHits() - 5) : TMath::Prob(fChisq, getNHits() - 4); }
+    Double_t getProb() const { return TMath::Prob(fChisq, getNHits() - 5); }
     Double_t getQuality() const { return (Double_t)getNHits() - 0.4*getChisq(); }
 
     Int_t getHitIndex(Int_t i) { return fHitIndex[i]; }
