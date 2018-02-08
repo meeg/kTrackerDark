@@ -3,20 +3,25 @@ import os
 import subprocess
 import time
 import threading
+import ROOT
 from datetime import datetime
 from ROOT import TFile
 from ROOT import TTree
 
 import warnings
 warnings.filterwarnings(action = 'ignore', category = RuntimeWarning)
+ROOT.gErrorIgnoreLevel = 9999
 
 workDir = os.getenv('HOME') + '/tmp'
 version = os.getenv("SEAQUEST_RELEASE")
+versionLong = '_' + version
 submissionLog = os.path.join(workDir, 'log')
 stopGrid = threading.Event()
 
 inputPrefix = {'track' : 'digit', 'vertex' : 'track'}
 auxPrefix = {'track' : 'track_from_digit', 'vertex' : 'vertex_from_track'}
+
+currentJobs = set()
 
 class JobConfig:
     """Container of all possible runKTracker script arguments that are not specific to a run"""
@@ -59,6 +64,45 @@ class JobConfig:
         for item in self.switch:
             suffix = suffix + '--%s ' % item
         return suffix
+
+class GridJobStatus:
+
+    def __init__(self, line = None, job = None, runID = -1, tag = 'x'):
+
+        if line is None:
+            self.type = job
+            self.runID = runID
+            self.tag = tag
+            return
+
+        contents = line.strip().split()
+        self.rawdata = line.strip()
+        self.url = contents[0]
+        self.time = contents[4]
+        self.status = contents[5]
+        self.fullname = contents[8]
+        
+        if auxPrefix['track'] in self.fullname:
+            self.type = 'track'
+        elif auxPrefix['vertex'] in self.fullname:
+            self.type = 'vertex'
+        self.runID = int(self.fullname[len(auxPrefix[self.type])+1:len(auxPrefix[self.type])+7])
+        
+        searchStr = version + '_'
+        if self.fullname.find(searchStr) < 0:
+            self.tag = ''
+        else:
+            self.tag = self.fullname[self.fullname.find(searchStr)+len(searchStr):self.fullname.find('.sh_')]
+
+    def __eq__(self, other):
+        return self.type == other.type and self.runID == other.runID and self.tag == other.tag
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash('%s-%06d-%s' % (self.type, self.runID, self.tag))
+
 
 def getNEvents(name):
     """Find the number of events in either ROOT file or MySQL schema"""
@@ -108,10 +152,7 @@ def getJobAttr(optfile):
     """Parse the name and content of job option file to get the basic information"""
 
     runID = int(re.findall(r'_(\d{6})_', optfile)[0])
-
-    outtag = ''
-    if len(re.findall(r'_(\d+).opts', optfile)) > 0:
-        outtag = re.findall(r'_(\d+).opts', optfile)[0]
+    outtag = getOuttag(optfile, '.opts')
 
     firstEvent = 0
     nEvents = -1
@@ -162,6 +203,21 @@ def startGridGuard():
 def stopGridGuard():
     """Stop the thread before exiting"""
     stopGrid.set()
+
+def refreshJobList():
+    global currentJobs
+    output, err = subprocess.Popen('qstate All', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True).communicate()
+    if len(err) != 0:
+        print getTimeStamp(), "refreshing job list failed, will used the old one with", len(currentJobs), 'jobs'
+        return
+
+    currentJobs = set()
+    for line in output.strip().split('\n')[:-1]:
+        s = GridJobStatus(line = line)
+        #if s.status == 'H' and '1+' in s.time:
+        #    continue
+        currentJobs.add(s)
+    print getTimeStamp(), "refreshed the job list, currently has", len(currentJobs), 'jobs'
 
 def makeCommand(jobType, runID, conf, firstEvent = -1, nEvents = -1, outtag = '', infile = ''):
     """Make a runKTracker.py command according to the configurations"""
@@ -252,30 +308,51 @@ def getJobStatus(conf, jobType, runID):
 
     nFinished = 0
     failedOpts = []
-    missingOpts = []
+    failedOuts = []
     for optfile in optfiles:
         logfile = os.path.join(conf.outdir, 'log', version, getSubDir(runID), '%s_%06d_%s' % (auxPrefix[jobType], runID, version))
         outfile = os.path.join(conf.outdir, jobType, version, getSubDir(runID), '%s_%06d_%s' % (jobType, runID, version))
 
-        outtag = re.findall(r'_(\d+).opts', optfile)
+        #outtag = re.findall(r'_(\d+).opts', optfile)
+        outtag = getOuttag(optfile, '.opts')
         if len(outtag) == 0:
             logfile = logfile + '.log'
             outfile = outfile + '.root'
         else:
-            logfile = logfile + '_%s.log' % outtag[0]
-            outfile = outfile + '_%s.root' % outtag[0]
+            logfile = logfile + '_%s.log' % outtag
+            outfile = outfile + '_%s.root' % outtag
 
-        if not os.path.exists(logfile) or sum(1 for line in open(logfile)) < abs(checkpoint):
-            missingOpts.append(optfile)
+        if (not os.path.exists(logfile)) or sum(1 for line in open(logfile)) < abs(checkpoint):
+            if GridJobStatus(job = jobType, runID = runID, tag = outtag) not in currentJobs:
+                failedOpts.append(optfile)
+                failedOuts.append(outfile)
             continue
 
         nFinished = nFinished + 1
         if 'successfully' not in open(logfile).readlines()[checkpoint]:
             failedOpts.append(optfile)
+            failedOuts.append(outfile)
         elif not os.path.exists(outfile):
             failedOpts.append(optfile)
+            failedOuts.append(outfile)
+        else:
+            try:
+                dataFile = TFile(outfile, 'READ')
+                nEvents = dataFile.Get('save').GetEntries()
 
-    return (len(optfiles), nFinished, failedOpts, missingOpts)
+                config = dataFile.Get('config')
+                nEventsExp = 0
+                for c in config:
+                    nEventsExp = nEventsExp + c.NEvents
+
+                if nEventsExp != nEvents and nEventsExp - nEvents > 1000:
+                    failedOpts.append(optfile)
+                    failedOuts.append(outfile)
+            except:
+                failedOpts.append(optfile)
+                failedOuts.append(outfile)
+
+    return (len(optfiles), nFinished, failedOpts, failedOuts)
 
 def runCommand(cmd):
     """Run a bash command and check if there is any stderr output, if not return True, otherwise return False"""
@@ -288,6 +365,20 @@ def runCommand(cmd):
 def getTimeStamp():
     return datetime.now().strftime('%y%m%d-%H%M')
 
+def getOuttag(name, ext):
+    return name[name.find(versionLong)+len(versionLong)+1:name.find(ext)]
+
+def comp(file1, file2):
+    outtag1 = getOuttag(file1, '.root').split('_')
+    outtag2 = getOuttag(file2, '.root').split('_')
+
+    if outtag1[0] == outtag2[0]:
+        return int(outtag1[1]) - int(outtag2[1])
+    else:
+        return int(outtag1[0]) - int(outtag2[0])
+
+    return 0
+
 def mergeFiles(targetFile, sourceFiles, ignoreCorrupted = False):
     """use hadd to merge ROOT files"""
 
@@ -295,6 +386,7 @@ def mergeFiles(targetFile, sourceFiles, ignoreCorrupted = False):
     if ignoreCorrupted:
         cmd = cmd + '-k -f '
 
+    sourceFiles.sort(comp)
     cmd = cmd + targetFile
     for source in sourceFiles:
         cmd = cmd + ' ' + source

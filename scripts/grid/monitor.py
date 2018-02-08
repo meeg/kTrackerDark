@@ -35,7 +35,7 @@ vconf = GU.JobConfig(options.vconfig)
 uploader = os.path.join(os.getenv('KTRACKER_ROOT'), 'sqlResWriter')
 
 # initialize the runlist
-runIDs = [int(line.strip(),split()[0]) for line in open(options.list).readlines()]
+runIDs = [int(line.strip().split()[0]) for line in open(options.list).readlines()]
 
 # initialize the history record
 trackedRuns = []
@@ -92,6 +92,9 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
     # commands to be re-submitted
     failedJobs = []
 
+    # refresh the running job list
+    GU.refreshJobList()
+
     # check the status of tracking jobs, this part handles mergeing/moving ROOT files, and prepare vertex jobs
     vertexJobs = []
     for runID in runIDs:
@@ -102,7 +105,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             continue
 
         # check the running status
-        nTotalJobs, nFinishedJobs, failedOpts, _ = GU.getJobStatus(tconf, 'track', runID)
+        nTotalJobs, nFinishedJobs, failedOpts, failedOuts = GU.getJobStatus(tconf, 'track', runID)
         if options.debug:
             print ' --- Tracking status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
         if len(failedOpts) != 0:   # something wrong
@@ -110,6 +113,10 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             fout.write('              ' + str(failedOpts) + '\n')
             for opt in failedOpts:
                 failedJobs.append(GU.makeCommandFromOpts('track', opt, tconf))
+                os.remove(opt)
+            for out in failedOuts:
+                if os.path.exists(out):
+                    os.remove(out)
             continue
         elif nTotalJobs != nFinishedJobs:   # not completely finished
             continue
@@ -122,7 +129,8 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
 
         targetFile = os.path.join(vconf.indir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s.root' % (runID, GU.version))
         mergedFile = os.path.join(GU.workDir, 'track_%06d_%s.root' % (runID, GU.version))
-        sourceFiles = [os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s_%d.root' % (runID, GU.version, tag)) for tag in range(nTotalJobs)]
+        sourceFiles = [os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), f) for f in os.listdir(os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID))) if ('%06d' % runID) in f and 'track' in f and '.root' in f]
+        #sourceFiles = [os.path.join(tconf.outdir, 'track', GU.version, GU.getSubDir(runID), 'track_%06d_%s_%d.root' % (runID, GU.version, tag)) for tag in range(nTotalJobs)]
         if GU.mergeFiles(mergedFile, sourceFiles):
             print 'Tracking [%s]: Run %06d finished and merged' % (GU.getTimeStamp(), runID)
             if targetFile == mergedFile or GU.runCommand('mv %s %s' % (mergedFile, targetFile)):
@@ -155,7 +163,8 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
     GU.submitAllJobs(failedJobs)
 
     #submit all the vertexing jobs
-    GU.submitAllJobs(vertexJobs)
+    if 'v' not in options.exclude:
+        GU.submitAllJobs(vertexJobs)
 
     # check the status of vertexing jobs
     failedJobs = []
@@ -165,13 +174,17 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
             continue
 
         # check running status
-        nTotalJobs, nFinishedJobs, failedOpts, _ = GU.getJobStatus(vconf, 'vertex', runID)
+        nTotalJobs, nFinishedJobs, failedOpts, failedOuts = GU.getJobStatus(vconf, 'vertex', runID)
         if options.debug:
             print ' --- Vertexing status: ', runID, nTotalJobs, nFinishedJobs, len(failedOpts), failedOpts
         if len(failedOpts) != 0:
             fout.write('Vertexing [%s]: %06d %02d %02d %02d %s\n' % (GU.getTimeStamp(), runID, nTotalJobs, nFinishedJobs, len(failedOpts), 'certain jobs failed'))
             for opt in failedOpts:
                 failedJobs.append(GU.makeCommandFromOpts('vertex', opt, vconf))
+                os.remove(opt)
+            for out in failedOuts:
+                if os.path.exists(out):
+                    os.remove(out)
             continue
         elif nTotalJobs != nFinishedJobs:
             continue
@@ -190,7 +203,7 @@ while len(uploadedRuns) != len(runIDs) or len(trackedRuns) != len(runIDs) or len
     # upload the finished jobs
     nUploaderCycles = 0
     maxCycles = 10 if len(vertexedRuns) < len(runIDs) else 999999
-    while len(uploadedRuns) < len(vertexedRuns) and nUploaderCycles < maxCycles:
+    while len(uploadedRuns) < len(vertexedRuns) and nUploaderCycles < maxCycles and ('u' not in options.exclude):
         toBeUploadedRuns = [runID for runID in vertexedRuns if runID not in uploadedRuns]
 
         nRunning = int(os.popen('pgrep %s | wc -l' % uploader.split('/')[-1]).read().strip())
