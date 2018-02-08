@@ -58,7 +58,7 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/.git")
   execute_process(COMMAND git rev-parse --short HEAD      OUTPUT_VARIABLE GIT_HASH   OUTPUT_STRIP_TRAILING_WHITESPACE)
   add_definitions("-DGIT_VERSION=\"${GIT_BRANCH}-${GIT_HASH}\"")
 else()
-  add_definitions("-DGIT_VERSION=\"1.7.0\"")
+  add_definitions("-DGIT_VERSION=\"1.8.0\"")
 endif()
 
 # ROOT dict generation

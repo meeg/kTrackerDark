@@ -378,8 +378,8 @@ void JobOptsSvc::save(TFile* saveFile, TString name)
 
     TString s_fmagFile = m_fMagFile;
     TString s_kmagFile = m_kMagFile;
-    TString s_fmagStr  = Form("%.3f", FMAGSTR);
-    TString s_kmagStr  = Form("%.3f", KMAGSTR);
+    TString s_fmagStr  = Form("%.4f", FMAGSTR);
+    TString s_kmagStr  = Form("%.4f", KMAGSTR);
 
     TString s_st0Reject = Form("%.4f", m_st0_reject);
     TString s_st1Reject = Form("%.4f", m_st1_reject);
