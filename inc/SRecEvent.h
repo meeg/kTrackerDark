@@ -162,8 +162,8 @@ public:
 
     //Overall track quality cut
     bool isValid();
-    bool isTarget();
-    bool isDump();
+    bool isTarget(double factor = 1.0);
+    bool isDump(double factor = 1.0);
 
     ///Debugging output
     void print();

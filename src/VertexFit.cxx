@@ -143,7 +143,7 @@ int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
             {
                 //if(z_vertex_opt < -80. && getKFChisq() < 10.) z_vertex_opt = Z_TARGET;
                 //if(dimuon.proj_target_pos.Perp() < dimuon.proj_dump_pos.Perp() && dimuon.proj_target_neg.Perp() < dimuon.proj_dump_neg.Perp())
-                if(track_pos.isTarget() && track_neg.isTarget())
+                if(track_pos.isTarget(1.2) && track_neg.isTarget(1.2))
                 {
                     int nTry = 0;
                     double z_curr = 9999.;
