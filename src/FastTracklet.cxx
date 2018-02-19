@@ -487,6 +487,14 @@ bool Tracklet::isValid()
     return true;
 }
 
+double Tracklet::getKMagKick() const
+{
+    double x_KMAG = tx*Z_KMAG_BEND + x0;
+    double y_KMAG = ty*Z_KMAG_BEND + y0;
+
+    return PT_KICK_KMAG*(1. + (y_KMAG*y_KMAG - x_KMAG*x_KMAG)/6.E6);
+}
+
 double Tracklet::getProb() const
 {
     int ndf;

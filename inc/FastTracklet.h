@@ -135,6 +135,9 @@ public:
     //Get the chi square
     double getChisq() const { return chisq; }
 
+    //Get the adjusted KMAG kick
+    double getKMagKick() const;
+    
     //Get x and y positions at a given z
     double getExpPositionX(double z) const;
     double getExpPosErrorX(double z) const;
