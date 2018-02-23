@@ -72,6 +72,14 @@ VertexFit::~VertexFit()
 
 int VertexFit::setRecEvent(SRecEvent* recEvent, int sign1, int sign2)
 {
+    //update the track level vertex
+    for(int i = 0; i < recEvent->getNTracks(); ++i)
+    {
+        SRecTrack& track = recEvent->getTrack(i);
+        track.swimToVertex();
+    }
+
+    //sort the tracks into to lists according to charge
     std::vector<int> idx_pos = recEvent->getChargedTrackIDs(sign1);
     std::vector<int> idx_neg = recEvent->getChargedTrackIDs(sign2);
 
