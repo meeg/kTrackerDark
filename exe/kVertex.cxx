@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <time.h>
+#include <set>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -187,7 +188,8 @@ int main(int argc, char *argv[])
     //Load track bank of mu+ and mu-
     //flag is used to indicate 1. if this event has been used, 2. the eventID
     vector<SRecTrack> ptracks[7], mtracks[7];
-    vector<int> pflags[7], mflags[7];
+    vector<int>   pflags[7], mflags[7];
+    vector<float> pd1occ[7], md1occ[7];
     for(int i = 0; i < 7; ++i)
     {
         ptracks[i].reserve(25000);
@@ -195,6 +197,9 @@ int main(int argc, char *argv[])
 
         mtracks[i].reserve(25000);
         mflags[i].reserve(25000);
+
+        pd1occ[i].reserve(25000);
+        md1occ[i].reserve(25000);
     }
 
     //Extract all the tracks and put in the container
@@ -216,15 +221,18 @@ int main(int argc, char *argv[])
         {
             ptracks[index].push_back(track);
             pflags[index].push_back(rawEvent->getEventID());
+            pd1occ[index].push_back(orgEvent->getNChamberHitsAll());
         }
         else
         {
             mtracks[index].push_back(track);
             mflags[index].push_back(rawEvent->getEventID());
+            md1occ[index].push_back(orgEvent->getNChamberHitsAll());
         }
 
         rawEvent->clear();
         recEvent->clear();
+        orgEvent->clear();
     }
 
     //Random combine, target by target
@@ -239,32 +247,41 @@ int main(int argc, char *argv[])
     rnd.SetSeed(runID);
 
     int eventID = 0;
+    typedef pair<int, int> evtID_pair;
+    set<evtID_pair> existing_pairs;
     for(int i = 0; i < 7; ++i)
     {
         int nPlus = ptracks[i].size();
         int nMinus = mtracks[i].size();
-        int nPairs = int(nPlus < nMinus ? 0.9*nPlus : 0.9*nMinus);
+        int nPairs = int(0.5*nPlus*nMinus);
         cout << nPlus << " mu+ and " << nMinus << " mu- tracks with targetPos = " << i+1;
-        cout << ", will generate " << nPairs << " random pairs. " << endl;
+        cout << ", will try to generate " << nPairs << " random pairs. " << endl;
 
         int nTries = 0;
         int nSuccess = 0;
-        while(nSuccess < nPairs && nTries - nSuccess < 10000)
+        existing_pairs.clear();
+        while(nSuccess < nPairs && nTries - nSuccess < 20000)
         {
             ++nTries;
 
             int idx1 = int(rnd.Rndm()*nPlus);
             int idx2 = int(rnd.Rndm()*nMinus);
 
-            if(pflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
+            evtID_pair thisPair;
+            thisPair.first = pflags[i][idx1];
+            thisPair.second = mflags[i][idx2];
+
+            if(existing_pairs.count(thisPair) != 0) continue;
             if((ptracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
             if(fabs(ptracks[i][idx1].getVertex().Z() - mtracks[i][idx2].getVertex().Z()) > 300.) continue;
+            if(fabs(pd1occ[i][idx1] - md1occ[i][idx2])/(pd1occ[i][idx1] + md1occ[i][idx2]) > 0.1) continue; 
 
             recEvent->setEventInfo(runID, 0, eventID++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -pflags[i][idx1];
-            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -mflags[i][idx2];
-            recEvent->setEventSource(-pflags[i][idx1], -mflags[i][idx2]);
+            recEvent->insertTrack(ptracks[i][idx1]);
+            recEvent->insertTrack(mtracks[i][idx2]);
+            recEvent->setEventSource(pflags[i][idx1], mflags[i][idx2]);
+            existing_pairs.insert(thisPair);
 
             vtxfit->setRecEvent(recEvent);
             if(eventID % 1000 == 0) saveTree_mix->AutoSave("SaveSelf");
@@ -295,15 +312,15 @@ int main(int argc, char *argv[])
     {
         //pp pairs
         int nPlus = ptracks[i].size();
-        for(int j = 0; j < nPlus; ++j) pflags[i][j] = abs(pflags[i][j]);
 
-        int nPairs = int(0.9*nPlus);
+        int nPairs = int(0.6*nPlus*nPlus);
         cout << nPlus << " mu+ tracks with targetPos = " << i+1;
-        cout << ", will generate " << nPairs << " random ++ pairs. " << endl;
+        cout << ", will try to generate " << nPairs << " random ++ pairs. " << endl;
 
         int nTries = 0;
         int nSuccess = 0;
-        while(nSuccess < nPairs && nTries - nSuccess < 10000)
+        existing_pairs.clear();
+        while(nSuccess < nPairs && nTries - nSuccess < 20000)
         {
             ++nTries;
 
@@ -311,15 +328,21 @@ int main(int argc, char *argv[])
             int idx2 = int(rnd.Rndm()*nPlus);
             if(idx1 == idx2) continue;
 
-            if(pflags[i][idx1] < 0 || pflags[i][idx2] < 0) continue;
+            evtID_pair thisPair;
+            thisPair.first = min(pflags[i][idx1], pflags[i][idx2]);
+            thisPair.second = max(pflags[i][idx1], pflags[i][idx2]);
+
+            if(existing_pairs.count(thisPair) != 0) continue;
             if((ptracks[i][idx1].getTriggerRoad() > 0 && ptracks[i][idx2].getTriggerRoad() > 0) || (ptracks[i][idx1].getTriggerRoad() < 0 && ptracks[i][idx2].getTriggerRoad() < 0)) continue;
             if(fabs(ptracks[i][idx1].getVertex().Z() - ptracks[i][idx2].getVertex().Z()) > 300.) continue;
+            if(fabs(pd1occ[i][idx1] - pd1occ[i][idx2])/(pd1occ[i][idx1] + pd1occ[i][idx2]) > 0.1) continue; 
 
             recEvent->setEventInfo(runID, 0, eventID_pp++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(ptracks[i][idx1]); pflags[i][idx1] = -pflags[i][idx1];
-            recEvent->insertTrack(ptracks[i][idx2]); pflags[i][idx2] = -pflags[i][idx2];
-            recEvent->setEventSource(-pflags[i][idx1], -pflags[i][idx2]);
+            recEvent->insertTrack(ptracks[i][idx1]);
+            recEvent->insertTrack(ptracks[i][idx2]);
+            recEvent->setEventSource(pflags[i][idx1], pflags[i][idx2]);
+            existing_pairs.insert(thisPair);
 
             vtxfit->setRecEvent(recEvent, 1, 1);
             if(eventID_pp % 1000 == 0) saveTree_mix_pp->AutoSave("SaveSelf");
@@ -332,15 +355,15 @@ int main(int argc, char *argv[])
 
         //mm pairs
         int nMinus = mtracks[i].size();
-        for(int j = 0; j < nMinus; ++j) mflags[i][j] = abs(mflags[i][j]);
 
-        nPairs = int(0.9*nMinus);
+        nPairs = int(0.6*nMinus*nMinus);
         cout << nMinus << " mu- tracks with targetPos = " << i+1;
-        cout << ", will generate " << nPairs << " random -- pairs. " << endl;
+        cout << ", will try to generate " << nPairs << " random -- pairs. " << endl;
 
         nTries = 0;
         nSuccess = 0;
-        while(nSuccess < nPairs && nTries - nSuccess < 10000)
+        existing_pairs.clear();
+        while(nSuccess < nPairs && nTries - nSuccess < 20000)
         {
             ++nTries;
 
@@ -348,15 +371,21 @@ int main(int argc, char *argv[])
             int idx2 = int(rnd.Rndm()*nMinus);
             if(idx1 == idx2) continue;
 
-            if(mflags[i][idx1] < 0 || mflags[i][idx2] < 0) continue;
+            evtID_pair thisPair;
+            thisPair.first = min(mflags[i][idx1], mflags[i][idx2]);
+            thisPair.second = max(mflags[i][idx1], mflags[i][idx2]);
+
+            if(existing_pairs.count(thisPair) != 0) continue;
             if((mtracks[i][idx1].getTriggerRoad() > 0 && mtracks[i][idx2].getTriggerRoad() > 0) || (mtracks[i][idx1].getTriggerRoad() < 0 && mtracks[i][idx2].getTriggerRoad() < 0)) continue;
             if(fabs(mtracks[i][idx1].getVertex().Z() - mtracks[i][idx2].getVertex().Z()) > 300.) continue;
+            if(fabs(md1occ[i][idx1] - md1occ[i][idx2])/(md1occ[i][idx1] + md1occ[i][idx2]) > 0.1) continue; 
 
             recEvent->setEventInfo(runID, 0, eventID_mm++);
             recEvent->setTargetPos(i+1);
-            recEvent->insertTrack(mtracks[i][idx1]); mflags[i][idx1] = -mflags[i][idx1];
-            recEvent->insertTrack(mtracks[i][idx2]); mflags[i][idx2] = -mflags[i][idx2];
-            recEvent->setEventSource(-mflags[i][idx1], -mflags[i][idx2]);
+            recEvent->insertTrack(mtracks[i][idx1]);
+            recEvent->insertTrack(mtracks[i][idx2]);
+            recEvent->setEventSource(mflags[i][idx1], mflags[i][idx2]);
+            existing_pairs.insert(thisPair);
 
             vtxfit->setRecEvent(recEvent, -1, -1);
             if(eventID_mm % 1000 == 0) saveTree_mix_mm->AutoSave("SaveSelf");
