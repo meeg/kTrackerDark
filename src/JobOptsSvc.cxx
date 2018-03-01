@@ -34,7 +34,7 @@ JobOptsSvc* JobOptsSvc::instance()
         p_jobOptsSvc = new JobOptsSvc;
 
         if(debug()) cout << " creating new JobOptsSvc object" << endl;
-        p_jobOptsSvc->init();
+        //p_jobOptsSvc->init();
     }
 
     return p_jobOptsSvc;
@@ -57,6 +57,7 @@ JobOptsSvc::JobOptsSvc()
     m_hodomask = true;
     m_mergeHodo = false;
     m_realization = false;
+    m_dumpMB = false;
 
     m_mySQLInputPort = 3306;
     m_mySQLOutputPort = 3396;
@@ -186,6 +187,7 @@ bool JobOptsSvc::init(const char* configfile)
     boolOpts["HodoscopeMasking"] = &m_hodomask;
     boolOpts["MergeHodoHits"] = &m_mergeHodo;
     boolOpts["MCRealization"] = &m_realization;
+    boolOpts["DumpMiniBias"] = &m_dumpMB;
 
     map<string, double*> doubleOpts;
     doubleOpts["TimingOffset"] = &m_timingOffset;

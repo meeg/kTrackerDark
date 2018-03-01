@@ -95,6 +95,10 @@ int main(int argc, char* argv[])
     saveTree->Branch("tracklets", &tracklets, 256000, 99);
     tracklets->BypassStreamer();
 
+    //Prepare the mini-bias tree along the normal running
+    TTree* mbTree = NULL;
+    if(jobOptsSvc->m_dumpMB) mbTree = dataTree->CloneTree(0);
+
     //Initialize track finder
     LogInfo("Initializing the track finder and kalman filter ... ");
 #ifdef _ENABLE_KF
@@ -135,6 +139,13 @@ int main(int argc, char* argv[])
             ts.Set(); cout << Form("%s: Converting Event %d, %.02f%% finished.  Time to process last %d events shown below:", ts.AsString(), rawEvent->getEventID(), fracDone, printFreq) << endl;
             timer.Print();
             timer.Start();
+        }
+
+        //Dump MB data if needed
+        if(jobOptsSvc->m_dumpMB && rawEvent->isTriggeredBy(SRawEvent::NIM3))
+        {
+            mbTree->Fill();
+            if(mbTree->GetEntries() % 1000 == 0) mbTree->AutoSave("SaveSelf");
         }
 
         clock_t time_single = clock();
@@ -212,6 +223,11 @@ int main(int argc, char* argv[])
 
     saveFile->cd();
     saveTree->Write();
+    if(jobOptsSvc->m_dumpMB) 
+    {
+        mbTree->AutoSave("SaveSelf");
+        mbTree->Write();
+    }
     saveFile->Close();
 
     delete fastfinder;

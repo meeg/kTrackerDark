@@ -136,10 +136,12 @@ kMag_enable 1
 # when set to 1, tracker will save massive intermediate debugging info
 Evaluation_enable 0
 
+# when set to 1, kFastTracking will save all mini-bias events in a separate tree
+DumpMiniBias 0
+
 # rejection window size on drift chambers
 ST0_Reject  0.13
 ST1_Reject  0.25
 ST2_Reject  0.18
 ST3p_Reject  0.16
 ST3m_Reject  0.16
-
