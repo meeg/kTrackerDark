@@ -97,7 +97,11 @@ int main(int argc, char* argv[])
 
     //Prepare the mini-bias tree along the normal running
     TTree* mbTree = NULL;
-    if(jobOptsSvc->m_dumpMB) mbTree = dataTree->CloneTree(0);
+    if(jobOptsSvc->m_dumpMB)
+    {
+        mbTree = new TTree("mb", "mb");
+        mbTree->Branch("rawEvent", &rawEvent, 256000, 99);
+    }
 
     //Initialize track finder
     LogInfo("Initializing the track finder and kalman filter ... ");
