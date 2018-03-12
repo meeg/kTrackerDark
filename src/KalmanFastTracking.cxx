@@ -278,7 +278,7 @@ KalmanFastTracking::KalmanFastTracking(bool flag) : enable_KF(flag)
 #endif
     for(int i = 1; i <= nChamberPlanes/2; i++)
     {
-        double d_slope = (p_geomSvc->getPlaneResolution(2*i - 1) + p_geomSvc->getPlaneResolution(2*i))/(z_plane[2*i] - z_plane[2*i-1]);
+        double d_slope = fabs((p_geomSvc->getPlaneResolution(2*i - 1) + p_geomSvc->getPlaneResolution(2*i))/(z_plane[2*i] - z_plane[2*i-1]));
         double d_intersection = d_slope*z_plane[2*i];
 
         slope_max[2*i-1] += d_slope;
