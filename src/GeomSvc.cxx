@@ -264,6 +264,16 @@ void GeomSvc::init()
     map_detectorID.insert(nameToID("P2Y1", nChamberPlanes+nHodoPlanes+7));
     map_detectorID.insert(nameToID("P2Y2", nChamberPlanes+nHodoPlanes+8));
 
+    map_detectorID.insert(nameToID("DPLT1", nChamberPlanes+nHodoPlanes+nPropPlanes+1));
+    map_detectorID.insert(nameToID("DPRT1", nChamberPlanes+nHodoPlanes+nPropPlanes+2));
+    map_detectorID.insert(nameToID("DPLB1", nChamberPlanes+nHodoPlanes+nPropPlanes+3));
+    map_detectorID.insert(nameToID("DPRB1", nChamberPlanes+nHodoPlanes+nPropPlanes+4));
+    map_detectorID.insert(nameToID("DPLT2", nChamberPlanes+nHodoPlanes+nPropPlanes+5));
+    map_detectorID.insert(nameToID("DPRT2", nChamberPlanes+nHodoPlanes+nPropPlanes+6));
+    map_detectorID.insert(nameToID("DPLB2", nChamberPlanes+nHodoPlanes+nPropPlanes+7));
+    map_detectorID.insert(nameToID("DPRB2", nChamberPlanes+nHodoPlanes+nPropPlanes+8));
+
+
     typedef std::map<int, std::string>::value_type idToName;
     for(std::map<std::string, int>::iterator iter = map_detectorID.begin(); iter != map_detectorID.end(); ++iter)
     {
@@ -447,8 +457,8 @@ void GeomSvc::init()
     ymin_kmag = -40.*2.54;
     ymax_kmag = 40.*2.54;
 
-    zmin_kmag = 1064.26 - 120.*2.54;
-    zmax_kmag = 1064.26 + 120.*2.54;
+    zmin_kmag = Z_KMAG_BEND - 120.*2.54;
+    zmax_kmag = Z_KMAG_BEND + 120.*2.54;
 
 #ifdef _DEBUG_ON
     for(int i = 1; i <= nChamberPlanes+nHodoPlanes+nPropPlanes; ++i)
@@ -588,7 +598,11 @@ void GeomSvc::toLocalDetectorName(std::string& detectorName, int& eID)
 {
     using namespace std;
 
-    if(detectorName.find("P") != string::npos)
+    if(detectorName.find("DP") != string::npos)
+    {
+        return;
+    }
+    else if(detectorName.find("P") != string::npos)
     {
         string XY = detectorName[2] == 'H' ? "Y" : "X";
         string FB = (detectorName[3] == 'f' || detectorName[4] == 'f') ? "1" : "2"; //temporary solution

@@ -78,7 +78,11 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
     hodohitlist.clear();
     for(std::vector<Hit>::iterator iter = rawEvent->fAllHits.begin(); iter != rawEvent->fAllHits.end(); ++iter)
     {
-        if(outoftime && (!iter->isInTime())) continue;
+        //Temporary fix for the station-0 time drifting
+        if(iter->detectorID == 4 && iter->elementID > 64) iter->tdcTime = iter->tdcTime - 13.;
+        if(iter->detectorID <= 6) iter->setInTime(p_geomSvc->isInTime(iter->detectorID, iter->tdcTime));
+
+        if(outoftime && iter->detectorID <= nChamberPlanes+nHodoPlanes+nPropPlanes && (!iter->isInTime())) continue;
 
         if(iter->detectorID <= nChamberPlanes)    //chamber hits
         {
@@ -92,7 +96,7 @@ int EventReducer::reduceEvent(SRawEvent* rawEvent)
             if(triggermask_local && p_geomSvc->getPlaneType(iter->detectorID) == 1) continue;
         }
 
-        if(externalpar)
+        if(externalpar && iter->detectorID <= nChamberPlanes+nHodoPlanes+nPropPlanes)
         {
             iter->pos = p_geomSvc->getMeasurement(iter->detectorID, iter->elementID);
             iter->driftDistance = p_geomSvc->getDriftDistance(iter->detectorID, iter->tdcTime + timeOffset); // this is OK because hodoscopes don't have R-T curve anyways

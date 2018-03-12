@@ -40,6 +40,7 @@
 #define nChamberPlanes 30
 #define nHodoPlanes 16
 #define nPropPlanes 8
+#define nDarkPlanes 8
 
 #define FMAGSTR -1.044
 #define KMAGSTR -1.025

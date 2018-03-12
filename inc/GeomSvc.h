@@ -202,7 +202,7 @@ public:
 private:
 
     //All the detector planes
-    Plane planes[nChamberPlanes+nHodoPlanes+nPropPlanes+1];
+    Plane planes[nChamberPlanes+nHodoPlanes+nPropPlanes+nDarkPlanes+1];
 
     //flag of loading calibration parameters
     bool calibration_loaded;

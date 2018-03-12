@@ -1659,6 +1659,33 @@ void KalmanFastTracking::getSagittaWindowsInSt1(Tracklet& tracklet, double* pos_
         double p_min = std::min(pos_exp_target - win_target, pos_exp_dump - win_dump);
         double p_max = std::max(pos_exp_target + win_target, pos_exp_dump + win_dump);
 
+        //Additional code to assume the track is from the downstream end of KMAG, assume 100 cm inside KMAG
+        double z_vtx = -tracklet.y0/tracklet.ty;
+        double dz_vtx = 50.;
+        if(fabs(z_vtx - Z_DOWNSTREAM) < 3.*dz_vtx)
+        {
+            //if(zvtx < Z_DOWNSTREAM - 100 || zvtx > z_st1) zvtx = Z_DOWNSTREAM; // force it to go to a sensible regeion
+            double z_vtx_lo = std::max(z_vtx - 3.*dz_vtx, Z_DOWNSTREAM - 100.);
+            double z_vtx_hi = std::min(z_vtx + 3.*dz_vtx, z_st1);
+            
+            double x_kmag = tracklet.tx*Z_KMAG_BEND + tracklet.x0;
+            double y_kmag = tracklet.ty*Z_KMAG_BEND + tracklet.y0;
+
+            double x_st1_1 = x_kmag/(Z_KMAG_BEND - z_vtx_lo)*(z_st1 - z_vtx_lo);
+            double y_st1_1 = y_kmag/(Z_KMAG_BEND - z_vtx_lo)*(z_st1 - z_vtx_lo);
+            double pos_st1_1 = p_geomSvc->getUinStereoPlane(detectorID, x_st1_1, y_st1_1);
+
+            double x_st1_2 = x_kmag/(Z_KMAG_BEND - z_vtx_hi)*(z_st1 - z_vtx_hi);
+            double y_st1_2 = y_kmag/(Z_KMAG_BEND - z_vtx_hi)*(z_st1 - z_vtx_hi);
+            double pos_st1_2 = p_geomSvc->getUinStereoPlane(detectorID, x_st1_2, y_st1_2);
+
+            double pos_st1_min = std::min(pos_st1_1, pos_st1_2);
+            double pos_st1_max = std::max(pos_st1_1, pos_st1_2);
+
+            p_min = std::min(p_min, pos_st1_min);
+            p_max = std::max(p_max, pos_st1_max);
+        }
+
         pos_exp[idx] = 0.5*(p_max + p_min);
         window[idx]  = 0.5*(p_max - p_min);
     }

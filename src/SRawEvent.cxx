@@ -85,7 +85,7 @@ SRawEvent::SRawEvent() : fRunID(-1), fEventID(-1), fSpillID(-1), fTriggerBits(-1
 {
     fAllHits.clear();
     fTriggerHits.clear();
-    for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+1; i++)
+    for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+nDarkPlanes+1; i++)
     {
         fNHits[i] = 0;
     }
@@ -104,7 +104,7 @@ void SRawEvent::setEventInfo(Int_t runID, Int_t spillID, Int_t eventID)
 
 void SRawEvent::insertHit(Hit h)
 {
-    if(h.detectorID < 1 || h.detectorID > nChamberPlanes+nHodoPlanes+nPropPlanes) return;
+    if(h.detectorID < 1 || h.detectorID > nChamberPlanes+nHodoPlanes+nPropPlanes+nDarkPlanes) return;
     fAllHits.push_back(h);
 
     fNHits[0]++;
@@ -113,7 +113,7 @@ void SRawEvent::insertHit(Hit h)
 
 Int_t SRawEvent::findHit(Short_t detectorID, Short_t elementID)
 {
-    if(detectorID < 1 || detectorID > nChamberPlanes+nHodoPlanes+nPropPlanes) return -1;
+    if(detectorID < 1 || detectorID > nChamberPlanes+nHodoPlanes+nPropPlanes+nDarkPlanes) return -1;
     if(elementID < 0) return -1;
 
     /*
@@ -287,7 +287,7 @@ std::list<SRawEvent::hit_pair> SRawEvent::getPartialHitPairsInSuperDetector(Shor
     double spacing[(nChamberPlanes+nHodoPlanes+nPropPlanes)/2+1] =
                          {0., 0.40, 0.40, 0.40, 0.40, 0.40, 0.40, 1.3, 1.3, 1.3, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2,  //DCs
                           4.0, 4.0, 7.0, 7.0, 8.0, 12.0, 12.0, 10.0,                          //hodos
-                          3.0, 3.0, 3.0, 3.0};                                                //prop tubes
+                          3.0, 3.0, 3.0, 3.0};                                               //prop tubes
 
     int index1 = -1;
     int index2 = -1;
@@ -535,7 +535,7 @@ void SRawEvent::reIndex(bool doSort)
     if(doSort) std::sort(fAllHits.begin(), fAllHits.end());
 
     ///Reset the number of hits on each plane
-    for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+1; i++) fNHits[i] = 0;
+    for(Int_t i = 0; i < nChamberPlanes+nHodoPlanes+nPropPlanes+nDarkPlanes+1; i++) fNHits[i] = 0;
     for(UInt_t i = 0; i < fAllHits.size(); i++) ++fNHits[fAllHits[i].detectorID];
 
     fNHits[0] = fAllHits.size();
