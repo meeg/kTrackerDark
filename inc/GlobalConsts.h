@@ -11,12 +11,12 @@
 
 //---------------------FOLLOWING PART SHOULD NOT BE CHANGED FOR NO GOOD REASON -----------------------
 //--------------- Fast tracking configuration ----
-#define TX_MAX 0.15
-#define TY_MAX 0.1
-#define X0_MAX 150.
-#define Y0_MAX 50.
+#define TX_MAX 0.32
+#define TY_MAX 0.2
+#define X0_MAX 500.
+#define Y0_MAX 400.
 #define INVP_MIN 0.01
-#define INVP_MAX 0.2
+#define INVP_MAX 0.5
 #define PROB_LOOSE 0.0
 #define PROB_TIGHT 1E-12
 #define HIT_REJECT 3.
