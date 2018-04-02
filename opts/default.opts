@@ -35,25 +35,25 @@ OutputSchema "Run_123456_R004_tracked_1"
 #------------------------------
 #Calibrations
 #Alginment files (only used when OnlineAlignment_enable is set to 0)
-OnlineAlignment_enable 1
-AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/run2/alignment_hodo.txt
-AlignmentFile_Chamber $KTRACKER_ROOT/alignment/run2/alignment_chamber.txt
-AlignmentFile_Prop    $KTRACKER_ROOT/alignment/run2/alignment_prop.txt
-AlignmentFile_Mille   $KTRACKER_ROOT/alignment/run2/align_mille.txt
+OnlineAlignment_enable 0
+AlignmentFile_Hodo    $KTRACKER_ROOT/alignment/run6/alignment_hodo.txt
+AlignmentFile_Chamber $KTRACKER_ROOT/alignment/run6/alignment_chamber.txt
+AlignmentFile_Prop    $KTRACKER_ROOT/alignment/run6/alignment_prop.txt
+AlignmentFile_Mille   $KTRACKER_ROOT/alignment/run6/align_mille.txt
 
 #Calibration, not used if OnlineAlignment_enable is set to 1
-CalibrationsFile $KTRACKER_ROOT/alignment/run2/calibration.txt
+CalibrationsFile $KTRACKER_ROOT/alignment/run6/calibration.txt
 
 #Trigger roads, only effective if TriggerMask_enable is set to 1
 Trigger_Repository      $TRIGGER_ROOT
-Trigger_L1              57
+Trigger_L1              78
 
 #Magnet field maps
-fMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Fmag
-kMagFile  $GEOMETRY_ROOT/magnetic_fields/tab.Kmag
+fMagFile  /pnfs/e906/persistent/users/liuk/tab.Fmag
+kMagFile  /pnfs/e906/persistent/users/liuk/tab.Kmag
 
 #Geometry schema
-Geometry_Version $SEAQUEST_GEOMETRY_V
+Geometry_Version user_liuk_geometry_G9_run5_2
 
 #-----------------------
 # MySQL connection
@@ -81,7 +81,7 @@ FirstEvent 0
 # from v1495 TDC for future hodoscope masking, trigger road reconstruction,
 # and trigger road masking
 # It's recommended to turn on for Run-II data, off for Run-III and after
-MergeHodoHits 0
+MergeHodoHits 1
 
 # when set to 1, tracker will drop all the chamber hits that are not covered
 # by a fired hodoscope, i.e. masking on hit level.
@@ -92,7 +92,7 @@ HodoscopeMasking 1
 
 # when set to 1, only the hodo paddles on a trigger road will be used
 # for hodoscope masking
-TriggerMask_enable 1
+TriggerMask_enable 0
 
 # when set to 1, tracker will update the alignment/calibration info
 # before real tracking, it should only be used when there is a need
@@ -103,16 +103,16 @@ UpdateAlignment 1
 # offset in TDC time, this is intended to correct for the timing shifts
 # that happened from time to time, this number will be added to tdc time
 # before the drift distance is calculated
-TimingOffset 0
+TimingOffset 0 
 TimingRejWin 80
 
 # when set to 1, tracker will enable the sagitta hit reducer
-SagittaReducer 1
+SagittaReducer 0
 
 # when set to 0, only the SRecEvent will be saved to the output file,
 # and SRawEvent will be missing to save space.
 # This option is only effective in file-based tracker
-AttachRawEvent 1
+AttachRawEvent 0
 
 # when set to 1, tracker will randomly drop some chamber hits
 # and smear the drift distance according to a Gaussian
@@ -136,12 +136,11 @@ kMag_enable 1
 # when set to 1, tracker will save massive intermediate debugging info
 Evaluation_enable 0
 
-# when set to 1, kFastTracking will save all mini-bias events in a separate tree
-DumpMiniBias 0
+DumpMiniBias 1
 
 # rejection window size on drift chambers
-ST0_Reject  0.13
-ST1_Reject  0.25
-ST2_Reject  0.18
+ST0_Reject  0.12
+ST1_Reject  0.12
+ST2_Reject  0.15
 ST3p_Reject  0.16
-ST3m_Reject  0.16
+ST3m_Reject  0.14

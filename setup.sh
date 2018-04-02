@@ -1,3 +1,7 @@
+#source /e906/app/software/current/setup.sh
+source /cvmfs/seaquest.opensciencegrid.org/seaquest/software/current/setup.sh
+
+
 #Set locations
 export KTRACKER_ROOT=$(cd $(dirname ${BASH_SOURCE[0]}); pwd)
 export KTRACKER_LIB=$KTRACKER_ROOT/lib  #todo test for opt/dbg
