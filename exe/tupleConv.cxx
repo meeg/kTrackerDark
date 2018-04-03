@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <vector>
 
 #include <TROOT.h>
 #include <TFile.h>
@@ -24,6 +25,16 @@
 
 using namespace std;
 
+typedef struct
+{
+    Int_t nHits;
+    Char_t nHits_st1, nHits_st2, nHits_st3a, nHits_st3b;
+    Char_t st1Hits;
+    Double_t chisq, tx_st1, tx, ty;
+    Double_t x_st1, x, y;
+    Double_t pz;
+} trackdata;
+
 int main(int argc, char *argv[])
 {
     JobOptsSvc::instance()->init();
@@ -34,6 +45,9 @@ int main(int argc, char *argv[])
 
     SRawEvent* rawEvent = new SRawEvent();
     TClonesArray* tracklets = new TClonesArray("Tracklet");
+
+    vector<trackdata> tracksPos;
+    vector<trackdata> tracksNeg;
 
     TFile* dataFile = new TFile(argv[1], "READ");
     TTree* dataTree = (TTree*)dataFile->Get("save");
@@ -54,6 +68,7 @@ int main(int argc, char *argv[])
     Double_t x1_st1, x1, y1;
     Double_t x2_st1, x2, y2;
     Double_t pz1, pz2;
+    Char_t pairNum;
 
     TFile* saveFile = new TFile(argv[2], "recreate");
     TTree* saveTree = new TTree("save", "save");
@@ -91,6 +106,7 @@ int main(int argc, char *argv[])
     saveTree->Branch("y2", &y2);
     saveTree->Branch("pz1", &pz1);
     saveTree->Branch("pz2", &pz2);
+    saveTree->Branch("pairNum", &pairNum);
 
     for(Int_t i = 0; i < dataTree->GetEntries(); ++i)
     {
@@ -131,21 +147,24 @@ int main(int argc, char *argv[])
         x2 = 999.;
         y2 = 999.;
         pz2 = 999.;
+        pairNum = 0;
 
         Int_t nTracksTotal = tracklets->GetEntries();
-        for(Int_t j = 0 ; j < nTracksTotal; ++j)
+
+        for(Int_t j = 0 ; j < nTracksTotal; ++j) // count tracks
         {
             Tracklet* track = (Tracklet*)tracklets->At(j);
 
             if(track->getNHits() < 14) continue;
             if(track->chisq/(track->getNHits() - 5.) > 12.) continue;
-            char nHits_st1 = 0;
-            char nHits_st2 = 0;
-            char nHits_st3a = 0;
-            char nHits_st3b = 0;
-            char st1Hits = 0;
+            nTracks++;
+            trackdata newtrack;
+            newtrack.nHits_st1 = 0;
+            newtrack.nHits_st2 = 0;
+            newtrack.nHits_st3a = 0;
+            newtrack.nHits_st3b = 0;
+            newtrack.st1Hits = 0;
             for (int k=0;k<18;k++) {
-                //cout << track->getNHits() << " " << track->getSignedHit(k).hit.detectorID << " " << track->getSignedHit(k).hit.index << endl;
                 if (track->getSignedHit(k).hit.index != -1) {
                     switch (track->getSignedHit(k).hit.detectorID) {
                         case 1:
@@ -154,8 +173,8 @@ int main(int argc, char *argv[])
                         case 4:
                         case 5:
                         case 6:
-                            nHits_st1++;
-                            st1Hits += (1 << (track->getSignedHit(k).hit.detectorID-1));
+                            newtrack.nHits_st1++;
+                            newtrack.st1Hits += (1 << (track->getSignedHit(k).hit.detectorID-1));
                             break;
                         case 13:
                         case 14:
@@ -163,7 +182,7 @@ int main(int argc, char *argv[])
                         case 16:
                         case 17:
                         case 18:
-                            nHits_st2++;
+                            newtrack.nHits_st2++;
                             break;
                         case 19:
                         case 20:
@@ -171,7 +190,7 @@ int main(int argc, char *argv[])
                         case 22:
                         case 23:
                         case 24:
-                            nHits_st3a++;
+                            newtrack.nHits_st3a++;
                             break;
                         case 25:
                         case 26:
@@ -179,55 +198,105 @@ int main(int argc, char *argv[])
                         case 28:
                         case 29:
                         case 30:
-                            nHits_st3b++;
+                            newtrack.nHits_st3b++;
                             break;
                     }
                 }
             }
-            if (track->getNHits()!= nHits_st1+nHits_st2+nHits_st3a+nHits_st3b) {
-                cout << (int) nHits_st1 << " " << (int) nHits_st2 << " " << (int) nHits_st3a << " " << (int) nHits_st3b << " " << endl;
-            }
-
+            newtrack.nHits = track->getNHits();
+            newtrack.chisq = track->chisq;
+            newtrack.tx = track->tx;
+            newtrack.ty = track->ty;
+            newtrack.x = track->x0;
+            newtrack.y = track->y0;
+            track->getXZInfoInSt1(newtrack.tx_st1, newtrack.x_st1);
+            newtrack.pz = 1./track->invP*sqrt(1. + newtrack.tx_st1*newtrack.tx_st1)/sqrt(1. + newtrack.tx_st1*newtrack.tx_st1 + newtrack.ty*newtrack.ty);
 
             if(track->getCharge() > 0)
-            {
-                ++nTracks;
-
-                nHits1 = track->getNHits();
-                nHits1_st1 = nHits_st1;
-                nHits1_st2 = nHits_st2;
-                nHits1_st3a = nHits_st3a;
-                nHits1_st3b = nHits_st3b;
-                st1Hits1 = st1Hits;
-                chisq1 = track->chisq;
-                tx1 = track->tx;
-                ty1 = track->ty;
-                x1 = track->x0;
-                y1 = track->y0;
-                track->getXZInfoInSt1(tx1_st1, x1_st1);
-                pz1 = 1./track->invP*sqrt(1. + tx1_st1*tx1_st1)/sqrt(1. + tx1_st1*tx1_st1 + ty1*ty1);
-            }
+                tracksPos.push_back(newtrack);
             else
-            {
-                ++nTracks;
+                tracksNeg.push_back(newtrack);
+        }
+        if (tracksPos.empty()) {
+            for (Int_t j=tracksNeg.size()-1;j>=0;--j) {
+                nHits2 = tracksNeg.at(j).nHits;
+                nHits2_st1 = tracksNeg.at(j).nHits_st1;
+                nHits2_st2 = tracksNeg.at(j).nHits_st2;
+                nHits2_st3a = tracksNeg.at(j).nHits_st3a;
+                nHits2_st3b = tracksNeg.at(j).nHits_st3b;
+                st1Hits2 = tracksNeg.at(j).st1Hits;
+                chisq2 = tracksNeg.at(j).chisq;
+                tx2_st1 = tracksNeg.at(j).tx_st1;
+                tx2 = tracksNeg.at(j).tx;
+                ty2 = tracksNeg.at(j).ty;
+                x2_st1 = tracksNeg.at(j).x_st1;
+                x2 = tracksNeg.at(j).x;
+                y2 = tracksNeg.at(j).y;
+                pz2 = tracksNeg.at(j).pz;
 
-                nHits2 = track->getNHits();
-                nHits2_st1 = nHits_st1;
-                nHits2_st2 = nHits_st2;
-                nHits2_st3a = nHits_st3a;
-                nHits2_st3b = nHits_st3b;
-                st1Hits2 = st1Hits;
-                chisq2 = track->chisq;
-                tx2 = track->tx;
-                ty2 = track->ty;
-                x2 = track->x0;
-                y2 = track->y0;
-                track->getXZInfoInSt1(tx2_st1, x2_st1);
-                pz2 = 1./track->invP*sqrt(1. + tx2_st1*tx2_st1)/sqrt(1. + tx2_st1*tx2_st1 + ty2*ty2);
+                saveTree->Fill();
+                pairNum++;
+            }
+        } else if (tracksNeg.empty()) {
+            for (Int_t j=tracksPos.size()-1;j>=0;--j) {
+                nHits1 = tracksPos.at(j).nHits;
+                nHits1_st1 = tracksPos.at(j).nHits_st1;
+                nHits1_st2 = tracksPos.at(j).nHits_st2;
+                nHits1_st3a = tracksPos.at(j).nHits_st3a;
+                nHits1_st3b = tracksPos.at(j).nHits_st3b;
+                st1Hits1 = tracksPos.at(j).st1Hits;
+                chisq1 = tracksPos.at(j).chisq;
+                tx1_st1 = tracksPos.at(j).tx_st1;
+                tx1 = tracksPos.at(j).tx;
+                ty1 = tracksPos.at(j).ty;
+                x1_st1 = tracksPos.at(j).x_st1;
+                x1 = tracksPos.at(j).x;
+                y1 = tracksPos.at(j).y;
+                pz1 = tracksPos.at(j).pz;
+
+                saveTree->Fill();
+                pairNum++;
+            }
+        } else {
+            for (Int_t jPos=tracksPos.size()-1;jPos>=0;--jPos) {
+                nHits1 = tracksPos.at(jPos).nHits;
+                nHits1_st1 = tracksPos.at(jPos).nHits_st1;
+                nHits1_st2 = tracksPos.at(jPos).nHits_st2;
+                nHits1_st3a = tracksPos.at(jPos).nHits_st3a;
+                nHits1_st3b = tracksPos.at(jPos).nHits_st3b;
+                st1Hits1 = tracksPos.at(jPos).st1Hits;
+                chisq1 = tracksPos.at(jPos).chisq;
+                tx1_st1 = tracksPos.at(jPos).tx_st1;
+                tx1 = tracksPos.at(jPos).tx;
+                ty1 = tracksPos.at(jPos).ty;
+                x1_st1 = tracksPos.at(jPos).x_st1;
+                x1 = tracksPos.at(jPos).x;
+                y1 = tracksPos.at(jPos).y;
+                pz1 = tracksPos.at(jPos).pz;
+                for (Int_t jNeg=tracksNeg.size()-1;jNeg>=0;--jNeg) {
+                    nHits2 = tracksNeg.at(jNeg).nHits;
+                    nHits2_st1 = tracksNeg.at(jNeg).nHits_st1;
+                    nHits2_st2 = tracksNeg.at(jNeg).nHits_st2;
+                    nHits2_st3a = tracksNeg.at(jNeg).nHits_st3a;
+                    nHits2_st3b = tracksNeg.at(jNeg).nHits_st3b;
+                    st1Hits2 = tracksNeg.at(jNeg).st1Hits;
+                    chisq2 = tracksNeg.at(jNeg).chisq;
+                    tx2_st1 = tracksNeg.at(jNeg).tx_st1;
+                    tx2 = tracksNeg.at(jNeg).tx;
+                    ty2 = tracksNeg.at(jNeg).ty;
+                    x2_st1 = tracksNeg.at(jNeg).x_st1;
+                    x2 = tracksNeg.at(jNeg).x;
+                    y2 = tracksNeg.at(jNeg).y;
+                    pz2 = tracksNeg.at(jNeg).pz;
+
+                    saveTree->Fill();
+                    pairNum++;
+                }
             }
         }
 
-        if(nTracks > 0) saveTree->Fill();
+        tracksPos.clear();
+        tracksNeg.clear();
         tracklets->Clear();
         rawEvent->clear();
     }
