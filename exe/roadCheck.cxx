@@ -46,10 +46,13 @@ int main(int argc, char *argv[])
 
     saveFile->cd();
     TH2I* fbCorrHists[4];
+    TH2I* fbCorrHistsNIM3[4];
     char name[500];
     for (int quad=0; quad<4; quad++) {
         sprintf(name, "fbCorrHist_%i", quad);
         fbCorrHists[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        sprintf(name, "fbCorrHistNIM3_%i", quad);
+        fbCorrHistsNIM3[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
     }
     //TH1I* hitTimeHists[8];
     //for (int quad=0; quad<8; quad++) {
@@ -63,7 +66,7 @@ int main(int argc, char *argv[])
         if(i % 1000 == 0) cout << i << endl;
         //cout << i << endl;
 
-        if (rawEvent->getTriggerBits()>0 && rawEvent->getTriggerBits() & 64 != 0) {
+        if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & 192) != 0) {
             //if (rawEvent->getTriggerBits()<0 || rawEvent->getTriggerBits() & 64 == 0) continue;
 
             for(Int_t k = 0; k < rawEvent->getNHitsAll(); ++k)
@@ -86,9 +89,15 @@ int main(int argc, char *argv[])
                 int fHits = hitvectors[fID].size();
                 int bHits = hitvectors[bID].size();
                 //cout << quad << " " << fHits << " " << bHits << endl;
+                //cout << rawEvent->getTriggerBits() << endl;
                 for (int fHit=0; fHit<fHits; fHit++) {
                     for (int bHit=0; bHit<bHits; bHit++) {
-                        fbCorrHists[quad]->Fill(hitvectors[fID].at(fHit), hitvectors[bID].at(bHit));
+                        if ((rawEvent->getTriggerBits() & 64) != 0) {
+                            fbCorrHists[quad]->Fill(hitvectors[fID].at(fHit), hitvectors[bID].at(bHit));
+                        }
+                        if ((rawEvent->getTriggerBits() & 128) != 0) {
+                            fbCorrHistsNIM3[quad]->Fill(hitvectors[fID].at(fHit), hitvectors[bID].at(bHit));
+                        }
                     }
                 }
             }
