@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     Int_t runID, spillID, eventID;
     Int_t triggerBits;
     Int_t nTracks;
+    Int_t nHitsD0, nHitsChambers, nHitsAll;
     Int_t nHits1, nHits2;
     Char_t nHits1_st1, nHits1_st2, nHits1_st3a, nHits1_st3b;
     Char_t nHits2_st1, nHits2_st2, nHits2_st3a, nHits2_st3b;
@@ -78,6 +79,9 @@ int main(int argc, char *argv[])
     saveTree->Branch("eventID", &eventID);
     saveTree->Branch("triggerBits", &triggerBits);
     saveTree->Branch("nTracks", &nTracks);
+    saveTree->Branch("nHitsD0", &nHitsD0);
+    saveTree->Branch("nHitsChambers", &nHitsChambers);
+    saveTree->Branch("nHitsAll", &nHitsAll);
     saveTree->Branch("nHits1", &nHits1);
     saveTree->Branch("nHits2", &nHits2);
     saveTree->Branch("nHits1_st1", &nHits1_st1);
@@ -119,6 +123,9 @@ int main(int argc, char *argv[])
         eventID = rawEvent->getEventID();
         triggerBits = rawEvent->getTriggerBits();
         nTracks = 0;
+        nHitsD0 = rawEvent->getNHitsInD0();
+        nHitsChambers = rawEvent->getNChamberHitsAll();
+        nHitsAll = rawEvent->getNHitsAll();
         nHits1 = 0;
         nHits2 = 0;
         nHits1_st1 = -1;
