@@ -54,11 +54,32 @@ int main(int argc, char *argv[])
         sprintf(name, "fbCorrHistNIM3_%i", quad);
         fbCorrHistsNIM3[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
     }
-    //TH1I* hitTimeHists[8];
-    //for (int quad=0; quad<8; quad++) {
-        //sprintf(name, "hitTimeHist_%i", quad);
-        //hitTimeHists[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
-    //}
+    double tmin=1575;
+    double tmax=1825;
+    int nbins=500;
+    TH2I* hitTimeHists[8];
+    TH2I* hitTimeInTimeHists[8];
+    TH2I* hitTimeHistsNIM3[8];
+    for (int quad=0; quad<8; quad++) {
+        sprintf(name, "hitTimeHist_%i", quad);
+        if (quad<4) {
+            hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+        } else {
+            hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        }
+        sprintf(name, "hitTimeInTimeHist_%i", quad);
+        if (quad<4) {
+            hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+        } else {
+            hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        }
+        sprintf(name, "hitTimeHistNIM3_%i", quad);
+        if (quad<4) {
+            hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+        } else {
+            hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        }
+    }
 
     for(Int_t i = 0; i < dataTree->GetEntries(); ++i)
     {
@@ -74,8 +95,19 @@ int main(int argc, char *argv[])
                 Hit h = rawEvent->getHit(k);
                 int dpQuadID = h.detectorID-55;
                 if(dpQuadID<0 || dpQuadID>7) continue;
-                if (h.isInTime())
+                if (h.isInTime()) {
                     hitvectors[dpQuadID].push_back(h.elementID);
+                }
+
+                if ((rawEvent->getTriggerBits() & 64) != 0) {
+                    hitTimeHists[dpQuadID]->Fill(h.tdcTime,h.elementID);
+                    if (h.isInTime()) {
+                        hitTimeInTimeHists[dpQuadID]->Fill(h.tdcTime,h.elementID);
+                    }
+                }
+                if ((rawEvent->getTriggerBits() & 128) != 0) {
+                    hitTimeHistsNIM3[dpQuadID]->Fill(h.tdcTime,h.elementID);
+                }
 
                 //if (h.isInTime()) {
                 //cout << "in time " << dpQuadID << "  " << h.elementID << endl;
