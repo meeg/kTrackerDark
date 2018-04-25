@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         if(i % 1000 == 0) cout << i << endl;
         //cout << i << endl;
 
-        if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & 192) != 0) {
+        if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & (32+64+128)) != 0) {
             saveTree->Fill();
         }
         rawEvent->clear();
