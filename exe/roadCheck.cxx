@@ -25,8 +25,69 @@
 
 using namespace std;
 
+double getDelay(int quadID, int barID) {
+    switch(quadID) {
+        case 0:
+            return 1728.0;
+        case 1:
+            return 1720.0;
+        case 2:
+            return 1730.0;
+        case 3:
+            return (barID>15)?1716.0:1721.0;
+        case 4:
+            return (barID>32)?1695.0:1703.0;
+        case 5:
+            return 1697.0;
+        case 6:
+            return 1704.0;
+        case 7:
+            return (barID>32)?1695.0:1689.0;
+        case 8:
+            return 1092;
+        case 9:
+            return 1091;
+        case 10:
+            return 1093;
+        case 11:
+            return 1092;
+    }
+    return 1700;
+}
+bool isInTime(int quadID, int barID, double time) {
+    double deltaT = time-getDelay(quadID, barID);
+    //if (quadID>3) deltaT+=18;
+    //deltaT-=18;
+    //deltaT+=18;
+    if (deltaT<-9.0 || deltaT>9.0)
+        return false;
+    else
+        return true;
+}
+int roadHash(int st1, int st2, int h4) {
+    return st1*1000 + st2*10 + h4;
+}
 int main(int argc, char *argv[])
 {
+
+
+    unordered_set<int> roadset;
+    ifstream roadsfile("code_400_real_roads.txt");
+    if (!roadsfile.is_open()) return 1;
+    char line[100];
+    while (roadsfile.getline(line,100)) {
+        //printf("line=%s\n",line);
+        char * tok;
+        int st1, st2, h4;
+        st1 = atoi(strtok(line," "));
+        st2 = atoi(strtok(NULL," "));
+        h4 = atoi(strtok(NULL," "));
+        int roadhash = roadHash(st1+1, st2+1, h4+1); //VHDL uses zero-indexed vectors, so we need to add 1 to match the elementIDs
+        //printf("road=%d\n",roadhash);
+        roadset.insert(roadhash);
+    }
+
+
     //Initialization of geometry and tracked data
     //GeomSvc* p_geomSvc = GeomSvc::instance();
     //p_geomSvc->init();
@@ -39,113 +100,375 @@ int main(int argc, char *argv[])
     dataTree->SetBranchAddress("rawEvent", &rawEvent);
     //dataTree->SetBranchAddress("tracklets", &tracklets);
 
-    vector<int> hitvectors[8];
+    set<int> hitsets[12];
+    set<int> hitsetsNoTimecut[12];
+    set<int> hitsetsOffByOne[12];
 
     TFile* saveFile = new TFile(argv[2], "recreate");
     //TTree* saveTree = new TTree("save", "save");
 
     saveFile->cd();
     TH2I* fbCorrHists[4];
+    TH2I* fbCorrHistsNIM1[4];
     TH2I* fbCorrHistsNIM3[4];
+    TH2I* bhCorrHists[4];
+    TH2I* bhCorrHistsNIM1[4];
+    TH2I* bhCorrHistsNIM3[4];
+    TH2I* fbCorrHistsOffByOne[4];
+    TH2I* fbCorrHistsOffByOneNIM1[4];
+    TH2I* fbCorrHistsOffByOneNIM3[4];
+    TH2I* bhCorrHistsOffByOne[4];
+    TH2I* bhCorrHistsOffByOneNIM1[4];
+    TH2I* bhCorrHistsOffByOneNIM3[4];
     char name[500];
     for (int quad=0; quad<4; quad++) {
         sprintf(name, "fbCorrHist_%i", quad);
         fbCorrHists[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        sprintf(name, "fbCorrHistNIM1_%i", quad);
+        fbCorrHistsNIM1[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "fbCorrHistNIM3_%i", quad);
         fbCorrHistsNIM3[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        sprintf(name, "bhCorrHist_%i", quad);
+        bhCorrHists[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        sprintf(name, "bhCorrHistNIM1_%i", quad);
+        bhCorrHistsNIM1[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        sprintf(name, "bhCorrHistNIM3_%i", quad);
+        bhCorrHistsNIM3[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+
+        sprintf(name, "fbCorrHistOffByOne_%i", quad);
+        fbCorrHistsOffByOne[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        sprintf(name, "fbCorrHistOffByOneNIM1_%i", quad);
+        fbCorrHistsOffByOneNIM1[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        sprintf(name, "fbCorrHistOffByOneNIM3_%i", quad);
+        fbCorrHistsOffByOneNIM3[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        sprintf(name, "bhCorrHistOffByOne_%i", quad);
+        bhCorrHistsOffByOne[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        sprintf(name, "bhCorrHistOffByOneNIM1_%i", quad);
+        bhCorrHistsOffByOneNIM1[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        sprintf(name, "bhCorrHistOffByOneNIM3_%i", quad);
+        bhCorrHistsOffByOneNIM3[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
     }
-    double tmin=1575;
-    double tmax=1825;
+    double tmin=-125;
+    double tmax=125;
     int nbins=500;
-    TH2I* hitTimeHists[8];
-    TH2I* hitTimeInTimeHists[8];
-    TH2I* hitTimeHistsNIM3[8];
-    for (int quad=0; quad<8; quad++) {
+    TH2I* hitTimeHists[12];
+    TH2I* hitTimeInTimeHists[12];
+    TH2I* hitTimeHistsNIM1[12];
+    TH2I* hitTimeHistsNIM3[12];
+    for (int quad=0; quad<12; quad++) {
         sprintf(name, "hitTimeHist_%i", quad);
         if (quad<4) {
             hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
-        } else {
+        } else if (quad<8) {
             hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        } else {
+            hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
         }
         sprintf(name, "hitTimeInTimeHist_%i", quad);
         if (quad<4) {
             hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
-        } else {
+        } else if (quad<8) {
             hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        } else {
+            hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
+        }
+        sprintf(name, "hitTimeHistNIM1_%i", quad);
+        if (quad<4) {
+            hitTimeHistsNIM1[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+        } else if (quad<8) {
+            hitTimeHistsNIM1[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        } else {
+            hitTimeHistsNIM1[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
         }
         sprintf(name, "hitTimeHistNIM3_%i", quad);
         if (quad<4) {
             hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
-        } else {
+        } else if (quad<8) {
             hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+        } else {
+            hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
         }
     }
+    TH2I* fbQuadHist = new TH2I("fbQuadHist","fbQuadHist",4,-0.5,3.5,4,-0.5,3.5);
+    TH2I* fbQuadHistNIM1 = new TH2I("fbQuadHistNIM1","fbQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
+    TH2I* fbQuadHistNIM3 = new TH2I("fbQuadHistNIM3","fbQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
+    TH2I* bhQuadHist = new TH2I("bhQuadHist","bhQuadHist",4,-0.5,3.5,4,-0.5,3.5);
+    TH2I* bhQuadHistNIM1 = new TH2I("bhQuadHistNIM1","bhQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
+    TH2I* bhQuadHistNIM3 = new TH2I("bhQuadHistNIM3","bhQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
 
+
+    TH2I* roadsVsTrig = new TH2I("roadsVsTrig","roadsVsTrig",200,-0.5,199.5,16,-0.5,15.5);
+    TH2I* roadsVsTrigNoTimecut = new TH2I("roadsVsTrigNoTimecut","roadsVsTrigNoTimecut",200,-0.5,199.5,16,-0.5,15.5);
+    TH2I* nimlikeVsTrig = new TH2I("nimlikeVsTrig","nimlikeVsTrig",200,-0.5,199.5,16,-0.5,15.5);
+
+    double timeCut = 9.0;
+    int dpTriggerMask = 64;
+    int nim1TriggerMask = 32;
+    int nim3TriggerMask = 128;
     for(Int_t i = 0; i < dataTree->GetEntries(); ++i)
     {
         dataTree->GetEntry(i);
         if(i % 1000 == 0) cout << i << endl;
-        //cout << i << endl;
 
-        if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & 192) != 0) {
-            //if (rawEvent->getTriggerBits()<0 || rawEvent->getTriggerBits() & 64 == 0) continue;
-
-            for(Int_t k = 0; k < rawEvent->getNHitsAll(); ++k)
-            {
+        if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & (dpTriggerMask|nim1TriggerMask|nim3TriggerMask)) != 0) {
+        //if (rawEvent->getTriggerBits()>0) {
+                if (rawEvent->getTriggerBits()==64)
+                cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << endl;
+            for(Int_t k = 0; k < rawEvent->getNHitsAll(); ++k) {
                 Hit h = rawEvent->getHit(k);
-                int dpQuadID = h.detectorID-55;
-                if(dpQuadID<0 || dpQuadID>7) continue;
-                if (h.isInTime()) {
-                    hitvectors[dpQuadID].push_back(h.elementID);
+                int dpQuadID = -1;
+                int barID = -1;
+                //if (h.detectorID >= 41 && h.detectorID < 45) dpQuadID = h.detectorID-33; //H4Y1L = 8, H4Y1R = 9, etc.
+                if (h.detectorID >= 55 && h.detectorID <= 62) {
+                    dpQuadID = h.detectorID-55;
+                    barID = h.elementID;
                 }
-
-                if ((rawEvent->getTriggerBits() & 64) != 0) {
-                    hitTimeHists[dpQuadID]->Fill(h.tdcTime,h.elementID);
-                    if (h.isInTime()) {
-                        hitTimeInTimeHists[dpQuadID]->Fill(h.tdcTime,h.elementID);
+                else if (h.detectorID == 43) { // H4Y2L
+                //else if (h.detectorID == 41) { // H4Y2L
+                    if (h.elementID > 8) {
+                        dpQuadID = 8;
+                        barID = h.elementID-8;
+                    } else {
+                        dpQuadID = 10;
+                        barID = 9-h.elementID;
                     }
                 }
-                if ((rawEvent->getTriggerBits() & 128) != 0) {
-                    hitTimeHistsNIM3[dpQuadID]->Fill(h.tdcTime,h.elementID);
+                else if (h.detectorID == 44) { // H4Y2R
+                //else if (h.detectorID == 42) { // H4Y2R
+                    if (h.elementID > 8) {
+                        dpQuadID = 9;
+                        barID = h.elementID-8;
+                    } else {
+                        dpQuadID = 11;
+                        barID = 9-h.elementID;
+                    }
+                }
+
+                if(dpQuadID<0 || dpQuadID>11) continue;
+                double deltaT = h.tdcTime - getDelay(dpQuadID,barID);
+
+                //tweak deltaT so the NIM triggers are in time (the delays are tuned for the DP trigger)
+                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                    deltaT -= 5.0;
+                } else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                    deltaT -= 15.0;
                 }
 
                 //if (h.isInTime()) {
-                //cout << "in time " << dpQuadID << "  " << h.elementID << endl;
-                //} else {
-                //cout << "not in time " << dpQuadID << "  " << h.elementID << endl;
-                //}
-            }
-            for (int quad=0;quad<4;quad++) {
-                int fID = (quad)%4;
-                int bID = quad+4;
-                int fHits = hitvectors[fID].size();
-                int bHits = hitvectors[bID].size();
-                //cout << quad << " " << fHits << " " << bHits << endl;
-                //cout << rawEvent->getTriggerBits() << endl;
-                for (int fHit=0; fHit<fHits; fHit++) {
-                    for (int bHit=0; bHit<bHits; bHit++) {
-                        if ((rawEvent->getTriggerBits() & 64) != 0) {
-                            fbCorrHists[quad]->Fill(hitvectors[fID].at(fHit), hitvectors[bID].at(bHit));
-                        }
-                        if ((rawEvent->getTriggerBits() & 128) != 0) {
-                            fbCorrHistsNIM3[quad]->Fill(hitvectors[fID].at(fHit), hitvectors[bID].at(bHit));
-                        }
+                hitsetsNoTimecut[dpQuadID].insert(barID);
+                if (TMath::Abs(deltaT)<timeCut) hitsets[dpQuadID].insert(barID);
+                if (TMath::Abs(deltaT+18.0)<timeCut) hitsetsOffByOne[dpQuadID].insert(barID);
+                //if (rawEvent->getRunID()==28574 && rawEvent->getEventID() == 10816)
+                if (rawEvent->getTriggerBits()==64 && TMath::Abs(deltaT)<timeCut)
+                cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << dpQuadID << " " << barID << " " << h.tdcTime << " " << deltaT << endl;
+
+                if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                    hitTimeHists[dpQuadID]->Fill(deltaT,barID);
+                    //if (isInTime(dpQuadID,barID,h.tdcTime)) {
+                    if (h.isInTime()) {
+                        hitTimeInTimeHists[dpQuadID]->Fill(deltaT,barID);
                     }
                 }
+                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                    hitTimeHistsNIM1[dpQuadID]->Fill(deltaT,barID);
+                }
+                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                    hitTimeHistsNIM3[dpQuadID]->Fill(deltaT,barID);
+                }
+                }
+
+                int roadBits = 0;
+                int roadBitsNoTimecut = 0;
+                int nimlikeBits = 0;
+                for (int quad=0;quad<4;quad++) {
+                    int fID = (quad)%4;
+                    int bID = quad+4;
+                    int hID = quad+8;
+
+                    for (set<int>::iterator fIt = hitsets[fID].begin(); fIt!=hitsets[fID].end();++fIt) {
+                        for (set<int>::iterator bIt = hitsets[bID].begin(); bIt!=hitsets[bID].end();++bIt) {
+                            for (set<int>::iterator hIt = hitsets[hID].begin(); hIt!=hitsets[hID].end();++hIt) {
+                                int roadhash = roadHash(*fIt,*bIt,*hIt);
+                                if (roadset.count(roadhash)) {
+                                    //cout << "road match: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << quad << " " << roadhash << endl;
+                                    roadBits |= (1 << quad);
+                                }
+                            }
+                        }
+                    }
+                    for (set<int>::iterator fIt = hitsetsNoTimecut[fID].begin(); fIt!=hitsetsNoTimecut[fID].end();++fIt) {
+                        for (set<int>::iterator bIt = hitsetsNoTimecut[bID].begin(); bIt!=hitsetsNoTimecut[bID].end();++bIt) {
+                            for (set<int>::iterator hIt = hitsetsNoTimecut[hID].begin(); hIt!=hitsetsNoTimecut[hID].end();++hIt) {
+                                int roadhash = roadHash(*fIt,*bIt,*hIt);
+                                if (roadset.count(roadhash)) {
+                                    //cout << "road match: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << quad << " " << roadhash << endl;
+                                    roadBitsNoTimecut |= (1 << quad);
+                                }
+                            }
+                        }
+                    }
+                    //if (!hitsets[fID].empty() && !hitsets[bID].empty() && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                    //if (!hitsets[fID].empty() && !hitsets[bID].empty()) nimlikeBits |= (1 << quad);
+                    //if (!hitsets[fID].empty()) nimlikeBits |= (1 << quad);
+                    //if (!hitsets[bID].empty()) nimlikeBits |= (1 << quad);
+                    if (!hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                    //if (!hitsetsOffByOne[hID].empty()) nimlikeBits |= (1 << quad);
+                    //if ((!hitsets[fID].empty() || !hitsets[bID].empty()) && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                }
+                roadsVsTrig->Fill(rawEvent->getTriggerBits(),roadBits);
+                //if (roadBits) cout << "roadbits: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << roadBits << endl;
+                roadsVsTrigNoTimecut->Fill(rawEvent->getTriggerBits(),roadBitsNoTimecut);
+                nimlikeVsTrig->Fill(rawEvent->getTriggerBits(),nimlikeBits);
+
+                int onlyquadF = -1;
+                int onlyquadB = -1;
+                int onlyquadH = -1;
+                int nhitsF, nhitsB, nhitsH;
+                int nquadsF = 0;
+                int nquadsB = 0;
+                int nquadsH = 0;
+                for (int quad=0;quad<4;quad++) {
+                    int fID = (quad)%4;
+                    int bID = quad+4;
+                    int hID = quad+8;
+                    int fHits = hitsets[fID].size();
+                    int bHits = hitsets[bID].size();
+                    int hHits = hitsets[hID].size();
+                    if (fHits>0) {
+                        nquadsF++;
+                        if (onlyquadF==-1) {
+                            onlyquadF = quad;
+                            nhitsF = fHits;
+                        } else
+                            onlyquadF = -2;
+                    }
+                    if (bHits>0) {
+                        nquadsB++;
+                        if (onlyquadB==-1) {
+                            onlyquadB = quad;
+                            nhitsB = bHits;
+                        } else
+                            onlyquadB = -2;
+                    }
+                    if (hHits>0) {
+                        nquadsH++;
+                        if (onlyquadH==-1) {
+                            onlyquadH = quad;
+                            nhitsH = hHits;
+                        } else
+                            onlyquadH = -2;
+                    }
+                }
+
+                for (int quad=0;quad<4;quad++) {
+                    int fID = (quad)%4;
+                    int bID = quad+4;
+                    int hID = quad+8;
+                    //if ((rawEvent->getTriggerBits() & 64) != 0) {
+                    //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << quad << " " << fHits << " " << bHits << endl;
+                    //}
+                    //if (fHits<2 && bHits<2)
+                    //if (!hitsets[((quad+1)%4)+8].empty())
+                    //if (nquadsB==2 && nquadsH==2)
+                    for (set<int>::iterator bIt = hitsets[bID].begin(); bIt!=hitsets[bID].end();++bIt) {
+                        for (set<int>::iterator fIt = hitsets[fID].begin(); fIt!=hitsets[fID].end();++fIt) {
+                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                fbCorrHists[quad]->Fill(*fIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                fbCorrHistsNIM1[quad]->Fill(*fIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                fbCorrHistsNIM3[quad]->Fill(*fIt,*bIt);
+                            }
+                        }
+                        for (set<int>::iterator hIt = hitsets[hID].begin(); hIt!=hitsets[hID].end();++hIt) {
+                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                bhCorrHists[quad]->Fill(*hIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                bhCorrHistsNIM1[quad]->Fill(*hIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                bhCorrHistsNIM3[quad]->Fill(*hIt,*bIt);
+                            }
+                        }
+                    }
+
+                    for (set<int>::iterator bIt = hitsetsOffByOne[bID].begin(); bIt!=hitsetsOffByOne[bID].end();++bIt) {
+                        for (set<int>::iterator fIt = hitsetsOffByOne[fID].begin(); fIt!=hitsetsOffByOne[fID].end();++fIt) {
+                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                fbCorrHistsOffByOne[quad]->Fill(*fIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                fbCorrHistsOffByOneNIM1[quad]->Fill(*fIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                fbCorrHistsOffByOneNIM3[quad]->Fill(*fIt,*bIt);
+                            }
+                        }
+                        for (set<int>::iterator hIt = hitsetsOffByOne[hID].begin(); hIt!=hitsetsOffByOne[hID].end();++hIt) {
+                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                bhCorrHistsOffByOne[quad]->Fill(*hIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                bhCorrHistsOffByOneNIM1[quad]->Fill(*hIt,*bIt);
+                            }
+                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                bhCorrHistsOffByOneNIM3[quad]->Fill(*hIt,*bIt);
+                            }
+                        }
+                    }
+
+                }
+
+                if (onlyquadF>=0 && onlyquadB >= 0) {
+                    if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                        fbQuadHist->Fill(onlyquadF, onlyquadB);
+                    }
+                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                        fbQuadHistNIM1->Fill(onlyquadF, onlyquadB);
+                    }
+                    if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                        fbQuadHistNIM3->Fill(onlyquadF, onlyquadB);
+                    }
+                    //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
+                }
+                if (onlyquadH>=0 && onlyquadB >= 0) {
+                    if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                        bhQuadHist->Fill(onlyquadH, onlyquadB);
+                    }
+                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                        bhQuadHistNIM1->Fill(onlyquadH, onlyquadB);
+                    }
+                    if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                        bhQuadHistNIM3->Fill(onlyquadH, onlyquadB);
+                    }
+                    //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
+                }
+
+                //saveTree->Fill();
+                /*
+                   cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits();
+                   for (int j=0;j<12;j++) {
+                   cout << " " << hitsets[j].size();
+                   }
+                   cout << endl;
+                   */
+
+                for (int j=0;j<12;j++) {
+                    hitsets[j].clear();
+                    hitsetsNoTimecut[j].clear();
+                    hitsetsOffByOne[j].clear();
+                }
+            }
+            rawEvent->clear();
+            //if (i==100000) break;
             }
 
-            //saveTree->Fill();
-            for (int j=0;j<8;j++) {
-                hitvectors[j].clear();
-            }
+            //saveTree->Write();
+            saveFile->Write();
+            saveFile->Close();
+
+            return EXIT_SUCCESS;
         }
-        rawEvent->clear();
-        //if (i==100000) break;
-    }
-
-    //saveTree->Write();
-    saveFile->Write();
-    saveFile->Close();
-
-    return EXIT_SUCCESS;
-}
