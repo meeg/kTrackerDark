@@ -51,18 +51,9 @@ double getDelay(int quadID, int barID) {
             return 1093;
         case 11:
             return 1092;
+        default:
+            return 1700;
     }
-    return 1700;
-}
-bool isInTime(int quadID, int barID, double time) {
-    double deltaT = time-getDelay(quadID, barID);
-    //if (quadID>3) deltaT+=18;
-    //deltaT-=18;
-    //deltaT+=18;
-    if (deltaT<-9.0 || deltaT>9.0)
-        return false;
-    else
-        return true;
 }
 int roadHash(int st1, int st2, int h4) {
     return st1*1000 + st2*10 + h4;
@@ -150,7 +141,7 @@ int main(int argc, char *argv[])
     }
     double tmin=-125;
     double tmax=125;
-    int nbins=500;
+    int nbins=250;
     TH2I* hitTimeHists[12];
     TH2I* hitTimeInTimeHists[12];
     TH2I* hitTimeHistsNIM1[12];
@@ -210,10 +201,9 @@ int main(int argc, char *argv[])
         dataTree->GetEntry(i);
         if(i % 1000 == 0) cout << i << endl;
 
-        if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & (dpTriggerMask|nim1TriggerMask|nim3TriggerMask)) != 0) {
-        //if (rawEvent->getTriggerBits()>0) {
-                if (rawEvent->getTriggerBits()==64)
-                cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << endl;
+        //if (rawEvent->getTriggerBits()>0 && (rawEvent->getTriggerBits() & (dpTriggerMask|nim1TriggerMask|nim3TriggerMask)) != 0) {
+        if (rawEvent->getTriggerBits()>0) {
+            //if (rawEvent->getTriggerBits()==64) cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << endl;
             for(Int_t k = 0; k < rawEvent->getNHitsAll(); ++k) {
                 Hit h = rawEvent->getHit(k);
                 int dpQuadID = -1;
@@ -224,7 +214,7 @@ int main(int argc, char *argv[])
                     barID = h.elementID;
                 }
                 else if (h.detectorID == 43) { // H4Y2L
-                //else if (h.detectorID == 41) { // H4Y2L
+                    //else if (h.detectorID == 41) { // H4Y2L
                     if (h.elementID > 8) {
                         dpQuadID = 8;
                         barID = h.elementID-8;
@@ -233,242 +223,241 @@ int main(int argc, char *argv[])
                         barID = 9-h.elementID;
                     }
                 }
-                else if (h.detectorID == 44) { // H4Y2R
-                //else if (h.detectorID == 42) { // H4Y2R
-                    if (h.elementID > 8) {
-                        dpQuadID = 9;
-                        barID = h.elementID-8;
-                    } else {
-                        dpQuadID = 11;
-                        barID = 9-h.elementID;
-                    }
-                }
-
-                if(dpQuadID<0 || dpQuadID>11) continue;
-                double deltaT = h.tdcTime - getDelay(dpQuadID,barID);
-
-                //tweak deltaT so the NIM triggers are in time (the delays are tuned for the DP trigger)
-                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                    deltaT -= 5.0;
-                } else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                    deltaT -= 15.0;
-                }
-
-                //if (h.isInTime()) {
-                hitsetsNoTimecut[dpQuadID].insert(barID);
-                if (TMath::Abs(deltaT)<timeCut) hitsets[dpQuadID].insert(barID);
-                if (TMath::Abs(deltaT+18.0)<timeCut) hitsetsOffByOne[dpQuadID].insert(barID);
-                //if (rawEvent->getRunID()==28574 && rawEvent->getEventID() == 10816)
-                if (rawEvent->getTriggerBits()==64 && TMath::Abs(deltaT)<timeCut)
-                cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << dpQuadID << " " << barID << " " << h.tdcTime << " " << deltaT << endl;
-
-                if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                    hitTimeHists[dpQuadID]->Fill(deltaT,barID);
-                    //if (isInTime(dpQuadID,barID,h.tdcTime)) {
-                    if (h.isInTime()) {
-                        hitTimeInTimeHists[dpQuadID]->Fill(deltaT,barID);
-                    }
-                }
-                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                    hitTimeHistsNIM1[dpQuadID]->Fill(deltaT,barID);
-                }
-                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                    hitTimeHistsNIM3[dpQuadID]->Fill(deltaT,barID);
-                }
-                }
-
-                int roadBits = 0;
-                int roadBitsNoTimecut = 0;
-                int nimlikeBits = 0;
-                for (int quad=0;quad<4;quad++) {
-                    int fID = (quad)%4;
-                    int bID = quad+4;
-                    int hID = quad+8;
-
-                    for (set<int>::iterator fIt = hitsets[fID].begin(); fIt!=hitsets[fID].end();++fIt) {
-                        for (set<int>::iterator bIt = hitsets[bID].begin(); bIt!=hitsets[bID].end();++bIt) {
-                            for (set<int>::iterator hIt = hitsets[hID].begin(); hIt!=hitsets[hID].end();++hIt) {
-                                int roadhash = roadHash(*fIt,*bIt,*hIt);
-                                if (roadset.count(roadhash)) {
-                                    //cout << "road match: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << quad << " " << roadhash << endl;
-                                    roadBits |= (1 << quad);
-                                }
-                            }
+                    else if (h.detectorID == 44) { // H4Y2R
+                        //else if (h.detectorID == 42) { // H4Y2R
+                        if (h.elementID > 8) {
+                            dpQuadID = 9;
+                            barID = h.elementID-8;
+                        } else {
+                            dpQuadID = 11;
+                            barID = 9-h.elementID;
                         }
                     }
-                    for (set<int>::iterator fIt = hitsetsNoTimecut[fID].begin(); fIt!=hitsetsNoTimecut[fID].end();++fIt) {
-                        for (set<int>::iterator bIt = hitsetsNoTimecut[bID].begin(); bIt!=hitsetsNoTimecut[bID].end();++bIt) {
-                            for (set<int>::iterator hIt = hitsetsNoTimecut[hID].begin(); hIt!=hitsetsNoTimecut[hID].end();++hIt) {
-                                int roadhash = roadHash(*fIt,*bIt,*hIt);
-                                if (roadset.count(roadhash)) {
-                                    //cout << "road match: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << quad << " " << roadhash << endl;
-                                    roadBitsNoTimecut |= (1 << quad);
-                                }
-                            }
+
+                    if(dpQuadID<0 || dpQuadID>11) continue;
+                    double deltaT = h.tdcTime - getDelay(dpQuadID,barID);
+
+                    //tweak deltaT so the NIM triggers are in time (the delays are tuned for the DP trigger)
+                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                        deltaT -= 5.0;
+                    } else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                        deltaT -= 15.0;
+                    }
+
+                    //if (h.isInTime()) {
+                    hitsetsNoTimecut[dpQuadID].insert(barID);
+                    if (TMath::Abs(deltaT)<timeCut) hitsets[dpQuadID].insert(barID);
+                    if (TMath::Abs(deltaT+18.0)<timeCut) hitsetsOffByOne[dpQuadID].insert(barID);
+                    //if (rawEvent->getRunID()==28574 && rawEvent->getEventID() == 10816)
+                    //if (rawEvent->getTriggerBits()==64 && TMath::Abs(deltaT)<timeCut) cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << dpQuadID << " " << barID << " " << h.tdcTime << " " << deltaT << endl;
+
+                    if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                        hitTimeHists[dpQuadID]->Fill(deltaT,barID);
+                        //if (isInTime(dpQuadID,barID,h.tdcTime)) {
+                        if (h.isInTime()) {
+                            hitTimeInTimeHists[dpQuadID]->Fill(deltaT,barID);
                         }
                     }
-                    //if (!hitsets[fID].empty() && !hitsets[bID].empty() && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
-                    //if (!hitsets[fID].empty() && !hitsets[bID].empty()) nimlikeBits |= (1 << quad);
-                    //if (!hitsets[fID].empty()) nimlikeBits |= (1 << quad);
-                    //if (!hitsets[bID].empty()) nimlikeBits |= (1 << quad);
-                    if (!hitsets[hID].empty()) nimlikeBits |= (1 << quad);
-                    //if (!hitsetsOffByOne[hID].empty()) nimlikeBits |= (1 << quad);
-                    //if ((!hitsets[fID].empty() || !hitsets[bID].empty()) && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
-                }
-                roadsVsTrig->Fill(rawEvent->getTriggerBits(),roadBits);
-                //if (roadBits) cout << "roadbits: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << roadBits << endl;
-                roadsVsTrigNoTimecut->Fill(rawEvent->getTriggerBits(),roadBitsNoTimecut);
-                nimlikeVsTrig->Fill(rawEvent->getTriggerBits(),nimlikeBits);
+                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                        hitTimeHistsNIM1[dpQuadID]->Fill(deltaT,barID);
+                    }
+                    if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                        hitTimeHistsNIM3[dpQuadID]->Fill(deltaT,barID);
+                    }
+                    }
 
-                int onlyquadF = -1;
-                int onlyquadB = -1;
-                int onlyquadH = -1;
-                int nhitsF, nhitsB, nhitsH;
-                int nquadsF = 0;
-                int nquadsB = 0;
-                int nquadsH = 0;
-                for (int quad=0;quad<4;quad++) {
-                    int fID = (quad)%4;
-                    int bID = quad+4;
-                    int hID = quad+8;
-                    int fHits = hitsets[fID].size();
-                    int bHits = hitsets[bID].size();
-                    int hHits = hitsets[hID].size();
-                    if (fHits>0) {
-                        nquadsF++;
-                        if (onlyquadF==-1) {
-                            onlyquadF = quad;
-                            nhitsF = fHits;
-                        } else
-                            onlyquadF = -2;
-                    }
-                    if (bHits>0) {
-                        nquadsB++;
-                        if (onlyquadB==-1) {
-                            onlyquadB = quad;
-                            nhitsB = bHits;
-                        } else
-                            onlyquadB = -2;
-                    }
-                    if (hHits>0) {
-                        nquadsH++;
-                        if (onlyquadH==-1) {
-                            onlyquadH = quad;
-                            nhitsH = hHits;
-                        } else
-                            onlyquadH = -2;
-                    }
-                }
+                    int roadBits = 0;
+                    int roadBitsNoTimecut = 0;
+                    int nimlikeBits = 0;
+                    for (int quad=0;quad<4;quad++) {
+                        int fID = (quad)%4;
+                        int bID = quad+4;
+                        int hID = quad+8;
 
-                for (int quad=0;quad<4;quad++) {
-                    int fID = (quad)%4;
-                    int bID = quad+4;
-                    int hID = quad+8;
-                    //if ((rawEvent->getTriggerBits() & 64) != 0) {
-                    //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << quad << " " << fHits << " " << bHits << endl;
-                    //}
-                    //if (fHits<2 && bHits<2)
-                    //if (!hitsets[((quad+1)%4)+8].empty())
-                    //if (nquadsB==2 && nquadsH==2)
-                    for (set<int>::iterator bIt = hitsets[bID].begin(); bIt!=hitsets[bID].end();++bIt) {
                         for (set<int>::iterator fIt = hitsets[fID].begin(); fIt!=hitsets[fID].end();++fIt) {
-                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                                fbCorrHists[quad]->Fill(*fIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                                fbCorrHistsNIM1[quad]->Fill(*fIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                                fbCorrHistsNIM3[quad]->Fill(*fIt,*bIt);
-                            }
-                        }
-                        for (set<int>::iterator hIt = hitsets[hID].begin(); hIt!=hitsets[hID].end();++hIt) {
-                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                                bhCorrHists[quad]->Fill(*hIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                                bhCorrHistsNIM1[quad]->Fill(*hIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                                bhCorrHistsNIM3[quad]->Fill(*hIt,*bIt);
+                            for (set<int>::iterator bIt = hitsets[bID].begin(); bIt!=hitsets[bID].end();++bIt) {
+                                for (set<int>::iterator hIt = hitsets[hID].begin(); hIt!=hitsets[hID].end();++hIt) {
+                                    int roadhash = roadHash(*fIt,*bIt,*hIt);
+                                    if (roadset.count(roadhash)) {
+                                        //cout << "road match: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << quad << " " << roadhash << endl;
+                                        roadBits |= (1 << quad);
+                                    }
+                                }
                             }
                         }
-                    }
-
-                    for (set<int>::iterator bIt = hitsetsOffByOne[bID].begin(); bIt!=hitsetsOffByOne[bID].end();++bIt) {
-                        for (set<int>::iterator fIt = hitsetsOffByOne[fID].begin(); fIt!=hitsetsOffByOne[fID].end();++fIt) {
-                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                                fbCorrHistsOffByOne[quad]->Fill(*fIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                                fbCorrHistsOffByOneNIM1[quad]->Fill(*fIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                                fbCorrHistsOffByOneNIM3[quad]->Fill(*fIt,*bIt);
+                        for (set<int>::iterator fIt = hitsetsNoTimecut[fID].begin(); fIt!=hitsetsNoTimecut[fID].end();++fIt) {
+                            for (set<int>::iterator bIt = hitsetsNoTimecut[bID].begin(); bIt!=hitsetsNoTimecut[bID].end();++bIt) {
+                                for (set<int>::iterator hIt = hitsetsNoTimecut[hID].begin(); hIt!=hitsetsNoTimecut[hID].end();++hIt) {
+                                    int roadhash = roadHash(*fIt,*bIt,*hIt);
+                                    if (roadset.count(roadhash)) {
+                                        //cout << "road match: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << quad << " " << roadhash << endl;
+                                        roadBitsNoTimecut |= (1 << quad);
+                                    }
+                                }
                             }
                         }
-                        for (set<int>::iterator hIt = hitsetsOffByOne[hID].begin(); hIt!=hitsetsOffByOne[hID].end();++hIt) {
-                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                                bhCorrHistsOffByOne[quad]->Fill(*hIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                                bhCorrHistsOffByOneNIM1[quad]->Fill(*hIt,*bIt);
-                            }
-                            if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                                bhCorrHistsOffByOneNIM3[quad]->Fill(*hIt,*bIt);
-                            }
+                        //if (!hitsets[fID].empty() && !hitsets[bID].empty() && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                        //if (!hitsets[fID].empty() && !hitsets[bID].empty()) nimlikeBits |= (1 << quad);
+                        //if (!hitsets[fID].empty()) nimlikeBits |= (1 << quad);
+                        //if (!hitsets[bID].empty()) nimlikeBits |= (1 << quad);
+                        if (!hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                        //if (!hitsetsOffByOne[hID].empty()) nimlikeBits |= (1 << quad);
+                        //if ((!hitsets[fID].empty() || !hitsets[bID].empty()) && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                    }
+                    roadsVsTrig->Fill(rawEvent->getTriggerBits(),roadBits);
+                    //if (roadBits) cout << "roadbits: " << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << roadBits << endl;
+                    roadsVsTrigNoTimecut->Fill(rawEvent->getTriggerBits(),roadBitsNoTimecut);
+                    nimlikeVsTrig->Fill(rawEvent->getTriggerBits(),nimlikeBits);
+
+                    int onlyquadF = -1;
+                    int onlyquadB = -1;
+                    int onlyquadH = -1;
+                    int nhitsF, nhitsB, nhitsH;
+                    int nquadsF = 0;
+                    int nquadsB = 0;
+                    int nquadsH = 0;
+                    for (int quad=0;quad<4;quad++) {
+                        int fID = (quad)%4;
+                        int bID = quad+4;
+                        int hID = quad+8;
+                        int fHits = hitsets[fID].size();
+                        int bHits = hitsets[bID].size();
+                        int hHits = hitsets[hID].size();
+                        if (fHits>0) {
+                            nquadsF++;
+                            if (onlyquadF==-1) {
+                                onlyquadF = quad;
+                                nhitsF = fHits;
+                            } else
+                                onlyquadF = -2;
+                        }
+                        if (bHits>0) {
+                            nquadsB++;
+                            if (onlyquadB==-1) {
+                                onlyquadB = quad;
+                                nhitsB = bHits;
+                            } else
+                                onlyquadB = -2;
+                        }
+                        if (hHits>0) {
+                            nquadsH++;
+                            if (onlyquadH==-1) {
+                                onlyquadH = quad;
+                                nhitsH = hHits;
+                            } else
+                                onlyquadH = -2;
                         }
                     }
 
+                    for (int quad=0;quad<4;quad++) {
+                        int fID = (quad)%4;
+                        int bID = quad+4;
+                        int hID = quad+8;
+                        //if ((rawEvent->getTriggerBits() & 64) != 0) {
+                        //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << quad << " " << fHits << " " << bHits << endl;
+                        //}
+                        //if (fHits<2 && bHits<2)
+                        //if (!hitsets[((quad+1)%4)+8].empty())
+                        //if (nquadsB==2 && nquadsH==2)
+                        for (set<int>::iterator bIt = hitsets[bID].begin(); bIt!=hitsets[bID].end();++bIt) {
+                            for (set<int>::iterator fIt = hitsets[fID].begin(); fIt!=hitsets[fID].end();++fIt) {
+                                if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                    fbCorrHists[quad]->Fill(*fIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                    fbCorrHistsNIM1[quad]->Fill(*fIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                    fbCorrHistsNIM3[quad]->Fill(*fIt,*bIt);
+                                }
+                            }
+                            for (set<int>::iterator hIt = hitsets[hID].begin(); hIt!=hitsets[hID].end();++hIt) {
+                                if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                    bhCorrHists[quad]->Fill(*hIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                    bhCorrHistsNIM1[quad]->Fill(*hIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                    bhCorrHistsNIM3[quad]->Fill(*hIt,*bIt);
+                                }
+                            }
+                        }
+
+                        for (set<int>::iterator bIt = hitsetsOffByOne[bID].begin(); bIt!=hitsetsOffByOne[bID].end();++bIt) {
+                            for (set<int>::iterator fIt = hitsetsOffByOne[fID].begin(); fIt!=hitsetsOffByOne[fID].end();++fIt) {
+                                if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                    fbCorrHistsOffByOne[quad]->Fill(*fIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                    fbCorrHistsOffByOneNIM1[quad]->Fill(*fIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                    fbCorrHistsOffByOneNIM3[quad]->Fill(*fIt,*bIt);
+                                }
+                            }
+                            for (set<int>::iterator hIt = hitsetsOffByOne[hID].begin(); hIt!=hitsetsOffByOne[hID].end();++hIt) {
+                                if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                    bhCorrHistsOffByOne[quad]->Fill(*hIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                    bhCorrHistsOffByOneNIM1[quad]->Fill(*hIt,*bIt);
+                                }
+                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                    bhCorrHistsOffByOneNIM3[quad]->Fill(*hIt,*bIt);
+                                }
+                            }
+                        }
+
+                    }
+
+                    if (onlyquadF>=0 && onlyquadB >= 0) {
+                        if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                            fbQuadHist->Fill(onlyquadF, onlyquadB);
+                        }
+                        if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                            fbQuadHistNIM1->Fill(onlyquadF, onlyquadB);
+                        }
+                        if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                            fbQuadHistNIM3->Fill(onlyquadF, onlyquadB);
+                        }
+                        //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
+                    }
+                    if (onlyquadH>=0 && onlyquadB >= 0) {
+                        if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                            bhQuadHist->Fill(onlyquadH, onlyquadB);
+                        }
+                        if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                            bhQuadHistNIM1->Fill(onlyquadH, onlyquadB);
+                        }
+                        if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                            bhQuadHistNIM3->Fill(onlyquadH, onlyquadB);
+                        }
+                        //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
+                    }
+
+                    //saveTree->Fill();
+                    /*
+                       cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits();
+                       for (int j=0;j<12;j++) {
+                       cout << " " << hitsets[j].size();
+                       }
+                       cout << endl;
+                       */
+
+                    for (int j=0;j<12;j++) {
+                        hitsets[j].clear();
+                        hitsetsNoTimecut[j].clear();
+                        hitsetsOffByOne[j].clear();
+                    }
+                    }
+                    rawEvent->clear();
+                    //if (i==100000) break;
+                    }
+
+                    //saveTree->Write();
+                    saveFile->Write();
+                    saveFile->Close();
+
+                    return EXIT_SUCCESS;
                 }
-
-                if (onlyquadF>=0 && onlyquadB >= 0) {
-                    if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                        fbQuadHist->Fill(onlyquadF, onlyquadB);
-                    }
-                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                        fbQuadHistNIM1->Fill(onlyquadF, onlyquadB);
-                    }
-                    if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                        fbQuadHistNIM3->Fill(onlyquadF, onlyquadB);
-                    }
-                    //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
-                }
-                if (onlyquadH>=0 && onlyquadB >= 0) {
-                    if (rawEvent->getTriggerBits() == dpTriggerMask) {
-                        bhQuadHist->Fill(onlyquadH, onlyquadB);
-                    }
-                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                        bhQuadHistNIM1->Fill(onlyquadH, onlyquadB);
-                    }
-                    if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                        bhQuadHistNIM3->Fill(onlyquadH, onlyquadB);
-                    }
-                    //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
-                }
-
-                //saveTree->Fill();
-                /*
-                   cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits();
-                   for (int j=0;j<12;j++) {
-                   cout << " " << hitsets[j].size();
-                   }
-                   cout << endl;
-                   */
-
-                for (int j=0;j<12;j++) {
-                    hitsets[j].clear();
-                    hitsetsNoTimecut[j].clear();
-                    hitsetsOffByOne[j].clear();
-                }
-            }
-            rawEvent->clear();
-            //if (i==100000) break;
-            }
-
-            //saveTree->Write();
-            saveFile->Write();
-            saveFile->Close();
-
-            return EXIT_SUCCESS;
-        }
