@@ -10,10 +10,8 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TApplication.h>
-#include <TH1I.h>
 #include <TH1D.h>
-#include <TH1F.h>
-#include <TH2I.h>
+#include <TH2D.h>
 #include <TCanvas.h>
 #include <TMath.h>
 #include <TClonesArray.h>
@@ -99,100 +97,128 @@ int main(int argc, char *argv[])
     //TTree* saveTree = new TTree("save", "save");
 
     saveFile->cd();
-    TH2I* fbCorrHists[4];
-    TH2I* fbCorrHistsNIM1[4];
-    TH2I* fbCorrHistsNIM3[4];
-    TH2I* bhCorrHists[4];
-    TH2I* bhCorrHistsNIM1[4];
-    TH2I* bhCorrHistsNIM3[4];
-    TH2I* fbCorrHistsOffByOne[4];
-    TH2I* fbCorrHistsOffByOneNIM1[4];
-    TH2I* fbCorrHistsOffByOneNIM3[4];
-    TH2I* bhCorrHistsOffByOne[4];
-    TH2I* bhCorrHistsOffByOneNIM1[4];
-    TH2I* bhCorrHistsOffByOneNIM3[4];
+    TH2D* fbCorrHists[4];
+    TH2D* fbCorrHistsNIM1[4];
+    TH2D* fbCorrHistsNIM3[4];
+    TH2D* bhCorrHists[4];
+    TH2D* bhCorrHistsNIM1[4];
+    TH2D* bhCorrHistsNIM3[4];
+    TH2D* fbCorrHistsOffByOne[4];
+    TH2D* fbCorrHistsOffByOneNIM1[4];
+    TH2D* fbCorrHistsOffByOneNIM3[4];
+    TH2D* bhCorrHistsOffByOne[4];
+    TH2D* bhCorrHistsOffByOneNIM1[4];
+    TH2D* bhCorrHistsOffByOneNIM3[4];
     char name[500];
     for (int quad=0; quad<4; quad++) {
         sprintf(name, "fbCorrHist_%i", quad);
-        fbCorrHists[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        fbCorrHists[quad] = new TH2D(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "fbCorrHistNIM1_%i", quad);
-        fbCorrHistsNIM1[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        fbCorrHistsNIM1[quad] = new TH2D(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "fbCorrHistNIM3_%i", quad);
-        fbCorrHistsNIM3[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        fbCorrHistsNIM3[quad] = new TH2D(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "bhCorrHist_%i", quad);
-        bhCorrHists[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        bhCorrHists[quad] = new TH2D(name,name,8,0.5,8.5,50,0.5,50.5);
         sprintf(name, "bhCorrHistNIM1_%i", quad);
-        bhCorrHistsNIM1[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        bhCorrHistsNIM1[quad] = new TH2D(name,name,8,0.5,8.5,50,0.5,50.5);
         sprintf(name, "bhCorrHistNIM3_%i", quad);
-        bhCorrHistsNIM3[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        bhCorrHistsNIM3[quad] = new TH2D(name,name,8,0.5,8.5,50,0.5,50.5);
 
         sprintf(name, "fbCorrHistOffByOne_%i", quad);
-        fbCorrHistsOffByOne[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        fbCorrHistsOffByOne[quad] = new TH2D(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "fbCorrHistOffByOneNIM1_%i", quad);
-        fbCorrHistsOffByOneNIM1[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        fbCorrHistsOffByOneNIM1[quad] = new TH2D(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "fbCorrHistOffByOneNIM3_%i", quad);
-        fbCorrHistsOffByOneNIM3[quad] = new TH2I(name,name,30,0.5,30.5,50,0.5,50.5);
+        fbCorrHistsOffByOneNIM3[quad] = new TH2D(name,name,30,0.5,30.5,50,0.5,50.5);
         sprintf(name, "bhCorrHistOffByOne_%i", quad);
-        bhCorrHistsOffByOne[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        bhCorrHistsOffByOne[quad] = new TH2D(name,name,8,0.5,8.5,50,0.5,50.5);
         sprintf(name, "bhCorrHistOffByOneNIM1_%i", quad);
-        bhCorrHistsOffByOneNIM1[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        bhCorrHistsOffByOneNIM1[quad] = new TH2D(name,name,8,0.5,8.5,50,0.5,50.5);
         sprintf(name, "bhCorrHistOffByOneNIM3_%i", quad);
-        bhCorrHistsOffByOneNIM3[quad] = new TH2I(name,name,8,0.5,8.5,50,0.5,50.5);
+        bhCorrHistsOffByOneNIM3[quad] = new TH2D(name,name,8,0.5,8.5,50,0.5,50.5);
     }
-    double tmin=-125;
-    double tmax=125;
-    int nbins=250;
-    TH2I* hitTimeHists[12];
-    TH2I* hitTimeInTimeHists[12];
-    TH2I* hitTimeHistsNIM1[12];
-    TH2I* hitTimeHistsNIM3[12];
+    double rfclock = 18.8;
+    double tmin=-8.5*rfclock;
+    double tmax=7.5*rfclock;
+    int nbins=256;
+    TH2D* hitTimeHists[12];
+    TH2D* hitTimeInTimeHists[12];
+    TH2D* hitTimeHistsNIM1[12];
+    TH2D* hitTimeHistsNIM3[12];
+    TH1D* hitEleHists[12];
+    TH1D* hitEleHistsNIM1[12];
+    TH1D* hitEleHistsNIM3[12];
     for (int quad=0; quad<12; quad++) {
         sprintf(name, "hitTimeHist_%i", quad);
         if (quad<4) {
-            hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+            hitTimeHists[quad] = new TH2D(name,name,nbins,tmin,tmax,30,0.5,30.5);
         } else if (quad<8) {
-            hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+            hitTimeHists[quad] = new TH2D(name,name,nbins,tmin,tmax,50,0.5,50.5);
         } else {
-            hitTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
+            hitTimeHists[quad] = new TH2D(name,name,nbins,tmin,tmax,8,0.5,8.5);
         }
         sprintf(name, "hitTimeInTimeHist_%i", quad);
         if (quad<4) {
-            hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+            hitTimeInTimeHists[quad] = new TH2D(name,name,nbins,tmin,tmax,30,0.5,30.5);
         } else if (quad<8) {
-            hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+            hitTimeInTimeHists[quad] = new TH2D(name,name,nbins,tmin,tmax,50,0.5,50.5);
         } else {
-            hitTimeInTimeHists[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
+            hitTimeInTimeHists[quad] = new TH2D(name,name,nbins,tmin,tmax,8,0.5,8.5);
         }
         sprintf(name, "hitTimeHistNIM1_%i", quad);
         if (quad<4) {
-            hitTimeHistsNIM1[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+            hitTimeHistsNIM1[quad] = new TH2D(name,name,nbins,tmin,tmax,30,0.5,30.5);
         } else if (quad<8) {
-            hitTimeHistsNIM1[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+            hitTimeHistsNIM1[quad] = new TH2D(name,name,nbins,tmin,tmax,50,0.5,50.5);
         } else {
-            hitTimeHistsNIM1[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
+            hitTimeHistsNIM1[quad] = new TH2D(name,name,nbins,tmin,tmax,8,0.5,8.5);
         }
         sprintf(name, "hitTimeHistNIM3_%i", quad);
         if (quad<4) {
-            hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,30,0.5,30.5);
+            hitTimeHistsNIM3[quad] = new TH2D(name,name,nbins,tmin,tmax,30,0.5,30.5);
         } else if (quad<8) {
-            hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,50,0.5,50.5);
+            hitTimeHistsNIM3[quad] = new TH2D(name,name,nbins,tmin,tmax,50,0.5,50.5);
         } else {
-            hitTimeHistsNIM3[quad] = new TH2I(name,name,nbins,tmin,tmax,8,0.5,8.5);
+            hitTimeHistsNIM3[quad] = new TH2D(name,name,nbins,tmin,tmax,8,0.5,8.5);
+        }
+        sprintf(name, "hitEleHist_%i", quad);
+        if (quad<4) {
+            hitEleHists[quad] = new TH1D(name,name,30,0.5,30.5);
+        } else if (quad<8) {
+            hitEleHists[quad] = new TH1D(name,name,50,0.5,50.5);
+        } else {
+            hitEleHists[quad] = new TH1D(name,name,8,0.5,8.5);
+        }
+        sprintf(name, "hitEleHistNIM1_%i", quad);
+        if (quad<4) {
+            hitEleHistsNIM1[quad] = new TH1D(name,name,30,0.5,30.5);
+        } else if (quad<8) {
+            hitEleHistsNIM1[quad] = new TH1D(name,name,50,0.5,50.5);
+        } else {
+            hitEleHistsNIM1[quad] = new TH1D(name,name,8,0.5,8.5);
+        }
+        sprintf(name, "hitEleHistNIM3_%i", quad);
+        if (quad<4) {
+            hitEleHistsNIM3[quad] = new TH1D(name,name,30,0.5,30.5);
+        } else if (quad<8) {
+            hitEleHistsNIM3[quad] = new TH1D(name,name,50,0.5,50.5);
+        } else {
+            hitEleHistsNIM3[quad] = new TH1D(name,name,8,0.5,8.5);
         }
     }
-    TH2I* fbQuadHist = new TH2I("fbQuadHist","fbQuadHist",4,-0.5,3.5,4,-0.5,3.5);
-    TH2I* fbQuadHistNIM1 = new TH2I("fbQuadHistNIM1","fbQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
-    TH2I* fbQuadHistNIM3 = new TH2I("fbQuadHistNIM3","fbQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
-    TH2I* bhQuadHist = new TH2I("bhQuadHist","bhQuadHist",4,-0.5,3.5,4,-0.5,3.5);
-    TH2I* bhQuadHistNIM1 = new TH2I("bhQuadHistNIM1","bhQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
-    TH2I* bhQuadHistNIM3 = new TH2I("bhQuadHistNIM3","bhQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
+    TH2D* fbQuadHist = new TH2D("fbQuadHist","fbQuadHist",4,-0.5,3.5,4,-0.5,3.5);
+    TH2D* fbQuadHistNIM1 = new TH2D("fbQuadHistNIM1","fbQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
+    TH2D* fbQuadHistNIM3 = new TH2D("fbQuadHistNIM3","fbQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
+    TH2D* bhQuadHist = new TH2D("bhQuadHist","bhQuadHist",4,-0.5,3.5,4,-0.5,3.5);
+    TH2D* bhQuadHistNIM1 = new TH2D("bhQuadHistNIM1","bhQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
+    TH2D* bhQuadHistNIM3 = new TH2D("bhQuadHistNIM3","bhQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
 
 
-    TH2I* roadsVsTrig = new TH2I("roadsVsTrig","roadsVsTrig",200,-0.5,199.5,16,-0.5,15.5);
-    TH2I* roadsVsTrigNoTimecut = new TH2I("roadsVsTrigNoTimecut","roadsVsTrigNoTimecut",200,-0.5,199.5,16,-0.5,15.5);
-    TH2I* nimlikeVsTrig = new TH2I("nimlikeVsTrig","nimlikeVsTrig",200,-0.5,199.5,16,-0.5,15.5);
+    TH2D* roadsVsTrig = new TH2D("roadsVsTrig","roadsVsTrig",200,-0.5,199.5,16,-0.5,15.5);
+    TH2D* roadsVsTrigNoTimecut = new TH2D("roadsVsTrigNoTimecut","roadsVsTrigNoTimecut",200,-0.5,199.5,16,-0.5,15.5);
+    TH2D* nimlikeVsTrig = new TH2D("nimlikeVsTrig","nimlikeVsTrig",200,-0.5,199.5,16,-0.5,15.5);
 
-    double timeCut = 9.0;
+    double timeCut = rfclock/2;
     int dpTriggerMask = 64;
     int nim1TriggerMask = 32;
     int nim3TriggerMask = 128;
@@ -247,7 +273,7 @@ int main(int argc, char *argv[])
                     //if (h.isInTime()) {
                     hitsetsNoTimecut[dpQuadID].insert(barID);
                     if (TMath::Abs(deltaT)<timeCut) hitsets[dpQuadID].insert(barID);
-                    if (TMath::Abs(deltaT+18.0)<timeCut) hitsetsOffByOne[dpQuadID].insert(barID);
+                    if (TMath::Abs(deltaT+rfclock)<timeCut) hitsetsOffByOne[dpQuadID].insert(barID);
                     //if (rawEvent->getRunID()==28574 && rawEvent->getEventID() == 10816)
                     //if (rawEvent->getTriggerBits()==64 && TMath::Abs(deltaT)<timeCut) cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << " " << dpQuadID << " " << barID << " " << h.tdcTime << " " << deltaT << endl;
 
@@ -256,13 +282,16 @@ int main(int argc, char *argv[])
                         //if (isInTime(dpQuadID,barID,h.tdcTime)) {
                         if (h.isInTime()) {
                             hitTimeInTimeHists[dpQuadID]->Fill(deltaT,barID);
+                            //hitEleHists[dpQuadID]->Fill(barID);
                         }
                     }
                     if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                         hitTimeHistsNIM1[dpQuadID]->Fill(deltaT,barID);
+                        //if (h.isInTime()) hitEleHistsNIM1[dpQuadID]->Fill(barID);
                     }
                     if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                         hitTimeHistsNIM3[dpQuadID]->Fill(deltaT,barID);
+                        //if (h.isInTime()) hitEleHistsNIM3[dpQuadID]->Fill(barID);
                     }
                     }
 
@@ -299,8 +328,8 @@ int main(int argc, char *argv[])
                         //if (!hitsets[fID].empty() && !hitsets[bID].empty() && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
                         //if (!hitsets[fID].empty() && !hitsets[bID].empty()) nimlikeBits |= (1 << quad);
                         //if (!hitsets[fID].empty()) nimlikeBits |= (1 << quad);
-                        //if (!hitsets[bID].empty()) nimlikeBits |= (1 << quad);
-                        if (!hitsets[hID].empty()) nimlikeBits |= (1 << quad);
+                        if (!hitsets[bID].empty()) nimlikeBits |= (1 << quad);
+                        //if (!hitsets[hID].empty()) nimlikeBits |= (1 << quad);
                         //if (!hitsetsOffByOne[hID].empty()) nimlikeBits |= (1 << quad);
                         //if ((!hitsets[fID].empty() || !hitsets[bID].empty()) && !hitsets[hID].empty()) nimlikeBits |= (1 << quad);
                     }
@@ -349,6 +378,20 @@ int main(int argc, char *argv[])
                         }
                     }
 
+                    for (int quad=0;quad<12;quad++) {
+                        for (set<int>::iterator it = hitsets[quad].begin(); it!=hitsets[quad].end();++it) {
+                            if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                                hitEleHists[quad]->Fill(*it);
+                            }
+                            else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                hitEleHistsNIM1[quad]->Fill(*it);
+                            }
+                            else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                hitEleHistsNIM3[quad]->Fill(*it);
+                            }
+                        }
+                    }
+
                     for (int quad=0;quad<4;quad++) {
                         int fID = (quad)%4;
                         int bID = quad+4;
@@ -364,10 +407,10 @@ int main(int argc, char *argv[])
                                 if (rawEvent->getTriggerBits() == dpTriggerMask) {
                                     fbCorrHists[quad]->Fill(*fIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                                     fbCorrHistsNIM1[quad]->Fill(*fIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                                     fbCorrHistsNIM3[quad]->Fill(*fIt,*bIt);
                                 }
                             }
@@ -375,10 +418,10 @@ int main(int argc, char *argv[])
                                 if (rawEvent->getTriggerBits() == dpTriggerMask) {
                                     bhCorrHists[quad]->Fill(*hIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                                     bhCorrHistsNIM1[quad]->Fill(*hIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                                     bhCorrHistsNIM3[quad]->Fill(*hIt,*bIt);
                                 }
                             }
@@ -389,10 +432,10 @@ int main(int argc, char *argv[])
                                 if (rawEvent->getTriggerBits() == dpTriggerMask) {
                                     fbCorrHistsOffByOne[quad]->Fill(*fIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                                     fbCorrHistsOffByOneNIM1[quad]->Fill(*fIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                                     fbCorrHistsOffByOneNIM3[quad]->Fill(*fIt,*bIt);
                                 }
                             }
@@ -400,10 +443,10 @@ int main(int argc, char *argv[])
                                 if (rawEvent->getTriggerBits() == dpTriggerMask) {
                                     bhCorrHistsOffByOne[quad]->Fill(*hIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                                     bhCorrHistsOffByOneNIM1[quad]->Fill(*hIt,*bIt);
                                 }
-                                if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                                else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                                     bhCorrHistsOffByOneNIM3[quad]->Fill(*hIt,*bIt);
                                 }
                             }
@@ -415,10 +458,10 @@ int main(int argc, char *argv[])
                         if (rawEvent->getTriggerBits() == dpTriggerMask) {
                             fbQuadHist->Fill(onlyquadF, onlyquadB);
                         }
-                        if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                        else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                             fbQuadHistNIM1->Fill(onlyquadF, onlyquadB);
                         }
-                        if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                        else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                             fbQuadHistNIM3->Fill(onlyquadF, onlyquadB);
                         }
                         //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
@@ -427,10 +470,10 @@ int main(int argc, char *argv[])
                         if (rawEvent->getTriggerBits() == dpTriggerMask) {
                             bhQuadHist->Fill(onlyquadH, onlyquadB);
                         }
-                        if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                        else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
                             bhQuadHistNIM1->Fill(onlyquadH, onlyquadB);
                         }
-                        if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                        else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
                             bhQuadHistNIM3->Fill(onlyquadH, onlyquadB);
                         }
                         //cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << onlyquadF << " " << onlyquadB << " " << nhitsF << " " << nhitsB << endl;
