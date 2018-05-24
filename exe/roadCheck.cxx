@@ -206,6 +206,16 @@ int main(int argc, char *argv[])
             hitEleHistsNIM3[quad] = new TH1D(name,name,8,0.5,8.5);
         }
     }
+
+    TH2D* rawTimeHists = new TH2D("rawTimeHists","rawTimeHists",800,0,100*rfclock,63,-0.5,62.5);
+    TH2D* rawTimeHistsNIM1 = new TH2D("rawTimeHistsNIM1","rawTimeHistsNIM1",800,0,100*rfclock,63,-0.5,62.5);
+    TH2D* rawTimeHistsNIM3 = new TH2D("rawTimeHistsNIM3","rawTimeHistsNIM3",800,0,100*rfclock,63,-0.5,62.5);
+
+    TH2D* rawTimeDCHists = new TH2D("rawTimeDCHists","rawTimeDCHists",800,0,100*rfclock,200,-0.5,199.5);
+    TH2D* rawTimeDCHistsNIM1 = new TH2D("rawTimeDCHistsNIM1","rawTimeDCHistsNIM1",800,0,100*rfclock,200,-0.5,199.5);
+    TH2D* rawTimeDCHistsNIM3 = new TH2D("rawTimeDCHistsNIM3","rawTimeDCHistsNIM3",800,0,100*rfclock,200,-0.5,199.5);
+
+
     TH2D* fbQuadHist = new TH2D("fbQuadHist","fbQuadHist",4,-0.5,3.5,4,-0.5,3.5);
     TH2D* fbQuadHistNIM1 = new TH2D("fbQuadHistNIM1","fbQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
     TH2D* fbQuadHistNIM3 = new TH2D("fbQuadHistNIM3","fbQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
@@ -213,6 +223,7 @@ int main(int argc, char *argv[])
     TH2D* bhQuadHistNIM1 = new TH2D("bhQuadHistNIM1","bhQuadHistNIM1",4,-0.5,3.5,4,-0.5,3.5);
     TH2D* bhQuadHistNIM3 = new TH2D("bhQuadHistNIM3","bhQuadHistNIM3",4,-0.5,3.5,4,-0.5,3.5);
 
+    TH2D* hitsVsTrig = new TH2D("hitsVsTrig","hitsVsTrig",200,-0.5,199.5,100,0,300);
 
     TH2D* roadsVsTrig = new TH2D("roadsVsTrig","roadsVsTrig",200,-0.5,199.5,16,-0.5,15.5);
     TH2D* roadsVsTrigNoTimecut = new TH2D("roadsVsTrigNoTimecut","roadsVsTrigNoTimecut",200,-0.5,199.5,16,-0.5,15.5);
@@ -232,6 +243,18 @@ int main(int argc, char *argv[])
             //if (rawEvent->getTriggerBits()==64) cout << rawEvent->getRunID() << " " << rawEvent->getEventID() << " " << rawEvent->getTriggerBits() << endl;
             for(Int_t k = 0; k < rawEvent->getNHitsAll(); ++k) {
                 Hit h = rawEvent->getHit(k);
+                if (rawEvent->getTriggerBits() == dpTriggerMask) {
+                    rawTimeHists->Fill(h.tdcTime,h.detectorID);
+                    if (h.detectorID==20) rawTimeDCHists->Fill(h.tdcTime,h.elementID);
+                }
+                else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                    rawTimeHistsNIM1->Fill(h.tdcTime,h.detectorID);
+                    if (h.detectorID==20) rawTimeDCHistsNIM1->Fill(h.tdcTime,h.elementID);
+                }
+                else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                    rawTimeHistsNIM3->Fill(h.tdcTime,h.detectorID);
+                    if (h.detectorID==20) rawTimeDCHistsNIM3->Fill(h.tdcTime,h.elementID);
+                }
                 int dpQuadID = -1;
                 int barID = -1;
                 //if (h.detectorID >= 41 && h.detectorID < 45) dpQuadID = h.detectorID-33; //H4Y1L = 8, H4Y1R = 9, etc.
@@ -285,14 +308,14 @@ int main(int argc, char *argv[])
                             //hitEleHists[dpQuadID]->Fill(barID);
                         }
                     }
-                    if (rawEvent->getTriggerBits() == nim1TriggerMask) {
-                        hitTimeHistsNIM1[dpQuadID]->Fill(deltaT,barID);
-                        //if (h.isInTime()) hitEleHistsNIM1[dpQuadID]->Fill(barID);
-                    }
-                    if (rawEvent->getTriggerBits() == nim3TriggerMask) {
-                        hitTimeHistsNIM3[dpQuadID]->Fill(deltaT,barID);
-                        //if (h.isInTime()) hitEleHistsNIM3[dpQuadID]->Fill(barID);
-                    }
+                        else if (rawEvent->getTriggerBits() == nim1TriggerMask) {
+                            hitTimeHistsNIM1[dpQuadID]->Fill(deltaT,barID);
+                            //if (h.isInTime()) hitEleHistsNIM1[dpQuadID]->Fill(barID);
+                        }
+                        else if (rawEvent->getTriggerBits() == nim3TriggerMask) {
+                            hitTimeHistsNIM3[dpQuadID]->Fill(deltaT,barID);
+                            //if (h.isInTime()) hitEleHistsNIM3[dpQuadID]->Fill(barID);
+                        }
                     }
 
                     int roadBits = 0;
